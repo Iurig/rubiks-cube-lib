@@ -242,7 +242,7 @@ impl RubiksCube {
             && self.edge_permutation == Edge::ALL
     }
     #[must_use]
-    pub fn respects_parity(&self) -> bool {
+    pub fn respects_orientation_parity(&self) -> bool {
         self.corner_orientation
             .iter()
             .fold(ZnRing::<CO_COUNT>::default(), |co_sum, &corner_co| {
@@ -281,7 +281,7 @@ mod tests {
     fn r_4_times_is_solved_and_respects_parity() {
         let mut cube = RubiksCube::default();
         for _ in 0..4 {
-            assert!(cube.respects_parity());
+            assert!(cube.respects_orientation_parity());
             cube = cube * RubiksCube::R;
         }
         assert!(cube.is_solved());
@@ -299,5 +299,92 @@ mod tests {
         let mut cube = RubiksCube::default();
         cube = cube * RubiksCube::R * RubiksCube::R.inverse();
         assert!(cube.is_solved());
+    }
+
+    #[test]
+    fn corner_and_edge_all_match_discriminants() {
+        for (i, c) in Corner::ALL.iter().enumerate() {
+            assert_eq!(*c as usize, i);
+            assert_eq!(Corner::from_index(i), *c);
+        }
+        for (i, e) in Edge::ALL.iter().enumerate() {
+            assert_eq!(*e as usize, i);
+            assert_eq!(Edge::from_index(i), *e);
+        }
+    }
+
+    #[test]
+    fn cycle_is_a_permutation_and_moves_pieces_forward_and_leaves_rest() {
+        use Corner::{Dbr, Dfr, Ubr, Ufr};
+        let mut perm = Corner::cycle([[Ufr, Ubr, Dbr, Dfr]]);
+        assert_eq!(perm[Ubr as usize], Ufr);
+        assert_eq!(perm[Dbr as usize], Ubr);
+        assert_eq!(perm[Dfr as usize], Dbr);
+        assert_eq!(perm[Ufr as usize], Dfr);
+        for c in [Corner::Ubl, Corner::Ufl, Corner::Dfl, Corner::Dbl] {
+            assert_eq!(perm[c as usize], c);
+        }
+        perm.sort();
+        assert_eq!(perm, Corner::ALL);
+    }
+
+    #[test]
+    fn cycle_with_disjoint_cycles_is_a_permutation() {
+        use Edge::{Dl, Dr, Ub, Uf};
+        let mut perm = Edge::cycle([[Ub, Uf], [Dl, Dr]]);
+        assert_eq!(perm[Uf as usize], Ub);
+        assert_eq!(perm[Ub as usize], Uf);
+        perm.sort();
+        assert_eq!(perm, Edge::ALL);
+    }
+
+    #[test]
+    fn r_constant_respects_bounds_and_touches_only_r_layer() {
+        for co in RubiksCube::R.corner_orientation {
+            assert!(co.0 < CO_COUNT);
+        }
+        for eo in RubiksCube::R.edge_orientation {
+            assert!(eo.0 < EO_COUNT);
+        }
+        for c in [Corner::Ubl, Corner::Ufl, Corner::Dfl, Corner::Dbl] {
+            assert_eq!(RubiksCube::R.corner_orientation[c as usize], ZnRing(0));
+            assert_eq!(RubiksCube::R.corner_permutation[c as usize], c);
+        }
+        for e in [
+            Edge::Ub,
+            Edge::Uf,
+            Edge::Ul,
+            Edge::Fl,
+            Edge::Bl,
+            Edge::Df,
+            Edge::Db,
+            Edge::Dl,
+        ] {
+            assert_eq!(RubiksCube::R.edge_permutation[e as usize], e);
+        }
+        assert!(RubiksCube::R.respects_orientation_parity());
+    }
+
+    #[test]
+    fn mul_carries_orientation_along_with_the_piece() {
+        // Pre-twist the piece at UFR, then apply R: that piece lands at UBR and
+        // its twist is added to the twist R gives the UBR slot.
+        let mut twisted = RubiksCube::default();
+        twisted.corner_orientation[Corner::Ufr as usize] = ZnRing(1);
+        let after = twisted * RubiksCube::R;
+        let mut expected = RubiksCube::R;
+        expected.corner_orientation[Corner::Ubr as usize] =
+            expected.corner_orientation[Corner::Ubr as usize] + ZnRing(1);
+        assert_eq!(after, expected);
+    }
+
+    #[test]
+    fn zn_ring_reduces_wraps_and_negates() {
+        assert_eq!(ZnRing::<3>::from(7), ZnRing(1));
+        assert_eq!(ZnRing::<3>(2) + ZnRing(2), ZnRing(1));
+        for x in 0..CO_COUNT {
+            let v = ZnRing::<CO_COUNT>::from(x);
+            assert_eq!(v + (-v), ZnRing(0));
+        }
     }
 }
