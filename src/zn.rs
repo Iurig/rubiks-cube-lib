@@ -51,4 +51,14 @@ mod tests {
         assert_eq!(-ZnRing::<5>::from(2), ZnRing::from(3));
         assert_eq!(-ZnRing::<5>::from(0), ZnRing::from(0));
     }
+
+    #[test]
+    fn zn_ring_reduces_wraps_and_negates() {
+        assert_eq!(ZnRing::<3>::from(7), ZnRing::new(1));
+        assert_eq!(ZnRing::<3>::new(2) + ZnRing::new(2), ZnRing::new(1));
+        for x in 0..3 {
+            let v = ZnRing::<3>::from(x);
+            assert_eq!(v + (-v), ZnRing::new(0));
+        }
+    }
 }
