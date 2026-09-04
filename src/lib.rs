@@ -252,13 +252,20 @@ mod tests {
     }
 
     #[test]
-    fn r_4_times_is_solved() {
+    fn r_4_times_is_solved_and_respects_parity() {
         let mut cube = RubiksCube::default();
         for _ in 0..4 {
             assert!(cube.respects_parity());
             cube = cube * RubiksCube::R;
         }
         assert!(cube.is_solved());
+    }
+    
+    #[test]
+    fn r_2_is_equal_to_r_prime_2(){
+    	let r2 = RubiksCube::default() * RubiksCube::R * RubksCube::R;
+        let r_prime_2 = RubiksCube::default() * RubiksCube::R.inverse() * RubiksCube::R.inverse();
+        assert(r2 == r_prime_2);
     }
 
     #[test]
