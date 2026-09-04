@@ -1,3 +1,5 @@
+use std::ops::Neg;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct ZnRing<const N: usize>(usize);
 
@@ -23,6 +25,12 @@ impl<const N: usize> ZnRing<N> {
             i += 1;
         }
         final_array
+    }
+}
+impl<const N: usize> Neg for ZnRing<N> {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        Self::from(N - self.0)
     }
 }
 
@@ -56,6 +64,10 @@ impl Corner {
         Corner::Dbr,
         Corner::Dbl,
     ];
+
+    pub const fn from_index(index: usize) -> Corner {
+        Self::ALL[index]
+    }
 
     pub const fn cycle<const M: usize, const N: usize>(
         to_cycle: [[Corner; M]; N],
@@ -106,6 +118,10 @@ impl Edge {
         Edge::Db,
         Edge::Dl,
     ];
+
+    pub const fn from_index(index: usize) -> Edge {
+        Self::ALL[index]
+    }
 
     pub const fn cycle<const M: usize, const N: usize>(
         to_cycle: [[Edge; M]; N],
@@ -188,7 +204,17 @@ where
 
 impl Inv for RubiksCube {
     fn inverse(&self) -> Self {
-        todo!()
+        let mut inv = RubiksCube::default();
+        for i in 0..EDGES_COUNT {
+            inv.edge_permutation[self.edge_permutation[i] as usize] = Edge::from_index(i);
+            inv.edge_orientation[self.edge_permutation[i] as usize] = -self.edge_orientation[i];
+        }
+        for i in 0..CORNERS_COUNT {
+            inv.corner_permutation[self.corner_permutation[i] as usize] = Corner::from_index(i);
+            inv.corner_orientation[self.corner_permutation[i] as usize] =
+                -self.corner_orientation[i];
+        }
+        inv
     }
 }
 
@@ -265,7 +291,7 @@ mod tests {
     fn r_2_is_equal_to_r_prime_2() {
         let r2 = RubiksCube::default() * RubiksCube::R * RubiksCube::R;
         let r_prime_2 = RubiksCube::default() * RubiksCube::R.inverse() * RubiksCube::R.inverse();
-        assert!(r2 == r_prime_2);
+        assert_eq!(r2, r_prime_2);
     }
 
     #[test]
