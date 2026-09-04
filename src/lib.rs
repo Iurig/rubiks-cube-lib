@@ -260,12 +260,12 @@ mod tests {
         }
         assert!(cube.is_solved());
     }
-    
+
     #[test]
-    fn r_2_is_equal_to_r_prime_2(){
-    	let r2 = RubiksCube::default() * RubiksCube::R * RubksCube::R;
+    fn r_2_is_equal_to_r_prime_2() {
+        let r2 = RubiksCube::default() * RubiksCube::R * RubiksCube::R;
         let r_prime_2 = RubiksCube::default() * RubiksCube::R.inverse() * RubiksCube::R.inverse();
-        assert(r2 == r_prime_2);
+        assert!(r2 == r_prime_2);
     }
 
     #[test]
