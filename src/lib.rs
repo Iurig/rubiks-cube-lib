@@ -197,9 +197,34 @@ pub trait Inv
 where
     Self: std::marker::Sized,
 {
-    /// Required methods
-    #[must_use]
+    /// Inverts a state, possibly fallibly
+    #[must_use = "this returns the inverse of a state, without modifying the original state"]
     fn inverse(&self) -> Self;
+}
+
+pub trait Pow {
+    /// The resulting type after applying the `.pow()` operation.
+    type Output;
+
+    /// Performs the power operation.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// assert_eq!(2_i32.pow(3), 8);
+    /// ```
+    fn pow(&self, exponent: u64) -> Self::Output;
+}
+
+impl Pow for RubiksCube {
+    type Output = Self;
+    fn pow(&self, exponent: u64) -> Self::Output {
+        if exponent == 0 {
+            Self::default()
+        } else {
+            self.clone() * self.pow(exponent - 1)
+        }
+    }
 }
 
 impl Inv for RubiksCube {
@@ -386,5 +411,14 @@ mod tests {
             let v = ZnRing::<CO_COUNT>::from(x);
             assert_eq!(v + (-v), ZnRing(0));
         }
+    }
+    #[test]
+    fn u_perm_repeats_after_3_applications() {
+        use Edge::{Uf, Ul, Ur};
+        let u_perm = RubiksCube {
+            edge_permutation: Edge::cycle([[Ur, Uf, Ul]]),
+            ..Default::default()
+        };
+        assert_eq!(u_perm.pow(3), RubiksCube::default());
     }
 }
