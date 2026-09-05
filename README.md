@@ -1,6 +1,8 @@
 # rubiks-cube-lib
 
 ![CI](https://github.com/Iurig/rubiks/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/github/license/Iurig/rubiks)
+![MSRV](https://img.shields.io/badge/rustc-1.85%2B-blue)
 
 
 A Rust library that models the 3×3×3 Rubik's Cube, with planned expansion for other cube types, as well as solving from an algorithm library.
