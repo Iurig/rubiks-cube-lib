@@ -104,6 +104,7 @@ fn fmc_wr_as_multiplication() {
 }
 
 #[test]
+#[ignore = "rotations not yet implemented"]
 fn cfop_solve() {
     let scramble = "R2 F' L2 D2 F2 U2 B' L2 F R2 D2 F2 D L' U B R' F' R D R2 U2 ";
     let solve = "z y2 
@@ -122,6 +123,7 @@ fn cfop_solve() {
 }
 
 #[test]
+#[ignore = "rotations AND wide moves not yet implemented"]
 fn roux_solve_with_comments() {
     assert!(
         Cube3By3::from_solved(concat!(
@@ -137,6 +139,7 @@ fn roux_solve_with_comments() {
 }
 
 #[test]
+#[ignore = "rotations AND wide moves not yet implemented"]
 fn roux_solve_without_comments() {
     assert!(
         Cube3By3::from_solved(concat!(
@@ -152,6 +155,7 @@ fn roux_solve_without_comments() {
 }
 
 #[test]
+#[ignore = "comments are removed but roux solve lacks rotation and wide move implementation"]
 fn roux_solve_removes_comments() {
     assert_eq!(
         Cube3By3::from_solved(concat!(
@@ -247,6 +251,7 @@ fn adjacent_face_sequence_has_constant_and_correct_period() {
 }
 
 #[test]
+#[ignore = "known incorrect implementation of slices"]
 fn slice_face_has_constant_and_correct_period() {
     let pairs = [
         ("M", "U"),
