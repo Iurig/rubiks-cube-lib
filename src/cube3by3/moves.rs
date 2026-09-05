@@ -111,7 +111,7 @@ impl From<Move> for Cube3By3 {
     }
 }
 
-const CLOCKWISE_MOVE_COUNT: usize = 6;
+const CLOCKWISE_MOVE_COUNT: usize = 10;
 const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
     Move {
         cube_representation: Cube3By3 {
@@ -215,6 +215,64 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
     },
     Move {
         cube_representation: Cube3By3 {
+            center_configuration: Centers::IDENTITY,
+            corner_configuration: {
+                let mut corners = Corners::cycle([[
+                    SingleCorner::Dfr,
+                    SingleCorner::Dfl,
+                    SingleCorner::Ufl,
+                    SingleCorner::Ufr,
+                ]]);
+                corners.orientation = ZnRing::array([0, 0, 1, 2, 1, 2, 0, 0]);
+                corners
+            },
+            edge_configuration: Edges {
+                permutation: Edges::cycle([[
+                    SingleEdge::Df,
+                    SingleEdge::Fl,
+                    SingleEdge::Uf,
+                    SingleEdge::Fr,
+                ]])
+                .permutation,
+                orientation: ZnRing::array([0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0]),
+            },
+        },
+        is_slice: false,
+        is_rotation: false,
+        part: MovablePart::Face(Faces::F),
+        modifier: MoveModifier::Clockwise,
+    },
+    Move {
+        cube_representation: Cube3By3 {
+            center_configuration: Centers::IDENTITY,
+            corner_configuration: {
+                let mut corners = Corners::cycle([[
+                    SingleCorner::Ubr,
+                    SingleCorner::Ubl,
+                    SingleCorner::Dbl,
+                    SingleCorner::Dbr,
+                ]]);
+                corners.orientation = ZnRing::array([1, 2, 0, 0, 0, 0, 1, 2]);
+                corners
+            },
+            edge_configuration: Edges {
+                permutation: Edges::cycle([[
+                    SingleEdge::Br,
+                    SingleEdge::Ub,
+                    SingleEdge::Bl,
+                    SingleEdge::Db,
+                ]])
+                .permutation,
+                orientation: ZnRing::array([1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0]),
+            },
+        },
+        is_slice: false,
+        is_rotation: false,
+        part: MovablePart::Face(Faces::B),
+        modifier: MoveModifier::Clockwise,
+    },
+    Move {
+        cube_representation: Cube3By3 {
             center_configuration: Centers::cycle([[
                 SingleCenter::F,
                 SingleCenter::L,
@@ -232,6 +290,52 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
         is_slice: true,
         is_rotation: false,
         part: MovablePart::Slice(Slices::E),
+        modifier: MoveModifier::Clockwise,
+    },
+    Move {
+        cube_representation: Cube3By3 {
+            center_configuration: Centers::cycle([[
+                SingleCenter::F,
+                SingleCenter::D,
+                SingleCenter::B,
+                SingleCenter::U,
+            ]]),
+            corner_configuration: Corners::IDENTITY,
+            edge_configuration: Edges::cycle([[
+                SingleEdge::Uf,
+                SingleEdge::Df,
+                SingleEdge::Db,
+                SingleEdge::Ub,
+            ]]),
+        },
+        is_slice: true,
+        is_rotation: false,
+        part: MovablePart::Slice(Slices::M),
+        modifier: MoveModifier::Clockwise,
+    },
+    Move {
+        cube_representation: Cube3By3 {
+            center_configuration: Centers::cycle([[
+                SingleCenter::U,
+                SingleCenter::R,
+                SingleCenter::D,
+                SingleCenter::L,
+            ]]),
+            corner_configuration: Corners::IDENTITY,
+            edge_configuration: Edges {
+                permutation: Edges::cycle([[
+                    SingleEdge::Fr,
+                    SingleEdge::Fl,
+                    SingleEdge::Bl,
+                    SingleEdge::Br,
+                ]])
+                .permutation,
+                orientation: ZnRing::array([1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0]),
+            },
+        },
+        is_slice: true,
+        is_rotation: false,
+        part: MovablePart::Slice(Slices::S),
         modifier: MoveModifier::Clockwise,
     },
     Move {
