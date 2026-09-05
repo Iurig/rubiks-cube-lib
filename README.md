@@ -1,5 +1,8 @@
 # rubiks-cube-lib
 
+![CI](https://github.com/Iurig/rubiks/actions/workflows/ci.yml/badge.svg)
+
+
 A Rust library that models the 3×3×3 Rubik's Cube, with planned expansion for other cube types, as well as solving from an algorithm library.
 
 A cube state is a value of type `Cube3By3`. Moves are cube states too, and applying a move is just
