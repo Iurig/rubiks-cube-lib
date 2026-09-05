@@ -95,23 +95,81 @@ fn multiple_moves_break_down_correctly() {
 }
 
 #[test]
-fn fmc_wr() {
+fn fmc_wr_as_multiplication() {
     let scramble = Cube3By3::from_solved(
         "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F",
     );
+    let solve = Cube3By3::from_solved("    D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'");
+    assert!((scramble * solve).is_solved(), "{:?}", scramble * solve);
+}
+
+#[test]
+fn cfop_solve() {
+    let scramble = "R2 F' L2 D2 F2 U2 B' L2 F R2 D2 F2 D L' U B R' F' R D R2 U2 ";
+    let solve = "z y2 
+            U' R' L2 x' 
+            F' U F 
+            R' U' R U R' U' R 
+            L U' L' 
+            U y' U R U' R' U' R U' R2' F R 
+            U R U' R' U R U2' R' U' R U R' F'";
     assert!(
-        Cube3By3::from_solved(
-        "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F    D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'"
-    )
-            .is_solved(),
-        "{:?}",
-        scramble.move_sequence("D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")
+        Cube3By3::IDENTITY
+            .move_sequence(scramble)
+            .move_sequence(solve)
+            .is_solved()
     );
+}
+
+#[test]
+fn roux_solve_with_comments() {
+    assert!(
+        Cube3By3::from_solved(concat!(
+            "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
+            "y2 F' M F' R U' R U' Fw z' // FB
+            U R U r M' U' R U2' R' // SS
+            U R' U' R U' R' U' r // SP (CMLL skip)
+            U M' U' M U' U' M' U M // EOLR
+            U' U' M2' U' M U' U' M' U' U' M2' // EP"
+        ))
+        .is_solved()
+    );
+}
+
+#[test]
+fn roux_solve_without_comments() {
+    assert!(
+        Cube3By3::from_solved(concat!(
+            "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
+            "y2 F' M F' R U' R U' Fw z' 
+            U R U r M' U' R U2' R' 
+            U R' U' R U' R' U' r 
+            U M' U' M U' U' M' U M 
+            U' U' M2' U' M U' U' M' U' U' M2' "
+        ))
+        .is_solved()
+    );
+}
+
+#[test]
+fn roux_solve_removes_comments() {
     assert_eq!(
-        Cube3By3::from_solved(
-            "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F    D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'"
-        ),
-        scramble.move_sequence("D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")
+        Cube3By3::from_solved(concat!(
+            "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
+            "y2 F' M F' R U' R U' Fw z' 
+            U R U r M' U' R U2' R' 
+            U R' U' R U' R' U' r 
+            U M' U' M U' U' M' U M 
+            U' U' M2' U' M U' U' M' U' U' M2' "
+        )),
+        Cube3By3::from_solved(concat!(
+            "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
+            "y2 F' M F' R U' R U' Fw z' // FB
+            U R U r M' U' R U2' R' // SS
+            U R' U' R U' R' U' r // SP (CMLL skip)
+            U M' U' M U' U' M' U M // EOLR
+            U' U' M2' U' M U' U' M' U' U' M2' // EP"
+        ))
     );
 }
 
@@ -189,7 +247,7 @@ fn adjacent_face_sequence_has_constant_and_correct_period() {
 }
 
 #[test]
-fn slice_face_has_constand_and_correct_period() {
+fn slice_face_has_constant_and_correct_period() {
     let pairs = [
         ("M", "U"),
         ("M", "F"),
