@@ -3,7 +3,5 @@ name = "rubiks"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
-
 [dev-dependencies]
 fastrand = "2.5.0"

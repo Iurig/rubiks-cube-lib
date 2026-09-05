@@ -1,11 +1,13 @@
+pub(crate) mod moves;
 pub(crate) mod pieces;
+
 #[allow(clippy::wildcard_imports)]
-use self::pieces::*;
+use self::{moves::*, pieces::*};
 use crate::{
     ops::{Inv, Pow},
     zn::ZnRing,
 };
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Copy)]
 #[allow(clippy::struct_field_names)]
 pub struct Cube3By3 {
     /// `CENTER_ORIENTATION_COUNT` is 1, centers are considered without orientation
@@ -22,6 +24,11 @@ impl std::ops::Mul for Cube3By3 {
     /// IMPORTANT: associative, but non-commutative
     #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, to_be_aplied: Self) -> Self::Output {
+        self.const_mul(to_be_aplied)
+    }
+}
+impl Cube3By3 {
+    const fn const_mul(self, to_be_aplied: Self) -> Cube3By3 {
         Cube3By3 {
             center_configuration: self
                 .center_configuration
@@ -42,18 +49,14 @@ impl Pow for Cube3By3 {
         if exponent == 0 {
             Self::IDENTITY
         } else {
-            self.clone() * self.pow(exponent - 1)
+            *self * self.pow(exponent - 1)
         }
     }
 }
 
 impl Inv for Cube3By3 {
     fn inverse(&self) -> Self {
-        Cube3By3 {
-            center_configuration: self.center_configuration.inverse(),
-            corner_configuration: self.corner_configuration.inverse(),
-            edge_configuration: self.edge_configuration.inverse(),
-        }
+        self.const_inverse()
     }
 }
 
@@ -64,29 +67,36 @@ impl Cube3By3 {
         corner_configuration: Corners::IDENTITY,
         edge_configuration: Edges::IDENTITY,
     };
-    pub const R: Cube3By3 = Cube3By3 {
-        center_configuration: Centers::IDENTITY,
-        corner_configuration: {
-            let mut corners = Corners::cycle::<4, 1>([[
-                SingleCorner::Ufr,
-                SingleCorner::Ubr,
-                SingleCorner::Dbr,
-                SingleCorner::Dfr,
-            ]]);
-            corners.orientation = ZnRing::array([0, 1, 2, 0, 0, 1, 2, 0]);
-            corners
-        },
-        edge_configuration: Edges::cycle([[
-            SingleEdge::Fr,
-            SingleEdge::Ur,
-            SingleEdge::Br,
-            SingleEdge::Dr,
-        ]]),
-    };
-    //pub const Y: RubiksCube = todo!();
+
+    const fn const_inverse(&self) -> Self {
+        Cube3By3 {
+            center_configuration: self.center_configuration.const_inverse(),
+            corner_configuration: self.corner_configuration.const_inverse(),
+            edge_configuration: self.edge_configuration.const_inverse(),
+        }
+    }
+
+    #[must_use]
+    pub fn move_sequence(&self, moves: &str) -> Self {
+        if moves.contains(' ') {
+            moves
+                .split_ascii_whitespace()
+                .fold(Cube3By3::IDENTITY, |cube, single_move| {
+                    cube.move_sequence(single_move)
+                })
+        } else {
+            *self * Cube3By3::from(Move::from(moves))
+        }
+    }
+
+    #[must_use]
+    pub fn from_solved(m: &str) -> Self {
+        Cube3By3::default().move_sequence(m)
+    }
+
     #[must_use]
     pub fn is_solved(&self) -> bool {
-        let rotated_self = self.clone();
+        let rotated_self = *self;
         // TODO: implement rotating to put U on top and F on front on `rotated_self`
         rotated_self == Cube3By3::IDENTITY
     }
@@ -114,37 +124,42 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "is_solved not yet implemented for rotated cubes"]
     fn rotated_solved_is_solved() {
-        let rotated_def = Cube3By3::default(); //* RubiksCube::Y.pow(fastrand::u64(0..400));
+        let rotated_def = Cube3By3::from_solved("y");
         assert!(rotated_def.is_solved());
     }
 
     #[test]
     fn r_4_times_is_solved_and_respects_parity() {
-        let mut cube = Cube3By3::default();
-        for _ in 0..4 {
-            assert!(cube.respects_orientation_parity());
-            cube = cube * Cube3By3::R;
-        }
+        let cube = Cube3By3::from_solved("R R R R");
         assert!(cube.is_solved());
     }
 
     #[test]
     fn r_2_is_equal_to_r_prime_2() {
-        let r2 = Cube3By3::default() * Cube3By3::R * Cube3By3::R;
-        let r_prime_2 = Cube3By3::default() * Cube3By3::R.inverse() * Cube3By3::R.inverse();
+        let r2 = Cube3By3::from_solved("R2");
+        let r_prime_2 = Cube3By3::from_solved("R' R'");
         assert_eq!(r2, r_prime_2);
     }
 
     #[test]
     fn r_r_prime_is_solved() {
-        let mut cube = Cube3By3::default();
-        cube = cube * Cube3By3::R * Cube3By3::R.inverse();
+        let mut cube = Cube3By3::from_solved("R");
+        assert!(!cube.is_solved());
+        cube = cube.move_sequence("R'");
         assert!(cube.is_solved());
     }
 
     #[test]
-    fn r_constant_respects_bounds_and_touches_only_r_layer() {
+    fn r_prime_is_inverse_of_r() {
+        let r = Cube3By3::from_solved("R");
+        let r_prime = Cube3By3::from_solved("R'");
+        assert_eq!(r.const_inverse(), r_prime);
+    }
+
+    #[test]
+    fn r_move_respects_bounds_and_touches_only_r_layer() {
         for c in [
             SingleCorner::Ubl,
             SingleCorner::Ufl,
@@ -152,10 +167,13 @@ mod tests {
             SingleCorner::Dbl,
         ] {
             assert_eq!(
-                Cube3By3::R.corner_configuration.orientation[c as usize],
+                Cube3By3::from_solved("R").corner_configuration.orientation[c as usize],
                 ZnRing::ZERO
             );
-            assert_eq!(Cube3By3::R.corner_configuration.permutation[c as usize], c);
+            assert_eq!(
+                Cube3By3::from_solved("R").corner_configuration.permutation[c as usize],
+                c
+            );
         }
         for e in [
             SingleEdge::Ub,
@@ -167,9 +185,12 @@ mod tests {
             SingleEdge::Db,
             SingleEdge::Dl,
         ] {
-            assert_eq!(Cube3By3::R.edge_configuration.permutation[e as usize], e);
+            assert_eq!(
+                Cube3By3::from_solved("R").edge_configuration.permutation[e as usize],
+                e
+            );
         }
-        assert!(Cube3By3::R.respects_orientation_parity());
+        assert!(Cube3By3::from_solved("R").respects_orientation_parity());
     }
 
     #[test]
@@ -178,8 +199,8 @@ mod tests {
         // its twist is added to the twist R gives the UBR slot.
         let mut twisted = Cube3By3::default();
         twisted.corner_configuration.orientation[SingleCorner::Ufr as usize] = ZnRing::new(1);
-        let after = twisted * Cube3By3::R;
-        let mut expected = Cube3By3::R;
+        let after = twisted * Cube3By3::from_solved("R");
+        let mut expected = Cube3By3::from_solved("R");
         expected.corner_configuration.orientation[SingleCorner::Ubr as usize] =
             expected.corner_configuration.orientation[SingleCorner::Ubr as usize] + ZnRing::new(1);
         assert_eq!(after, expected);

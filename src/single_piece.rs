@@ -21,7 +21,7 @@ where
 {
     unsafe { (&raw const piece).cast::<u8>().read() as usize }
 }
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub struct PieceConfiguration<P, const N: usize, const O: usize> {
     pub(crate) permutation: [P; N],
     pub(crate) orientation: [ZnRing<O>; N],
@@ -59,12 +59,14 @@ where
 
     /// Compose permutations done by `self` with `other`
     #[must_use]
-    pub fn then(&self, other: &Self) -> Self {
+    pub const fn then(&self, other: &Self) -> Self {
         let mut composed = Self::IDENTITY;
-        for i in 0..N {
+        let mut i = 0;
+        while i < N {
             composed.permutation[i] = self.permutation[index(other.permutation[i])];
             composed.orientation[i] =
-                self.orientation[index(other.permutation[i])] + other.orientation[i];
+                self.orientation[index(other.permutation[i])].const_add(other.orientation[i]);
+            i += 1;
         }
         composed
     }
@@ -83,6 +85,17 @@ where
             i += 1;
         }
         resp
+    }
+    #[must_use = "the inverse is returned"]
+    pub const fn const_inverse(&self) -> Self {
+        let mut inv = PieceConfiguration::IDENTITY;
+        let mut i = 0;
+        while i < N {
+            inv.permutation[index(self.permutation[i])] = P::ALL[i];
+            inv.orientation[index(self.permutation[i])] = self.orientation[i].const_neg();
+            i += 1;
+        }
+        inv
     }
 }
 #[cfg(test)]
