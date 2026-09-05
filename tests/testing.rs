@@ -1,13 +1,10 @@
 use rubiks::{Cube3By3, Inv, Pow};
 
+const IMPLEMENTED_MOVES: [&str; 8] = ["R", "U", "D", "L", "E", "S", "M", "y"];
+
 #[test]
 fn default_respects_parity() {
     assert!(Cube3By3::default().respects_orientation_parity());
-}
-
-#[test]
-fn one_r_is_not_solved() {
-    assert!(!(Cube3By3::default() * Cube3By3::from_solved("R")).is_solved());
 }
 
 #[test]
@@ -24,8 +21,7 @@ fn identity_is_two_sided() {
 
 #[test]
 fn clockwise_moves_have_order_exactly_4() {
-    let moves = ["R", "U", "D", "L", "E", "y"];
-    for m in moves {
+    for m in IMPLEMENTED_MOVES {
         for k in 1..4 {
             assert!(
                 !Cube3By3::from_solved(m).pow(k).is_solved(),
@@ -40,35 +36,40 @@ fn clockwise_moves_have_order_exactly_4() {
 }
 
 #[test]
-fn r_inverse_is_r_cubed() {
-    assert_eq!(
-        Cube3By3::from_solved("R").inverse(),
-        Cube3By3::from_solved("R").pow(3)
-    );
+fn move_inverse_is_move_cubed() {
+    for m in IMPLEMENTED_MOVES {
+        assert_eq!(
+            Cube3By3::from_solved(m).inverse(),
+            Cube3By3::from_solved(m).pow(3)
+        );
+    }
 }
 
 #[test]
 fn inverse_is_an_involution() {
-    assert_eq!(
-        Cube3By3::from_solved("R").inverse().inverse(),
-        Cube3By3::from_solved("R")
-    );
+    for m in IMPLEMENTED_MOVES {
+        assert_eq!(
+            Cube3By3::from_solved(m).inverse().inverse(),
+            Cube3By3::from_solved(m)
+        );
+    }
     assert_eq!(Cube3By3::default().inverse(), Cube3By3::default());
 }
 
 #[test]
 fn mul_is_associative() {
     let a = Cube3By3::from_solved("R");
-    let b = Cube3By3::from_solved("R").pow(2);
-    let c = Cube3By3::from_solved("R").inverse();
+    let b = Cube3By3::from_solved("U2 L").pow(2);
+    let c = Cube3By3::from_solved("y").inverse();
     assert_eq!((a * b) * c, a * (b * c));
 }
 
 #[test]
 fn inverse_of_product_reverses_order() {
-    let a = Cube3By3::from_solved("R").pow(1);
+    let a = Cube3By3::from_solved("U").pow(1);
     let b = Cube3By3::from_solved("R").pow(2);
     assert_eq!((a * b).inverse(), b.inverse() * a.inverse());
+    assert_ne!((a * b).inverse(), a.inverse() * b.inverse());
 }
 
 #[test]
@@ -93,6 +94,82 @@ fn multiple_moves_break_down_correctly() {
     );
 }
 
+#[test]
+fn sexy_move_has_correct_period() {
+    for k in 1..6 {
+        assert!(
+            !Cube3By3::from_solved("R U R' U'").pow(k).is_solved(),
+            "(R U R' U')^{k} should not be solved"
+        );
+    }
+    assert!(
+        Cube3By3::from_solved("R U R' U'").pow(6).is_solved(),
+        "(R U R' U')^6 should be solved"
+    );
+}
+
+#[test]
+fn adjacent_face_sequence_has_constant_and_correct_period() {
+    let pairs = [("R", "U"), ("U", "L"), ("L", "D"), ("D", "R")];
+    let period = 105;
+    for p in pairs {
+        let mut c = Cube3By3::IDENTITY;
+        for _ in 1..period {
+            c = c.move_sequence(p.0).move_sequence(p.1);
+            assert!(
+                !c.is_solved(),
+                "the period hasn't arrived for {} {}",
+                p.0,
+                p.1
+            );
+        }
+        c = c.move_sequence(p.0).move_sequence(p.1);
+        assert!(
+            c.is_solved(),
+            "the period should've arrived for {} {}",
+            p.0,
+            p.1
+        );
+    }
+}
+
+#[test]
+fn slice_face_has_constand_and_correct_period() {
+    let pairs = [
+        ("M", "U"),
+        ("M", "F"),
+        ("M", "D"),
+        ("M", "B"),
+        ("S", "U"),
+        ("S", "R"),
+        ("S", "D"),
+        ("S", "L"),
+        ("E", "F"),
+        ("E", "R"),
+        ("E", "B"),
+        ("E", "L"),
+    ];
+    let period = 12;
+    for p in pairs {
+        let mut c = Cube3By3::IDENTITY;
+        for i in 1..period {
+            c = c.move_sequence(p.0).move_sequence(p.1);
+            assert!(
+                !c.is_solved(),
+                "the period hasn't arrived for ({} {})^{i}",
+                p.0,
+                p.1
+            );
+        }
+        c = c.move_sequence(p.0).move_sequence(p.1);
+        assert!(
+            c.is_solved(),
+            "the period should've arrived for {} {}",
+            p.0,
+            p.1
+        );
+    }
+}
 #[test]
 fn random_r_words_keep_parity_and_undo_cleanly() {
     fastrand::seed(7);
