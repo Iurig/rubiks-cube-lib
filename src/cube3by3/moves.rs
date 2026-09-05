@@ -5,13 +5,13 @@ use crate::{
     zn::ZnRing,
 };
 
-#[derive(Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum MovablePart {
     Face(Faces),
     Slice(Slices),
     Rotation(Rotations),
 }
-#[derive(Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum MoveModifier {
     Clockwise,
     CounterClockwise,
@@ -23,10 +23,11 @@ pub enum MoveModifier {
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub struct Move {
     cube_representation: Cube3By3,
-    is_slice: bool,
-    is_rotation: bool,
     part: MovablePart,
     modifier: MoveModifier,
+    is_wide: bool,
+    is_slice: bool,
+    is_rotation: bool,
 }
 impl ops::Inv for Move {
     fn inverse(&self) -> Self {
@@ -39,6 +40,7 @@ impl Move {
             cube_representation: self.cube_representation.const_inverse(),
             is_slice: self.is_slice,
             is_rotation: self.is_rotation,
+            is_wide: self.is_wide,
             part: self.part,
             modifier: {
                 match self.modifier {
@@ -56,6 +58,7 @@ impl Move {
             cube_representation: self.cube_representation.const_mul(self.cube_representation),
             is_slice: self.is_slice,
             is_rotation: self.is_rotation,
+            is_wide: self.is_wide,
             part: self.part,
             modifier: {
                 match self.modifier {
@@ -86,22 +89,28 @@ impl From<&str> for Move {
             Some('S') => MovablePart::Slice(Slices::S),
             _ => panic!("{s} is not a valid face, rotation, or slice"),
         };
+        let wide = {
+            match s.chars().nth(1) {
+                Some('w') => true,
+                Some(_) | None => false,
+            }
+        };
         let modif = {
-            if s.len() == 1 {
-                MoveModifier::Clockwise
-            } else {
-                match &s[1..] {
-                    "'" => MoveModifier::CounterClockwise,
-                    "2" => MoveModifier::Double,
-                    "2'" | "'2" => MoveModifier::CounterDouble,
-                    _ => panic!("invalid move"),
-                }
+            match &s[(1 + usize::from(wide))..] {
+                "" => MoveModifier::Clockwise,
+                "'" => MoveModifier::CounterClockwise,
+                "2" => MoveModifier::Double,
+                "2'" | "'2" => MoveModifier::CounterDouble,
+                _ => panic!(
+                    "{:?} isn't a valid move modifier",
+                    &s[(1 + usize::from(wide))..]
+                ),
             }
         };
         *ALL_MOVES
             .iter()
-            .find(|&m| m.part == part && m.modifier == modif)
-            .unwrap()
+            .find(|&m| m.part == part && m.modifier == modif && m.is_wide == wide)
+            .unwrap_or_else(|| panic!("there is no implemented move for {s}, corresponding to {part:?}, {modif:?} and is_wide = {wide}"))
     }
 }
 
@@ -135,6 +144,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
         },
         is_slice: false,
         is_rotation: false,
+        is_wide: false,
         part: MovablePart::Face(Faces::R),
         modifier: MoveModifier::Clockwise,
     },
@@ -160,6 +170,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
         },
         is_slice: false,
         is_rotation: false,
+        is_wide: false,
         part: MovablePart::Face(Faces::L),
         modifier: MoveModifier::Clockwise,
     },
@@ -185,6 +196,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
         },
         is_slice: false,
         is_rotation: false,
+        is_wide: false,
         part: MovablePart::Face(Faces::U),
         modifier: MoveModifier::Clockwise,
     },
@@ -210,6 +222,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
         },
         is_slice: false,
         is_rotation: false,
+        is_wide: false,
         part: MovablePart::Face(Faces::D),
         modifier: MoveModifier::Clockwise,
     },
@@ -239,6 +252,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
         },
         is_slice: false,
         is_rotation: false,
+        is_wide: false,
         part: MovablePart::Face(Faces::F),
         modifier: MoveModifier::Clockwise,
     },
@@ -268,6 +282,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
         },
         is_slice: false,
         is_rotation: false,
+        is_wide: false,
         part: MovablePart::Face(Faces::B),
         modifier: MoveModifier::Clockwise,
     },
@@ -289,6 +304,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
         },
         is_slice: true,
         is_rotation: false,
+        is_wide: false,
         part: MovablePart::Slice(Slices::E),
         modifier: MoveModifier::Clockwise,
     },
@@ -310,6 +326,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
         },
         is_slice: true,
         is_rotation: false,
+        is_wide: false,
         part: MovablePart::Slice(Slices::M),
         modifier: MoveModifier::Clockwise,
     },
@@ -335,6 +352,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
         },
         is_slice: true,
         is_rotation: false,
+        is_wide: false,
         part: MovablePart::Slice(Slices::S),
         modifier: MoveModifier::Clockwise,
     },
@@ -387,6 +405,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
         },
         is_slice: false,
         is_rotation: true,
+        is_wide: false,
         part: MovablePart::Rotation(Rotations::y),
         modifier: MoveModifier::Clockwise,
     },
@@ -397,6 +416,7 @@ pub const ALL_MOVES: [Move; 3 * CLOCKWISE_MOVE_COUNT] = {
         cube_representation: Cube3By3::IDENTITY,
         is_slice: false,
         is_rotation: false,
+        is_wide: false,
         part: MovablePart::Face(Faces::R),
         modifier: MoveModifier::Clockwise,
     }; 3 * CLOCKWISE_MOVE_COUNT];
