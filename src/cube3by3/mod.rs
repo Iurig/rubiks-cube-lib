@@ -5,8 +5,10 @@ pub(crate) mod pieces;
 use self::{moves::*, pieces::*};
 use crate::{
     ops::{Inv, Pow},
+    string_processing::RubiksCubeCleaning,
     zn::ZnRing,
 };
+
 #[derive(Debug, Clone, PartialEq, Eq, Default, Copy)]
 #[allow(clippy::struct_field_names)]
 pub struct Cube3By3 {
@@ -78,12 +80,10 @@ impl Cube3By3 {
 
     #[must_use]
     pub fn move_sequence(&self, moves: &str) -> Self {
-        if moves.contains(' ') {
+        if moves.contains(char::is_whitespace) {
             moves
-                .split_ascii_whitespace()
-                .fold(Cube3By3::IDENTITY, |cube, single_move| {
-                    cube.move_sequence(single_move)
-                })
+                .process_movement_input()
+                .fold(*self, |cube, single_move| cube.move_sequence(&single_move))
         } else {
             *self * Cube3By3::from(Move::from(moves))
         }
@@ -159,6 +159,13 @@ mod tests {
     }
 
     #[test]
+    fn composing_u_and_r_works() {
+        let u = Cube3By3::from_solved("U");
+        let ur = Cube3By3::from_solved("U R");
+        assert_eq!(u.move_sequence("R"), ur,);
+    }
+
+    #[test]
     fn r_move_respects_bounds_and_touches_only_r_layer() {
         for c in [
             SingleCorner::Ubl,
@@ -191,6 +198,31 @@ mod tests {
             );
         }
         assert!(Cube3By3::from_solved("R").respects_orientation_parity());
+    }
+
+    #[test]
+    fn composition_works() {
+        let scramble_string = "R' ";
+        let solution_string = "D2";
+        let scramble = Cube3By3::from_solved(scramble_string);
+        assert_eq!(
+            Cube3By3::from_solved(&format!("{scramble_string} {solution_string}")),
+            scramble.move_sequence(solution_string),
+            "composing {scramble_string} and {solution_string} doesn't result in applying {scramble_string} {solution_string}"
+        );
+    }
+
+    #[test]
+    fn composition_works_on_fmc_wr() {
+        let scramble_string =
+            "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F";
+        let solution_string = "D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'";
+        let scramble = Cube3By3::from_solved(scramble_string);
+        assert_eq!(
+            Cube3By3::from_solved(&format!("{scramble_string} {solution_string}")),
+            scramble.move_sequence(solution_string),
+            "composing {scramble_string} and {solution_string} doesn't result in applying {scramble_string} {solution_string}"
+        );
     }
 
     #[test]
