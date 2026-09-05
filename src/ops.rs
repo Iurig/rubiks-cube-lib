@@ -4,7 +4,7 @@ where
 {
     /// Inverts a state multiplicatively, possibly fallibly
     ///
-    /// # Exemples
+    /// # Examples
     ///
     /// ```
     /// use rubiks::Inv;
