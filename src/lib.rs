@@ -1,6 +1,7 @@
 mod cube3by3;
 mod ops;
 mod single_piece;
+mod string_processing;
 pub mod zn;
 
 pub use cube3by3::Cube3By3;
