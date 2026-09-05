@@ -1,6 +1,6 @@
 use rubiks::{Cube3By3, Inv, Pow};
 
-const IMPLEMENTED_MOVES: [&str; 8] = ["R", "U", "D", "L", "E", "S", "M", "y"];
+const IMPLEMENTED_MOVES: [&str; 10] = ["R", "U", "D", "L", "F", "B", "E", "S", "M", "y"];
 
 #[test]
 fn default_respects_parity() {
@@ -95,24 +95,79 @@ fn multiple_moves_break_down_correctly() {
 }
 
 #[test]
-fn sexy_move_has_correct_period() {
-    for k in 1..6 {
-        assert!(
-            !Cube3By3::from_solved("R U R' U'").pow(k).is_solved(),
-            "(R U R' U')^{k} should not be solved"
-        );
-    }
+fn fmc_wr() {
+    let scramble = Cube3By3::from_solved(
+        "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F",
+    );
     assert!(
-        Cube3By3::from_solved("R U R' U'").pow(6).is_solved(),
-        "(R U R' U')^6 should be solved"
+        Cube3By3::from_solved(
+        "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F    D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'"
+    )
+            .is_solved(),
+        "{:?}",
+        scramble.move_sequence("D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")
+    );
+    assert_eq!(
+        Cube3By3::from_solved(
+            "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F    D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'"
+        ),
+        scramble.move_sequence("D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")
     );
 }
 
 #[test]
+fn sexy_move_has_correct_period_on_all_face_pairs() {
+    let adjacent_face_pairs = [
+        ("R", "U"),
+        ("U", "L"),
+        ("L", "D"),
+        ("D", "R"),
+        ("F", "R"),
+        ("F", "U"),
+        ("F", "L"),
+        ("F", "D"),
+        ("B", "R"),
+        ("B", "U"),
+        ("B", "L"),
+        ("B", "D"),
+    ];
+
+    let sexy: Vec<String> = adjacent_face_pairs
+        .iter()
+        .map(|&(m1, m2)| String::from(m1) + " " + m2 + " " + m1 + "' " + m2 + "' ")
+        .collect();
+    for s in sexy {
+        for k in 1..6 {
+            assert!(
+                !Cube3By3::from_solved(&s).pow(k).is_solved(),
+                "({s})^{k} should not be solved"
+            );
+        }
+        assert!(
+            Cube3By3::from_solved(&s).pow(6).is_solved(),
+            "({s})^6 should be solved"
+        );
+    }
+}
+
+#[test]
 fn adjacent_face_sequence_has_constant_and_correct_period() {
-    let pairs = [("R", "U"), ("U", "L"), ("L", "D"), ("D", "R")];
+    let adjacent_face_pairs = [
+        ("R", "U"),
+        ("U", "L"),
+        ("L", "D"),
+        ("D", "R"),
+        ("F", "R"),
+        ("F", "U"),
+        ("F", "L"),
+        ("F", "D"),
+        ("B", "R"),
+        ("B", "U"),
+        ("B", "L"),
+        ("B", "D"),
+    ];
     let period = 105;
-    for p in pairs {
+    for p in adjacent_face_pairs {
         let mut c = Cube3By3::IDENTITY;
         for _ in 1..period {
             c = c.move_sequence(p.0).move_sequence(p.1);
@@ -170,6 +225,7 @@ fn slice_face_has_constand_and_correct_period() {
         );
     }
 }
+
 #[test]
 fn random_r_words_keep_parity_and_undo_cleanly() {
     fastrand::seed(7);

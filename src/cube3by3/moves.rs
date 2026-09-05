@@ -152,10 +152,10 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
                 corners
             },
             edge_configuration: Edges::cycle([[
-                SingleEdge::Fr,
-                SingleEdge::Ur,
-                SingleEdge::Br,
-                SingleEdge::Dr,
+                SingleEdge::Fl,
+                SingleEdge::Dl,
+                SingleEdge::Bl,
+                SingleEdge::Ul,
             ]]),
         },
         is_slice: false,
