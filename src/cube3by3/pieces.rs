@@ -39,3 +39,17 @@ new_piece!(
 pub(crate) type Centers = PieceConfiguration<SingleCenter, CENTERS_COUNT, CENTER_ORIENTATION_COUNT>;
 pub(crate) type Corners = PieceConfiguration<SingleCorner, CORNERS_COUNT, CO_COUNT>;
 pub(crate) type Edges = PieceConfiguration<SingleEdge, EDGES_COUNT, EO_COUNT>;
+pub(crate) type Faces = SingleCenter;
+#[derive(Hash, PartialEq, Eq, Clone, Copy)]
+pub(crate) enum Slices {
+    M,
+    S,
+    E,
+}
+#[derive(Hash, PartialEq, Eq, Clone, Copy)]
+#[allow(non_camel_case_types)]
+pub(crate) enum Rotations {
+    x,
+    y,
+    z,
+}
