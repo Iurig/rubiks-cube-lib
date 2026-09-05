@@ -1,8 +1,9 @@
 [package]
-name = "rubiks"
+name = "rubiks-cube-lib"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
+rust-version = "1.85"
 
 [dev-dependencies]
 fastrand = "2.5.0"

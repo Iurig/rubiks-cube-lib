@@ -1,4 +1,4 @@
-use rubiks::{Cube3By3, Inv, Pow};
+use rubiks_cube_lib::{Cube3By3, Inv, Pow};
 
 const IMPLEMENTED_MOVES: [&str; 10] = ["R", "U", "D", "L", "F", "B", "E", "S", "M", "y"];
 
