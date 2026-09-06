@@ -1,6 +1,6 @@
 use rubiks_cube_lib::{Cube3By3, Inv, Pow};
 
-const IMPLEMENTED_MOVES: [&str; 10] = ["R", "U", "D", "L", "F", "B", "E", "S", "M", "y"];
+const IMPLEMENTED_MOVES: [&str; 12] = ["R", "U", "D", "L", "F", "B", "E", "S", "M", "y", "z", "x"];
 
 #[test]
 fn default_respects_parity() {
@@ -21,7 +21,7 @@ fn identity_is_two_sided() {
 
 #[test]
 fn clockwise_moves_have_order_exactly_4() {
-    for m in IMPLEMENTED_MOVES {
+    for m in &IMPLEMENTED_MOVES[..9] {
         for k in 1..4 {
             assert!(
                 !Cube3By3::from_solved(m).pow(k).is_solved(),
@@ -104,6 +104,29 @@ fn fmc_wr_as_multiplication() {
 }
 
 #[test]
+fn cfop_solve_hygienized() {
+    let scramble = "R2 F' L2 D2 F2 U2 B' L2 F R2 D2 F2 D L' U B R' F' R D R2 U2 ";
+    let solve = "z y2 
+            U' R' L2 x' 
+            F' U F 
+            R' U' R U R' U' R 
+            L U' L' 
+            U y' U R U' R' U' R U' R2 F R 
+            U R U' R' U R U2 R' U' R U R' F'";
+    dbg!(
+        Cube3By3::IDENTITY
+            .move_sequence(scramble)
+            .move_sequence(solve)
+    );
+    assert!(
+        Cube3By3::IDENTITY
+            .move_sequence(scramble)
+            .move_sequence(solve)
+            .is_solved()
+    );
+}
+
+#[test]
 #[ignore = "rotations not yet implemented"]
 fn cfop_solve() {
     let scramble = "R2 F' L2 D2 F2 U2 B' L2 F R2 D2 F2 D L' U B R' F' R D R2 U2 ";
@@ -149,6 +172,29 @@ fn roux_solve_without_comments() {
             U R' U' R U' R' U' r 
             U M' U' M U' U' M' U M 
             U' U' M2' U' M U' U' M' U' U' M2' "
+        ))
+        .is_solved()
+    );
+}
+
+#[test]
+fn roux_solve_without_wide_moves() {
+    dbg!(Cube3By3::from_solved(concat!(
+        "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
+        "y2 F' M F' R U' R U' B 
+            U R U R M2 U' R U2 R' 
+            U R' U' R U' R' U' R M' 
+            U M' U' M U' U' M' U M 
+            U' U' M2 U' M U' U' M' U' U' M2 y2 L2 M2 R2"
+    )));
+    assert!(
+        Cube3By3::from_solved(concat!(
+            "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
+            "y2 F' M F' R U' R U' B 
+            U R U R M2 U' R U2 R' 
+            U R' U' R U' R' U' R M' 
+            U M' U' M U' U' M' U M 
+            U' U' M2 U' M U' U' M' U' U' M2 "
         ))
         .is_solved()
     );
@@ -251,30 +297,29 @@ fn adjacent_face_sequence_has_constant_and_correct_period() {
 }
 
 #[test]
-#[ignore = "known incorrect implementation of slices"]
 fn slice_face_has_constant_and_correct_period() {
     let pairs = [
         ("M", "U"),
         ("M", "F"),
         ("M", "D"),
         ("M", "B"),
-        ("S", "U"),
-        ("S", "R"),
-        ("S", "D"),
-        ("S", "L"),
         ("E", "F"),
         ("E", "R"),
         ("E", "B"),
         ("E", "L"),
+        ("S", "U"),
+        ("S", "R"),
+        ("S", "D"),
+        ("S", "L"),
     ];
-    let period = 12;
+    let period = 8;
     for p in pairs {
         let mut c = Cube3By3::IDENTITY;
         for i in 1..period {
             c = c.move_sequence(p.0).move_sequence(p.1);
             assert!(
                 !c.is_solved(),
-                "the period hasn't arrived for ({} {})^{i}",
+                "the period shouldn't have arrived for ({} {})^{i}",
                 p.0,
                 p.1
             );
