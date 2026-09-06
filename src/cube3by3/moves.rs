@@ -1,3 +1,4 @@
+use crate::cube3by3::moves::MovablePart::Rotation;
 #[allow(clippy::wildcard_imports)]
 use crate::{
     cube3by3::{Cube3By3, pieces::*},
@@ -35,6 +36,14 @@ impl ops::Inv for Move {
     }
 }
 impl Move {
+    const IDENTITY: Self = Move {
+        cube_representation: Cube3By3::IDENTITY,
+        is_slice: false,
+        is_rotation: false,
+        is_wide: false,
+        part: MovablePart::Face(Faces::R),
+        modifier: MoveModifier::Nothing,
+    };
     const fn const_inverse(&self) -> Self {
         Move {
             cube_representation: self.cube_representation.const_inverse(),
@@ -53,7 +62,7 @@ impl Move {
             },
         }
     }
-    const fn const_double(&self) -> Move {
+    const fn const_double(&self) -> Self {
         Move {
             cube_representation: self.cube_representation.const_mul(self.cube_representation),
             is_slice: self.is_slice,
@@ -120,8 +129,8 @@ impl From<Move> for Cube3By3 {
     }
 }
 
-const CLOCKWISE_MOVE_COUNT: usize = 10;
-const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
+const FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT: usize = 9;
+const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [Move; FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT] = [
     Move {
         cube_representation: Cube3By3 {
             center_configuration: Centers::IDENTITY,
@@ -295,12 +304,16 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
                 SingleCenter::R,
             ]]),
             corner_configuration: Corners::IDENTITY,
-            edge_configuration: Edges::cycle([[
-                SingleEdge::Fr,
-                SingleEdge::Fl,
-                SingleEdge::Bl,
-                SingleEdge::Br,
-            ]]),
+            edge_configuration: Edges {
+                permutation: Edges::cycle([[
+                    SingleEdge::Fr,
+                    SingleEdge::Fl,
+                    SingleEdge::Bl,
+                    SingleEdge::Br,
+                ]])
+                .permutation,
+                orientation: ZnRing::array([0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0]),
+            },
         },
         is_slice: true,
         is_rotation: false,
@@ -317,12 +330,16 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
                 SingleCenter::U,
             ]]),
             corner_configuration: Corners::IDENTITY,
-            edge_configuration: Edges::cycle([[
-                SingleEdge::Uf,
-                SingleEdge::Df,
-                SingleEdge::Db,
-                SingleEdge::Ub,
-            ]]),
+            edge_configuration: Edges {
+                permutation: Edges::cycle([[
+                    SingleEdge::Uf,
+                    SingleEdge::Df,
+                    SingleEdge::Db,
+                    SingleEdge::Ub,
+                ]])
+                .permutation,
+                orientation: ZnRing::array([1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0]),
+            },
         },
         is_slice: true,
         is_rotation: false,
@@ -341,13 +358,13 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
             corner_configuration: Corners::IDENTITY,
             edge_configuration: Edges {
                 permutation: Edges::cycle([[
-                    SingleEdge::Fr,
-                    SingleEdge::Fl,
-                    SingleEdge::Bl,
-                    SingleEdge::Br,
+                    SingleEdge::Ul,
+                    SingleEdge::Ur,
+                    SingleEdge::Dr,
+                    SingleEdge::Dl,
                 ]])
                 .permutation,
-                orientation: ZnRing::array([1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0]),
+                orientation: ZnRing::array([0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1]),
             },
         },
         is_slice: true,
@@ -356,71 +373,71 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = [
         part: MovablePart::Slice(Slices::S),
         modifier: MoveModifier::Clockwise,
     },
-    Move {
-        cube_representation: Cube3By3 {
-            center_configuration: Centers::cycle([[
-                SingleCenter::F,
-                SingleCenter::L,
-                SingleCenter::B,
-                SingleCenter::R,
-            ]]),
-            corner_configuration: {
-                let mut corners = Corners::cycle([
-                    [
-                        SingleCorner::Ufr,
-                        SingleCorner::Ufl,
-                        SingleCorner::Ubl,
-                        SingleCorner::Ubr,
-                    ],
-                    [
-                        SingleCorner::Dfr,
-                        SingleCorner::Dfl,
-                        SingleCorner::Dbl,
-                        SingleCorner::Dbr,
-                    ],
-                ]);
-                corners.orientation = [ZnRing::ZERO; CORNERS_COUNT];
-                corners
-            },
-            edge_configuration: Edges::cycle([
-                [
-                    SingleEdge::Uf,
-                    SingleEdge::Ul,
-                    SingleEdge::Ub,
-                    SingleEdge::Ur,
-                ],
-                [
-                    SingleEdge::Df,
-                    SingleEdge::Dl,
-                    SingleEdge::Db,
-                    SingleEdge::Dr,
-                ],
-                [
-                    SingleEdge::Fr,
-                    SingleEdge::Fl,
-                    SingleEdge::Bl,
-                    SingleEdge::Br,
-                ],
-            ]),
-        },
-        is_slice: false,
-        is_rotation: true,
-        is_wide: false,
-        part: MovablePart::Rotation(Rotations::y),
-        modifier: MoveModifier::Clockwise,
-    },
 ];
 
-pub const ALL_MOVES: [Move; 3 * CLOCKWISE_MOVE_COUNT] = {
-    let mut all_moves = [Move {
-        cube_representation: Cube3By3::IDENTITY,
-        is_slice: false,
-        is_rotation: false,
-        is_wide: false,
-        part: MovablePart::Face(Faces::R),
+const CLOCKWISE_MOVE_COUNT: usize = FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT + 3;
+const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = {
+    let mut all_clockwise_moves = [Move::IDENTITY; CLOCKWISE_MOVE_COUNT];
+    let mut i = 0;
+    while i < FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT {
+        all_clockwise_moves[i] = ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[i];
+        i += 1;
+    }
+    all_clockwise_moves[FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT + 2] = Move {
+        cube_representation: ALL_FACE_AND_SLICES_CLOCKWISE_MOVES
+            [FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT - 1]
+            .cube_representation
+            .const_mul(ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[4].cube_representation)
+            .const_mul(
+                ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[5]
+                    .cube_representation
+                    .const_inverse(),
+            ),
+        part: Rotation(Rotations::z),
         modifier: MoveModifier::Clockwise,
-    }; 3 * CLOCKWISE_MOVE_COUNT];
-    let mut i: usize = 0;
+        is_rotation: true,
+        is_wide: false,
+        is_slice: false,
+    };
+    all_clockwise_moves[FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT + 1] = Move {
+        cube_representation: ALL_FACE_AND_SLICES_CLOCKWISE_MOVES
+            [FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT - 2]
+            .cube_representation
+            .const_inverse()
+            .const_mul(ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[0].cube_representation)
+            .const_mul(
+                ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[1]
+                    .cube_representation
+                    .const_inverse(),
+            ),
+        part: Rotation(Rotations::x),
+        modifier: MoveModifier::Clockwise,
+        is_rotation: true,
+        is_wide: false,
+        is_slice: false,
+    };
+    all_clockwise_moves[FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT] = Move {
+        cube_representation: ALL_FACE_AND_SLICES_CLOCKWISE_MOVES
+            [FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT - 3]
+            .cube_representation
+            .const_mul(ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[2].cube_representation)
+            .const_mul(
+                ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[3]
+                    .cube_representation
+                    .const_inverse(),
+            ),
+        part: Rotation(Rotations::y),
+        modifier: MoveModifier::Clockwise,
+        is_rotation: true,
+        is_wide: false,
+        is_slice: false,
+    };
+    all_clockwise_moves
+};
+
+pub const ALL_MOVES: [Move; 3 * CLOCKWISE_MOVE_COUNT] = {
+    let mut all_moves = [Move::IDENTITY; 3 * CLOCKWISE_MOVE_COUNT];
+    let mut i = 0;
     while i < CLOCKWISE_MOVE_COUNT {
         all_moves[3 * i] = ALL_CLOCKWISE_MOVES[i];
         all_moves[3 * i + 1] = ALL_CLOCKWISE_MOVES[i].const_inverse();
