@@ -151,6 +151,12 @@ mod tests {
     }
 
     #[test]
+    fn all_axes_rotated_solved_is_solved_but_not_after_a_face_turn() {
+        assert!(Cube3By3::from_solved("x y2 z'").is_solved());
+        assert!(!Cube3By3::from_solved("x y2 z' R").is_solved());
+    }
+
+    #[test]
     fn r_4_times_is_solved_and_respects_parity() {
         let cube = Cube3By3::from_solved("R R R R");
         assert!(cube.is_solved());
