@@ -1,5 +1,6 @@
 mod table;
 
+use crate::cube3by3::moves::MoveModifier::{CounterDouble, Double};
 #[allow(clippy::wildcard_imports)]
 use crate::{
     cube3by3::{Cube3By3, pieces::*},
@@ -120,7 +121,7 @@ impl From<&str> for Move {
         };
         *ALL_MOVES
             .iter()
-            .find(|&m| m.part == part && m.modifier == modif && m.is_wide == wide)
+            .find(|&m| m.part == part && (m.modifier == modif || (m.modifier == Double && modif == CounterDouble )) && m.is_wide == wide)
             .unwrap_or_else(|| panic!("there is no implemented move for {s}, corresponding to {part:?}, {modif:?} and is_wide = {wide}"))
     }
 }
