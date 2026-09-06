@@ -7,7 +7,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// use rubiks::Inv;
+    /// use rubiks_cube_lib::Inv;
     /// #[derive(Debug, Clone, PartialEq)]
     /// enum FieldZ2 {
     ///     Zero,
