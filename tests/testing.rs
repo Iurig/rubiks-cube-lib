@@ -127,7 +127,6 @@ fn cfop_solve_hygienized() {
 }
 
 #[test]
-#[ignore = "rotations not yet implemented"]
 fn cfop_solve() {
     let scramble = "R2 F' L2 D2 F2 U2 B' L2 F R2 D2 F2 D L' U B R' F' R D R2 U2 ";
     let solve = "z y2 
