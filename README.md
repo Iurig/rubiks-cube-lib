@@ -11,14 +11,13 @@ A cube state is a value of type `Cube3By3`. Moves are cube states too, and apply
 group multiplication. Everything is `Copy`, allocation-free, and most operations are `const fn`,
 so the entire move table is built at compile time.
 
-> **Status: early work in progress.** The core group structure and all six face turns work and are well tested. The slice moves `M`, `E`, `S` are defined but currently
-> **incorrect**. The rotations and wide moves are not implemented yet, and integration
+> **Status: early work in progress.** The core group structure and all non-wide moves work and are well tested. Wide moves are not implemented yet, and integration
 > tests that use them fail as expected. See [Current state](#current-state).
 
 ## Quick example
 
 ```rust
-use rubiks::{Cube3By3, Inv, Pow};
+use rubiks_cube_lib::{Cube3By3, Inv, Pow};
 
 // Apply a sequence to the solved cube, example is Sebastiano Tronto's 16 move FMC WR
 let scramble = Cube3By3::from_solved("R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F");
@@ -53,16 +52,13 @@ let solved = Cube3By3::from_solved("
 | Kind        | Tokens                       | Implemented           |
 | ----------- | ---------------------------- | --------------------- |
 | Face turns  | `R` `L` `U` `D` `F` `B`      | Yes                   |
-| Slice moves | `M` `E` `S`                  | Defined, but wrong    |
-| Rotations   | `x` `y` `z`                  | `y` defined, all wrong|
+| Slice moves | `M` `E` `S`                  | Yes    |
+| Rotations   | `x` `y` `z`                  | Yes|
 | Wide moves  | `Rw` … or lowercase `r` …    | Not yet               |
 
 All these work with the following 4 modifiers: ` `(none), `'`, `2` and `2'`
 
 Lowercase face letters (`r`, `u`, `f`, `b`, `l`) are rewritten to `Rw`, `Uw`, ... before lookup.
-`x`, `z`, and wide moves are recognised by the parser but have no entry in the move table yet, so
-using them panics with a message naming the move. The slice moves do have entries, but their
-definitions are known to be wrong. Do not rely on `M`, `E`, or `S` results until this is fixed.
 
 ## How it works
 
@@ -116,9 +112,12 @@ src/
   single_piece.rs         SinglePiece trait and PieceConfiguration
   string_processing.rs    tokenising move strings, comment stripping, wide-move rewriting
   cube3by3/
-    mod.rs                Cube3By3, Mul/Inv/Pow impls, is_solved, parity
+    mod.rs                Cube3By3, Mul/Inv/Pow impls, rotation-aware is_solved, orientation parity
     pieces.rs             piece enums, counts, and type aliases for the 3×3
-    moves.rs              Move type, string parsing, compile-time move table
+    moves.rs              Move type, MovablePart/MoveModifier enums, string parsing
+    moves/
+      table.rs            compile-time ALL_MOVES table: 9 hand-written face and slice moves,
+                          rotations derived from them, then inverses and doubles of everything
 tests/
   testing.rs              integration tests: group laws, move orders, real solve reconstructions
 ```
@@ -135,21 +134,34 @@ cargo test
 
 ## Current state
 
-Unit tests all pass. In the integration suite, 14 of 19 tests pass. The 5 failures are known and
-document unfinished work rather than regressions:
+All unit tests and doc tests pass. In the integration suite, 18 of 21 tests pass and the
+remaining 3 are `#[ignore]`d rather than failing:
 
-- `cfop_solve`, `roux_solve_*` (4 tests): use `x`, `z`, `Fw`, or `r`, which are not implemented
-  yet, so parsing panics.
-- `slice_face_has_constant_and_correct_period`: exposes the incorrect slice-move definitions.
-  `M U` reports solved after 4 repetitions rather than the expected 12.
+- `roux_solve_with_comments`, `roux_solve_without_comments`, `roux_solve_removes_comments`:
+  the reconstructions use wide moves (`Fw`, `r`, ...), which have no entry in the move table
+  yet, so parsing would panic.
 
-One unit test, `rotated_solved_is_solved`, is `#[ignore]`d pending rotation-aware `is_solved`.
+What works today:
+
+- All six face turns, the three slice moves `M`, `E`, `S`, and the three rotations `x`, `y`, `z`,
+  each with the `'`, `2`, and `2'` modifiers. The rotations are derived at compile time from
+  the face and slice moves, so they cannot drift out of sync with them.
+- `is_solved` is rotation-aware: it re-orients the cube by its centers before comparing with
+  the identity, so `Cube3By3::from_solved("x y2 z'")` reports solved.
+- `respects_orientation_parity` checks corner twist and edge flip sums. There is no
+  permutation parity check yet.
+
+Wide moves are parsed (lowercase `r` is rewritten to `Rw`, and the `w` suffix is recognised)
+but have no move-table entry, so using one panics with a message naming the move.
 
 ## Roadmap
 
-- Fix the `M`, `E`, and `S` slice-move definitions.
-- Implement `x` and `z` rotations and wide moves (`Rw`, `Uw`, ...).
-- Make `is_solved` ignore whole-cube rotation, i.e. treat `Cube3By3::from_solved("y")` as solved.
+- Implement wide moves (`Rw`, `Uw`, ...) by composing a face turn with the parallel slice or
+  rotation, then un-ignore the three Roux integration tests.
+- Add a permutation parity check alongside `respects_orientation_parity`, so a full
+  "is this a reachable state" predicate can be exposed.
+- Return a `Result` from move-string parsing instead of panicking on unknown tokens.
+- Solving from an algorithm library, as mentioned in the introduction.
 - Reuse `PieceConfiguration` / `SinglePiece` for other puzzles; the string-processing module was
   split out with that in mind.
 
