@@ -96,8 +96,23 @@ impl Cube3By3 {
 
     #[must_use]
     pub fn is_solved(&self) -> bool {
-        let rotated_self = *self;
-        // TODO: implement rotating to put U on top and F on front on `rotated_self`
+        let mut rotated_self = *self;
+        while ![
+            rotated_self.center_configuration.permutation[0],
+            rotated_self.center_configuration.permutation[1],
+            rotated_self.center_configuration.permutation[3],
+            rotated_self.center_configuration.permutation[5],
+        ]
+        .contains(&Faces::F)
+        {
+            rotated_self = rotated_self.move_sequence("y");
+        }
+        while rotated_self.center_configuration.permutation[1] != Faces::F {
+            rotated_self = rotated_self.move_sequence("x");
+        }
+        while rotated_self.center_configuration.permutation[0] != Faces::U {
+            rotated_self = rotated_self.move_sequence("z");
+        }
         rotated_self == Cube3By3::IDENTITY
     }
     #[must_use]
@@ -124,9 +139,14 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "is_solved not yet implemented for rotated cubes"]
-    fn rotated_solved_is_solved() {
+    fn y_rotated_solved_is_solved() {
         let rotated_def = Cube3By3::from_solved("y");
+        assert!(rotated_def.is_solved());
+    }
+
+    #[test]
+    fn rotated_solved_is_solved() {
+        let rotated_def = Cube3By3::from_solved("y z y z x2 z2");
         assert!(rotated_def.is_solved());
     }
 
