@@ -1,7 +1,4 @@
-pub trait Inv
-where
-    Self: std::marker::Sized,
-{
+pub trait Inv: Sized {
     /// Inverts a state multiplicatively, possibly fallibly
     ///
     /// # Examples

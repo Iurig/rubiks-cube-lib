@@ -37,7 +37,7 @@ impl<const N: usize> ZnRing<N> {
         let mut final_array = [Self(0); L];
         let mut i = 0;
         while i < L {
-            final_array[i] = Self(values[i]);
+            final_array[i] = Self::new(values[i]);
             i += 1;
         }
         final_array

@@ -45,19 +45,7 @@ where
     P: SinglePiece<N>,
 {
     fn inverse(&self) -> Self {
-        let mut inv = Self::IDENTITY;
-        for ((piece, orientation), piece_from_index) in
-            self.permutation.iter().zip(&self.orientation).zip(P::ALL)
-        {
-            let target = index(*piece);
-            if let Some(slot) = inv.permutation.get_mut(target) {
-                *slot = piece_from_index;
-            }
-            if let Some(slot) = inv.orientation.get_mut(target) {
-                *slot = -*orientation;
-            }
-        }
-        inv
+        self.const_inverse()
     }
 }
 impl<P, const N: usize, const O: usize> PieceConfiguration<P, N, O>

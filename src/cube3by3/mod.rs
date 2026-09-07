@@ -10,7 +10,10 @@ use crate::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Copy)]
-#[allow(clippy::struct_field_names)]
+#[expect(
+    clippy::struct_field_names,
+    reason = "_configuration makes clear what all variables are"
+)]
 pub struct Cube3By3 {
     /// `CENTER_ORIENTATION_COUNT` is 1, centers are considered without orientation
     center_configuration: Centers,
@@ -24,9 +27,8 @@ impl std::ops::Mul for Cube3By3 {
     type Output = Self;
     /// Applies the permutation the second cube to the first cube
     /// IMPORTANT: associative, but non-commutative
-    #[allow(clippy::suspicious_arithmetic_impl)]
-    fn mul(self, to_be_aplied: Self) -> Self::Output {
-        self.const_mul(to_be_aplied)
+    fn mul(self, rhs: Self) -> Self::Output {
+        self.const_mul(rhs)
     }
 }
 
