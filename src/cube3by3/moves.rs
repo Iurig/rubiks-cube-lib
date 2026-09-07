@@ -1,6 +1,5 @@
 mod table;
 
-use crate::cube3by3::moves::MoveModifier::{CounterDouble, Double};
 #[allow(clippy::wildcard_imports)]
 use crate::{
     cube3by3::{Cube3By3, pieces::*},
@@ -24,7 +23,27 @@ pub enum MoveModifier {
     Nothing,
 }
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+impl MovablePart {
+    /// Position of this part in the clockwise move list; must match the order in `table.rs`.
+    const fn table_index(self) -> usize {
+        match self {
+            Self::Face(Faces::R) => 0,
+            Self::Face(Faces::L) => 1,
+            Self::Face(Faces::U) => 2,
+            Self::Face(Faces::D) => 3,
+            Self::Face(Faces::F) => 4,
+            Self::Face(Faces::B) => 5,
+            Self::Slice(Slices::E) => 6,
+            Self::Slice(Slices::M) => 7,
+            Self::Slice(Slices::S) => 8,
+            Self::Rotation(Rotations::z) => 9,
+            Self::Rotation(Rotations::x) => 10,
+            Self::Rotation(Rotations::y) => 11,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Move {
     cube_representation: Cube3By3,
     part: MovablePart,
@@ -43,6 +62,7 @@ impl Move {
         part: MovablePart::Face(Faces::R),
         modifier: MoveModifier::Nothing,
     };
+
     const fn const_inverse(&self) -> Self {
         Self {
             cube_representation: self.cube_representation.const_inverse(),
@@ -61,6 +81,7 @@ impl Move {
             },
         }
     }
+
     const fn const_double(&self) -> Self {
         Self {
             cube_representation: self.cube_representation.const_mul(self.cube_representation),
@@ -77,6 +98,16 @@ impl Move {
                 }
             },
         }
+    }
+
+    pub const fn new(part: MovablePart, modifier: MoveModifier) -> Self {
+        let offset = match modifier {
+            MoveModifier::Clockwise => 0,
+            MoveModifier::CounterClockwise => 1,
+            MoveModifier::Double | MoveModifier::CounterDouble => 2,
+            MoveModifier::Nothing => return Self::IDENTITY,
+        };
+        ALL_MOVES[3 * part.table_index() + offset]
     }
 }
 
@@ -137,15 +168,30 @@ impl TryFrom<&str> for Move {
                 }
             }
         };
-        ALL_MOVES
-            .iter()
-            .find(|&m| m.part == part && (m.modifier == modif || (m.modifier == Double && modif == CounterDouble )) && m.is_wide == wide)
-            .ok_or_else(|| format!("there is no implemented move for {s}, corresponding to {part:?}, {modif:?} and is_wide = {wide}")).copied()
+        Ok(Self::new(
+            part,
+            match modif {
+                MoveModifier::CounterDouble => MoveModifier::Double,
+                x => x,
+            },
+        ))
     }
 }
 
 impl From<Move> for Cube3By3 {
     fn from(m: Move) -> Self {
         m.cube_representation
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_round_trips_through_the_table() {
+        for m in ALL_MOVES {
+            assert_eq!(Move::new(m.part, m.modifier), m);
+        }
     }
 }

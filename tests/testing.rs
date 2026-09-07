@@ -1,3 +1,6 @@
+// `?` reports setup failures; `assert!` reports the property under test failing.
+#![allow(clippy::panic_in_result_fn)]
+
 use rubiks_cube_lib::{Cube3By3, Inv, Pow};
 
 const IMPLEMENTED_MOVES: [&str; 12] = ["R", "U", "D", "L", "F", "B", "E", "S", "M", "y", "z", "x"];
@@ -8,145 +11,137 @@ fn default_respects_parity() {
 }
 
 #[test]
-fn identity_is_two_sided() {
-    assert_eq!(
-        Cube3By3::default() * Cube3By3::from_solved("R"),
-        Cube3By3::from_solved("R")
-    );
-    assert_eq!(
-        Cube3By3::from_solved("R") * Cube3By3::default(),
-        Cube3By3::from_solved("R")
-    );
+fn identity_is_two_sided() -> Result<(), String> {
+    let r = Cube3By3::from_solved("R")?;
+    assert_eq!(Cube3By3::default() * r, r);
+    assert_eq!(r * Cube3By3::default(), r);
+    Ok(())
 }
 
 #[test]
-fn clockwise_moves_have_order_exactly_4() {
+fn clockwise_moves_have_order_exactly_4() -> Result<(), String> {
     for m in &IMPLEMENTED_MOVES[..9] {
+        let cube = Cube3By3::from_solved(m)?;
         for k in 1..4 {
-            assert!(
-                !Cube3By3::from_solved(m).pow(k).is_solved(),
-                "{m}^{k} should not be solved"
-            );
+            assert!(!cube.pow(k).is_solved(), "{m}^{k} should not be solved");
         }
-        assert!(
-            Cube3By3::from_solved(m).pow(4).is_solved(),
-            "{m}^4 should be solved"
-        );
+        assert!(cube.pow(4).is_solved(), "{m}^4 should be solved");
     }
+    Ok(())
 }
 
 #[test]
-fn move_inverse_is_move_cubed() {
+fn move_inverse_is_move_cubed() -> Result<(), String> {
     for m in IMPLEMENTED_MOVES {
-        assert_eq!(
-            Cube3By3::from_solved(m).inverse(),
-            Cube3By3::from_solved(m).pow(3)
-        );
+        let cube = Cube3By3::from_solved(m)?;
+        assert_eq!(cube.inverse(), cube.pow(3));
     }
+    Ok(())
 }
 
 #[test]
-fn inverse_is_an_involution() {
+fn inverse_is_an_involution() -> Result<(), String> {
     for m in IMPLEMENTED_MOVES {
-        assert_eq!(
-            Cube3By3::from_solved(m).inverse().inverse(),
-            Cube3By3::from_solved(m)
-        );
+        let cube = Cube3By3::from_solved(m)?;
+        assert_eq!(cube.inverse().inverse(), cube);
     }
     assert_eq!(Cube3By3::default().inverse(), Cube3By3::default());
+    Ok(())
 }
 
 #[test]
-fn mul_is_associative() {
-    let a = Cube3By3::from_solved("R");
-    let b = Cube3By3::from_solved("U2 L").pow(2);
-    let c = Cube3By3::from_solved("y").inverse();
+fn mul_is_associative() -> Result<(), String> {
+    let a = Cube3By3::from_solved("R")?;
+    let b = Cube3By3::from_solved("U2 L")?.pow(2);
+    let c = Cube3By3::from_solved("y")?.inverse();
     assert_eq!((a * b) * c, a * (b * c));
+    Ok(())
 }
 
 #[test]
-fn inverse_of_product_reverses_order() {
-    let a = Cube3By3::from_solved("U").pow(1);
-    let b = Cube3By3::from_solved("R").pow(2);
+fn inverse_of_product_reverses_order() -> Result<(), String> {
+    let a = Cube3By3::from_solved("U")?.pow(1);
+    let b = Cube3By3::from_solved("R")?.pow(2);
     assert_eq!((a * b).inverse(), b.inverse() * a.inverse());
     assert_ne!((a * b).inverse(), a.inverse() * b.inverse());
+    Ok(())
 }
 
 #[test]
-fn r_and_l_commute() {
-    assert!(Cube3By3::from_solved("R L R' L'").is_solved());
+fn r_and_l_commute() -> Result<(), String> {
+    assert!(Cube3By3::from_solved("R L R' L'")?.is_solved());
+    Ok(())
 }
 
 #[test]
-fn u_and_d_commute() {
-    assert!(Cube3By3::from_solved("U D U' D'").is_solved());
+fn u_and_d_commute() -> Result<(), String> {
+    assert!(Cube3By3::from_solved("U D U' D'")?.is_solved());
+    Ok(())
 }
 
 #[test]
-fn multiple_moves_break_down_correctly() {
+fn multiple_moves_break_down_correctly() -> Result<(), String> {
     assert_eq!(
-        Cube3By3::from_solved("R U R' U'"),
+        Cube3By3::from_solved("R U R' U'")?,
         Cube3By3::IDENTITY
-            .move_sequence("R")
-            .move_sequence("U")
-            .move_sequence("R'")
-            .move_sequence("U'")
+            .move_sequence("R")?
+            .move_sequence("U")?
+            .move_sequence("R'")?
+            .move_sequence("U'")?
     );
+    Ok(())
 }
 
 #[test]
-fn fmc_wr_as_multiplication() {
+fn fmc_wr_as_multiplication() -> Result<(), String> {
     let scramble = Cube3By3::from_solved(
         "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F",
-    );
-    let solve = Cube3By3::from_solved("    D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'");
+    )?;
+    let solve = Cube3By3::from_solved("    D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")?;
     assert!((scramble * solve).is_solved(), "{:?}", scramble * solve);
+    Ok(())
 }
 
 #[test]
-fn cfop_solve_hygienized() {
+fn cfop_solve_hygienized() -> Result<(), String> {
     let scramble = "R2 F' L2 D2 F2 U2 B' L2 F R2 D2 F2 D L' U B R' F' R D R2 U2 ";
-    let solve = "z y2 
-            U' R' L2 x' 
-            F' U F 
-            R' U' R U R' U' R 
-            L U' L' 
-            U y' U R U' R' U' R U' R2 F R 
+    let solve = "z y2
+            U' R' L2 x'
+            F' U F
+            R' U' R U R' U' R
+            L U' L'
+            U y' U R U' R' U' R U' R2 F R
             U R U' R' U R U2 R' U' R U R' F'";
-    dbg!(
-        Cube3By3::IDENTITY
-            .move_sequence(scramble)
-            .move_sequence(solve)
-    );
-    assert!(
-        Cube3By3::IDENTITY
-            .move_sequence(scramble)
-            .move_sequence(solve)
-            .is_solved()
-    );
+    let result = Cube3By3::IDENTITY
+        .move_sequence(scramble)?
+        .move_sequence(solve)?;
+    dbg!(result);
+    assert!(result.is_solved());
+    Ok(())
 }
 
 #[test]
-fn cfop_solve() {
+fn cfop_solve() -> Result<(), String> {
     let scramble = "R2 F' L2 D2 F2 U2 B' L2 F R2 D2 F2 D L' U B R' F' R D R2 U2 ";
-    let solve = "z y2 
-            U' R' L2 x' 
-            F' U F 
-            R' U' R U R' U' R 
-            L U' L' 
-            U y' U R U' R' U' R U' R2' F R 
+    let solve = "z y2
+            U' R' L2 x'
+            F' U F
+            R' U' R U R' U' R
+            L U' L'
+            U y' U R U' R' U' R U' R2' F R
             U R U' R' U R U2' R' U' R U R' F'";
     assert!(
         Cube3By3::IDENTITY
-            .move_sequence(scramble)
-            .move_sequence(solve)
+            .move_sequence(scramble)?
+            .move_sequence(solve)?
             .is_solved()
     );
+    Ok(())
 }
 
 #[test]
 #[ignore = "rotations AND wide moves not yet implemented"]
-fn roux_solve_with_comments() {
+fn roux_solve_with_comments() -> Result<(), String> {
     assert!(
         Cube3By3::from_solved(concat!(
             "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
@@ -155,62 +150,65 @@ fn roux_solve_with_comments() {
             U R' U' R U' R' U' r // SP (CMLL skip)
             U M' U' M U' U' M' U M // EOLR
             U' U' M2' U' M U' U' M' U' U' M2' // EP"
-        ))
+        ))?
         .is_solved()
     );
+    Ok(())
 }
 
 #[test]
 #[ignore = "rotations AND wide moves not yet implemented"]
-fn roux_solve_without_comments() {
+fn roux_solve_without_comments() -> Result<(), String> {
     assert!(
         Cube3By3::from_solved(concat!(
             "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
-            "y2 F' M F' R U' R U' Fw z' 
-            U R U r M' U' R U2' R' 
-            U R' U' R U' R' U' r 
-            U M' U' M U' U' M' U M 
+            "y2 F' M F' R U' R U' Fw z'
+            U R U r M' U' R U2' R'
+            U R' U' R U' R' U' r
+            U M' U' M U' U' M' U M
             U' U' M2' U' M U' U' M' U' U' M2' "
-        ))
+        ))?
         .is_solved()
     );
+    Ok(())
 }
 
 #[test]
-fn roux_solve_without_wide_moves() {
+fn roux_solve_without_wide_moves() -> Result<(), String> {
     dbg!(Cube3By3::from_solved(concat!(
         "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
-        "y2 F' M F' R U' R U' B 
-            U R U R M2 U' R U2 R' 
-            U R' U' R U' R' U' R M' 
-            U M' U' M U' U' M' U M 
+        "y2 F' M F' R U' R U' B
+            U R U R M2 U' R U2 R'
+            U R' U' R U' R' U' R M'
+            U M' U' M U' U' M' U M
             U' U' M2 U' M U' U' M' U' U' M2 y2 L2 M2 R2"
-    )));
+    ))?);
     assert!(
         Cube3By3::from_solved(concat!(
             "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
-            "y2 F' M F' R U' R U' B 
-            U R U R M2 U' R U2 R' 
-            U R' U' R U' R' U' R M' 
-            U M' U' M U' U' M' U M 
+            "y2 F' M F' R U' R U' B
+            U R U R M2 U' R U2 R'
+            U R' U' R U' R' U' R M'
+            U M' U' M U' U' M' U M
             U' U' M2 U' M U' U' M' U' U' M2 "
-        ))
+        ))?
         .is_solved()
     );
+    Ok(())
 }
 
 #[test]
 #[ignore = "comments are removed but roux solve lacks rotation and wide move implementation"]
-fn roux_solve_removes_comments() {
+fn roux_solve_removes_comments() -> Result<(), String> {
     assert_eq!(
         Cube3By3::from_solved(concat!(
             "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
-            "y2 F' M F' R U' R U' Fw z' 
-            U R U r M' U' R U2' R' 
-            U R' U' R U' R' U' r 
-            U M' U' M U' U' M' U M 
+            "y2 F' M F' R U' R U' Fw z'
+            U R U r M' U' R U2' R'
+            U R' U' R U' R' U' r
+            U M' U' M U' U' M' U M
             U' U' M2' U' M U' U' M' U' U' M2' "
-        )),
+        ))?,
         Cube3By3::from_solved(concat!(
             "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
             "y2 F' M F' R U' R U' Fw z' // FB
@@ -218,12 +216,13 @@ fn roux_solve_removes_comments() {
             U R' U' R U' R' U' r // SP (CMLL skip)
             U M' U' M U' U' M' U M // EOLR
             U' U' M2' U' M U' U' M' U' U' M2' // EP"
-        ))
+        ))?
     );
+    Ok(())
 }
 
 #[test]
-fn sexy_move_has_correct_period_on_all_face_pairs() {
+fn sexy_move_has_correct_period_on_all_face_pairs() -> Result<(), String> {
     let adjacent_face_pairs = [
         ("R", "U"),
         ("U", "L"),
@@ -244,21 +243,17 @@ fn sexy_move_has_correct_period_on_all_face_pairs() {
         .map(|&(m1, m2)| String::from(m1) + " " + m2 + " " + m1 + "' " + m2 + "' ")
         .collect();
     for s in sexy {
+        let cube = Cube3By3::from_solved(&s)?;
         for k in 1..6 {
-            assert!(
-                !Cube3By3::from_solved(&s).pow(k).is_solved(),
-                "({s})^{k} should not be solved"
-            );
+            assert!(!cube.pow(k).is_solved(), "({s})^{k} should not be solved");
         }
-        assert!(
-            Cube3By3::from_solved(&s).pow(6).is_solved(),
-            "({s})^6 should be solved"
-        );
+        assert!(cube.pow(6).is_solved(), "({s})^6 should be solved");
     }
+    Ok(())
 }
 
 #[test]
-fn adjacent_face_sequence_has_constant_and_correct_period() {
+fn adjacent_face_sequence_has_constant_and_correct_period() -> Result<(), String> {
     let adjacent_face_pairs = [
         ("R", "U"),
         ("U", "L"),
@@ -277,7 +272,7 @@ fn adjacent_face_sequence_has_constant_and_correct_period() {
     for p in adjacent_face_pairs {
         let mut c = Cube3By3::IDENTITY;
         for _ in 1..period {
-            c = c.move_sequence(p.0).move_sequence(p.1);
+            c = c.move_sequence(p.0)?.move_sequence(p.1)?;
             assert!(
                 !c.is_solved(),
                 "the period hasn't arrived for {} {}",
@@ -285,7 +280,7 @@ fn adjacent_face_sequence_has_constant_and_correct_period() {
                 p.1
             );
         }
-        c = c.move_sequence(p.0).move_sequence(p.1);
+        c = c.move_sequence(p.0)?.move_sequence(p.1)?;
         assert!(
             c.is_solved(),
             "the period should've arrived for {} {}",
@@ -293,10 +288,11 @@ fn adjacent_face_sequence_has_constant_and_correct_period() {
             p.1
         );
     }
+    Ok(())
 }
 
 #[test]
-fn slice_face_has_constant_and_correct_period() {
+fn slice_face_has_constant_and_correct_period() -> Result<(), String> {
     let pairs = [
         ("M", "U"),
         ("M", "F"),
@@ -315,7 +311,7 @@ fn slice_face_has_constant_and_correct_period() {
     for p in pairs {
         let mut c = Cube3By3::IDENTITY;
         for i in 1..period {
-            c = c.move_sequence(p.0).move_sequence(p.1);
+            c = c.move_sequence(p.0)?.move_sequence(p.1)?;
             assert!(
                 !c.is_solved(),
                 "the period shouldn't have arrived for ({} {})^{i}",
@@ -323,7 +319,7 @@ fn slice_face_has_constant_and_correct_period() {
                 p.1
             );
         }
-        c = c.move_sequence(p.0).move_sequence(p.1);
+        c = c.move_sequence(p.0)?.move_sequence(p.1)?;
         assert!(
             c.is_solved(),
             "the period should've arrived for {} {}",
@@ -331,10 +327,12 @@ fn slice_face_has_constant_and_correct_period() {
             p.1
         );
     }
+    Ok(())
 }
 
 #[test]
-fn random_r_words_keep_parity_and_undo_cleanly() {
+fn random_r_words_keep_parity_and_undo_cleanly() -> Result<(), String> {
+    let r = Cube3By3::from_solved("R")?;
     fastrand::seed(7);
     for _ in 0..50 {
         let len = fastrand::usize(1..30);
@@ -342,25 +340,18 @@ fn random_r_words_keep_parity_and_undo_cleanly() {
 
         let mut cube = Cube3By3::default();
         for &prime in &word {
-            let m = if prime {
-                Cube3By3::from_solved("R").inverse()
-            } else {
-                Cube3By3::from_solved("R")
-            };
+            let m = if prime { r.inverse() } else { r };
             cube = cube * m;
             assert!(cube.respects_orientation_parity());
         }
 
         let mut undo = cube;
         for &prime in word.iter().rev() {
-            let m = if prime {
-                Cube3By3::from_solved("R")
-            } else {
-                Cube3By3::from_solved("R").inverse()
-            };
+            let m = if prime { r } else { r.inverse() };
             undo = undo * m;
         }
         assert!(undo.is_solved());
         assert_eq!(cube * cube.inverse(), Cube3By3::default());
     }
+    Ok(())
 }

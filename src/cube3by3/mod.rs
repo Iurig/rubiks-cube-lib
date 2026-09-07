@@ -29,6 +29,14 @@ impl std::ops::Mul for Cube3By3 {
         self.const_mul(to_be_aplied)
     }
 }
+
+impl std::ops::Mul<Move> for Cube3By3 {
+    type Output = Self;
+    fn mul(self, m: Move) -> Self::Output {
+        self.const_mul(Self::from(m))
+    }
+}
+
 impl Cube3By3 {
     const fn const_mul(self, to_be_aplied: Self) -> Self {
         Self {
@@ -78,22 +86,23 @@ impl Cube3By3 {
         }
     }
 
-    /// # Panics
+    /// # Errors
     ///
-    /// Panics when passed a string that contains whitespace separated sections that cannot be parsed as moves outside of comments
-    #[must_use]
-    pub fn move_sequence(&self, moves: &str) -> Self {
+    /// Errors when passed a string that contains whitespace separated sections that cannot be parsed as moves outside of comments
+    pub fn move_sequence(&self, moves: &str) -> Result<Self, String> {
         if moves.contains(char::is_whitespace) {
             moves
                 .process_movement_input()
-                .fold(*self, |cube, single_move| cube.move_sequence(&single_move))
+                .try_fold(*self, |cube, single_move| cube.move_sequence(&single_move))
         } else {
-            *self * Self::from(Move::try_from(moves).unwrap_or_default())
+            Ok(*self * Self::from(Move::try_from(moves)?))
         }
     }
 
-    #[must_use]
-    pub fn from_solved(m: &str) -> Self {
+    /// # Errors
+    ///
+    /// Errors when passed a string that contains whitespace separated sections that cannot be parsed as moves outside of comments
+    pub fn from_solved(m: &str) -> Result<Self, String> {
         Self::default().move_sequence(m)
     }
 
@@ -108,13 +117,16 @@ impl Cube3By3 {
         ]
         .contains(&Faces::F)
         {
-            rotated_self = rotated_self.move_sequence("y");
+            rotated_self = rotated_self
+                * Move::new(MovablePart::Rotation(Rotations::y), MoveModifier::Clockwise);
         }
         while rotated_self.center_configuration.permutation[1] != Faces::F {
-            rotated_self = rotated_self.move_sequence("x");
+            rotated_self = rotated_self
+                * Move::new(MovablePart::Rotation(Rotations::x), MoveModifier::Clockwise);
         }
         while rotated_self.center_configuration.permutation[0] != Faces::U {
-            rotated_self = rotated_self.move_sequence("z");
+            rotated_self = rotated_self
+                * Move::new(MovablePart::Rotation(Rotations::z), MoveModifier::Clockwise);
         }
         rotated_self == Self::IDENTITY
     }
@@ -134,6 +146,7 @@ impl Cube3By3 {
     }
 }
 #[cfg(test)]
+#[allow(clippy::panic_in_result_fn)]
 mod tests {
     use super::*;
     #[test]
@@ -142,74 +155,85 @@ mod tests {
     }
 
     #[test]
-    fn y_rotated_solved_is_solved() {
-        let rotated_def = Cube3By3::from_solved("y");
+    fn y_rotated_solved_is_solved() -> Result<(), String> {
+        let rotated_def = Cube3By3::from_solved("y")?;
         assert!(rotated_def.is_solved());
+        Ok(())
     }
 
     #[test]
-    fn rotated_solved_is_solved() {
-        let rotated_def = Cube3By3::from_solved("y z y z x2 z2");
+    fn rotated_solved_is_solved() -> Result<(), String> {
+        let rotated_def = Cube3By3::from_solved("y z y z x2 z2")?;
         assert!(rotated_def.is_solved());
+        Ok(())
     }
 
     #[test]
-    fn all_axes_rotated_solved_is_solved_but_not_after_a_face_turn() {
-        assert!(Cube3By3::from_solved("x y2 z'").is_solved());
-        assert!(!Cube3By3::from_solved("x y2 z' R").is_solved());
+    fn incorrect_strings_return_error() {
+        assert!(Cube3By3::from_solved("Q").is_err());
+        assert!(Cube3By3::from_solved("R Q U").is_err());
+        assert!(Cube3By3::from_solved("R3").is_err());
     }
 
     #[test]
-    fn r_4_times_is_solved_and_respects_parity() {
-        let cube = Cube3By3::from_solved("R R R R");
+    fn all_axes_rotated_solved_is_solved_but_not_after_a_face_turn() -> Result<(), String> {
+        assert!(Cube3By3::from_solved("x y2 z'")?.is_solved());
+        assert!(!Cube3By3::from_solved("x y2 z' R")?.is_solved());
+        Ok(())
+    }
+
+    #[test]
+    fn r_4_times_is_solved_and_respects_parity() -> Result<(), String> {
+        let cube = Cube3By3::from_solved("R R R R")?;
         assert!(cube.is_solved());
+        assert!(cube.respects_orientation_parity());
+        Ok(())
     }
 
     #[test]
-    fn r_2_is_equal_to_r_prime_2() {
-        let r2 = Cube3By3::from_solved("R2");
-        let r_prime_2 = Cube3By3::from_solved("R' R'");
+    fn r_2_is_equal_to_r_prime_2() -> Result<(), String> {
+        let r2 = Cube3By3::from_solved("R2")?;
+        let r_prime_2 = Cube3By3::from_solved("R' R'")?;
         assert_eq!(r2, r_prime_2);
+        Ok(())
     }
 
     #[test]
-    fn r_r_prime_is_solved() {
-        let mut cube = Cube3By3::from_solved("R");
+    fn r_r_prime_is_solved() -> Result<(), String> {
+        let mut cube = Cube3By3::from_solved("R")?;
         assert!(!cube.is_solved());
-        cube = cube.move_sequence("R'");
+        cube = cube.move_sequence("R'")?;
         assert!(cube.is_solved());
+        Ok(())
     }
 
     #[test]
-    fn r_prime_is_inverse_of_r() {
-        let r = Cube3By3::from_solved("R");
-        let r_prime = Cube3By3::from_solved("R'");
+    fn r_prime_is_inverse_of_r() -> Result<(), String> {
+        let r = Cube3By3::from_solved("R")?;
+        let r_prime = Cube3By3::from_solved("R'")?;
         assert_eq!(r.const_inverse(), r_prime);
+        Ok(())
     }
 
     #[test]
-    fn composing_u_and_r_works() {
-        let u = Cube3By3::from_solved("U");
-        let ur = Cube3By3::from_solved("U R");
-        assert_eq!(u.move_sequence("R"), ur,);
+    fn composing_u_and_r_works() -> Result<(), String> {
+        let u = Cube3By3::from_solved("U")?;
+        let ur = Cube3By3::from_solved("U R")?;
+        assert_eq!(u.move_sequence("R")?, ur);
+        Ok(())
     }
 
     #[test]
-    fn r_move_respects_bounds_and_touches_only_r_layer() {
+    fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), String> {
+        let r = Cube3By3::from_solved("R")?;
         for c in [
             SingleCorner::Ubl,
             SingleCorner::Ufl,
             SingleCorner::Dfl,
             SingleCorner::Dbl,
         ] {
-            assert_eq!(
-                Cube3By3::from_solved("R").corner_configuration.orientation[c as usize],
-                ZnRing::ZERO
-            );
-            assert_eq!(
-                Cube3By3::from_solved("R").corner_configuration.permutation[c as usize],
-                c
-            );
+            assert_eq!(r.corner_configuration.orientation[c as usize], ZnRing::ZERO);
+            assert_eq!(r.corner_configuration.permutation[c as usize], c);
         }
         for e in [
             SingleEdge::Ub,
@@ -221,50 +245,52 @@ mod tests {
             SingleEdge::Db,
             SingleEdge::Dl,
         ] {
-            assert_eq!(
-                Cube3By3::from_solved("R").edge_configuration.permutation[e as usize],
-                e
-            );
+            assert_eq!(r.edge_configuration.permutation[e as usize], e);
         }
-        assert!(Cube3By3::from_solved("R").respects_orientation_parity());
+        assert!(r.respects_orientation_parity());
+        Ok(())
     }
 
     #[test]
-    fn composition_works() {
+    fn composition_works() -> Result<(), String> {
         let scramble_string = "R' ";
         let solution_string = "D2";
-        let scramble = Cube3By3::from_solved(scramble_string);
+        let scramble = Cube3By3::from_solved(scramble_string)?;
         assert_eq!(
-            Cube3By3::from_solved(&format!("{scramble_string} {solution_string}")),
-            scramble.move_sequence(solution_string),
+            Cube3By3::from_solved(&format!("{scramble_string} {solution_string}"))?,
+            scramble.move_sequence(solution_string)?,
             "composing {scramble_string} and {solution_string} doesn't result in applying {scramble_string} {solution_string}"
         );
+        Ok(())
     }
 
     #[test]
-    fn composition_works_on_fmc_wr() {
+    fn composition_works_on_fmc_wr() -> Result<(), String> {
         let scramble_string =
             "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F";
         let solution_string = "D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'";
-        let scramble = Cube3By3::from_solved(scramble_string);
+        let scramble = Cube3By3::from_solved(scramble_string)?;
         assert_eq!(
-            Cube3By3::from_solved(&format!("{scramble_string} {solution_string}")),
-            scramble.move_sequence(solution_string),
+            Cube3By3::from_solved(&format!("{scramble_string} {solution_string}"))?,
+            scramble.move_sequence(solution_string)?,
             "composing {scramble_string} and {solution_string} doesn't result in applying {scramble_string} {solution_string}"
         );
+        Ok(())
     }
 
     #[test]
-    fn mul_carries_orientation_along_with_the_piece() {
+    fn mul_carries_orientation_along_with_the_piece() -> Result<(), String> {
         // Pre-twist the piece at UFR, then apply R: that piece lands at UBR and
         // its twist is added to the twist R gives the UBR slot.
+        let r = Cube3By3::from_solved("R")?;
         let mut twisted = Cube3By3::default();
         twisted.corner_configuration.orientation[SingleCorner::Ufr as usize] = ZnRing::new(1);
-        let after = twisted * Cube3By3::from_solved("R");
-        let mut expected = Cube3By3::from_solved("R");
+        let after = twisted * r;
+        let mut expected = r;
         expected.corner_configuration.orientation[SingleCorner::Ubr as usize] =
             expected.corner_configuration.orientation[SingleCorner::Ubr as usize] + ZnRing::new(1);
         assert_eq!(after, expected);
+        Ok(())
     }
     #[test]
     fn u_perm_repeats_after_3_applications() {
