@@ -123,7 +123,7 @@ impl TryFrom<&str> for Move {
         let modif = {
             match s
                 .get((1 + usize::from(wide))..)
-                .ok_or_else(|| format!("{s} is not a valid UTF-8 &str"))?
+                .ok_or_else(|| format!("{s} must be a valid UTF-8 &str"))?
             {
                 "" => MoveModifier::Clockwise,
                 "'" => MoveModifier::CounterClockwise,
