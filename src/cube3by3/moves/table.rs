@@ -181,17 +181,17 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [Move; FACE_AND_SLICES_CLOCKWISE_MOVE
         cube_representation: Cube3By3 {
             center_configuration: Centers::cycle([[
                 SingleCenter::F,
-                SingleCenter::L,
-                SingleCenter::B,
                 SingleCenter::R,
+                SingleCenter::B,
+                SingleCenter::L,
             ]]),
             corner_configuration: Corners::IDENTITY,
             edge_configuration: Edges {
                 permutation: Edges::cycle([[
                     SingleEdge::Fr,
-                    SingleEdge::Fl,
-                    SingleEdge::Bl,
                     SingleEdge::Br,
+                    SingleEdge::Bl,
+                    SingleEdge::Fl,
                 ]])
                 .permutation,
                 orientation: ZnRing::array([0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0]),
@@ -302,6 +302,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = {
         cube_representation: ALL_FACE_AND_SLICES_CLOCKWISE_MOVES
             [FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT - 3]
             .cube_representation
+            .const_inverse()
             .const_mul(ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[2].cube_representation)
             .const_mul(
                 ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[3]
