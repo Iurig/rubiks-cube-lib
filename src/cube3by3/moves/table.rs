@@ -265,7 +265,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = {
         all_clockwise_moves[i] = ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[i];
         i += 1;
     }
-    all_clockwise_moves[FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT + 2] = Move {
+    all_clockwise_moves[Rotation(Rotations::z).table_index()] = Move {
         cube_representation: ALL_FACE_AND_SLICES_CLOCKWISE_MOVES
             [FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT - 1]
             .cube_representation
@@ -281,7 +281,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = {
         is_wide: false,
         is_slice: false,
     };
-    all_clockwise_moves[FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT + 1] = Move {
+    all_clockwise_moves[Rotation(Rotations::x).table_index()] = Move {
         cube_representation: ALL_FACE_AND_SLICES_CLOCKWISE_MOVES
             [FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT - 2]
             .cube_representation
@@ -298,7 +298,7 @@ const ALL_CLOCKWISE_MOVES: [Move; CLOCKWISE_MOVE_COUNT] = {
         is_wide: false,
         is_slice: false,
     };
-    all_clockwise_moves[FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT] = Move {
+    all_clockwise_moves[Rotation(Rotations::y).table_index()] = Move {
         cube_representation: ALL_FACE_AND_SLICES_CLOCKWISE_MOVES
             [FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT - 3]
             .cube_representation
