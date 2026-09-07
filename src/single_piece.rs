@@ -7,12 +7,18 @@ use crate::zn::ZnRing;
 pub unsafe trait SinglePiece<const N: usize>: Copy + Eq {
     const ALL: [Self; N];
 }
-#[must_use]
-pub fn from_index<P, const N: usize>(index: usize) -> P
+
+/// # Errors
+///
+/// Errors if the index is out of range for the piece type
+pub fn try_from_index<P, const N: usize>(index: usize) -> Result<P, String>
 where
     P: SinglePiece<N>,
 {
-    P::ALL[index]
+    P::ALL
+        .get(index)
+        .copied()
+        .ok_or_else(|| format!("index must be in range 0..{:?}", P::ALL.len()))
 }
 #[must_use]
 pub const fn index<P, const N: usize>(piece: P) -> usize
@@ -40,9 +46,16 @@ where
 {
     fn inverse(&self) -> Self {
         let mut inv = Self::IDENTITY;
-        for i in 0..N {
-            inv.permutation[index(self.permutation[i])] = P::ALL[i];
-            inv.orientation[index(self.permutation[i])] = -self.orientation[i];
+        for ((piece, orientation), piece_from_index) in
+            self.permutation.iter().zip(&self.orientation).zip(P::ALL)
+        {
+            let target = index(*piece);
+            if let Some(slot) = inv.permutation.get_mut(target) {
+                *slot = piece_from_index;
+            }
+            if let Some(slot) = inv.orientation.get_mut(target) {
+                *slot = -*orientation;
+            }
         }
         inv
     }
@@ -106,11 +119,11 @@ mod tests {
     fn corner_and_edge_all_match_discriminants() {
         for (i, c) in SingleCorner::ALL.iter().enumerate() {
             assert_eq!(*c as usize, i);
-            assert_eq!(from_index::<SingleCorner, _>(i), *c);
+            assert_eq!(try_from_index::<SingleCorner, _>(i), Ok(*c));
         }
         for (i, e) in SingleEdge::ALL.iter().enumerate() {
             assert_eq!(*e as usize, i);
-            assert_eq!(from_index::<SingleEdge, _>(i), *e);
+            assert_eq!(try_from_index::<SingleEdge, _>(i), Ok(*e));
         }
     }
 
