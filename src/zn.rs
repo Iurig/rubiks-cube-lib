@@ -6,7 +6,7 @@ pub struct ZnRing<const N: usize>(usize);
 impl<const N: usize> From<usize> for ZnRing<N> {
     fn from(integer: usize) -> Self {
         () = Self::CHECK;
-        ZnRing(integer % N)
+        Self(integer % N)
     }
 }
 impl<const N: usize> std::ops::Add for ZnRing<N> {
@@ -24,20 +24,20 @@ impl<const N: usize> Neg for ZnRing<N> {
 
 impl<const N: usize> ZnRing<N> {
     const CHECK: () = assert!(N >= 1);
-    pub const ZERO: Self = ZnRing(0);
+    pub const ZERO: Self = Self(0);
 
     #[must_use = "the new value is returned"]
     pub const fn new(value: usize) -> Self {
         () = Self::CHECK;
-        ZnRing(value % N)
+        Self(value % N)
     }
 
     #[must_use = "the array is returned"]
     pub const fn array<const L: usize>(values: [usize; L]) -> [Self; L] {
-        let mut final_array = [ZnRing(0); L];
+        let mut final_array = [Self(0); L];
         let mut i = 0;
         while i < L {
-            final_array[i] = ZnRing(values[i]);
+            final_array[i] = Self(values[i]);
             i += 1;
         }
         final_array
@@ -45,7 +45,7 @@ impl<const N: usize> ZnRing<N> {
 
     #[must_use = "the addition is returned"]
     pub const fn const_add(self, rhs: Self) -> Self {
-        ZnRing((self.0 + rhs.0) % N)
+        Self((self.0 + rhs.0) % N)
     }
 
     #[must_use = "the negation is returned"]

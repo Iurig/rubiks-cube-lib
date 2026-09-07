@@ -7,3 +7,7 @@ rust-version = "1.85"
 
 [dev-dependencies]
 fastrand = "2.5.0"
+
+[lints.clippy]
+pedantic = {level = "warn", priority = -1}
+nursery = {level = "warn", priority = -1}

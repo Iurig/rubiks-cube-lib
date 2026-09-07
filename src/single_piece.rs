@@ -39,7 +39,7 @@ where
     P: SinglePiece<N>,
 {
     fn inverse(&self) -> Self {
-        let mut inv = PieceConfiguration::IDENTITY;
+        let mut inv = Self::IDENTITY;
         for i in 0..N {
             inv.permutation[index(self.permutation[i])] = P::ALL[i];
             inv.orientation[index(self.permutation[i])] = -self.orientation[i];
@@ -52,7 +52,7 @@ where
     P: SinglePiece<N>,
 {
     /// The solved state for a given piece type
-    pub const IDENTITY: Self = PieceConfiguration {
+    pub const IDENTITY: Self = Self {
         permutation: P::ALL,
         orientation: [ZnRing::ZERO; N],
     };
@@ -74,7 +74,7 @@ where
     pub const fn cycle<const CYCLE_SIZE: usize, const CYCLE_AMOUNT: usize>(
         to_cycle: [[P; CYCLE_SIZE]; CYCLE_AMOUNT],
     ) -> Self {
-        let mut resp = PieceConfiguration::IDENTITY;
+        let mut resp = Self::IDENTITY;
         let mut i = 0;
         while i < CYCLE_AMOUNT {
             let mut j = 0;
@@ -88,7 +88,7 @@ where
     }
     #[must_use = "the inverse is returned"]
     pub const fn const_inverse(&self) -> Self {
-        let mut inv = PieceConfiguration::IDENTITY;
+        let mut inv = Self::IDENTITY;
         let mut i = 0;
         while i < N {
             inv.permutation[index(self.permutation[i])] = P::ALL[i];

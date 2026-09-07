@@ -1,4 +1,4 @@
-pub(crate) trait RubiksCubeCleaning {
+pub trait RubiksCubeCleaning {
     fn process_movement_input(&self) -> impl Iterator<Item = String>;
 }
 

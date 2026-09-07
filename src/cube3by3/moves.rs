@@ -39,7 +39,7 @@ impl ops::Inv for Move {
     }
 }
 impl Move {
-    const IDENTITY: Self = Move {
+    const IDENTITY: Self = Self {
         cube_representation: Cube3By3::IDENTITY,
         is_slice: false,
         is_rotation: false,
@@ -48,7 +48,7 @@ impl Move {
         modifier: MoveModifier::Nothing,
     };
     const fn const_inverse(&self) -> Self {
-        Move {
+        Self {
             cube_representation: self.cube_representation.const_inverse(),
             is_slice: self.is_slice,
             is_rotation: self.is_rotation,
@@ -66,7 +66,7 @@ impl Move {
         }
     }
     const fn const_double(&self) -> Self {
-        Move {
+        Self {
             cube_representation: self.cube_representation.const_mul(self.cube_representation),
             is_slice: self.is_slice,
             is_rotation: self.is_rotation,
@@ -84,8 +84,9 @@ impl Move {
     }
 }
 
-impl From<&str> for Move {
-    fn from(s: &str) -> Self {
+impl TryFrom<&str> for Move {
+    type Error = String;
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
         let part = match s.chars().next() {
             Some('R') => MovablePart::Face(Faces::R),
             Some('L') => MovablePart::Face(Faces::L),
@@ -119,10 +120,10 @@ impl From<&str> for Move {
                 ),
             }
         };
-        *ALL_MOVES
+        ALL_MOVES
             .iter()
             .find(|&m| m.part == part && (m.modifier == modif || (m.modifier == Double && modif == CounterDouble )) && m.is_wide == wide)
-            .unwrap_or_else(|| panic!("there is no implemented move for {s}, corresponding to {part:?}, {modif:?} and is_wide = {wide}"))
+            .ok_or_else(|| format!("there is no implemented move for {s}, corresponding to {part:?}, {modif:?} and is_wide = {wide}")).copied()
     }
 }
 

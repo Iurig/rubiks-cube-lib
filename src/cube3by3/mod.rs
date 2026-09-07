@@ -1,5 +1,5 @@
-pub(crate) mod moves;
-pub(crate) mod pieces;
+pub mod moves;
+pub mod pieces;
 
 #[allow(clippy::wildcard_imports)]
 use self::{moves::*, pieces::*};
@@ -30,8 +30,8 @@ impl std::ops::Mul for Cube3By3 {
     }
 }
 impl Cube3By3 {
-    const fn const_mul(self, to_be_aplied: Self) -> Cube3By3 {
-        Cube3By3 {
+    const fn const_mul(self, to_be_aplied: Self) -> Self {
+        Self {
             center_configuration: self
                 .center_configuration
                 .then(&to_be_aplied.center_configuration),
@@ -64,20 +64,23 @@ impl Inv for Cube3By3 {
 
 impl Cube3By3 {
     /// The multiplicative identity of the cube group: the solved cube
-    pub const IDENTITY: Cube3By3 = Cube3By3 {
+    pub const IDENTITY: Self = Self {
         center_configuration: Centers::IDENTITY,
         corner_configuration: Corners::IDENTITY,
         edge_configuration: Edges::IDENTITY,
     };
 
     const fn const_inverse(&self) -> Self {
-        Cube3By3 {
+        Self {
             center_configuration: self.center_configuration.const_inverse(),
             corner_configuration: self.corner_configuration.const_inverse(),
             edge_configuration: self.edge_configuration.const_inverse(),
         }
     }
 
+    /// # Panics
+    ///
+    /// Panics when passed a string that contains whitespace separated sections that cannot be parsed as moves outside of comments
     #[must_use]
     pub fn move_sequence(&self, moves: &str) -> Self {
         if moves.contains(char::is_whitespace) {
@@ -85,13 +88,13 @@ impl Cube3By3 {
                 .process_movement_input()
                 .fold(*self, |cube, single_move| cube.move_sequence(&single_move))
         } else {
-            *self * Cube3By3::from(Move::from(moves))
+            *self * Self::from(Move::try_from(moves).unwrap_or_else(|err| panic!("{}", err)))
         }
     }
 
     #[must_use]
     pub fn from_solved(m: &str) -> Self {
-        Cube3By3::default().move_sequence(m)
+        Self::default().move_sequence(m)
     }
 
     #[must_use]
@@ -113,7 +116,7 @@ impl Cube3By3 {
         while rotated_self.center_configuration.permutation[0] != Faces::U {
             rotated_self = rotated_self.move_sequence("z");
         }
-        rotated_self == Cube3By3::IDENTITY
+        rotated_self == Self::IDENTITY
     }
     #[must_use]
     pub fn respects_orientation_parity(&self) -> bool {
