@@ -33,11 +33,7 @@ pub struct Move {
     is_slice: bool,
     is_rotation: bool,
 }
-impl ops::Inv for Move {
-    fn inverse(&self) -> Self {
-        self.const_inverse()
-    }
-}
+
 impl Move {
     const IDENTITY: Self = Self {
         cube_representation: Cube3By3::IDENTITY,
@@ -81,6 +77,18 @@ impl Move {
                 }
             },
         }
+    }
+}
+
+impl Default for Move {
+    fn default() -> Self {
+        Self::IDENTITY
+    }
+}
+
+impl ops::Inv for Move {
+    fn inverse(&self) -> Self {
+        self.const_inverse()
     }
 }
 
