@@ -178,6 +178,23 @@ mod tests {
     }
 
     #[test]
+    fn rotations_match_moves() -> Result<(), String> {
+        assert_eq!(
+            Cube3By3::from_solved("y")?,
+            Cube3By3::from_solved("U E' D'")?
+        );
+        assert_eq!(
+            Cube3By3::from_solved("z")?,
+            Cube3By3::from_solved("F S B'")?
+        );
+        assert_eq!(
+            Cube3By3::from_solved("x")?,
+            Cube3By3::from_solved("R M' L'")?
+        );
+        Ok(())
+    }
+
+    #[test]
     fn all_axes_rotated_solved_is_solved_but_not_after_a_face_turn() -> Result<(), String> {
         assert!(Cube3By3::from_solved("x y2 z'")?.is_solved());
         assert!(!Cube3By3::from_solved("x y2 z' R")?.is_solved());
