@@ -95,19 +95,23 @@ impl ops::Inv for Move {
 impl TryFrom<&str> for Move {
     type Error = String;
     fn try_from(s: &str) -> Result<Self, Self::Error> {
-        let part = match s.chars().next() {
-            Some('R') => MovablePart::Face(Faces::R),
-            Some('L') => MovablePart::Face(Faces::L),
-            Some('U') => MovablePart::Face(Faces::U),
-            Some('D') => MovablePart::Face(Faces::D),
-            Some('F') => MovablePart::Face(Faces::F),
-            Some('B') => MovablePart::Face(Faces::B),
-            Some('y') => MovablePart::Rotation(Rotations::y),
-            Some('z') => MovablePart::Rotation(Rotations::z),
-            Some('x') => MovablePart::Rotation(Rotations::x),
-            Some('M') => MovablePart::Slice(Slices::M),
-            Some('E') => MovablePart::Slice(Slices::E),
-            Some('S') => MovablePart::Slice(Slices::S),
+        let part = match s
+            .chars()
+            .next()
+            .ok_or("only non empty strings can be turned into a move")?
+        {
+            'R' => MovablePart::Face(Faces::R),
+            'L' => MovablePart::Face(Faces::L),
+            'U' => MovablePart::Face(Faces::U),
+            'D' => MovablePart::Face(Faces::D),
+            'F' => MovablePart::Face(Faces::F),
+            'B' => MovablePart::Face(Faces::B),
+            'y' => MovablePart::Rotation(Rotations::y),
+            'z' => MovablePart::Rotation(Rotations::z),
+            'x' => MovablePart::Rotation(Rotations::x),
+            'M' => MovablePart::Slice(Slices::M),
+            'E' => MovablePart::Slice(Slices::E),
+            'S' => MovablePart::Slice(Slices::S),
             _ => return Err(format!("{s} is not a valid face, rotation, or slice")),
         };
         let wide = {
@@ -117,11 +121,14 @@ impl TryFrom<&str> for Move {
             }
         };
         let modif = {
-            match &s.get((1 + usize::from(wide))..) {
-                Some("") => MoveModifier::Clockwise,
-                Some("'") => MoveModifier::CounterClockwise,
-                Some("2") => MoveModifier::Double,
-                Some("2'" | "'2") => MoveModifier::CounterDouble,
+            match s
+                .get((1 + usize::from(wide))..)
+                .ok_or_else(|| format!("{s} is not a valid UTF-8 &str"))?
+            {
+                "" => MoveModifier::Clockwise,
+                "'" => MoveModifier::CounterClockwise,
+                "2" => MoveModifier::Double,
+                "2'" | "'2" => MoveModifier::CounterDouble,
                 _ => {
                     return Err(format!(
                         "{:?} isn't a valid move modifier",
