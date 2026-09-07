@@ -1,17 +1,17 @@
 use crate::{SinglePiece, single_piece::PieceConfiguration};
 
-pub(crate) const CENTERS_COUNT: usize = 6;
-pub(crate) const CORNERS_COUNT: usize = 8;
-pub(crate) const EDGES_COUNT: usize = 12;
-pub(crate) const CENTER_ORIENTATION_COUNT: usize = 1;
-pub(crate) const CO_COUNT: usize = 3;
-pub(crate) const EO_COUNT: usize = 2;
+const CENTERS_COUNT: usize = 6;
+const CORNERS_COUNT: usize = 8;
+const EDGES_COUNT: usize = 12;
+const CENTER_ORIENTATION_COUNT: usize = 1;
+const CO_COUNT: usize = 3;
+const EO_COUNT: usize = 2;
 
 macro_rules! new_piece {
     ($type_name:ident, $amount:ident, [$($p:ident),+]) => {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
         #[repr(u8)]
-        pub(crate) enum $type_name {
+        pub enum $type_name {
             $($p),+
         }
         unsafe impl SinglePiece<$amount> for $type_name {
@@ -36,19 +36,19 @@ new_piece!(
     [Ub, Ur, Uf, Ul, Fl, Fr, Br, Bl, Df, Dr, Db, Dl]
 );
 
-pub(crate) type Centers = PieceConfiguration<SingleCenter, CENTERS_COUNT, CENTER_ORIENTATION_COUNT>;
-pub(crate) type Corners = PieceConfiguration<SingleCorner, CORNERS_COUNT, CO_COUNT>;
-pub(crate) type Edges = PieceConfiguration<SingleEdge, EDGES_COUNT, EO_COUNT>;
-pub(crate) type Faces = SingleCenter;
+pub type Centers = PieceConfiguration<SingleCenter, CENTERS_COUNT, CENTER_ORIENTATION_COUNT>;
+pub type Corners = PieceConfiguration<SingleCorner, CORNERS_COUNT, CO_COUNT>;
+pub type Edges = PieceConfiguration<SingleEdge, EDGES_COUNT, EO_COUNT>;
+pub type Faces = SingleCenter;
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
-pub(crate) enum Slices {
+pub enum Slices {
     M,
     S,
     E,
 }
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 #[allow(non_camel_case_types)]
-pub(crate) enum Rotations {
+pub enum Rotations {
     x,
     y,
     z,
