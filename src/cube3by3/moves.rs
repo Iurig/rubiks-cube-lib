@@ -108,7 +108,7 @@ impl TryFrom<&str> for Move {
             Some('M') => MovablePart::Slice(Slices::M),
             Some('E') => MovablePart::Slice(Slices::E),
             Some('S') => MovablePart::Slice(Slices::S),
-            _ => panic!("{s} is not a valid face, rotation, or slice"),
+            _ => return Err(format!("{s} is not a valid face, rotation, or slice")),
         };
         let wide = {
             match s.chars().nth(1) {
@@ -117,15 +117,17 @@ impl TryFrom<&str> for Move {
             }
         };
         let modif = {
-            match &s[(1 + usize::from(wide))..] {
-                "" => MoveModifier::Clockwise,
-                "'" => MoveModifier::CounterClockwise,
-                "2" => MoveModifier::Double,
-                "2'" | "'2" => MoveModifier::CounterDouble,
-                _ => panic!(
-                    "{:?} isn't a valid move modifier",
-                    &s[(1 + usize::from(wide))..]
-                ),
+            match &s.get((1 + usize::from(wide))..) {
+                Some("") => MoveModifier::Clockwise,
+                Some("'") => MoveModifier::CounterClockwise,
+                Some("2") => MoveModifier::Double,
+                Some("2'" | "'2") => MoveModifier::CounterDouble,
+                _ => {
+                    return Err(format!(
+                        "{:?} isn't a valid move modifier",
+                        s.get((1 + usize::from(wide))..)
+                    ));
+                }
             }
         };
         ALL_MOVES

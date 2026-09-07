@@ -11,3 +11,10 @@ fastrand = "2.5.0"
 [lints.clippy]
 pedantic = {level = "warn", priority = -1}
 nursery = {level = "warn", priority = -1}
+unwrap_used = "warn"
+todo = "warn"
+indexing_slicing = "warn"
+string_slice = "warn"
+unreacheable = "warn"
+unimplemented = "warn"
+panic_in_result_fn = "warn"

@@ -6,4 +6,4 @@ pub mod zn;
 
 pub use cube3by3::Cube3By3;
 pub use ops::{Inv, Pow};
-pub use single_piece::{PieceConfiguration, SinglePiece, from_index, index};
+pub use single_piece::{PieceConfiguration, SinglePiece, index, try_from_index};
