@@ -88,7 +88,7 @@ impl Cube3By3 {
                 .process_movement_input()
                 .fold(*self, |cube, single_move| cube.move_sequence(&single_move))
         } else {
-            *self * Self::from(Move::try_from(moves).unwrap_or_else(|err| panic!("{}", err)))
+            *self * Self::from(Move::try_from(moves).unwrap_or_default())
         }
     }
 
