@@ -115,7 +115,6 @@ fn cfop_solve_hygienized() -> Result<(), String> {
     let result = Cube3By3::IDENTITY
         .move_sequence(scramble)?
         .move_sequence(solve)?;
-    dbg!(result);
     assert!(result.is_solved());
     Ok(())
 }
@@ -140,7 +139,7 @@ fn cfop_solve() -> Result<(), String> {
 }
 
 #[test]
-#[ignore = "rotations AND wide moves not yet implemented"]
+#[ignore = "wide moves not yet implemented"]
 fn roux_solve_with_comments() -> Result<(), String> {
     assert!(
         Cube3By3::from_solved(concat!(
@@ -157,7 +156,7 @@ fn roux_solve_with_comments() -> Result<(), String> {
 }
 
 #[test]
-#[ignore = "rotations AND wide moves not yet implemented"]
+#[ignore = "wide moves not yet implemented"]
 fn roux_solve_without_comments() -> Result<(), String> {
     assert!(
         Cube3By3::from_solved(concat!(
@@ -175,14 +174,6 @@ fn roux_solve_without_comments() -> Result<(), String> {
 
 #[test]
 fn roux_solve_without_wide_moves() -> Result<(), String> {
-    dbg!(Cube3By3::from_solved(concat!(
-        "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
-        "y2 F' M F' R U' R U' B
-            U R U R M2 U' R U2 R'
-            U R' U' R U' R' U' R M'
-            U M' U' M U' U' M' U M
-            U' U' M2 U' M U' U' M' U' U' M2 y2 L2 M2 R2"
-    ))?);
     assert!(
         Cube3By3::from_solved(concat!(
             "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
@@ -198,7 +189,7 @@ fn roux_solve_without_wide_moves() -> Result<(), String> {
 }
 
 #[test]
-#[ignore = "comments are removed but roux solve lacks rotation and wide move implementation"]
+#[ignore = "comments are removed but roux solve lacks wide move implementation"]
 fn roux_solve_removes_comments() -> Result<(), String> {
     assert_eq!(
         Cube3By3::from_solved(concat!(

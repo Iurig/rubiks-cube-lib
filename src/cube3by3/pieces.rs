@@ -47,7 +47,7 @@ pub enum Slices {
     E,
 }
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
-#[allow(non_camel_case_types)]
+#[expect(non_camel_case_types, reason = "rotations are inherently lower case")]
 pub enum Rotations {
     x,
     y,

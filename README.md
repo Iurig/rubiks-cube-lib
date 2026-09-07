@@ -8,7 +8,7 @@
 A Rust library that models the 3×3×3 Rubik's Cube, with planned expansion for other cube types, as well as solving from an algorithm library.
 
 A cube state is a value of type `Cube3By3`. Moves are cube states too, and applying a move is just
-group multiplication. Everything is `Copy`, allocation-free, and most operations are `const fn`,
+group multiplication. Everything is `Copy`, and most operations are `const fn`,
 so the entire move table is built at compile time.
 
 > **Status: early work in progress.** The core group structure and all non-wide moves work and are well tested. Wide moves are not implemented yet, and integration
@@ -83,7 +83,7 @@ standard memorization order, except for edges which are clockwise by layer, star
 Corner orientation counts clockwise twists relative to the U/D sticker being in the U or D layer; edge orientation is 0 for
 oriented, 1 for flipped.
 
-Every clockwise move is written down once as an explicit cycle in [src/cube3by3/moves.rs](src/cube3by3/moves.rs).
+Every clockwise move is written down once as an explicit cycle in [src/cube3by3/moves.rs](src/cube3by3/moves/table.rs).
 Its inverse and double are derived at compile time into a single `ALL_MOVES` table that string
 parsing looks up.
 
@@ -99,7 +99,7 @@ parsing looks up.
 | `impl Mul for Cube3By3`                  | `a * b` applies `a` then `b`. Associative, not commutative. |
 | `Inv` trait                              | `inverse()`, implemented for cubes and piece configurations.|
 | `Pow` trait                              | `pow(n)`, repeated multiplication.                         |
-| `PieceConfiguration`, `SinglePiece`, `index`, `from_index` | Generic building blocks for other puzzles. |
+| `PieceConfiguration`, `SinglePiece`, `index`, `try_from_index` | Generic building blocks for other puzzles. |
 | `zn::ZnRing<N>`                          | Integers mod `N`, `const`-friendly, with `Add` and `Neg`.  |
 
 ## Project layout

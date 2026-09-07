@@ -20,7 +20,11 @@ impl<T: AsRef<str> + ?Sized> RubiksCubeCleaning for T {
     fn process_movement_input(&self) -> impl Iterator<Item = String> {
         self.as_ref()
             .lines()
-            .flat_map(|l| l.split("//").next().unwrap_or("").split_whitespace())
+            .flat_map(|l| {
+                l.split_once("//")
+                    .map_or(l, |(moves, _)| moves)
+                    .split_whitespace()
+            })
             .map(expand_wide_moves)
     }
 }
