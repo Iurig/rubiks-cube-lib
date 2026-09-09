@@ -22,18 +22,9 @@ struct MoveInformation {
 /// Position of this part in the clockwise move list.
 const fn table_index_clockwise(part: MovablePart) -> usize {
     match part {
-        Face(Faces::R) => 0,
-        Face(Faces::L) => 1,
-        Face(Faces::U) => 2,
-        Face(Faces::D) => 3,
-        Face(Faces::F) => 4,
-        Face(Faces::B) => 5,
-        Slice(Slices::E) => 6,
-        Slice(Slices::M) => 7,
-        Slice(Slices::S) => 8,
-        Rotation(Rotations::z) => 9,
-        Rotation(Rotations::x) => 10,
-        Rotation(Rotations::y) => 11,
+        Face(m) => m as usize,
+        Slice(m) => Faces::ALL.len() + m as usize,
+        Rotation(m) => Faces::ALL.len() + Slices::ALL.len() + m as usize,
         Wide(x) => {
             table_index_clockwise(Face(x))
                 + Faces::ALL.len()
@@ -345,18 +336,15 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
 ];
 
 #[allow(clippy::panic)] // only run at compile time
-const fn slice_along(face: Faces) -> Cube3By3 {
+const fn slice_along(face: Faces, placed: &[MoveInformation; CLOCKWISE_MOVE_COUNT]) -> Cube3By3 {
     let mut i = 0;
     while i < Slices::ALL.len() {
         if Slices::ALL[i].follows() as u8 == face as u8 {
-            return ALL_FACE_AND_SLICES_CLOCKWISE_MOVES
-                [table_index_clockwise(Slice(Slices::ALL[i]))]
-            .cube_state;
+            return placed[table_index_clockwise(Slice(Slices::ALL[i]))].cube_state;
         } else if Slices::ALL[i].follows().opposite() as u8 == face as u8 {
-            return ALL_FACE_AND_SLICES_CLOCKWISE_MOVES
-                [table_index_clockwise(Slice(Slices::ALL[i]))]
-            .cube_state
-            .const_inverse();
+            return placed[table_index_clockwise(Slice(Slices::ALL[i]))]
+                .cube_state
+                .const_inverse();
         }
         i += 1;
     }
@@ -377,16 +365,19 @@ const ALL_CLOCKWISE_MOVES: [MoveInformation; CLOCKWISE_MOVE_COUNT] = {
     let mut i = 0;
     while i < Rotations::ALL.len() {
         all_clockwise_moves[table_index_clockwise(Rotation(Rotations::ALL[i]))] = MoveInformation {
-            cube_state: ALL_FACE_AND_SLICES_CLOCKWISE_MOVES
+            cube_state: all_clockwise_moves
                 [table_index_clockwise(Face(Rotations::ALL[i].follows()))]
             .cube_state
             .const_mul(
-                ALL_FACE_AND_SLICES_CLOCKWISE_MOVES
+                all_clockwise_moves
                     [table_index_clockwise(Face(Rotations::ALL[i].follows().opposite()))]
                 .cube_state
                 .const_inverse(),
             )
-            .const_mul(slice_along(Rotations::ALL[i].follows())),
+            .const_mul(slice_along(
+                Rotations::ALL[i].follows(),
+                &all_clockwise_moves,
+            )),
             part: Rotation(Rotations::ALL[i]),
             modifier: Clockwise,
         };
@@ -396,9 +387,9 @@ const ALL_CLOCKWISE_MOVES: [MoveInformation; CLOCKWISE_MOVE_COUNT] = {
     while i < Faces::ALL.len() {
         let face = Faces::ALL[i];
         all_clockwise_moves[table_index_clockwise(Wide(face))] = MoveInformation {
-            cube_state: ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[table_index_clockwise(Face(face))]
+            cube_state: all_clockwise_moves[table_index_clockwise(Face(face))]
                 .cube_state
-                .const_mul(slice_along(face)),
+                .const_mul(slice_along(face, &all_clockwise_moves)),
             part: Wide(face),
             modifier: Clockwise,
         };
