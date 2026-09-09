@@ -62,7 +62,7 @@ impl std::fmt::Display for MovablePart {
                 Self::Rotation(Rotations::x) => String::from("x"),
                 Self::Rotation(Rotations::y) => String::from("y"),
                 Self::Rotation(Rotations::z) => String::from("z"),
-                Self::Wide(x) => Self::Face(*x).to_string() + "w",
+                Self::Wide(x) => return write!(f, "{}w", Self::Face(*x)),
                 Self::Slice(Slices::E) => String::from("E"),
                 Self::Slice(Slices::M) => String::from("M"),
                 Self::Slice(Slices::S) => String::from("S"),
@@ -110,60 +110,76 @@ impl ops::Inv for Move {
 
 impl TryFrom<&str> for Move {
     type Error = String;
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        let wide = {
-            match s.chars().nth(1) {
-                Some('w') => true,
-                Some(_) | None => false,
-            }
-        };
-        let part = match s
-            .chars()
+    /// One token of move notation: a part, then a modifier.
+    ///
+    /// The part is an uppercase face letter (`R`), a face letter followed by
+    /// `w` for the wide move (`Rw`), a lowercase face letter meaning the same
+    /// wide move (`r`), a slice (`M E S`), or a rotation (`x y z`). Whatever
+    /// follows the part must be a modifier: nothing, `'`, `2`, or `2'`.
+    fn try_from(token: &str) -> Result<Self, Self::Error> {
+        let mut chars = token.chars();
+        let first = chars
             .next()
-            .ok_or("only non empty strings can be turned into a move")?
-        {
-            'R' if !wide => MovablePart::Face(Faces::R),
-            'L' if !wide => MovablePart::Face(Faces::L),
-            'U' if !wide => MovablePart::Face(Faces::U),
-            'D' if !wide => MovablePart::Face(Faces::D),
-            'F' if !wide => MovablePart::Face(Faces::F),
-            'B' if !wide => MovablePart::Face(Faces::B),
-            'R' if wide => MovablePart::Wide(Faces::R),
-            'L' if wide => MovablePart::Wide(Faces::L),
-            'U' if wide => MovablePart::Wide(Faces::U),
-            'D' if wide => MovablePart::Wide(Faces::D),
-            'F' if wide => MovablePart::Wide(Faces::F),
-            'B' if wide => MovablePart::Wide(Faces::B),
-            'y' => MovablePart::Rotation(Rotations::y),
-            'z' => MovablePart::Rotation(Rotations::z),
-            'x' => MovablePart::Rotation(Rotations::x),
-            'M' => MovablePart::Slice(Slices::M),
-            'E' => MovablePart::Slice(Slices::E),
-            'S' => MovablePart::Slice(Slices::S),
-            _ => {
-                return Err(format!(
-                    "{s} is not a valid face, rotation, slice or wide move"
-                ));
-            }
+            .ok_or("only non empty strings can be turned into a move")?;
+        let after_first = chars.as_str();
+        let face = |letter: char| match letter {
+            'R' => Some(Faces::R),
+            'L' => Some(Faces::L),
+            'U' => Some(Faces::U),
+            'D' => Some(Faces::D),
+            'F' => Some(Faces::F),
+            'B' => Some(Faces::B),
+            _ => None,
         };
-        let modif = {
-            match s
-                .get((1 + usize::from(wide))..)
-                .ok_or_else(|| format!("{s} must be a valid UTF-8 &str"))?
-            {
-                "" => MoveModifier::Clockwise,
-                "'" => MoveModifier::CounterClockwise,
-                "2" => MoveModifier::Double,
-                "2'" | "'2" => MoveModifier::CounterDouble,
-                _ => {
+        let (part, modifier_text) = match first {
+            'x' => (MovablePart::Rotation(Rotations::x), after_first),
+            'y' => (MovablePart::Rotation(Rotations::y), after_first),
+            'z' => (MovablePart::Rotation(Rotations::z), after_first),
+            'M' => (MovablePart::Slice(Slices::M), after_first),
+            'E' => (MovablePart::Slice(Slices::E), after_first),
+            'S' => (MovablePart::Slice(Slices::S), after_first),
+            _ => match (face(first), face(first.to_ascii_uppercase())) {
+                (Some(f), _) => after_first
+                    .strip_prefix('w')
+                    .map_or((MovablePart::Face(f), after_first), |after_w| {
+                        (MovablePart::Wide(f), after_w)
+                    }),
+                (None, Some(f)) => (MovablePart::Wide(f), after_first),
+                (None, None) => {
                     return Err(format!(
-                        "{:?} isn't a valid move modifier",
-                        s.get((1 + usize::from(wide))..)
+                        "{token} is not a valid face, rotation, slice or wide move"
                     ));
                 }
+            },
+        };
+        let modifier = match modifier_text {
+            "" => MoveModifier::Clockwise,
+            "'" => MoveModifier::CounterClockwise,
+            "2" => MoveModifier::Double,
+            "2'" | "'2" => MoveModifier::CounterDouble,
+            other => {
+                return Err(format!("{other:?} in {token} isn't a valid move modifier"));
             }
         };
-        Ok(Self::new(part, modif))
+        Ok(Self::new(part, modifier))
+    }
+}
+
+impl Move {
+    /// Every move in a move sequence, in order.
+    ///
+    /// `//` starts a comment that runs to the end of the line, whitespace
+    /// separates moves, and each token is parsed with [`TryFrom<&str>`]. A
+    /// sequence with no moves in it, such as an empty string or a comment on
+    /// its own, yields nothing.
+    pub fn sequence(text: &str) -> impl Iterator<Item = Result<Self, String>> {
+        text.lines()
+            .flat_map(|line| {
+                line.split_once("//")
+                    .map_or(line, |(moves, _)| moves)
+                    .split_whitespace()
+            })
+            .map(Self::try_from)
     }
 }
 
@@ -174,6 +190,7 @@ impl From<Move> for Cube3By3 {
 }
 
 #[cfg(test)]
+#[allow(clippy::panic_in_result_fn)]
 mod tests {
     //! Enumerations of every part, modifier, and move. Only tests need them
     //! today; move them out of this module when a production caller appears.
@@ -252,5 +269,64 @@ mod tests {
         for m in Move::ALL {
             assert_eq!(m, Move::try_from(m.to_string().as_str()).unwrap());
         }
+    }
+
+    fn moves_of(text: &str) -> Result<Vec<Move>, String> {
+        Move::sequence(text).collect()
+    }
+
+    #[test]
+    fn comments_run_to_end_of_line() -> Result<(), String> {
+        assert_eq!(moves_of("R U //this is a comment")?, moves_of("R U")?);
+        assert_eq!(
+            moves_of(
+                "y2 F' M F' R U' R U' Fw z' // FB
+                 U R U r M' U' R U2' R' // SS
+                 U R' U' R U' R' U' r // SP (CMLL skip)
+                 U M' U' M U' U' M' U M // EOLR
+                 U' U' M2' U' M U' U' M' U' U' M2' // EP"
+            )?,
+            moves_of(
+                "y2 F' M F' R U' R U' Fw z'
+                 U R U r M' U' R U2' R'
+                 U R' U' R U' R' U' r
+                 U M' U' M U' U' M' U M
+                 U' U' M2' U' M U' U' M' U' U' M2'"
+            )?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn empty_and_comment_only_sequences_have_no_moves() -> Result<(), String> {
+        assert!(moves_of("")?.is_empty());
+        assert!(moves_of("// just a comment")?.is_empty());
+        assert!(moves_of("  \n\t// one\n// two\n")?.is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn lowercase_face_is_the_wide_move() -> Result<(), String> {
+        for face in Faces::ALL {
+            let wide = MovablePart::Wide(face).to_string();
+            let lower = MovablePart::Face(face).to_string().to_lowercase();
+            for modifier in ["", "'", "2", "2'"] {
+                assert_eq!(
+                    Move::try_from(format!("{lower}{modifier}").as_str())?,
+                    Move::try_from(format!("{wide}{modifier}").as_str())?,
+                    "{lower}{modifier} should be {wide}{modifier}"
+                );
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_bad_token_is_an_error_that_names_it() {
+        for bad in ["rw", "Rww", "Q", "R3", "w", "xw", "Mw", "R''"] {
+            let err = Move::try_from(bad).unwrap_err();
+            assert!(err.contains(bad), "{err:?} should mention {bad:?}");
+        }
+        assert!(moves_of("R Q U").is_err());
     }
 }

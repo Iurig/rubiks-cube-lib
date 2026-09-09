@@ -5,7 +5,6 @@ pub mod pieces;
 use self::{moves::*, pieces::*};
 use crate::{
     ops::{Inv, Pow},
-    string_processing::RubiksCubeCleaning,
     zn::ZnRing,
 };
 
@@ -88,20 +87,21 @@ impl Cube3By3 {
         }
     }
 
+    /// Applies a move sequence to this cube state, in order.
+    ///
     /// # Errors
     ///
-    /// Errors when passed a string that contains whitespace separated sections that cannot be parsed as moves outside of comments
+    /// Errors when a token outside of comments is not a move; the error names
+    /// that token. Moves before it are not applied.
     pub fn move_sequence(&self, moves: &str) -> Result<Self, String> {
-        moves
-            .process_movement_input()
-            .try_fold(*self, |cube, single_move| {
-                Ok(cube * Self::from(Move::try_from(single_move.as_str())?))
-            })
+        Move::sequence(moves).try_fold(*self, |cube, m| Ok(cube * Self::from(m?)))
     }
 
+    /// Applies a move sequence to the solved cube.
+    ///
     /// # Errors
     ///
-    /// Errors when passed a string that contains whitespace separated sections that cannot be parsed as moves outside of comments
+    /// Same as [`Self::move_sequence`].
     pub fn from_solved(m: &str) -> Result<Self, String> {
         Self::default().move_sequence(m)
     }
@@ -153,17 +153,6 @@ mod tests {
     #[test]
     fn default_is_solved() {
         assert!(Cube3By3::default().is_solved());
-    }
-
-    #[test]
-    fn single_moves_parse_correctly() {
-        use crate::Piece;
-        for m in Faces::ALL {
-            assert_eq!(
-                Cube3By3::from_solved(&(MovablePart::Face(m).to_string() + "w")),
-                Cube3By3::from_solved(&MovablePart::Face(m).to_string().to_lowercase())
-            );
-        }
     }
 
     #[test]
@@ -329,5 +318,17 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(u_perm.pow(3), Cube3By3::default());
+    }
+
+    #[test]
+    fn sequences_without_moves_leave_the_cube_unchanged() -> Result<(), String> {
+        let cube = Cube3By3::from_solved("R U")?;
+        assert_eq!(cube.move_sequence("")?, cube);
+        assert_eq!(cube.move_sequence("// nothing here")?, cube);
+        assert_eq!(
+            Cube3By3::from_solved("\n  // only comments\n")?,
+            Cube3By3::IDENTITY
+        );
+        Ok(())
     }
 }
