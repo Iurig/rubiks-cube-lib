@@ -92,13 +92,11 @@ impl Cube3By3 {
     ///
     /// Errors when passed a string that contains whitespace separated sections that cannot be parsed as moves outside of comments
     pub fn move_sequence(&self, moves: &str) -> Result<Self, String> {
-        if moves.contains(char::is_whitespace) {
-            moves
-                .process_movement_input()
-                .try_fold(*self, |cube, single_move| cube.move_sequence(&single_move))
-        } else {
-            Ok(*self * Self::from(Move::try_from(moves)?))
-        }
+        moves
+            .process_movement_input()
+            .try_fold(*self, |cube, single_move| {
+                Ok(cube * Self::from(Move::try_from(single_move.as_str())?))
+            })
     }
 
     /// # Errors
@@ -150,10 +148,22 @@ impl Cube3By3 {
 #[cfg(test)]
 #[allow(clippy::panic_in_result_fn)]
 mod tests {
+
     use super::*;
     #[test]
     fn default_is_solved() {
         assert!(Cube3By3::default().is_solved());
+    }
+
+    #[test]
+    fn single_moves_parse_correctly() {
+        use crate::Piece;
+        for m in Faces::ALL {
+            assert_eq!(
+                Cube3By3::from_solved(&(MovablePart::Face(m).to_string() + "w")),
+                Cube3By3::from_solved(&MovablePart::Face(m).to_string().to_lowercase())
+            );
+        }
     }
 
     #[test]

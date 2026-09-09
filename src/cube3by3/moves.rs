@@ -47,35 +47,48 @@ impl Move {
     }
 }
 
+impl std::fmt::Display for MovablePart {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Face(Faces::R) => String::from("R"),
+                Self::Face(Faces::F) => String::from("F"),
+                Self::Face(Faces::U) => String::from("U"),
+                Self::Face(Faces::L) => String::from("L"),
+                Self::Face(Faces::D) => String::from("D"),
+                Self::Face(Faces::B) => String::from("B"),
+                Self::Rotation(Rotations::x) => String::from("x"),
+                Self::Rotation(Rotations::y) => String::from("y"),
+                Self::Rotation(Rotations::z) => String::from("z"),
+                Self::Wide(x) => Self::Face(*x).to_string() + "w",
+                Self::Slice(Slices::E) => String::from("E"),
+                Self::Slice(Slices::M) => String::from("M"),
+                Self::Slice(Slices::S) => String::from("S"),
+            }
+        )
+    }
+}
+
+impl std::fmt::Display for MoveModifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Clockwise => "",
+                Self::CounterClockwise => "'",
+                Self::CounterDouble => "2'",
+                Self::Double => "2",
+            }
+        )
+    }
+}
+
 impl std::fmt::Display for Move {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let part_string = match self.part {
-            MovablePart::Face(Faces::R) => "R",
-            MovablePart::Face(Faces::F) => "F",
-            MovablePart::Face(Faces::U) => "U",
-            MovablePart::Face(Faces::L) => "L",
-            MovablePart::Face(Faces::D) => "D",
-            MovablePart::Face(Faces::B) => "B",
-            MovablePart::Rotation(Rotations::x) => "x",
-            MovablePart::Rotation(Rotations::y) => "y",
-            MovablePart::Rotation(Rotations::z) => "z",
-            MovablePart::Wide(Faces::R) => "Rw",
-            MovablePart::Wide(Faces::F) => "Fw",
-            MovablePart::Wide(Faces::U) => "Uw",
-            MovablePart::Wide(Faces::L) => "Lw",
-            MovablePart::Wide(Faces::D) => "Dw",
-            MovablePart::Wide(Faces::B) => "Bw",
-            MovablePart::Slice(Slices::E) => "E",
-            MovablePart::Slice(Slices::M) => "M",
-            MovablePart::Slice(Slices::S) => "S",
-        };
-        let modif_string = match self.modifier {
-            MoveModifier::Clockwise => "",
-            MoveModifier::CounterClockwise => "'",
-            MoveModifier::CounterDouble => "2'",
-            MoveModifier::Double => "2",
-        };
-        write!(f, "{part_string}{modif_string}")
+        write!(f, "{}{}", self.part, self.modifier)
     }
 }
 
@@ -157,5 +170,87 @@ impl TryFrom<&str> for Move {
 impl From<Move> for Cube3By3 {
     fn from(m: Move) -> Self {
         cube_state(m.part, m.modifier)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    //! Enumerations of every part, modifier, and move. Only tests need them
+    //! today; move them out of this module when a production caller appears.
+    use super::*;
+    use crate::Piece;
+
+    impl MovablePart {
+        const ALL: [Self; 2 * Faces::ALL.len() + Slices::ALL.len() + Rotations::ALL.len()] = {
+            let mut all = [Self::Face(Faces::R);
+                2 * Faces::ALL.len() + Slices::ALL.len() + Rotations::ALL.len()];
+            let mut next = 0;
+
+            let mut i = 0;
+            while i < Faces::ALL.len() {
+                all[next] = Self::Face(Faces::ALL[i]);
+                next += 1;
+                i += 1;
+            }
+            let mut i = 0;
+            while i < Slices::ALL.len() {
+                all[next] = Self::Slice(Slices::ALL[i]);
+                next += 1;
+                i += 1;
+            }
+            let mut i = 0;
+            while i < Rotations::ALL.len() {
+                all[next] = Self::Rotation(Rotations::ALL[i]);
+                next += 1;
+                i += 1;
+            }
+            let mut i = 0;
+            while i < Faces::ALL.len() {
+                all[next] = Self::Wide(Faces::ALL[i]);
+                next += 1;
+                i += 1;
+            }
+            assert!(next == all.len());
+            all
+        };
+    }
+
+    impl MoveModifier {
+        const ALL: [Self; 4] = [
+            Self::Clockwise,
+            Self::CounterClockwise,
+            Self::Double,
+            Self::CounterDouble,
+        ];
+    }
+
+    impl Move {
+        const ALL: [Self; MovablePart::ALL.len() * MoveModifier::ALL.len()] = {
+            let mut all: [Self; MovablePart::ALL.len() * MoveModifier::ALL.len()] = [Self {
+                part: MovablePart::Face(Faces::R),
+                modifier: MoveModifier::Clockwise,
+            };
+                MovablePart::ALL.len() * MoveModifier::ALL.len()];
+            let mut i = 0;
+            while i < MovablePart::ALL.len() {
+                let mut j = 0;
+                while j < MoveModifier::ALL.len() {
+                    all[i * MoveModifier::ALL.len() + j] = Self {
+                        part: MovablePart::ALL[i],
+                        modifier: MoveModifier::ALL[j],
+                    };
+                    j += 1;
+                }
+                i += 1;
+            }
+            all
+        };
+    }
+
+    #[test]
+    fn move_display_round_trip() {
+        for m in Move::ALL {
+            assert_eq!(m, Move::try_from(m.to_string().as_str()).unwrap());
+        }
     }
 }
