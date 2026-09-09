@@ -109,7 +109,7 @@ impl Cube3By3 {
     #[must_use]
     pub fn is_solved(&self) -> bool {
         let mut rotated_self = *self;
-        while ![
+        if ![
             rotated_self.center_configuration.permutation[0],
             rotated_self.center_configuration.permutation[1],
             rotated_self.center_configuration.permutation[3],
@@ -120,13 +120,17 @@ impl Cube3By3 {
             rotated_self = rotated_self
                 * Move::new(MovablePart::Rotation(Rotations::y), MoveModifier::Clockwise);
         }
-        while rotated_self.center_configuration.permutation[1] != Faces::F {
-            rotated_self = rotated_self
-                * Move::new(MovablePart::Rotation(Rotations::x), MoveModifier::Clockwise);
+        for _ in 0..4 {
+            if rotated_self.center_configuration.permutation[1] != Faces::F {
+                rotated_self = rotated_self
+                    * Move::new(MovablePart::Rotation(Rotations::x), MoveModifier::Clockwise);
+            }
         }
-        while rotated_self.center_configuration.permutation[0] != Faces::U {
-            rotated_self = rotated_self
-                * Move::new(MovablePart::Rotation(Rotations::z), MoveModifier::Clockwise);
+        for _ in 0..4 {
+            if rotated_self.center_configuration.permutation[0] != Faces::U {
+                rotated_self = rotated_self
+                    * Move::new(MovablePart::Rotation(Rotations::z), MoveModifier::Clockwise);
+            }
         }
         rotated_self == Self::IDENTITY
     }
