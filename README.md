@@ -98,8 +98,7 @@ Only the nine base moves (six faces, three slices) are written by hand, as expli
 [src/cube3by3/moves/table.rs](src/cube3by3/moves/table.rs). Rotations (`x = R M' L'`,
 `y = U E' D'`, `z = F S B'`), wide moves (a face turn followed by its parallel slice), and every
 inverse and double are derived from those nine at compile time into a single `ALL_MOVES` table
-that string parsing looks up. A derived move therefore cannot drift from its base moves; the
-reasoning is recorded in [docs/adr](docs/adr).
+that string parsing looks up. A derived move therefore cannot drift from its base moves.
 
 ## Public API
 
@@ -135,9 +134,6 @@ src/
                           of everything; handedness pins for each base move live in its tests
 tests/
   testing.rs              integration tests: group laws, move orders, real solve reconstructions
-docs/
-  adr/                    decisions about the Move type and the move table
-CONTEXT.md                the project's vocabulary (cube state, move, part, modifier, ...)
 ```
 
 ## Building and testing
