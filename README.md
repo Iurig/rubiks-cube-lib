@@ -64,9 +64,9 @@ let solved = Cube3By3::from_solved("
 
 All these work with the following 4 modifiers: ` `(none), `'`, `2` and `2'`
 
-Lowercase face letters (`r`, `l`, `u`, `d`, `f`, `b`) are rewritten to `Rw`, `Lw`, ... before lookup.
-Every token goes through the same path, so a lone `r` or a line that is only a comment behaves the
-same as it would inside a longer sequence. A string with no moves in it, such as an empty string or
+A lowercase face letter (`r`, `l`, `u`, `d`, `f`, `b`) is the wide move of that face, so `r` and
+`Rw` are the same move. Every token goes through the same path, so a lone `r` or a line that is
+only a comment behaves the same as it would inside a longer sequence. A string with no moves in it, such as an empty string or
 a comment on its own, leaves the cube unchanged. A token that is not a move makes the whole call
 return an `Err` naming that token.
 
@@ -123,11 +123,10 @@ src/
   ops.rs                  Inv and Pow traits
   zn.rs                   ZnRing<N>
   piece.rs                Piece trait, index, and PieceConfiguration
-  string_processing.rs    tokenising move strings, comment stripping, wide-move rewriting
   cube3by3/
     mod.rs                Cube3By3, Mul/Inv/Pow impls, rotation-aware is_solved, orientation parity
     pieces.rs             piece enums, counts, and type aliases for the 3×3
-    moves.rs              Move type, MovablePart/MoveModifier enums, string parsing
+    moves.rs              Move type, MovablePart/MoveModifier enums, move-sequence parsing and printing
     moves/
       table.rs            compile-time ALL_MOVES table: 9 hand-written face and slice moves,
                           rotations and wide moves derived from them, then inverses and doubles
@@ -170,8 +169,7 @@ What works today:
 - Read moves back out (printing a sequence, fingertrick-aware output); this is why `2'` is kept
   distinct from `2` in the `Move` label even though they share a cube state.
 - Solving from an algorithm library, as mentioned in the introduction.
-- Reuse `PieceConfiguration` / `Piece` for other puzzles; the string-processing module was
-  split out with that in mind.
+- Reuse `PieceConfiguration` / `Piece` for other puzzles.
 
 ## License
 
