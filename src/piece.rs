@@ -4,53 +4,49 @@ use crate::zn::ZnRing;
 /// # Safety
 /// Implementors must be fieldless `#[repr(u8)]` enums whose discriminants
 /// are `0..N`, in the same order as `ALL`.
-pub unsafe trait SinglePiece<const N: usize>: Copy + Eq {
+pub unsafe trait Piece<const N: usize>: Copy + Eq {
     const ALL: [Self; N];
+
+    fn from_index(index: usize) -> Option<Self> {
+        Self::ALL.get(index).copied()
+    }
 }
 
-/// # Errors
-///
-/// Errors if the index is out of range for the piece type
-pub fn try_from_index<P, const N: usize>(index: usize) -> Result<P, String>
-where
-    P: SinglePiece<N>,
-{
-    P::ALL
-        .get(index)
-        .copied()
-        .ok_or_else(|| format!("index must be in range 0..{:?}", P::ALL.len()))
-}
 #[must_use]
 pub const fn index<P, const N: usize>(piece: P) -> usize
 where
-    P: SinglePiece<N>,
+    P: Piece<N>,
 {
     unsafe { (&raw const piece).cast::<u8>().read() as usize }
 }
+
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub struct PieceConfiguration<P, const N: usize, const O: usize> {
     pub(crate) permutation: [P; N],
     pub(crate) orientation: [ZnRing<O>; N],
 }
+
 impl<P, const N: usize, const O: usize> Default for PieceConfiguration<P, N, O>
 where
-    P: SinglePiece<N>,
+    P: Piece<N>,
 {
     fn default() -> Self {
         Self::IDENTITY
     }
 }
+
 impl<P, const N: usize, const O: usize> Inv for PieceConfiguration<P, N, O>
 where
-    P: SinglePiece<N>,
+    P: Piece<N>,
 {
     fn inverse(&self) -> Self {
         self.const_inverse()
     }
 }
+
 impl<P, const N: usize, const O: usize> PieceConfiguration<P, N, O>
 where
-    P: SinglePiece<N>,
+    P: Piece<N>,
 {
     /// The solved state for a given piece type
     pub const IDENTITY: Self = Self {
@@ -107,11 +103,11 @@ mod tests {
     fn corner_and_edge_all_match_discriminants() {
         for (i, c) in SingleCorner::ALL.iter().enumerate() {
             assert_eq!(*c as usize, i);
-            assert_eq!(try_from_index::<SingleCorner, _>(i), Ok(*c));
+            assert_eq!(SingleCorner::from_index(i), Some(*c));
         }
         for (i, e) in SingleEdge::ALL.iter().enumerate() {
             assert_eq!(*e as usize, i);
-            assert_eq!(try_from_index::<SingleEdge, _>(i), Ok(*e));
+            assert_eq!(SingleEdge::from_index(i), Some(*e));
         }
     }
 

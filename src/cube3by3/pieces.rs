@@ -1,4 +1,4 @@
-use crate::{SinglePiece, single_piece::PieceConfiguration};
+use crate::{Piece, piece::PieceConfiguration};
 
 const CENTERS_COUNT: usize = 6;
 const CORNERS_COUNT: usize = 8;
@@ -14,11 +14,18 @@ macro_rules! new_piece {
         pub enum $type_name {
             $($p),+
         }
-        unsafe impl SinglePiece<$amount> for $type_name {
+        unsafe impl Piece<$amount> for $type_name {
             const ALL: [Self; $amount] = [
                 $($type_name::$p),+
             ];
         }
+        const _: () = {
+            let mut i = 0;
+            while i < $amount {
+                assert!($type_name::ALL[i] as usize == i);
+                i += 1;
+            }
+        };
     };
 }
 // Centers are considered in blind standard order, i.e. `[U, F, R, B, L, D]`
@@ -46,10 +53,16 @@ pub enum Slices {
     S,
     E,
 }
+impl Slices {
+    pub const ALL: [Self; 3] = [Self::M, Self::S, Self::E];
+}
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 #[expect(non_camel_case_types, reason = "rotations are inherently lower case")]
 pub enum Rotations {
     x,
     y,
     z,
+}
+impl Rotations {
+    pub const ALL: [Self; 3] = [Self::x, Self::y, Self::z];
 }

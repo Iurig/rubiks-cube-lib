@@ -139,7 +139,6 @@ fn cfop_solve() -> Result<(), String> {
 }
 
 #[test]
-#[ignore = "wide moves not yet implemented"]
 fn roux_solve_with_comments() -> Result<(), String> {
     assert!(
         Cube3By3::from_solved(concat!(
@@ -156,7 +155,6 @@ fn roux_solve_with_comments() -> Result<(), String> {
 }
 
 #[test]
-#[ignore = "wide moves not yet implemented"]
 fn roux_solve_without_comments() -> Result<(), String> {
     assert!(
         Cube3By3::from_solved(concat!(
@@ -166,6 +164,40 @@ fn roux_solve_without_comments() -> Result<(), String> {
             U R' U' R U' R' U' r
             U M' U' M U' U' M' U M
             U' U' M2' U' M U' U' M' U' U' M2' "
+        ))?
+        .is_solved()
+    );
+    Ok(())
+}
+
+#[test]
+fn s_based_roux_solve() -> Result<(), String> {
+    assert!(
+        Cube3By3::from_solved(concat!(
+            "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
+            "y2 F' M F' R U' R U' Fw z' // FB
+U R U r M' U' R U2' R' // SS
+U R' U' R U' R' U' r // SP (CMLL skip)
+y // mean rotation
+U S U' S' U2 S U S' U2 S2 U' // EOLR
+ S' U2 S U2 S2 // 4c"
+        ))?
+        .is_solved()
+    );
+    Ok(())
+}
+
+#[test]
+fn e_based_roux_solve() -> Result<(), String> {
+    assert!(
+        Cube3By3::from_solved(concat!(
+            "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
+            "y2 F' M F' R U' R U' Fw z' // FB
+U R U r M' U' R U2' R' // SS
+U R' U' R U' R' U' r // SP (CMLL skip)
+z // mean rotation
+R E R' E' R2 E R E' R2 E2 R'   // EOLR
+E' R2 E R2 E2// 4c"
         ))?
         .is_solved()
     );
@@ -189,7 +221,6 @@ fn roux_solve_without_wide_moves() -> Result<(), String> {
 }
 
 #[test]
-#[ignore = "comments are removed but roux solve lacks wide move implementation"]
 fn roux_solve_removes_comments() -> Result<(), String> {
     assert_eq!(
         Cube3By3::from_solved(concat!(
