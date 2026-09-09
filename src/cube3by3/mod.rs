@@ -17,7 +17,7 @@ use crate::{
 pub struct Cube3By3 {
     /// `CENTER_ORIENTATION_COUNT` is 1, centers are considered without orientation
     center_configuration: Centers,
-    /// Corner orientation is done with the convention of clockwise rotations from white/yellow sticker being in the U/B faces
+    /// Corner orientation is done with the convention of clockwise rotations from white/yellow sticker being in the faces U and D
     corner_configuration: Corners,
     /// 0 is oriented, 1 is misoriented
     edge_configuration: Edges,
@@ -25,7 +25,7 @@ pub struct Cube3By3 {
 
 impl std::ops::Mul for Cube3By3 {
     type Output = Self;
-    /// Applies the permutation the second cube to the first cube
+    /// Applies the state (permutations and orientations) that is the second argument to the first argument, which is a cube
     /// IMPORTANT: associative, but non-commutative
     fn mul(self, rhs: Self) -> Self::Output {
         self.const_mul(rhs)

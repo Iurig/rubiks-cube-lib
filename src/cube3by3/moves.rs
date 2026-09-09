@@ -6,149 +6,131 @@ use crate::{
     ops,
 };
 
-pub use table::ALL_MOVES;
+use table::cube_state;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum MovablePart {
     Face(Faces),
     Slice(Slices),
     Rotation(Rotations),
+    Wide(Faces),
 }
+
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum MoveModifier {
     Clockwise,
     CounterClockwise,
     Double,
     CounterDouble,
-    Nothing,
 }
 
-impl MovablePart {
-    /// Position of this part in the clockwise move list; must match the order in `table.rs`.
-    const fn table_index(self) -> usize {
+impl MoveModifier {
+    pub const fn inverse(self) -> Self {
         match self {
-            Self::Face(Faces::R) => 0,
-            Self::Face(Faces::L) => 1,
-            Self::Face(Faces::U) => 2,
-            Self::Face(Faces::D) => 3,
-            Self::Face(Faces::F) => 4,
-            Self::Face(Faces::B) => 5,
-            Self::Slice(Slices::E) => 6,
-            Self::Slice(Slices::M) => 7,
-            Self::Slice(Slices::S) => 8,
-            Self::Rotation(Rotations::z) => 9,
-            Self::Rotation(Rotations::x) => 10,
-            Self::Rotation(Rotations::y) => 11,
+            Self::Clockwise => Self::CounterClockwise,
+            Self::CounterClockwise => Self::Clockwise,
+            Self::Double => Self::CounterDouble,
+            Self::CounterDouble => Self::Double,
         }
     }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Move {
-    cube_representation: Cube3By3,
     part: MovablePart,
     modifier: MoveModifier,
-    is_wide: bool,
-    is_slice: bool,
-    is_rotation: bool,
 }
 
 impl Move {
-    const IDENTITY: Self = Self {
-        cube_representation: Cube3By3::IDENTITY,
-        is_slice: false,
-        is_rotation: false,
-        is_wide: false,
-        part: MovablePart::Face(Faces::R),
-        modifier: MoveModifier::Nothing,
-    };
-
-    const fn const_inverse(&self) -> Self {
-        Self {
-            cube_representation: self.cube_representation.const_inverse(),
-            is_slice: self.is_slice,
-            is_rotation: self.is_rotation,
-            is_wide: self.is_wide,
-            part: self.part,
-            modifier: {
-                match self.modifier {
-                    MoveModifier::Clockwise => MoveModifier::CounterClockwise,
-                    MoveModifier::CounterClockwise => MoveModifier::Clockwise,
-                    MoveModifier::Double => MoveModifier::CounterDouble,
-                    MoveModifier::CounterDouble => MoveModifier::Double,
-                    MoveModifier::Nothing => MoveModifier::Nothing,
-                }
-            },
-        }
-    }
-
-    const fn const_double(&self) -> Self {
-        Self {
-            cube_representation: self.cube_representation.const_mul(self.cube_representation),
-            is_slice: self.is_slice,
-            is_rotation: self.is_rotation,
-            is_wide: self.is_wide,
-            part: self.part,
-            modifier: {
-                match self.modifier {
-                    MoveModifier::Clockwise | MoveModifier::CounterClockwise => {
-                        MoveModifier::Double
-                    }
-                    _ => MoveModifier::Nothing,
-                }
-            },
-        }
-    }
-
     pub const fn new(part: MovablePart, modifier: MoveModifier) -> Self {
-        let offset = match modifier {
-            MoveModifier::Clockwise => 0,
-            MoveModifier::CounterClockwise => 1,
-            MoveModifier::Double | MoveModifier::CounterDouble => 2,
-            MoveModifier::Nothing => return Self::IDENTITY,
-        };
-        ALL_MOVES[3 * part.table_index() + offset]
+        Self { part, modifier }
     }
 }
 
-impl Default for Move {
-    fn default() -> Self {
-        Self::IDENTITY
+impl std::fmt::Display for Move {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let part_string = match self.part {
+            MovablePart::Face(Faces::R) => "R",
+            MovablePart::Face(Faces::F) => "F",
+            MovablePart::Face(Faces::U) => "U",
+            MovablePart::Face(Faces::L) => "L",
+            MovablePart::Face(Faces::D) => "D",
+            MovablePart::Face(Faces::B) => "B",
+            MovablePart::Rotation(Rotations::x) => "x",
+            MovablePart::Rotation(Rotations::y) => "y",
+            MovablePart::Rotation(Rotations::z) => "z",
+            MovablePart::Wide(Faces::R) => "Rw",
+            MovablePart::Wide(Faces::F) => "Fw",
+            MovablePart::Wide(Faces::U) => "Uw",
+            MovablePart::Wide(Faces::L) => "Lw",
+            MovablePart::Wide(Faces::D) => "Dw",
+            MovablePart::Wide(Faces::B) => "Bw",
+            MovablePart::Slice(Slices::E) => "E",
+            MovablePart::Slice(Slices::M) => "M",
+            MovablePart::Slice(Slices::S) => "S",
+        };
+        let modif_string = match self.modifier {
+            MoveModifier::Clockwise => "",
+            MoveModifier::CounterClockwise => "'",
+            MoveModifier::CounterDouble => "2'",
+            MoveModifier::Double => "2",
+        };
+        write!(f, "{part_string}{modif_string}")
+    }
+}
+
+impl std::ops::Mul for Move {
+    type Output = Cube3By3;
+    fn mul(self, rhs: Self) -> Self::Output {
+        Cube3By3::from(self) * Cube3By3::from(rhs)
     }
 }
 
 impl ops::Inv for Move {
     fn inverse(&self) -> Self {
-        self.const_inverse()
+        Self {
+            part: self.part,
+            modifier: self.modifier.inverse(),
+        }
     }
 }
 
 impl TryFrom<&str> for Move {
     type Error = String;
     fn try_from(s: &str) -> Result<Self, Self::Error> {
+        let wide = {
+            match s.chars().nth(1) {
+                Some('w') => true,
+                Some(_) | None => false,
+            }
+        };
         let part = match s
             .chars()
             .next()
             .ok_or("only non empty strings can be turned into a move")?
         {
-            'R' => MovablePart::Face(Faces::R),
-            'L' => MovablePart::Face(Faces::L),
-            'U' => MovablePart::Face(Faces::U),
-            'D' => MovablePart::Face(Faces::D),
-            'F' => MovablePart::Face(Faces::F),
-            'B' => MovablePart::Face(Faces::B),
+            'R' if !wide => MovablePart::Face(Faces::R),
+            'L' if !wide => MovablePart::Face(Faces::L),
+            'U' if !wide => MovablePart::Face(Faces::U),
+            'D' if !wide => MovablePart::Face(Faces::D),
+            'F' if !wide => MovablePart::Face(Faces::F),
+            'B' if !wide => MovablePart::Face(Faces::B),
+            'R' if wide => MovablePart::Wide(Faces::R),
+            'L' if wide => MovablePart::Wide(Faces::L),
+            'U' if wide => MovablePart::Wide(Faces::U),
+            'D' if wide => MovablePart::Wide(Faces::D),
+            'F' if wide => MovablePart::Wide(Faces::F),
+            'B' if wide => MovablePart::Wide(Faces::B),
             'y' => MovablePart::Rotation(Rotations::y),
             'z' => MovablePart::Rotation(Rotations::z),
             'x' => MovablePart::Rotation(Rotations::x),
             'M' => MovablePart::Slice(Slices::M),
             'E' => MovablePart::Slice(Slices::E),
             'S' => MovablePart::Slice(Slices::S),
-            _ => return Err(format!("{s} is not a valid face, rotation, or slice")),
-        };
-        let wide = {
-            match s.chars().nth(1) {
-                Some('w') => true,
-                Some(_) | None => false,
+            _ => {
+                return Err(format!(
+                    "{s} is not a valid face, rotation, slice or wide move"
+                ));
             }
         };
         let modif = {
@@ -168,30 +150,12 @@ impl TryFrom<&str> for Move {
                 }
             }
         };
-        Ok(Self::new(
-            part,
-            match modif {
-                MoveModifier::CounterDouble => MoveModifier::Double,
-                x => x,
-            },
-        ))
+        Ok(Self::new(part, modif))
     }
 }
 
 impl From<Move> for Cube3By3 {
     fn from(m: Move) -> Self {
-        m.cube_representation
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn new_round_trips_through_the_table() {
-        for m in ALL_MOVES {
-            assert_eq!(Move::new(m.part, m.modifier), m);
-        }
+        cube_state(m.part, m.modifier)
     }
 }
