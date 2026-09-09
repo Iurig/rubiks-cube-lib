@@ -95,6 +95,7 @@ where
         inv
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;

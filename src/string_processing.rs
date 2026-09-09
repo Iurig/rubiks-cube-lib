@@ -6,7 +6,7 @@ fn expand_wide_moves(m: &str) -> String {
     let mut replaced = String::new();
     for c in m.chars() {
         match c {
-            'u' | 'f' | 'r' | 'b' | 'l' => {
+            'u' | 'f' | 'r' | 'b' | 'l' | 'd' => {
                 replaced.push(c.to_ascii_uppercase());
                 replaced.push('w');
             }
