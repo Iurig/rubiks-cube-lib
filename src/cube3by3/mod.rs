@@ -107,8 +107,9 @@ impl Cube3By3 {
     ///
     /// # Errors
     ///
-    /// Errors when a token outside of comments is not a move; the error names
-    /// that token. Moves before it are not applied.
+    /// Errors when a word outside of comments is not a move; the error names
+    /// that word and its line and position, both counted from 1. Moves before
+    /// it are not applied.
     pub fn move_sequence(&self, moves: &str) -> Result<Self, String> {
         Move::sequence(moves).try_fold(*self, |cube, m| Ok(cube * Self::from(m?)))
     }
