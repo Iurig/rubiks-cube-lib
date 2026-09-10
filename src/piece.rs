@@ -1,10 +1,10 @@
 use crate::ops::Inv;
 use crate::zn::ZnRing;
+pub mod private {
+    pub trait Sealed {}
+}
 
-/// # Safety
-/// Implementors must be fieldless `#[repr(u8)]` enums whose discriminants
-/// are `0..N`, in the same order as `ALL`.
-pub unsafe trait Piece<const N: usize>: Copy + Eq {
+pub trait Piece<const N: usize>: Copy + Eq + private::Sealed {
     const ALL: [Self; N];
 
     fn from_index(index: usize) -> Option<Self> {
@@ -13,7 +13,8 @@ pub unsafe trait Piece<const N: usize>: Copy + Eq {
 }
 
 #[must_use]
-pub const fn index<P, const N: usize>(piece: P) -> usize
+#[allow(clippy::redundant_pub_crate)]
+pub(crate) const fn index<P, const N: usize>(piece: P) -> usize
 where
     P: Piece<N>,
 {
@@ -54,9 +55,66 @@ where
         orientation: [ZnRing::ZERO; N],
     };
 
+    /// The piece now sitting in `slot`.
+    ///
+    /// Slots and pieces share a type: a piece is named by its home slot. So
+    /// `piece_at(Ubr) == Ufr` reads "the UFR piece sits in the UBR slot", and
+    /// the returned piece can be fed back in as the next slot when tracing a
+    /// cycle, the way blind memorization does.
+    #[must_use]
+    pub const fn piece_at(&self, slot: P) -> P {
+        self.permutation[index(slot)]
+    }
+
+    /// The orientation held at `slot`: the twist or flip of the piece sitting
+    /// there, relative to the slot.
+    ///
+    /// Centers have no orientation, so on a center configuration this always
+    /// returns zero.
+    #[must_use]
+    pub const fn orientation_at(&self, slot: P) -> ZnRing<O> {
+        self.orientation[index(slot)]
+    }
+
+    /// # Panics
+    ///
+    /// Panics if `self.permutation` is not a valid permutation
+    #[must_use]
+    pub(crate) fn parity(&self) -> ZnRing<2> {
+        let mut visited = Vec::new();
+        let mut par = ZnRing::new(0);
+        for p in self.permutation {
+            if !visited.contains(&p) {
+                visited.push(p);
+                let mut travel = self
+                    .permutation
+                    .get(index(p))
+                    .expect("self.permutation must be a valid permutation");
+                let mut cycle_size = 1;
+                while travel != &p {
+                    visited.push(*travel);
+                    cycle_size += 1;
+                    travel = self
+                        .permutation
+                        .get(index(*travel))
+                        .expect("self.permutation must be a valid permutation");
+                }
+                par = par + ZnRing::new(cycle_size - 1);
+            }
+        }
+        par
+    }
+
+    #[must_use]
+    pub(crate) fn orientation_sum(&self) -> ZnRing<O> {
+        self.orientation
+            .iter()
+            .fold(ZnRing::new(0), |prev, &next| prev + next)
+    }
+
     /// Compose permutations done by `self` with `other`
     #[must_use]
-    pub const fn then(&self, other: &Self) -> Self {
+    pub(crate) const fn then(&self, other: &Self) -> Self {
         let mut composed = Self::IDENTITY;
         let mut i = 0;
         while i < N {
@@ -68,7 +126,7 @@ where
         composed
     }
 
-    pub const fn cycle<const CYCLE_SIZE: usize, const CYCLE_AMOUNT: usize>(
+    pub(crate) const fn cycle<const CYCLE_SIZE: usize, const CYCLE_AMOUNT: usize>(
         to_cycle: [[P; CYCLE_SIZE]; CYCLE_AMOUNT],
     ) -> Self {
         let mut resp = Self::IDENTITY;
@@ -83,8 +141,9 @@ where
         }
         resp
     }
+
     #[must_use = "the inverse is returned"]
-    pub const fn const_inverse(&self) -> Self {
+    pub(crate) const fn const_inverse(&self) -> Self {
         let mut inv = Self::IDENTITY;
         let mut i = 0;
         while i < N {

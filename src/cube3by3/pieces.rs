@@ -14,11 +14,12 @@ macro_rules! new_piece {
         pub enum $type_name {
             $($p),+
         }
-        unsafe impl Piece<$amount> for $type_name {
+        impl Piece<$amount> for $type_name {
             const ALL: [Self; $amount] = [
                 $($type_name::$p),+
             ];
         }
+        impl crate::piece::private::Sealed for $type_name {}
         const _: () = {
             let mut i = 0;
             while i < $amount {
