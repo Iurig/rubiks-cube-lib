@@ -1,6 +1,8 @@
 pub mod moves;
 pub mod pieces;
 
+// `allow` instead of `expect` because the lint is skipped once the
+// library is compiled with `cfg(test)`
 #[allow(clippy::wildcard_imports)]
 use self::{moves::*, pieces::*};
 use crate::{
@@ -195,7 +197,7 @@ impl Cube3By3 {
     }
 }
 #[cfg(test)]
-#[allow(clippy::panic_in_result_fn)]
+#[expect(clippy::panic_in_result_fn, reason = "tests should panic if failed")]
 mod tests {
 
     use crate::{Piece, piece::index};
