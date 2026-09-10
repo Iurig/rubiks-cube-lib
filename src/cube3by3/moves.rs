@@ -112,7 +112,8 @@ impl ops::Inv for Move {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseMoveError {
-    /// Recheable from an empty move, from `Move::try_from("")`
+    /// Reachable only through `Move::try_from("")`; a sequence never yields
+    /// an empty move, so it carries no offending text.
     EmptyString,
     BadModifier {
         invalid_move: String,
@@ -125,10 +126,11 @@ pub enum ParseMoveError {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+/// A move in a sequence failed to parse; `line` and `position` count from 1.
 pub struct ParseSequenceError {
-    error_type: ParseMoveError,
-    line: usize,
-    position: usize,
+    pub error_type: ParseMoveError,
+    pub line: usize,
+    pub position: usize,
 }
 
 impl std::error::Error for ParseMoveError {}
@@ -165,7 +167,7 @@ impl std::fmt::Display for ParseSequenceError {
 
 impl TryFrom<&str> for Move {
     type Error = ParseMoveError;
-    /// One token of move notation: a part, then a modifier.
+    /// One move in notation: a part, then a modifier.
     ///
     /// The part is an uppercase face letter (`R`), a face letter followed by
     /// `w` for the wide move (`Rw`), a lowercase face letter meaning the same
@@ -389,7 +391,7 @@ mod tests {
     }
 
     #[test]
-    fn a_bad_token_is_an_error_that_names_it() {
+    fn a_bad_move_is_the_error_variant_that_carries_it() {
         for (bad, expected_err) in [
             (
                 "rw",
