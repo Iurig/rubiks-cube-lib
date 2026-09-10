@@ -4,12 +4,17 @@
 //! are derived from them, and every move's inverse and double are then generated.
 
 use crate::Piece;
+
+// `allow` instead of `expect` because the lint is skipped once the
+// library is compiled with `cfg(test)`
 #[allow(clippy::wildcard_imports)]
 use crate::{
     cube3by3::{Cube3By3, pieces::*},
     zn::ZnRing,
 };
 
+// `allow` instead of `expect` because the lint is skipped once the
+// library is compiled with `cfg(test)`
 #[allow(clippy::enum_glob_use)]
 use super::{MovablePart, MovablePart::*, MoveModifier, MoveModifier::*};
 
@@ -70,7 +75,7 @@ impl MoveInformation {
         }
     }
 
-    #[allow(clippy::panic)] // only used privately at compile time
+    #[expect(clippy::panic, reason = "only used privately at compile time")]
     const fn const_double(&self) -> Self {
         Self {
             cube_state: self.cube_state.const_mul(self.cube_state),
@@ -310,7 +315,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
     },
 ];
 
-#[allow(clippy::panic)] // only run at compile time
+#[expect(clippy::panic, reason = "only used at compile time")]
 const fn slice_along(face: Faces, placed: &[MoveInformation; CLOCKWISE_MOVE_COUNT]) -> Cube3By3 {
     let mut i = 0;
     while i < Slices::ALL.len() {
