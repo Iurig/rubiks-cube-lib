@@ -15,11 +15,11 @@ use crate::{
 )]
 pub struct Cube3By3 {
     /// `CENTER_ORIENTATION_COUNT` is 1, centers are considered without orientation
-    center_configuration: Centers,
+    center_configuration: CenterConfiguration,
     /// Corner orientation is done with the convention of clockwise rotations from white/yellow sticker being in the faces U and D
-    corner_configuration: Corners,
+    corner_configuration: CornerConfiguration,
     /// 0 is oriented, 1 is misoriented
-    edge_configuration: Edges,
+    edge_configuration: EdgeConfiguration,
 }
 
 impl std::ops::Mul for Cube3By3 {
@@ -74,9 +74,9 @@ impl Inv for Cube3By3 {
 impl Cube3By3 {
     /// The multiplicative identity of the cube group: the solved cube
     pub const IDENTITY: Self = Self {
-        center_configuration: Centers::IDENTITY,
-        corner_configuration: Corners::IDENTITY,
-        edge_configuration: Edges::IDENTITY,
+        center_configuration: CenterConfiguration::IDENTITY,
+        corner_configuration: CornerConfiguration::IDENTITY,
+        edge_configuration: EdgeConfiguration::IDENTITY,
     };
 
     const fn const_inverse(&self) -> Self {
@@ -248,24 +248,19 @@ mod tests {
     #[test]
     fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), String> {
         let r = Cube3By3::from_solved("R")?;
-        for c in [
-            SingleCorner::Ubl,
-            SingleCorner::Ufl,
-            SingleCorner::Dfl,
-            SingleCorner::Dbl,
-        ] {
+        for c in [Corner::Ubl, Corner::Ufl, Corner::Dfl, Corner::Dbl] {
             assert_eq!(r.corner_configuration.orientation[c as usize], ZnRing::ZERO);
             assert_eq!(r.corner_configuration.permutation[c as usize], c);
         }
         for e in [
-            SingleEdge::Ub,
-            SingleEdge::Uf,
-            SingleEdge::Ul,
-            SingleEdge::Fl,
-            SingleEdge::Bl,
-            SingleEdge::Df,
-            SingleEdge::Db,
-            SingleEdge::Dl,
+            Edge::Ub,
+            Edge::Uf,
+            Edge::Ul,
+            Edge::Fl,
+            Edge::Bl,
+            Edge::Df,
+            Edge::Db,
+            Edge::Dl,
         ] {
             assert_eq!(r.edge_configuration.permutation[e as usize], e);
         }
@@ -306,19 +301,19 @@ mod tests {
         // its twist is added to the twist R gives the UBR slot.
         let r = Cube3By3::from_solved("R")?;
         let mut twisted = Cube3By3::default();
-        twisted.corner_configuration.orientation[SingleCorner::Ufr as usize] = ZnRing::new(1);
+        twisted.corner_configuration.orientation[Corner::Ufr as usize] = ZnRing::new(1);
         let after = twisted * r;
         let mut expected = r;
-        expected.corner_configuration.orientation[SingleCorner::Ubr as usize] =
-            expected.corner_configuration.orientation[SingleCorner::Ubr as usize] + ZnRing::new(1);
+        expected.corner_configuration.orientation[Corner::Ubr as usize] =
+            expected.corner_configuration.orientation[Corner::Ubr as usize] + ZnRing::new(1);
         assert_eq!(after, expected);
         Ok(())
     }
     #[test]
     fn u_perm_repeats_after_3_applications() {
-        use SingleEdge::{Uf, Ul, Ur};
+        use Edge::{Uf, Ul, Ur};
         let u_perm = Cube3By3 {
-            edge_configuration: Edges::cycle([[Ur, Uf, Ul]]),
+            edge_configuration: EdgeConfiguration::cycle([[Ur, Uf, Ul]]),
             ..Default::default()
         };
         assert_eq!(u_perm.pow(3), Cube3By3::default());
