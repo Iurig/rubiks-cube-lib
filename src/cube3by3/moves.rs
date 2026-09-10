@@ -110,8 +110,61 @@ impl ops::Inv for Move {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ParseMoveError {
+    /// Recheable from an empty move, from `Move::try_from("")`
+    EmptyString,
+    BadModifier {
+        invalid_move: String,
+        modifier: String,
+    },
+    BadPart {
+        invalid_move: String,
+        part: String,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseSequenceError {
+    error_type: ParseMoveError,
+    line: usize,
+    position: usize,
+}
+
+impl std::error::Error for ParseMoveError {}
+impl std::error::Error for ParseSequenceError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.error_type)
+    }
+}
+
+impl std::fmt::Display for ParseMoveError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::EmptyString => write!(f, "empty string cannot be parsed into moves"),
+            Self::BadModifier {
+                invalid_move,
+                modifier,
+            } => write!(f, "{modifier} is not a valid modifier in {invalid_move}"),
+            Self::BadPart { invalid_move, part } => {
+                write!(f, "{part} in {invalid_move} is not a valid part")
+            }
+        }
+    }
+}
+
+impl std::fmt::Display for ParseSequenceError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "at line {}, position {}: {}",
+            self.line, self.position, self.error_type
+        )
+    }
+}
+
 impl TryFrom<&str> for Move {
-    type Error = String;
+    type Error = ParseMoveError;
     /// One token of move notation: a part, then a modifier.
     ///
     /// The part is an uppercase face letter (`R`), a face letter followed by
@@ -120,9 +173,7 @@ impl TryFrom<&str> for Move {
     /// follows the part must be a modifier: nothing, `'`, `2`, or `2'`.
     fn try_from(token: &str) -> Result<Self, Self::Error> {
         let mut chars = token.chars();
-        let first = chars
-            .next()
-            .ok_or("only non empty strings can be turned into a move")?;
+        let first = chars.next().ok_or(ParseMoveError::EmptyString)?;
         let after_first = chars.as_str();
         let face = |letter: char| match letter {
             'R' => Some(Faces::R),
@@ -148,9 +199,10 @@ impl TryFrom<&str> for Move {
                     }),
                 (None, Some(f)) => (MovablePart::Wide(f), after_first),
                 (None, None) => {
-                    return Err(format!(
-                        "{token} is not a valid face, rotation, slice or wide move"
-                    ));
+                    return Err(ParseMoveError::BadPart {
+                        invalid_move: token.to_string(),
+                        part: first.to_string(),
+                    });
                 }
             },
         };
@@ -160,7 +212,10 @@ impl TryFrom<&str> for Move {
             "2" => MoveModifier::Double,
             "2'" | "'2" => MoveModifier::CounterDouble,
             other => {
-                return Err(format!("{other:?} in {token} isn't a valid move modifier"));
+                return Err(ParseMoveError::BadModifier {
+                    invalid_move: token.to_string(),
+                    modifier: other.to_string(),
+                });
             }
         };
         Ok(Self::new(part, modifier))
@@ -175,13 +230,22 @@ impl Move {
     /// sequence with no moves in it, such as an empty string or a comment on
     /// its own, yields nothing.
     pub fn sequence(text: &str) -> impl Iterator<Item = Result<Self, String>> {
-        text.lines()
-            .flat_map(|line| {
-                line.split_once("//")
-                    .map_or(line, |(moves, _)| moves)
-                    .split_whitespace()
-            })
-            .map(Self::try_from)
+        text.lines().enumerate().flat_map(|(line_number, line)| {
+            line.split_once("//")
+                .map_or(line, |(moves, _)| moves)
+                .split_whitespace()
+                .enumerate()
+                .map(move |(move_number, m)| {
+                    Self::try_from(m).map_err(|e| {
+                        ParseSequenceError {
+                            error_type: e,
+                            line: line_number + 1,
+                            position: move_number + 1,
+                        }
+                        .to_string()
+                    })
+                })
+        })
     }
 }
 
@@ -311,26 +375,80 @@ mod tests {
     }
 
     #[test]
-    fn lowercase_face_is_the_wide_move() -> Result<(), String> {
+    fn lowercase_face_is_the_wide_move() {
         for face in Faces::ALL {
             let wide = MovablePart::Wide(face).to_string();
             let lower = MovablePart::Face(face).to_string().to_lowercase();
             for modifier in ["", "'", "2", "2'"] {
                 assert_eq!(
-                    Move::try_from(format!("{lower}{modifier}").as_str())?,
-                    Move::try_from(format!("{wide}{modifier}").as_str())?,
-                    "{lower}{modifier} should be {wide}{modifier}"
+                    Move::try_from(format!("{lower}{modifier}").as_str()),
+                    Move::try_from(format!("{wide}{modifier}").as_str()),
                 );
             }
         }
-        Ok(())
     }
 
     #[test]
     fn a_bad_token_is_an_error_that_names_it() {
-        for bad in ["rw", "Rww", "Q", "R3", "w", "xw", "Mw", "R''"] {
-            let err = Move::try_from(bad).unwrap_err();
-            assert!(err.contains(bad), "{err:?} should mention {bad:?}");
+        for (bad, expected_err) in [
+            (
+                "rw",
+                ParseMoveError::BadModifier {
+                    invalid_move: "rw".to_string(),
+                    modifier: "w".to_string(),
+                },
+            ),
+            (
+                "Rww",
+                ParseMoveError::BadModifier {
+                    invalid_move: "Rww".to_string(),
+                    modifier: "w".to_string(),
+                },
+            ),
+            (
+                "Q",
+                ParseMoveError::BadPart {
+                    invalid_move: "Q".to_string(),
+                    part: "Q".to_string(),
+                },
+            ),
+            (
+                "R3",
+                ParseMoveError::BadModifier {
+                    invalid_move: "R3".to_string(),
+                    modifier: "3".to_string(),
+                },
+            ),
+            (
+                "w",
+                ParseMoveError::BadPart {
+                    invalid_move: "w".to_string(),
+                    part: "w".to_string(),
+                },
+            ),
+            (
+                "xw",
+                ParseMoveError::BadModifier {
+                    invalid_move: "xw".to_string(),
+                    modifier: "w".to_string(),
+                },
+            ),
+            (
+                "Mw",
+                ParseMoveError::BadModifier {
+                    invalid_move: "Mw".to_string(),
+                    modifier: "w".to_string(),
+                },
+            ),
+            (
+                "R''",
+                ParseMoveError::BadModifier {
+                    invalid_move: "R''".to_string(),
+                    modifier: "''".to_string(),
+                },
+            ),
+        ] {
+            assert_eq!(Move::try_from(bad), Err(expected_err));
         }
         assert!(moves_of("R Q U").is_err());
     }
