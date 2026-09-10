@@ -1,5 +1,7 @@
 mod table;
 
+// `allow` instead of `expect` because the lint is skipped once the
+// library is compiled with `cfg(test)`
 #[allow(clippy::wildcard_imports)]
 use crate::{
     cube3by3::{Cube3By3, pieces::*},
