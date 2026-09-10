@@ -388,81 +388,14 @@ const ALL_MOVES: [MoveInformation; 3 * CLOCKWISE_MOVE_COUNT] = {
 
 #[cfg(test)]
 mod tests {
-    //! Handedness pins: one fact from the physical cube per base move, stated as
-    //! "after the move, the piece now at slot X came from Y". These are the only
-    //! tests that do not depend on the derivation, so they are the ones that
-    //! catch a mirrored base move.
+    //! Tests of the table's own construction: derivation identities and
+    //! modifier consistency. Handedness pins, the facts from the physical cube
+    //! that catch a mirrored base move, live in `tests/testing.rs` and go
+    //! through the public queries.
     use super::*;
-    use crate::index;
 
-    fn corner_at(cube: Cube3By3, slot: Corner) -> Corner {
-        cube.corner_configuration.permutation[index(slot)]
-    }
-    fn center_at(cube: Cube3By3, slot: Center) -> Center {
-        cube.center_configuration.permutation[index(slot)]
-    }
     fn clockwise(part: MovablePart) -> Cube3By3 {
         cube_state(part, Clockwise)
-    }
-
-    // Faces: clockwise when looking at that face.
-
-    #[test]
-    fn r_takes_front_top_corner_to_back_top() {
-        assert_eq!(
-            corner_at(clockwise(Face(Faces::R)), Corner::Ubr),
-            Corner::Ufr
-        );
-    }
-    #[test]
-    fn l_takes_back_top_corner_to_front_top() {
-        assert_eq!(
-            corner_at(clockwise(Face(Faces::L)), Corner::Ufl),
-            Corner::Ubl
-        );
-    }
-    #[test]
-    fn u_takes_front_right_corner_to_front_left() {
-        assert_eq!(
-            corner_at(clockwise(Face(Faces::U)), Corner::Ufl),
-            Corner::Ufr
-        );
-    }
-    #[test]
-    fn d_takes_front_right_corner_to_back_right() {
-        assert_eq!(
-            corner_at(clockwise(Face(Faces::D)), Corner::Dbr),
-            Corner::Dfr
-        );
-    }
-    #[test]
-    fn f_takes_top_right_corner_to_bottom_right() {
-        assert_eq!(
-            corner_at(clockwise(Face(Faces::F)), Corner::Dfr),
-            Corner::Ufr
-        );
-    }
-    #[test]
-    fn b_takes_top_right_corner_to_top_left() {
-        assert_eq!(
-            corner_at(clockwise(Face(Faces::B)), Corner::Ubl),
-            Corner::Ubr
-        );
-    }
-
-    // Slices: each follows its reference face, so it moves centers the way that face moves corners.
-
-    #[test]
-    fn e_follows_d_and_takes_front_center_to_right() {
-        assert_eq!(center_at(clockwise(Slice(Slices::E)), Center::R), Center::F);
-    }
-    #[test]
-    fn m_follows_l_and_takes_top_center_to_front() {
-        assert_eq!(center_at(clockwise(Slice(Slices::M)), Center::F), Center::U);
-    }
-    #[test]
-    fn s_follows_f_and_takes_top_center_to_right() {
-        assert_eq!(center_at(clockwise(Slice(Slices::S)), Center::R), Center::U);
     }
 
     // Derivation identities: these pin the derivation, not the base moves.

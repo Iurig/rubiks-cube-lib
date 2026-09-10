@@ -108,12 +108,16 @@ that string parsing looks up. A derived move therefore cannot drift from its bas
 | `Cube3By3::from_solved(&str)`            | Apply a move string to the solved cube. Returns `Result<Cube3By3, String>`; `Err` names the first token that is not a move. |
 | `Cube3By3::move_sequence(&self, &str)`   | Apply a move string to this state, returning a new one. Same `Result` contract. |
 | `Cube3By3::is_solved()`                  | Equality with the identity up to a whole-cube rotation: the cube is re-oriented by its centers before comparing. |
-| `Cube3By3::respects_orientation_parity()`| Corner twists sum to 0 mod 3 and edge flips to 0 mod 2. Permutation parity check not yet implemented.    |
+| `Cube3By3::is_reachable()`               | Whether some move sequence produces this state from solved: twists sum to 0 mod 3, flips to 0 mod 2, the permutation parities of corners, edges, and centers sum to 0 mod 2, and the centers form a whole-cube rotation. |
+| `Cube3By3::corners()`, `edges()`, `centers()` | The three piece configurations, by reference. |
+| `PieceConfiguration::piece_at(slot)`     | The piece now sitting in `slot`. `piece_at(Ubr) == Ufr` reads "the UFR piece sits in the UBR slot". |
+| `PieceConfiguration::orientation_at(slot)` | The twist or flip held at `slot`, as a `ZnRing`. Always zero for centers. |
+| `Corner`, `Edge`, `Center`               | The piece enums. One enum names both a slot and the piece whose home is that slot, so a returned piece can be fed back in as the next slot. |
 | `impl Mul for Cube3By3`                  | `a * b` applies `a` then `b`. Associative, not commutative. |
 | `Inv` trait                              | `inverse()`, implemented for cubes and piece configurations.|
 | `Pow` trait                              | `pow(n)`, repeated multiplication.                         |
-| `PieceConfiguration`, `Piece`, `index` | Generic building blocks for other puzzles. `Piece::from_index` is the checked reverse of `index`. |
-| `zn::ZnRing<N>`                          | Integers mod `N`, `const`-friendly, with `Add` and `Neg`.  |
+| `PieceConfiguration`, `Piece`            | Generic building blocks for other puzzles. `Piece` is sealed: nameable in bounds, implemented only inside the crate. |
+| `zn::ZnRing<N>`                          | Integers mod `N`, `const`-friendly, with `Add` and `Neg`. `new(n)` reduces, `value()` reads the representative in `0..N` back out. |
 
 ## Project layout
 
@@ -122,17 +126,19 @@ src/
   lib.rs                  public exports
   ops.rs                  Inv and Pow traits
   zn.rs                   ZnRing<N>
-  piece.rs                Piece trait, index, and PieceConfiguration
+  piece.rs                sealed Piece trait, PieceConfiguration with the piece_at / orientation_at
+                          queries and the permutation parity
   cube3by3/
-    mod.rs                Cube3By3, Mul/Inv/Pow impls, rotation-aware is_solved, orientation parity
+    mod.rs                Cube3By3, Mul/Inv/Pow impls, accessors, rotation-aware is_solved, is_reachable
     pieces.rs             piece enums, counts, and type aliases for the 3×3
     moves.rs              Move type, MovablePart/MoveModifier enums, move-sequence parsing and printing
     moves/
       table.rs            compile-time ALL_MOVES table: 9 hand-written face and slice moves,
                           rotations and wide moves derived from them, then inverses and doubles
-                          of everything; handedness pins for each base move live in its tests
+                          of everything; its tests pin the derivations only
 tests/
-  testing.rs              integration tests: group laws, move orders, real solve reconstructions
+  testing.rs              integration tests: handedness pins for each base move, group laws,
+                          move orders, reachability, real solve reconstructions
 ```
 
 ## Building and testing
@@ -159,13 +165,14 @@ What works today:
 - Move strings return `Result`: an unknown token is an `Err` naming it, never a panic.
 - `is_solved` is rotation-aware: it re-orients the cube by its centers before comparing with
   the identity, so `Cube3By3::from_solved("x y2 z'")` reports solved.
-- `respects_orientation_parity` checks corner twist and edge flip sums. There is no
-  permutation parity check yet.
+- A cube state can be queried: `cube.corners().piece_at(Corner::Ubr)` says which piece sits in
+  the UBR slot, and `orientation_at` reads its twist or flip. The handedness tests are written
+  against these queries, from outside the crate.
+- `is_reachable` checks the twist, flip, and permutation-parity invariants, plus that the centers
+  form a whole-cube rotation, so a state no move sequence can produce is rejected.
 
 ## Roadmap
 
-- Add a permutation parity check alongside `respects_orientation_parity`, so a full
-  "is this a reachable state" predicate can be exposed.
 - Read moves back out (printing a sequence, fingertrick-aware output); this is why `2'` is kept
   distinct from `2` in the `Move` label even though they share a cube state.
 - Solving from an algorithm library, as mentioned in the introduction.

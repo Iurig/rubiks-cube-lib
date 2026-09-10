@@ -87,6 +87,20 @@ impl Cube3By3 {
         }
     }
 
+    // Getters for the private fields of `Cube3By3`
+    #[must_use]
+    pub const fn corners(&self) -> &CornerConfiguration {
+        &self.corner_configuration
+    }
+    #[must_use]
+    pub const fn edges(&self) -> &EdgeConfiguration {
+        &self.edge_configuration
+    }
+    #[must_use]
+    pub const fn centers(&self) -> &CenterConfiguration {
+        &self.center_configuration
+    }
+
     /// Applies a move sequence to this cube state, in order.
     ///
     /// # Errors
@@ -108,12 +122,16 @@ impl Cube3By3 {
 
     #[must_use]
     pub fn is_solved(&self) -> bool {
+        self.rotated_until_solved_centers() == Some(Self::default())
+    }
+
+    fn rotated_until_solved_centers(&self) -> Option<Self> {
         let mut rotated_self = *self;
         if ![
-            rotated_self.center_configuration.permutation[0],
-            rotated_self.center_configuration.permutation[1],
-            rotated_self.center_configuration.permutation[3],
-            rotated_self.center_configuration.permutation[5],
+            rotated_self.centers().piece_at(Center::F),
+            rotated_self.centers().piece_at(Center::U),
+            rotated_self.centers().piece_at(Center::B),
+            rotated_self.centers().piece_at(Center::D),
         ]
         .contains(&Faces::F)
         {
@@ -121,37 +139,66 @@ impl Cube3By3 {
                 * Move::new(MovablePart::Rotation(Rotations::y), MoveModifier::Clockwise);
         }
         for _ in 0..4 {
-            if rotated_self.center_configuration.permutation[1] != Faces::F {
+            if rotated_self.centers().piece_at(Faces::F) != Faces::F {
                 rotated_self = rotated_self
                     * Move::new(MovablePart::Rotation(Rotations::x), MoveModifier::Clockwise);
             }
         }
         for _ in 0..4 {
-            if rotated_self.center_configuration.permutation[0] != Faces::U {
+            if rotated_self.centers().piece_at(Faces::U) != Faces::U {
                 rotated_self = rotated_self
                     * Move::new(MovablePart::Rotation(Rotations::z), MoveModifier::Clockwise);
             }
         }
-        rotated_self == Self::IDENTITY
+
+        (rotated_self.center_configuration == CenterConfiguration::default())
+            .then_some(rotated_self)
     }
+
+    /// Whether some move sequence produces this state from the solved cube.
+    ///
+    /// Four invariants, one per helper below. Every move preserves each of
+    /// them, so a state that breaks one cannot be reached.
     #[must_use]
-    pub fn respects_orientation_parity(&self) -> bool {
-        self.corner_configuration
-            .orientation
-            .iter()
-            .fold(ZnRing::ZERO, |co_sum, &corner_co| co_sum + corner_co)
-            == ZnRing::ZERO
-            && self
-                .edge_configuration
-                .orientation
-                .iter()
-                .fold(ZnRing::ZERO, |eo_sum, &edge_eo| eo_sum + edge_eo)
-                == ZnRing::ZERO
+    pub fn is_reachable(&self) -> bool {
+        self.twists_cancel()
+            && self.flips_cancel()
+            && self.parities_cancel()
+            && self.centers_form_a_rotation()
+    }
+
+    /// Corner twists sum to zero mod 3: a face turn twists corners by amounts
+    /// that cancel, so a lone twisted corner is unreachable.
+    fn twists_cancel(&self) -> bool {
+        self.corners().orientation_sum() == ZnRing::ZERO
+    }
+
+    /// Edge flips sum to zero mod 2: a face turn flips an even number of
+    /// edges, so a lone flipped edge is unreachable.
+    fn flips_cancel(&self) -> bool {
+        self.edges().orientation_sum() == ZnRing::ZERO
+    }
+
+    /// The permutation parities of corners, edges, and centers sum to zero
+    /// mod 2. A face turn is odd on corners and edges; a slice turn is odd on
+    /// edges and centers. Every move flips exactly two of the three, so the
+    /// sum stays zero. A two-way corner/edge check would reject a lone `M`.
+    fn parities_cancel(&self) -> bool {
+        self.corners().parity() + self.edges().parity() + self.centers().parity() == ZnRing::ZERO
+    }
+
+    /// The centers sit as one of the 24 whole-cube rotations. A 3-cycle of
+    /// centers is an even permutation, so the parity sum accepts it, yet no
+    /// move sequence produces it.
+    fn centers_form_a_rotation(&self) -> bool {
+        self.rotated_until_solved_centers().is_some()
     }
 }
 #[cfg(test)]
 #[allow(clippy::panic_in_result_fn)]
 mod tests {
+
+    use crate::{Piece, piece::index};
 
     use super::*;
     #[test]
@@ -171,6 +218,67 @@ mod tests {
         let rotated_def = Cube3By3::from_solved("y z y z x2 z2")?;
         assert!(rotated_def.is_solved());
         Ok(())
+    }
+
+    #[test]
+    fn center_3_cyle_isnt_reachable_even_if_respects_parity() {
+        assert!(
+            !Cube3By3 {
+                center_configuration: CenterConfiguration::cycle([[
+                    Center::F,
+                    Center::R,
+                    Center::U
+                ]]),
+                ..Default::default()
+            }
+            .is_reachable()
+        );
+    }
+
+    #[test]
+    fn corner_twist_isnt_reachable() {
+        assert!(
+            !Cube3By3 {
+                corner_configuration: CornerConfiguration {
+                    orientation: ZnRing::array([1, 0, 0, 0, 0, 0, 0, 0,]),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+            .is_reachable()
+        );
+    }
+
+    #[test]
+    fn edge_flip_isnt_reachable() {
+        assert!(
+            !Cube3By3 {
+                edge_configuration: EdgeConfiguration {
+                    orientation: ZnRing::array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+            .is_reachable()
+        );
+    }
+
+    #[test]
+    fn single_swap_isnt_reachable() {
+        assert!(
+            !Cube3By3 {
+                corner_configuration: CornerConfiguration {
+                    permutation: {
+                        let mut p = Corner::ALL;
+                        p.swap(index(Corner::Ufr), index(Corner::Ubr));
+                        p
+                    },
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+            .is_reachable()
+        );
     }
 
     #[test]
@@ -205,10 +313,9 @@ mod tests {
     }
 
     #[test]
-    fn r_4_times_is_solved_and_respects_parity() -> Result<(), String> {
+    fn r_4_times_is_solved() -> Result<(), String> {
         let cube = Cube3By3::from_solved("R R R R")?;
         assert!(cube.is_solved());
-        assert!(cube.respects_orientation_parity());
         Ok(())
     }
 
@@ -242,29 +349,6 @@ mod tests {
         let u = Cube3By3::from_solved("U")?;
         let ur = Cube3By3::from_solved("U R")?;
         assert_eq!(u.move_sequence("R")?, ur);
-        Ok(())
-    }
-
-    #[test]
-    fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), String> {
-        let r = Cube3By3::from_solved("R")?;
-        for c in [Corner::Ubl, Corner::Ufl, Corner::Dfl, Corner::Dbl] {
-            assert_eq!(r.corner_configuration.orientation[c as usize], ZnRing::ZERO);
-            assert_eq!(r.corner_configuration.permutation[c as usize], c);
-        }
-        for e in [
-            Edge::Ub,
-            Edge::Uf,
-            Edge::Ul,
-            Edge::Fl,
-            Edge::Bl,
-            Edge::Df,
-            Edge::Db,
-            Edge::Dl,
-        ] {
-            assert_eq!(r.edge_configuration.permutation[e as usize], e);
-        }
-        assert!(r.respects_orientation_parity());
         Ok(())
     }
 

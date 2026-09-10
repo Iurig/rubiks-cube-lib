@@ -32,6 +32,11 @@ impl<const N: usize> ZnRing<N> {
         Self(value % N)
     }
 
+    #[must_use]
+    pub const fn value(&self) -> usize {
+        self.0
+    }
+
     #[must_use = "the array is returned"]
     pub const fn array<const L: usize>(values: [usize; L]) -> [Self; L] {
         let mut final_array = [Self(0); L];
@@ -62,6 +67,16 @@ mod tests {
         assert_eq!(ZnRing::<5>::from(3) + ZnRing::from(4), ZnRing::from(2));
         assert_eq!(-ZnRing::<5>::from(2), ZnRing::from(3));
         assert_eq!(-ZnRing::<5>::from(0), ZnRing::from(0));
+    }
+
+    #[test]
+    fn value_is_the_representative_in_range() {
+        assert_eq!(ZnRing::<3>::ZERO.value(), 0);
+        assert_eq!(ZnRing::<3>::new(7).value(), 1);
+        for x in 0..3 {
+            assert_eq!(ZnRing::<3>::new(x).value(), x);
+        }
+        assert_eq!((ZnRing::<3>::new(2) + ZnRing::new(2)).value(), 1);
     }
 
     #[test]
