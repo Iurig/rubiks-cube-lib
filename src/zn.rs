@@ -1,12 +1,16 @@
 use std::ops::Neg;
 
+/// Integers mod `N`, stored as the representative in `0..N`.
+///
+/// The representative fits a byte: a twist is at most 2 and a flip at most
+/// 1, and `N` is capped at 256 so any modulus this crate could want still
+/// fits. The public face works in `usize`; the byte never leaks.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct ZnRing<const N: usize>(usize);
+pub struct ZnRing<const N: usize>(u8);
 
 impl<const N: usize> From<usize> for ZnRing<N> {
     fn from(integer: usize) -> Self {
-        () = Self::CHECK;
-        Self(integer % N)
+        Self::new(integer)
     }
 }
 impl<const N: usize> std::ops::Add for ZnRing<N> {
@@ -23,18 +27,22 @@ impl<const N: usize> Neg for ZnRing<N> {
 }
 
 impl<const N: usize> ZnRing<N> {
-    const CHECK: () = assert!(N >= 1);
+    const CHECK: () = assert!(N >= 1 && N <= 256, "N must be in 1..=256");
     pub const ZERO: Self = Self(0);
 
     #[must_use = "the new value is returned"]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "value % N < N <= 256, so the representative fits a byte"
+    )]
     pub const fn new(value: usize) -> Self {
         () = Self::CHECK;
-        Self(value % N)
+        Self((value % N) as u8)
     }
 
     #[must_use]
     pub const fn value(&self) -> usize {
-        self.0
+        self.0 as usize
     }
 
     #[must_use = "the array is returned"]
@@ -50,12 +58,12 @@ impl<const N: usize> ZnRing<N> {
 
     #[must_use = "the addition is returned"]
     pub const fn const_add(self, rhs: Self) -> Self {
-        Self((self.0 + rhs.0) % N)
+        Self::new(self.value() + rhs.value())
     }
 
     #[must_use = "the negation is returned"]
     pub const fn const_neg(&self) -> Self {
-        Self((N - self.0) % N)
+        Self::new(N - self.value())
     }
 }
 #[cfg(test)]
@@ -77,6 +85,15 @@ mod tests {
             assert_eq!(ZnRing::<3>::new(x).value(), x);
         }
         assert_eq!((ZnRing::<3>::new(2) + ZnRing::new(2)).value(), 1);
+    }
+
+    #[test]
+    fn ring_is_one_byte_and_the_largest_modulus_still_adds_and_negates() {
+        assert_eq!(std::mem::size_of::<ZnRing<3>>(), 1);
+        let top = ZnRing::<256>::new(255);
+        assert_eq!((top + top).value(), 254);
+        assert_eq!((-top).value(), 1);
+        assert_eq!((-ZnRing::<256>::ZERO).value(), 0);
     }
 
     #[test]
