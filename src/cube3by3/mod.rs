@@ -197,7 +197,10 @@ impl Cube3By3 {
     }
 }
 #[cfg(test)]
-#[expect(clippy::panic_in_result_fn, reason = "tests should panic if failed")]
+#[expect(
+    clippy::panic_in_result_fn,
+    reason = "tests should panic if failed, and return result for `?` convenience"
+)]
 mod tests {
 
     use crate::{Piece, piece::index};

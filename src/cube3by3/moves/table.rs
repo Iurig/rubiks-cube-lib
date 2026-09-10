@@ -7,16 +7,14 @@ use crate::Piece;
 
 // `allow` instead of `expect` because the lint is skipped once the
 // library is compiled with `cfg(test)`
-#[allow(clippy::wildcard_imports)]
-use crate::{
-    cube3by3::{Cube3By3, pieces::*},
-    zn::ZnRing,
+#[allow(clippy::wildcard_imports, clippy::enum_glob_use)]
+use {
+    super::{MovablePart, MovablePart::*, MoveModifier, MoveModifier::*},
+    crate::{
+        cube3by3::{Cube3By3, pieces::*},
+        zn::ZnRing,
+    },
 };
-
-// `allow` instead of `expect` because the lint is skipped once the
-// library is compiled with `cfg(test)`
-#[allow(clippy::enum_glob_use)]
-use super::{MovablePart, MovablePart::*, MoveModifier, MoveModifier::*};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 struct MoveInformation {

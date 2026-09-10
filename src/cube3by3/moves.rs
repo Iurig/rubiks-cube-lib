@@ -190,7 +190,10 @@ impl From<Move> for Cube3By3 {
 }
 
 #[cfg(test)]
-#[allow(clippy::panic_in_result_fn)]
+#[expect(
+    clippy::panic_in_result_fn,
+    reason = "tests should panic if failed, and return result for `?` convenience"
+)]
 mod tests {
     //! Enumerations of every part, modifier, and move. Only tests need them
     //! today; move them out of this module when a production caller appears.
