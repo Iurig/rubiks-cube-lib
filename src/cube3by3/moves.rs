@@ -128,7 +128,7 @@ pub enum ParseMoveError {
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// A move in a sequence failed to parse; `line` and `position` count from 1.
 pub struct ParseSequenceError {
-    pub error_type: ParseMoveError,
+    pub cause: ParseMoveError,
     pub line: usize,
     pub position: usize,
 }
@@ -136,7 +136,7 @@ pub struct ParseSequenceError {
 impl std::error::Error for ParseMoveError {}
 impl std::error::Error for ParseSequenceError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.error_type)
+        Some(&self.cause)
     }
 }
 
@@ -160,7 +160,7 @@ impl std::fmt::Display for ParseSequenceError {
         write!(
             f,
             "at line {}, position {}: {}",
-            self.line, self.position, self.error_type
+            self.line, self.position, self.cause
         )
     }
 }
@@ -240,7 +240,7 @@ impl Move {
                 .map(move |(move_number, m)| {
                     Self::try_from(m).map_err(|e| {
                         ParseSequenceError {
-                            error_type: e,
+                            cause: e,
                             line: line_number + 1,
                             position: move_number + 1,
                         }
