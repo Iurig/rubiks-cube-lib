@@ -120,22 +120,22 @@ const FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT: usize = Faces::ALL.len() + Slices::A
 const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT] = [
     MoveInformation {
         cube_state: Cube3By3 {
-            center_configuration: Centers::IDENTITY,
+            center_configuration: CenterConfiguration::IDENTITY,
             corner_configuration: {
-                let mut corners = Corners::cycle([[
-                    SingleCorner::Ufr,
-                    SingleCorner::Ubr,
-                    SingleCorner::Dbr,
-                    SingleCorner::Dfr,
+                let mut corners = CornerConfiguration::cycle([[
+                    Corner::Ufr,
+                    Corner::Ubr,
+                    Corner::Dbr,
+                    Corner::Dfr,
                 ]]);
                 corners.orientation = ZnRing::array([0, 1, 2, 0, 0, 1, 2, 0]);
                 corners
             },
-            edge_configuration: Edges::cycle([[
-                SingleEdge::Fr,
-                SingleEdge::Ur,
-                SingleEdge::Br,
-                SingleEdge::Dr,
+            edge_configuration: EdgeConfiguration::cycle([[
+                Edge::Fr,
+                Edge::Ur,
+                Edge::Br,
+                Edge::Dr,
             ]]),
         },
         part: Face(Faces::R),
@@ -143,22 +143,22 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
     },
     MoveInformation {
         cube_state: Cube3By3 {
-            center_configuration: Centers::IDENTITY,
+            center_configuration: CenterConfiguration::IDENTITY,
             corner_configuration: {
-                let mut corners = Corners::cycle([[
-                    SingleCorner::Ubl,
-                    SingleCorner::Ufl,
-                    SingleCorner::Dfl,
-                    SingleCorner::Dbl,
+                let mut corners = CornerConfiguration::cycle([[
+                    Corner::Ubl,
+                    Corner::Ufl,
+                    Corner::Dfl,
+                    Corner::Dbl,
                 ]]);
                 corners.orientation = ZnRing::array([2, 0, 0, 1, 2, 0, 0, 1]);
                 corners
             },
-            edge_configuration: Edges::cycle([[
-                SingleEdge::Fl,
-                SingleEdge::Dl,
-                SingleEdge::Bl,
-                SingleEdge::Ul,
+            edge_configuration: EdgeConfiguration::cycle([[
+                Edge::Fl,
+                Edge::Dl,
+                Edge::Bl,
+                Edge::Ul,
             ]]),
         },
         part: Face(Faces::L),
@@ -166,22 +166,22 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
     },
     MoveInformation {
         cube_state: Cube3By3 {
-            center_configuration: Centers::IDENTITY,
+            center_configuration: CenterConfiguration::IDENTITY,
             corner_configuration: {
-                let mut corners = Corners::cycle([[
-                    SingleCorner::Ufr,
-                    SingleCorner::Ufl,
-                    SingleCorner::Ubl,
-                    SingleCorner::Ubr,
+                let mut corners = CornerConfiguration::cycle([[
+                    Corner::Ufr,
+                    Corner::Ufl,
+                    Corner::Ubl,
+                    Corner::Ubr,
                 ]]);
                 corners.orientation = ZnRing::array([0, 0, 0, 0, 0, 0, 0, 0]);
                 corners
             },
-            edge_configuration: Edges::cycle([[
-                SingleEdge::Uf,
-                SingleEdge::Ul,
-                SingleEdge::Ub,
-                SingleEdge::Ur,
+            edge_configuration: EdgeConfiguration::cycle([[
+                Edge::Uf,
+                Edge::Ul,
+                Edge::Ub,
+                Edge::Ur,
             ]]),
         },
         part: Face(Faces::U),
@@ -189,22 +189,22 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
     },
     MoveInformation {
         cube_state: Cube3By3 {
-            center_configuration: Centers::IDENTITY,
+            center_configuration: CenterConfiguration::IDENTITY,
             corner_configuration: {
-                let mut corners = Corners::cycle([[
-                    SingleCorner::Dfr,
-                    SingleCorner::Dbr,
-                    SingleCorner::Dbl,
-                    SingleCorner::Dfl,
+                let mut corners = CornerConfiguration::cycle([[
+                    Corner::Dfr,
+                    Corner::Dbr,
+                    Corner::Dbl,
+                    Corner::Dfl,
                 ]]);
                 corners.orientation = ZnRing::array([0, 0, 0, 0, 0, 0, 0, 0]);
                 corners
             },
-            edge_configuration: Edges::cycle([[
-                SingleEdge::Df,
-                SingleEdge::Dr,
-                SingleEdge::Db,
-                SingleEdge::Dl,
+            edge_configuration: EdgeConfiguration::cycle([[
+                Edge::Df,
+                Edge::Dr,
+                Edge::Db,
+                Edge::Dl,
             ]]),
         },
         part: Face(Faces::D),
@@ -212,25 +212,20 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
     },
     MoveInformation {
         cube_state: Cube3By3 {
-            center_configuration: Centers::IDENTITY,
+            center_configuration: CenterConfiguration::IDENTITY,
             corner_configuration: {
-                let mut corners = Corners::cycle([[
-                    SingleCorner::Dfr,
-                    SingleCorner::Dfl,
-                    SingleCorner::Ufl,
-                    SingleCorner::Ufr,
+                let mut corners = CornerConfiguration::cycle([[
+                    Corner::Dfr,
+                    Corner::Dfl,
+                    Corner::Ufl,
+                    Corner::Ufr,
                 ]]);
                 corners.orientation = ZnRing::array([0, 0, 1, 2, 1, 2, 0, 0]);
                 corners
             },
-            edge_configuration: Edges {
-                permutation: Edges::cycle([[
-                    SingleEdge::Df,
-                    SingleEdge::Fl,
-                    SingleEdge::Uf,
-                    SingleEdge::Fr,
-                ]])
-                .permutation,
+            edge_configuration: EdgeConfiguration {
+                permutation: EdgeConfiguration::cycle([[Edge::Df, Edge::Fl, Edge::Uf, Edge::Fr]])
+                    .permutation,
                 orientation: ZnRing::array([0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0]),
             },
         },
@@ -239,25 +234,20 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
     },
     MoveInformation {
         cube_state: Cube3By3 {
-            center_configuration: Centers::IDENTITY,
+            center_configuration: CenterConfiguration::IDENTITY,
             corner_configuration: {
-                let mut corners = Corners::cycle([[
-                    SingleCorner::Ubr,
-                    SingleCorner::Ubl,
-                    SingleCorner::Dbl,
-                    SingleCorner::Dbr,
+                let mut corners = CornerConfiguration::cycle([[
+                    Corner::Ubr,
+                    Corner::Ubl,
+                    Corner::Dbl,
+                    Corner::Dbr,
                 ]]);
                 corners.orientation = ZnRing::array([1, 2, 0, 0, 0, 0, 1, 2]);
                 corners
             },
-            edge_configuration: Edges {
-                permutation: Edges::cycle([[
-                    SingleEdge::Br,
-                    SingleEdge::Ub,
-                    SingleEdge::Bl,
-                    SingleEdge::Db,
-                ]])
-                .permutation,
+            edge_configuration: EdgeConfiguration {
+                permutation: EdgeConfiguration::cycle([[Edge::Br, Edge::Ub, Edge::Bl, Edge::Db]])
+                    .permutation,
                 orientation: ZnRing::array([1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0]),
             },
         },
@@ -266,21 +256,16 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
     },
     MoveInformation {
         cube_state: Cube3By3 {
-            center_configuration: Centers::cycle([[
-                SingleCenter::F,
-                SingleCenter::R,
-                SingleCenter::B,
-                SingleCenter::L,
+            center_configuration: CenterConfiguration::cycle([[
+                Center::F,
+                Center::R,
+                Center::B,
+                Center::L,
             ]]),
-            corner_configuration: Corners::IDENTITY,
-            edge_configuration: Edges {
-                permutation: Edges::cycle([[
-                    SingleEdge::Fr,
-                    SingleEdge::Br,
-                    SingleEdge::Bl,
-                    SingleEdge::Fl,
-                ]])
-                .permutation,
+            corner_configuration: CornerConfiguration::IDENTITY,
+            edge_configuration: EdgeConfiguration {
+                permutation: EdgeConfiguration::cycle([[Edge::Fr, Edge::Br, Edge::Bl, Edge::Fl]])
+                    .permutation,
                 orientation: ZnRing::array([0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0]),
             },
         },
@@ -289,21 +274,16 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
     },
     MoveInformation {
         cube_state: Cube3By3 {
-            center_configuration: Centers::cycle([[
-                SingleCenter::F,
-                SingleCenter::D,
-                SingleCenter::B,
-                SingleCenter::U,
+            center_configuration: CenterConfiguration::cycle([[
+                Center::F,
+                Center::D,
+                Center::B,
+                Center::U,
             ]]),
-            corner_configuration: Corners::IDENTITY,
-            edge_configuration: Edges {
-                permutation: Edges::cycle([[
-                    SingleEdge::Uf,
-                    SingleEdge::Df,
-                    SingleEdge::Db,
-                    SingleEdge::Ub,
-                ]])
-                .permutation,
+            corner_configuration: CornerConfiguration::IDENTITY,
+            edge_configuration: EdgeConfiguration {
+                permutation: EdgeConfiguration::cycle([[Edge::Uf, Edge::Df, Edge::Db, Edge::Ub]])
+                    .permutation,
                 orientation: ZnRing::array([1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0]),
             },
         },
@@ -312,21 +292,16 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
     },
     MoveInformation {
         cube_state: Cube3By3 {
-            center_configuration: Centers::cycle([[
-                SingleCenter::U,
-                SingleCenter::R,
-                SingleCenter::D,
-                SingleCenter::L,
+            center_configuration: CenterConfiguration::cycle([[
+                Center::U,
+                Center::R,
+                Center::D,
+                Center::L,
             ]]),
-            corner_configuration: Corners::IDENTITY,
-            edge_configuration: Edges {
-                permutation: Edges::cycle([[
-                    SingleEdge::Ul,
-                    SingleEdge::Ur,
-                    SingleEdge::Dr,
-                    SingleEdge::Dl,
-                ]])
-                .permutation,
+            corner_configuration: CornerConfiguration::IDENTITY,
+            edge_configuration: EdgeConfiguration {
+                permutation: EdgeConfiguration::cycle([[Edge::Ul, Edge::Ur, Edge::Dr, Edge::Dl]])
+                    .permutation,
                 orientation: ZnRing::array([0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1]),
             },
         },
@@ -420,10 +395,10 @@ mod tests {
     use super::*;
     use crate::index;
 
-    fn corner_at(cube: Cube3By3, slot: SingleCorner) -> SingleCorner {
+    fn corner_at(cube: Cube3By3, slot: Corner) -> Corner {
         cube.corner_configuration.permutation[index(slot)]
     }
-    fn center_at(cube: Cube3By3, slot: SingleCenter) -> SingleCenter {
+    fn center_at(cube: Cube3By3, slot: Center) -> Center {
         cube.center_configuration.permutation[index(slot)]
     }
     fn clockwise(part: MovablePart) -> Cube3By3 {
@@ -435,43 +410,43 @@ mod tests {
     #[test]
     fn r_takes_front_top_corner_to_back_top() {
         assert_eq!(
-            corner_at(clockwise(Face(Faces::R)), SingleCorner::Ubr),
-            SingleCorner::Ufr
+            corner_at(clockwise(Face(Faces::R)), Corner::Ubr),
+            Corner::Ufr
         );
     }
     #[test]
     fn l_takes_back_top_corner_to_front_top() {
         assert_eq!(
-            corner_at(clockwise(Face(Faces::L)), SingleCorner::Ufl),
-            SingleCorner::Ubl
+            corner_at(clockwise(Face(Faces::L)), Corner::Ufl),
+            Corner::Ubl
         );
     }
     #[test]
     fn u_takes_front_right_corner_to_front_left() {
         assert_eq!(
-            corner_at(clockwise(Face(Faces::U)), SingleCorner::Ufl),
-            SingleCorner::Ufr
+            corner_at(clockwise(Face(Faces::U)), Corner::Ufl),
+            Corner::Ufr
         );
     }
     #[test]
     fn d_takes_front_right_corner_to_back_right() {
         assert_eq!(
-            corner_at(clockwise(Face(Faces::D)), SingleCorner::Dbr),
-            SingleCorner::Dfr
+            corner_at(clockwise(Face(Faces::D)), Corner::Dbr),
+            Corner::Dfr
         );
     }
     #[test]
     fn f_takes_top_right_corner_to_bottom_right() {
         assert_eq!(
-            corner_at(clockwise(Face(Faces::F)), SingleCorner::Dfr),
-            SingleCorner::Ufr
+            corner_at(clockwise(Face(Faces::F)), Corner::Dfr),
+            Corner::Ufr
         );
     }
     #[test]
     fn b_takes_top_right_corner_to_top_left() {
         assert_eq!(
-            corner_at(clockwise(Face(Faces::B)), SingleCorner::Ubl),
-            SingleCorner::Ubr
+            corner_at(clockwise(Face(Faces::B)), Corner::Ubl),
+            Corner::Ubr
         );
     }
 
@@ -479,24 +454,15 @@ mod tests {
 
     #[test]
     fn e_follows_d_and_takes_front_center_to_right() {
-        assert_eq!(
-            center_at(clockwise(Slice(Slices::E)), SingleCenter::R),
-            SingleCenter::F
-        );
+        assert_eq!(center_at(clockwise(Slice(Slices::E)), Center::R), Center::F);
     }
     #[test]
     fn m_follows_l_and_takes_top_center_to_front() {
-        assert_eq!(
-            center_at(clockwise(Slice(Slices::M)), SingleCenter::F),
-            SingleCenter::U
-        );
+        assert_eq!(center_at(clockwise(Slice(Slices::M)), Center::F), Center::U);
     }
     #[test]
     fn s_follows_f_and_takes_top_center_to_right() {
-        assert_eq!(
-            center_at(clockwise(Slice(Slices::S)), SingleCenter::R),
-            SingleCenter::U
-        );
+        assert_eq!(center_at(clockwise(Slice(Slices::S)), Center::R), Center::U);
     }
 
     // Derivation identities: these pin the derivation, not the base moves.

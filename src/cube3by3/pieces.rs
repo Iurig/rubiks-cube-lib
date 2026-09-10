@@ -28,25 +28,25 @@ macro_rules! new_piece {
         };
     };
 }
-// Centers are considered in blind standard order, i.e. `[U, F, R, B, L, D]`
-new_piece!(SingleCenter, CENTERS_COUNT, [U, F, R, B, L, D]);
-// Corners are considered in blind standard order, i.e. `[UBL, UBR, UFR, UFL, DFL, DFR, DBR, DBL]`
+// Center slots are in blind standard order, i.e. `[U, F, R, B, L, D]`
+new_piece!(Center, CENTERS_COUNT, [U, F, R, B, L, D]);
+// Corner slots are in blind standard order, i.e. `[UBL, UBR, UFR, UFL, DFL, DFR, DBR, DBL]`
 new_piece!(
-    SingleCorner,
+    Corner,
     CORNERS_COUNT,
     [Ubl, Ubr, Ufr, Ufl, Dfl, Dfr, Dbr, Dbl]
 );
-// Edges are considered clockwise per layer, i.e. `[UB, UR, UF, UL, FL, FR, BR, BL, DF, DR, DB, DL]`
+// Edge slots are clockwise per layer, i.e. `[UB, UR, UF, UL, FL, FR, BR, BL, DF, DR, DB, DL]`
 new_piece!(
-    SingleEdge,
+    Edge,
     EDGES_COUNT,
     [Ub, Ur, Uf, Ul, Fl, Fr, Br, Bl, Df, Dr, Db, Dl]
 );
 
-pub type Centers = PieceConfiguration<SingleCenter, CENTERS_COUNT, CENTER_ORIENTATION_COUNT>;
-pub type Corners = PieceConfiguration<SingleCorner, CORNERS_COUNT, CO_COUNT>;
-pub type Edges = PieceConfiguration<SingleEdge, EDGES_COUNT, EO_COUNT>;
-pub type Faces = SingleCenter;
+pub type CenterConfiguration = PieceConfiguration<Center, CENTERS_COUNT, CENTER_ORIENTATION_COUNT>;
+pub type CornerConfiguration = PieceConfiguration<Corner, CORNERS_COUNT, CO_COUNT>;
+pub type EdgeConfiguration = PieceConfiguration<Edge, EDGES_COUNT, EO_COUNT>;
+pub type Faces = Center;
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum Slices {
     M,

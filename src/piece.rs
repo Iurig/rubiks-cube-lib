@@ -102,43 +102,38 @@ mod tests {
     use crate::cube3by3::pieces::*;
     #[test]
     fn corner_and_edge_all_match_discriminants() {
-        for (i, c) in SingleCorner::ALL.iter().enumerate() {
+        for (i, c) in Corner::ALL.iter().enumerate() {
             assert_eq!(*c as usize, i);
-            assert_eq!(SingleCorner::from_index(i), Some(*c));
+            assert_eq!(Corner::from_index(i), Some(*c));
         }
-        for (i, e) in SingleEdge::ALL.iter().enumerate() {
+        for (i, e) in Edge::ALL.iter().enumerate() {
             assert_eq!(*e as usize, i);
-            assert_eq!(SingleEdge::from_index(i), Some(*e));
+            assert_eq!(Edge::from_index(i), Some(*e));
         }
     }
 
     #[test]
     fn cycle_is_a_permutation_and_moves_pieces_forward_and_leaves_rest() {
-        use SingleCorner::{Dbr, Dfr, Ubr, Ufr};
-        let mut perm = Corners::cycle([[Ufr, Ubr, Dbr, Dfr]]).permutation;
+        use Corner::{Dbr, Dfr, Ubr, Ufr};
+        let mut perm = CornerConfiguration::cycle([[Ufr, Ubr, Dbr, Dfr]]).permutation;
         assert_eq!(perm[index(Ubr)], Ufr);
         assert_eq!(perm[index(Dbr)], Ubr);
         assert_eq!(perm[index(Dfr)], Dbr);
         assert_eq!(perm[index(Ufr)], Dfr);
-        for c in [
-            SingleCorner::Ubl,
-            SingleCorner::Ufl,
-            SingleCorner::Dfl,
-            SingleCorner::Dbl,
-        ] {
+        for c in [Corner::Ubl, Corner::Ufl, Corner::Dfl, Corner::Dbl] {
             assert_eq!(perm[c as usize], c);
         }
         perm.sort();
-        assert_eq!(perm, SingleCorner::ALL);
+        assert_eq!(perm, Corner::ALL);
     }
 
     #[test]
     fn cycle_with_disjoint_cycles_is_a_permutation() {
-        use SingleEdge::{Dl, Dr, Ub, Uf};
-        let mut perm = Edges::cycle::<2, 2>([[Ub, Uf], [Dl, Dr]]).permutation;
+        use Edge::{Dl, Dr, Ub, Uf};
+        let mut perm = EdgeConfiguration::cycle::<2, 2>([[Ub, Uf], [Dl, Dr]]).permutation;
         assert_eq!(perm[Uf as usize], Ub);
         assert_eq!(perm[Ub as usize], Uf);
         perm.sort();
-        assert_eq!(perm, SingleEdge::ALL);
+        assert_eq!(perm, Edge::ALL);
     }
 }
