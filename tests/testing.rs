@@ -2,12 +2,13 @@
 #![allow(clippy::panic_in_result_fn)]
 
 use rubiks_cube_lib::{Center, Corner, Cube3By3, Edge, Inv, Pow, zn::ZnRing};
+use std::error::Error;
 
 const IMPLEMENTED_MOVES: [&str; 12] = ["R", "U", "D", "L", "F", "B", "E", "S", "M", "y", "z", "x"];
 
 /// A reconstruction is a scramble followed by a solution. The scrambled state
 /// must be reachable, and the final state must be reachable and solved.
-fn assert_reconstruction(scramble: &str, solution: &str) -> Result<(), String> {
+fn assert_reconstruction(scramble: &str, solution: &str) -> Result<(), Box<dyn Error>> {
     let scrambled = Cube3By3::from_solved(scramble)?;
     assert!(
         scrambled.is_reachable(),
@@ -25,19 +26,19 @@ fn default_is_reachable() {
 }
 
 #[test]
-fn r_is_reachable() -> Result<(), String> {
+fn r_is_reachable() -> Result<(), Box<dyn Error>> {
     assert!(Cube3By3::from_solved("R")?.is_reachable());
     Ok(())
 }
 
 #[test]
-fn m_is_reachable() -> Result<(), String> {
+fn m_is_reachable() -> Result<(), Box<dyn Error>> {
     assert!(Cube3By3::from_solved("M")?.is_reachable());
     Ok(())
 }
 
 #[test]
-fn y_is_reachable() -> Result<(), String> {
+fn y_is_reachable() -> Result<(), Box<dyn Error>> {
     assert!(Cube3By3::from_solved("y")?.is_reachable());
     Ok(())
 }
@@ -49,7 +50,7 @@ fn y_is_reachable() -> Result<(), String> {
 
 // Faces: clockwise when looking at that face.
 #[test]
-fn r_takes_front_top_corner_to_back_top() -> Result<(), String> {
+fn r_takes_front_top_corner_to_back_top() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("R")?.corners().piece_at(Corner::Ubr),
         Corner::Ufr
@@ -57,7 +58,7 @@ fn r_takes_front_top_corner_to_back_top() -> Result<(), String> {
     Ok(())
 }
 #[test]
-fn l_takes_back_top_corner_to_front_top() -> Result<(), String> {
+fn l_takes_back_top_corner_to_front_top() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("L")?.corners().piece_at(Corner::Ufl),
         Corner::Ubl
@@ -65,7 +66,7 @@ fn l_takes_back_top_corner_to_front_top() -> Result<(), String> {
     Ok(())
 }
 #[test]
-fn u_takes_front_right_corner_to_front_left() -> Result<(), String> {
+fn u_takes_front_right_corner_to_front_left() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("U")?.corners().piece_at(Corner::Ufl),
         Corner::Ufr
@@ -73,7 +74,7 @@ fn u_takes_front_right_corner_to_front_left() -> Result<(), String> {
     Ok(())
 }
 #[test]
-fn d_takes_front_right_corner_to_back_right() -> Result<(), String> {
+fn d_takes_front_right_corner_to_back_right() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("D")?.corners().piece_at(Corner::Dbr),
         Corner::Dfr
@@ -81,7 +82,7 @@ fn d_takes_front_right_corner_to_back_right() -> Result<(), String> {
     Ok(())
 }
 #[test]
-fn f_takes_top_right_corner_to_bottom_right() -> Result<(), String> {
+fn f_takes_top_right_corner_to_bottom_right() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("F")?.corners().piece_at(Corner::Dfr),
         Corner::Ufr
@@ -89,7 +90,7 @@ fn f_takes_top_right_corner_to_bottom_right() -> Result<(), String> {
     Ok(())
 }
 #[test]
-fn b_takes_top_right_corner_to_top_left() -> Result<(), String> {
+fn b_takes_top_right_corner_to_top_left() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("B")?.corners().piece_at(Corner::Ubl),
         Corner::Ubr
@@ -100,7 +101,7 @@ fn b_takes_top_right_corner_to_top_left() -> Result<(), String> {
 // Slices: each follows its reference face, so it moves centers the way that face moves corners.
 
 #[test]
-fn e_follows_d_and_takes_front_center_to_right() -> Result<(), String> {
+fn e_follows_d_and_takes_front_center_to_right() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("E")?.centers().piece_at(Center::R),
         Center::F
@@ -108,7 +109,7 @@ fn e_follows_d_and_takes_front_center_to_right() -> Result<(), String> {
     Ok(())
 }
 #[test]
-fn m_follows_l_and_takes_top_center_to_front() -> Result<(), String> {
+fn m_follows_l_and_takes_top_center_to_front() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("M")?.centers().piece_at(Center::F),
         Center::U
@@ -116,7 +117,7 @@ fn m_follows_l_and_takes_top_center_to_front() -> Result<(), String> {
     Ok(())
 }
 #[test]
-fn s_follows_f_and_takes_top_center_to_right() -> Result<(), String> {
+fn s_follows_f_and_takes_top_center_to_right() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("S")?.centers().piece_at(Center::R),
         Center::U
@@ -125,7 +126,7 @@ fn s_follows_f_and_takes_top_center_to_right() -> Result<(), String> {
 }
 
 #[test]
-fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), String> {
+fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), Box<dyn Error>> {
     let r = Cube3By3::from_solved("R")?;
     for c in [Corner::Ubl, Corner::Ufl, Corner::Dfl, Corner::Dbl] {
         assert_eq!(r.corners().piece_at(c), c);
@@ -149,7 +150,7 @@ fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), String> {
 }
 
 #[test]
-fn identity_is_two_sided() -> Result<(), String> {
+fn identity_is_two_sided() -> Result<(), Box<dyn Error>> {
     let r = Cube3By3::from_solved("R")?;
     assert_eq!(Cube3By3::default() * r, r);
     assert_eq!(r * Cube3By3::default(), r);
@@ -157,7 +158,7 @@ fn identity_is_two_sided() -> Result<(), String> {
 }
 
 #[test]
-fn pow_0_gives_identity_cube() -> Result<(), String> {
+fn pow_0_gives_identity_cube() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("R U R' U'")?.pow(0),
         Cube3By3::IDENTITY
@@ -166,7 +167,7 @@ fn pow_0_gives_identity_cube() -> Result<(), String> {
 }
 
 #[test]
-fn pow_finishes_correctly_for_large_exponent() -> Result<(), String> {
+fn pow_finishes_correctly_for_large_exponent() -> Result<(), Box<dyn Error>> {
     let large_u32 = u32::MAX - 2;
     let r = Cube3By3::from_solved("R")?;
     assert_eq!(large_u32 % 4, 1);
@@ -175,7 +176,7 @@ fn pow_finishes_correctly_for_large_exponent() -> Result<(), String> {
 }
 
 #[test]
-fn clockwise_moves_have_order_exactly_4() -> Result<(), String> {
+fn clockwise_moves_have_order_exactly_4() -> Result<(), Box<dyn Error>> {
     for m in &IMPLEMENTED_MOVES[..9] {
         let cube = Cube3By3::from_solved(m)?;
         for k in 1..4 {
@@ -187,7 +188,7 @@ fn clockwise_moves_have_order_exactly_4() -> Result<(), String> {
 }
 
 #[test]
-fn move_inverse_is_move_cubed() -> Result<(), String> {
+fn move_inverse_is_move_cubed() -> Result<(), Box<dyn Error>> {
     for m in IMPLEMENTED_MOVES {
         let cube = Cube3By3::from_solved(m)?;
         assert_eq!(cube.inverse(), cube.pow(3));
@@ -196,7 +197,7 @@ fn move_inverse_is_move_cubed() -> Result<(), String> {
 }
 
 #[test]
-fn inverse_is_an_involution() -> Result<(), String> {
+fn inverse_is_an_involution() -> Result<(), Box<dyn Error>> {
     for m in IMPLEMENTED_MOVES {
         let cube = Cube3By3::from_solved(m)?;
         assert_eq!(cube.inverse().inverse(), cube);
@@ -206,7 +207,7 @@ fn inverse_is_an_involution() -> Result<(), String> {
 }
 
 #[test]
-fn mul_is_associative() -> Result<(), String> {
+fn mul_is_associative() -> Result<(), Box<dyn Error>> {
     let a = Cube3By3::from_solved("R")?;
     let b = Cube3By3::from_solved("U2 L")?.pow(2);
     let c = Cube3By3::from_solved("y")?.inverse();
@@ -215,7 +216,7 @@ fn mul_is_associative() -> Result<(), String> {
 }
 
 #[test]
-fn inverse_of_product_reverses_order() -> Result<(), String> {
+fn inverse_of_product_reverses_order() -> Result<(), Box<dyn Error>> {
     let a = Cube3By3::from_solved("U")?.pow(1);
     let b = Cube3By3::from_solved("R")?.pow(2);
     assert_eq!((a * b).inverse(), b.inverse() * a.inverse());
@@ -224,19 +225,19 @@ fn inverse_of_product_reverses_order() -> Result<(), String> {
 }
 
 #[test]
-fn r_and_l_commute() -> Result<(), String> {
+fn r_and_l_commute() -> Result<(), Box<dyn Error>> {
     assert!(Cube3By3::from_solved("R L R' L'")?.is_solved());
     Ok(())
 }
 
 #[test]
-fn u_and_d_commute() -> Result<(), String> {
+fn u_and_d_commute() -> Result<(), Box<dyn Error>> {
     assert!(Cube3By3::from_solved("U D U' D'")?.is_solved());
     Ok(())
 }
 
 #[test]
-fn multiple_moves_break_down_correctly() -> Result<(), String> {
+fn multiple_moves_break_down_correctly() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("R U R' U'")?,
         Cube3By3::IDENTITY
@@ -249,7 +250,7 @@ fn multiple_moves_break_down_correctly() -> Result<(), String> {
 }
 
 #[test]
-fn fmc_wr_as_multiplication() -> Result<(), String> {
+fn fmc_wr_as_multiplication() -> Result<(), Box<dyn Error>> {
     let scramble = Cube3By3::from_solved(
         "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F",
     )?;
@@ -263,7 +264,7 @@ const CFOP_SCRAMBLE: &str = "R2 F' L2 D2 F2 U2 B' L2 F R2 D2 F2 D L' U B R' F' R
 const ROUX_SCRAMBLE: &str = "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ";
 
 #[test]
-fn cfop_solve_hygienized() -> Result<(), String> {
+fn cfop_solve_hygienized() -> Result<(), Box<dyn Error>> {
     assert_reconstruction(
         CFOP_SCRAMBLE,
         "z y2
@@ -277,7 +278,7 @@ fn cfop_solve_hygienized() -> Result<(), String> {
 }
 
 #[test]
-fn cfop_solve() -> Result<(), String> {
+fn cfop_solve() -> Result<(), Box<dyn Error>> {
     assert_reconstruction(
         CFOP_SCRAMBLE,
         "z y2
@@ -291,7 +292,7 @@ fn cfop_solve() -> Result<(), String> {
 }
 
 #[test]
-fn roux_solve_with_comments() -> Result<(), String> {
+fn roux_solve_with_comments() -> Result<(), Box<dyn Error>> {
     assert_reconstruction(
         ROUX_SCRAMBLE,
         "y2 F' M F' R U' R U' Fw z' // FB
@@ -303,7 +304,7 @@ fn roux_solve_with_comments() -> Result<(), String> {
 }
 
 #[test]
-fn roux_solve_without_comments() -> Result<(), String> {
+fn roux_solve_without_comments() -> Result<(), Box<dyn Error>> {
     assert_reconstruction(
         ROUX_SCRAMBLE,
         "y2 F' M F' R U' R U' Fw z'
@@ -315,7 +316,7 @@ fn roux_solve_without_comments() -> Result<(), String> {
 }
 
 #[test]
-fn s_based_roux_solve() -> Result<(), String> {
+fn s_based_roux_solve() -> Result<(), Box<dyn Error>> {
     assert_reconstruction(
         ROUX_SCRAMBLE,
         "y2 F' M F' R U' R U' Fw z' // FB
@@ -328,7 +329,7 @@ U S U' S' U2 S U S' U2 S2 U' // EOLR
 }
 
 #[test]
-fn e_based_roux_solve() -> Result<(), String> {
+fn e_based_roux_solve() -> Result<(), Box<dyn Error>> {
     assert_reconstruction(
         ROUX_SCRAMBLE,
         "y2 F' M F' R U' R U' Fw z' // FB
@@ -341,7 +342,7 @@ E' R2 E R2 E2// 4c",
 }
 
 #[test]
-fn roux_solve_without_wide_moves() -> Result<(), String> {
+fn roux_solve_without_wide_moves() -> Result<(), Box<dyn Error>> {
     assert_reconstruction(
         ROUX_SCRAMBLE,
         "y2 F' M F' R U' R U' B
@@ -353,7 +354,7 @@ fn roux_solve_without_wide_moves() -> Result<(), String> {
 }
 
 #[test]
-fn roux_solve_removes_comments() -> Result<(), String> {
+fn roux_solve_removes_comments() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved(concat!(
             "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
@@ -376,7 +377,27 @@ fn roux_solve_removes_comments() -> Result<(), String> {
 }
 
 #[test]
-fn sexy_move_has_correct_period_on_all_face_pairs() -> Result<(), String> {
+fn three_line_move_sequence_with_error_parses_with_correct_error() {
+    let e = Cube3By3::from_solved(
+        "R U R'
+    F U F'
+    Mw' M",
+    )
+    .unwrap_err();
+
+    assert_eq!(e.line(), 3);
+    assert_eq!(e.position(), 1);
+    assert_eq!(
+        e.cause(),
+        rubiks_cube_lib::ParseMoveError::BadModifier {
+            invalid_move: "Mw'".to_string(),
+            modifier: "w'".to_string(),
+        }
+    );
+}
+
+#[test]
+fn sexy_move_has_correct_period_on_all_face_pairs() -> Result<(), Box<dyn Error>> {
     let adjacent_face_pairs = [
         ("R", "U"),
         ("U", "L"),
@@ -407,7 +428,7 @@ fn sexy_move_has_correct_period_on_all_face_pairs() -> Result<(), String> {
 }
 
 #[test]
-fn adjacent_face_sequence_has_constant_and_correct_period() -> Result<(), String> {
+fn adjacent_face_sequence_has_constant_and_correct_period() -> Result<(), Box<dyn Error>> {
     let adjacent_face_pairs = [
         ("R", "U"),
         ("U", "L"),
@@ -446,7 +467,7 @@ fn adjacent_face_sequence_has_constant_and_correct_period() -> Result<(), String
 }
 
 #[test]
-fn slice_face_has_constant_and_correct_period() -> Result<(), String> {
+fn slice_face_has_constant_and_correct_period() -> Result<(), Box<dyn Error>> {
     let pairs = [
         ("M", "U"),
         ("M", "F"),
@@ -485,7 +506,7 @@ fn slice_face_has_constant_and_correct_period() -> Result<(), String> {
 }
 
 #[test]
-fn random_words_stay_reachable_and_undo_cleanly() -> Result<(), String> {
+fn random_words_stay_reachable_and_undo_cleanly() -> Result<(), Box<dyn Error>> {
     // Each pair is a modifier and its inverse; `2` and `2'` reach the same
     // state, so inverting a double is the other spelling of it.
     const MODIFIER_PAIRS: [(&str, &str); 2] = [("", "'"), ("2", "2'")];
