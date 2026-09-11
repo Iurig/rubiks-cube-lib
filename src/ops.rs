@@ -1,3 +1,4 @@
+/// A value with a multiplicative inverse.
 pub trait Inv: Sized {
     /// Inverts a state multiplicatively, possibly fallibly
     ///
@@ -30,7 +31,9 @@ pub trait Inv: Sized {
     fn inverse(&self) -> Self;
 }
 
+/// Repeated multiplication by fast exponentiation.
 pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
+    /// The result of an empty product.
     const IDENTITY: Self;
 
     /// Performs the power operation based on `std::ops::Mul` assuming an empty multiplication returns `IDENTITY`

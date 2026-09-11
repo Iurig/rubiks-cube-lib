@@ -1,3 +1,4 @@
+//! Modular integers for piece orientation.
 use std::ops::Neg;
 
 /// Integers mod `N`, stored as the representative in `0..N`.
@@ -28,8 +29,10 @@ impl<const N: usize> Neg for ZnRing<N> {
 
 impl<const N: usize> ZnRing<N> {
     const CHECK: () = assert!(N >= 1 && N <= 256, "N must be in 1..=256");
+    /// The additive identity.
     pub const ZERO: Self = Self(0);
 
+    /// Reduces `value` mod `N`.
     #[must_use = "the new value is returned"]
     #[expect(
         clippy::cast_possible_truncation,
@@ -40,11 +43,13 @@ impl<const N: usize> ZnRing<N> {
         Self((value % N) as u8)
     }
 
+    /// The representative in `0..N`.
     #[must_use]
     pub const fn value(&self) -> usize {
         self.0 as usize
     }
 
+    /// Reduces every element of `values` mod `N`.
     #[must_use = "the array is returned"]
     pub const fn array<const L: usize>(values: [usize; L]) -> [Self; L] {
         let mut final_array = [Self(0); L];
@@ -56,11 +61,13 @@ impl<const N: usize> ZnRing<N> {
         final_array
     }
 
+    /// Addition mod `N`, usable in `const` contexts.
     #[must_use = "the addition is returned"]
     pub const fn const_add(self, rhs: Self) -> Self {
         Self::new(self.value() + rhs.value())
     }
 
+    /// Negation mod `N`, usable in `const` contexts.
     #[must_use = "the negation is returned"]
     pub const fn const_neg(&self) -> Self {
         Self::new(N - self.value())
