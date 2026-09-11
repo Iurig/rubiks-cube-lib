@@ -57,14 +57,7 @@ impl Cube3By3 {
 }
 
 impl Pow for Cube3By3 {
-    type Output = Self;
-    fn pow(&self, exponent: u64) -> Self::Output {
-        if exponent == 0 {
-            Self::IDENTITY
-        } else {
-            *self * self.pow(exponent - 1)
-        }
-    }
+    const IDENTITY: Self = Self::IDENTITY; // Sets Pow's IDENTITY to Cube3By3's IDENTITY
 }
 
 impl Inv for Cube3By3 {
