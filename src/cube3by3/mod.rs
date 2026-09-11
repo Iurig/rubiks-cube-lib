@@ -101,8 +101,8 @@ impl Cube3By3 {
     /// # Errors
     ///
     /// Errors when a whitespace separated &str outside of comments is not parseable
-    /// as a move; the error names that "word" and its line and position, both counted
-    /// from 1, using the type `ParseSequenceError`
+    /// as a move; the error names that &str and its line and position, both counted
+    /// from 1, using the type [`ParseSequenceError`]
     pub fn move_sequence(&self, moves: &str) -> Result<Self, ParseSequenceError> {
         Move::sequence(moves).try_fold(*self, |cube, m| Ok(cube * Self::from(m?)))
     }

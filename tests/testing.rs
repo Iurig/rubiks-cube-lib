@@ -377,7 +377,7 @@ fn roux_solve_removes_comments() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn three_line_move_sequence_with_error_parses_with_correct_error() {
+fn bad_move_error_names_its_line_and_position() {
     let e = Cube3By3::from_solved(
         "R U R'
     F U F'
@@ -388,7 +388,7 @@ fn three_line_move_sequence_with_error_parses_with_correct_error() {
     assert_eq!(e.line(), 3);
     assert_eq!(e.position(), 1);
     assert_eq!(
-        e.cause(),
+        *e.cause(),
         rubiks_cube_lib::ParseMoveError::BadModifier {
             invalid_move: "Mw'".to_string(),
             modifier: "w'".to_string(),
