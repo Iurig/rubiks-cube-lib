@@ -126,7 +126,6 @@ pub enum ParseMoveError {
     },
 }
 
-#[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// A move in a sequence failed to parse; `line` and `position` count from 1.
 pub struct ParseSequenceError {
@@ -137,8 +136,8 @@ pub struct ParseSequenceError {
 
 impl ParseSequenceError {
     #[must_use]
-    pub fn cause(&self) -> ParseMoveError {
-        self.cause.clone()
+    pub const fn cause(&self) -> &ParseMoveError {
+        &self.cause
     }
     #[must_use]
     pub const fn line(&self) -> usize {
@@ -357,11 +356,8 @@ mod tests {
         }
     }
 
-    fn moves_of(text: &str) -> Result<Vec<Move>, Box<dyn Error>> {
-        Move::sequence(text).try_fold(Vec::new(), |mut v, m| {
-            v.push(m?);
-            Ok(v)
-        })
+    fn moves_of(text: &str) -> Result<Vec<Move>, ParseSequenceError> {
+        Move::sequence(text).collect()
     }
 
     #[test]

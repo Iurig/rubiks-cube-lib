@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 mod cube3by3;
 mod ops;
 mod piece;
@@ -8,4 +9,4 @@ pub use cube3by3::pieces::{Center, Corner, Edge};
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};
 
-pub use crate::cube3by3::moves::{ParseMoveError, ParseSequenceError};
+pub use cube3by3::moves::{ParseMoveError, ParseSequenceError};

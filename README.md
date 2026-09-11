@@ -47,7 +47,7 @@ Move strings use standard cube notation. Whitespace and newlines separate moves,
 after `//` on a line is a comment, so you can paste annotated reconstructions directly:
 
 ```rust
-let solved = Cube3By3::from_solved("
+let solved = rubiks_cube_lib::Cube3By3::from_solved("
     U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D   // scramble
     y2 F' M F' R U' R U' Fw z'                                  // FB
     U R U r M' U' R U2' R'                                      // SS
@@ -105,8 +105,8 @@ that string parsing looks up. A derived move therefore cannot drift from its bas
 | Item                                     | Purpose                                                    |
 | ---------------------------------------- | ---------------------------------------------------------- |
 | `Cube3By3`                               | The cube state. `Default` and `IDENTITY` are the solved cube. |
-|`ParseMoveError`                          | Error for parssing a `&str` to a move, it is an enum with fields `EmptyString`, `BadModifier {invalid_move: String, modifier: String}`, and `BadPart {invalid_move: String, part: String},`.|
-|  `ParseSequenceError`                    | Error for parsing a `&str` to a cube. Includes getters `cause(&self) -> ParseMoveError`, `line(&self) -> usize`, and `position(&self) -> usize` for its private fields. |
+| `ParseMoveError`                         | Error for parsing a `&str` to a move: a `#[non_exhaustive]` enum with variants `EmptyString`, `BadModifier { invalid_move: String, modifier: String }`, and `BadPart { invalid_move: String, part: String }`. Match with a `_` arm. |
+| `ParseSequenceError`                     | Error for parsing a move string to a cube. Getters `cause(&self) -> &ParseMoveError`, `line(&self) -> usize`, and `position(&self) -> usize` read its private fields. |
 | `Cube3By3::from_solved(&str)`            | Apply a move string to the solved cube. Returns `Result<Cube3By3, ParseSequenceError>`; `ParseSequenceError` names the first token that is not a move. |
 | `Cube3By3::move_sequence(&self, &str)`   | Apply a move string to this state, returning a new one. Same `Result` contract. |
 | `Cube3By3::is_solved()`                  | Equality with the identity up to a whole-cube rotation: the cube is re-oriented by its centers before comparing. |
@@ -117,13 +117,13 @@ that string parsing looks up. A derived move therefore cannot drift from its bas
 | `Corner`, `Edge`, `Center`               | The piece enums. One enum names both a slot and the piece whose home is that slot, so a returned piece can be fed back in as the next slot. |
 | `impl Mul for Cube3By3`                  | `a * b` applies `a` then `b`. Associative, not commutative. |
 | `Inv` trait                              | `inverse()`, implemented for cubes and piece configurations.|
-| `Pow` trait                              | `pow(n)`, repeated multiplication.                         |
+| `Pow` trait                              | `pow(n)` by exponentiation by squaring; provided for any `Mul + Clone` type with an `IDENTITY`. |
 | `PieceConfiguration`, `Piece`            | Generic building blocks for other puzzles. `Piece` is sealed: nameable in bounds, implemented only inside the crate. |
 | `zn::ZnRing<N>`                          | Integers mod `N`, `const`-friendly, with `Add` and `Neg`. `new(n)` reduces, `value()` reads the representative in `0..N` back out. |
 
 ## Project layout
 
-```
+```text
 src/
   lib.rs                  public exports
   ops.rs                  Inv and Pow traits
@@ -182,4 +182,4 @@ What works today:
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for the full text.
+This project is licensed under the MIT License. See [LICENSE](./LICENSE) for the full text.
