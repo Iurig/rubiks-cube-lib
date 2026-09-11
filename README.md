@@ -19,7 +19,7 @@ so the entire move table is built at compile time.
 ```rust
 use rubiks_cube_lib::{Cube3By3, Inv, Pow};
 
-fn main() -> Result<(), String> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Apply a sequence to the solved cube, example is Sebastiano Tronto's 16 move FMC WR
     let scramble = Cube3By3::from_solved("R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F")?;
     let solution = Cube3By3::from_solved("D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")?;
@@ -105,7 +105,9 @@ that string parsing looks up. A derived move therefore cannot drift from its bas
 | Item                                     | Purpose                                                    |
 | ---------------------------------------- | ---------------------------------------------------------- |
 | `Cube3By3`                               | The cube state. `Default` and `IDENTITY` are the solved cube. |
-| `Cube3By3::from_solved(&str)`            | Apply a move string to the solved cube. Returns `Result<Cube3By3, String>`; `Err` names the first token that is not a move. |
+|`ParseMoveError`                          | Error for parssing a `&str` to a move, it is an enum with fields `EmptyString`, `BadModifier {invalid_move: String, modifier: String}`, and `BadPart {invalid_move: String, part: String},`.|
+|  `ParseSequenceError`                    | Error for parsing a `&str` to a cube. Includes getters `cause(&self) -> ParseMoveError`, `line(&self) -> usize`, and `position(&self) -> usize` for its private fields. |
+| `Cube3By3::from_solved(&str)`            | Apply a move string to the solved cube. Returns `Result<Cube3By3, ParseSequenceError>`; `ParseSequenceError` names the first token that is not a move. |
 | `Cube3By3::move_sequence(&self, &str)`   | Apply a move string to this state, returning a new one. Same `Result` contract. |
 | `Cube3By3::is_solved()`                  | Equality with the identity up to a whole-cube rotation: the cube is re-oriented by its centers before comparing. |
 | `Cube3By3::is_reachable()`               | Whether some move sequence produces this state from solved: twists sum to 0 mod 3, flips to 0 mod 2, the permutation parities of corners, edges, and centers sum to 0 mod 2, and the centers form a whole-cube rotation. |

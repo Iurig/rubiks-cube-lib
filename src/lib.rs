@@ -7,3 +7,5 @@ pub use cube3by3::Cube3By3;
 pub use cube3by3::pieces::{Center, Corner, Edge};
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};
+
+pub use crate::cube3by3::moves::{ParseMoveError, ParseSequenceError};

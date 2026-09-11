@@ -110,6 +110,7 @@ impl ops::Inv for Move {
     }
 }
 
+#[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseMoveError {
     /// Reachable only through `Move::try_from("")`; a sequence never yields
@@ -125,12 +126,28 @@ pub enum ParseMoveError {
     },
 }
 
+#[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// A move in a sequence failed to parse; `line` and `position` count from 1.
 pub struct ParseSequenceError {
-    pub cause: ParseMoveError,
-    pub line: usize,
-    pub position: usize,
+    cause: ParseMoveError,
+    line: usize,
+    position: usize,
+}
+
+impl ParseSequenceError {
+    #[must_use]
+    pub fn cause(&self) -> ParseMoveError {
+        self.cause.clone()
+    }
+    #[must_use]
+    pub const fn line(&self) -> usize {
+        self.line
+    }
+    #[must_use]
+    pub const fn position(&self) -> usize {
+        self.position
+    }
 }
 
 impl std::error::Error for ParseMoveError {}
@@ -231,20 +248,17 @@ impl Move {
     /// separates moves, and each token is parsed with [`TryFrom<&str>`]. A
     /// sequence with no moves in it, such as an empty string or a comment on
     /// its own, yields nothing.
-    pub fn sequence(text: &str) -> impl Iterator<Item = Result<Self, String>> {
+    pub fn sequence(text: &str) -> impl Iterator<Item = Result<Self, ParseSequenceError>> {
         text.lines().enumerate().flat_map(|(line_number, line)| {
             line.split_once("//")
                 .map_or(line, |(moves, _)| moves)
                 .split_whitespace()
                 .enumerate()
                 .map(move |(move_number, m)| {
-                    Self::try_from(m).map_err(|e| {
-                        ParseSequenceError {
-                            cause: e,
-                            line: line_number + 1,
-                            position: move_number + 1,
-                        }
-                        .to_string()
+                    Self::try_from(m).map_err(|e| ParseSequenceError {
+                        cause: e,
+                        line: line_number + 1,
+                        position: move_number + 1,
                     })
                 })
         })
@@ -267,6 +281,7 @@ mod tests {
     //! today; move them out of this module when a production caller appears.
     use super::*;
     use crate::Piece;
+    use std::error::Error;
 
     impl MovablePart {
         const ALL: [Self; 2 * Faces::ALL.len() + Slices::ALL.len() + Rotations::ALL.len()] = {
@@ -342,12 +357,15 @@ mod tests {
         }
     }
 
-    fn moves_of(text: &str) -> Result<Vec<Move>, String> {
-        Move::sequence(text).collect()
+    fn moves_of(text: &str) -> Result<Vec<Move>, Box<dyn Error>> {
+        Move::sequence(text).try_fold(Vec::new(), |mut v, m| {
+            v.push(m?);
+            Ok(v)
+        })
     }
 
     #[test]
-    fn comments_run_to_end_of_line() -> Result<(), String> {
+    fn comments_run_to_end_of_line() -> Result<(), Box<dyn Error>> {
         assert_eq!(moves_of("R U //this is a comment")?, moves_of("R U")?);
         assert_eq!(
             moves_of(
@@ -369,7 +387,7 @@ mod tests {
     }
 
     #[test]
-    fn empty_and_comment_only_sequences_have_no_moves() -> Result<(), String> {
+    fn empty_and_comment_only_sequences_have_no_moves() -> Result<(), Box<dyn Error>> {
         assert!(moves_of("")?.is_empty());
         assert!(moves_of("// just a comment")?.is_empty());
         assert!(moves_of("  \n\t// one\n// two\n")?.is_empty());
