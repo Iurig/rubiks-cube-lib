@@ -157,6 +157,24 @@ fn identity_is_two_sided() -> Result<(), String> {
 }
 
 #[test]
+fn pow_0_gives_identity_cube() -> Result<(), String> {
+    assert_eq!(
+        Cube3By3::from_solved("R U R' U'")?.pow(0),
+        Cube3By3::IDENTITY
+    );
+    Ok(())
+}
+
+#[test]
+fn pow_finishes_correctly_for_large_exponent() -> Result<(), String> {
+    let large_u32 = u32::MAX - 2;
+    let r = Cube3By3::from_solved("R")?;
+    assert_eq!(large_u32 % 4, 1);
+    assert_eq!(r.pow(large_u32), r);
+    Ok(())
+}
+
+#[test]
 fn clockwise_moves_have_order_exactly_4() -> Result<(), String> {
     for m in &IMPLEMENTED_MOVES[..9] {
         let cube = Cube3By3::from_solved(m)?;

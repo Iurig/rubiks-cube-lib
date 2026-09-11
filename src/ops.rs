@@ -30,16 +30,40 @@ pub trait Inv: Sized {
     fn inverse(&self) -> Self;
 }
 
-pub trait Pow {
-    /// The resulting type after applying the `.pow()` operation.
-    type Output;
+pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
+    const IDENTITY: Self;
 
-    /// Performs the power operation.
+    /// Performs the power operation based on `std::ops::Mul` assuming an empty multiplication returns `IDENTITY`
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
-    /// assert_eq!(2_i32.pow(3), 8);
+    /// use rubiks_cube_lib::Pow;
+    ///
+    /// #[derive(Debug, Clone, PartialEq)]
+    /// struct TurnCount(u32);
+    ///
+    /// impl std::ops::Mul for TurnCount {
+    ///     type Output = Self;
+    ///     fn mul(self, rhs: Self) -> Self::Output {
+    ///         TurnCount((self.0 + rhs.0) % 4)
+    ///     }
+    /// }
+    ///
+    /// impl Pow for TurnCount {
+    ///     const IDENTITY: Self = TurnCount(0);
+    /// }
+    ///
+    /// assert_eq!(TurnCount(2).pow(3), TurnCount(2));
     /// ```
-    fn pow(&self, exponent: u64) -> Self::Output;
+    #[must_use = "returns the power instead of applying it in place"]
+    fn pow(&self, exponent: u32) -> Self {
+        // values 0, 1 and 2 are needed for recursion on `_` branch
+        match exponent {
+            0 => Self::IDENTITY,
+            1 => self.clone(),
+            2 => self.clone() * self.clone(),
+            _ => self.pow(exponent % 2) * self.pow(exponent / 2).pow(2),
+        }
+    }
 }
