@@ -110,18 +110,25 @@ impl ops::Inv for Move {
     }
 }
 
+/// Why one move failed to parse.
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseMoveError {
     /// Reachable only through `Move::try_from("")`; a sequence never yields
     /// an empty move, so it carries no offending text.
     EmptyString,
+    /// The text after the part is not a modifier.
     BadModifier {
+        /// The whole invalid move.
         invalid_move: String,
+        /// The text that failed as a modifier.
         modifier: String,
     },
+    /// The text before the modifier is not a part.
     BadPart {
+        /// The whole invalid move.
         invalid_move: String,
+        /// The text that failed as a part.
         part: String,
     },
 }
@@ -135,14 +142,17 @@ pub struct ParseSequenceError {
 }
 
 impl ParseSequenceError {
+    /// Why the move failed.
     #[must_use]
     pub const fn cause(&self) -> &ParseMoveError {
         &self.cause
     }
+    /// The 1-based line of the invalid move.
     #[must_use]
     pub const fn line(&self) -> usize {
         self.line
     }
+    /// The 1-based position of the invalid move within its line.
     #[must_use]
     pub const fn position(&self) -> usize {
         self.position

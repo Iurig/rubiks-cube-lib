@@ -10,6 +10,7 @@ use crate::{
     zn::ZnRing,
 };
 
+/// A 3x3x3 cube state; `a * b` applies `a` then `b`.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Copy)]
 #[expect(
     clippy::struct_field_names,
@@ -82,15 +83,17 @@ impl Cube3By3 {
         }
     }
 
-    // Getters for the private fields of `Cube3By3`
+    /// The corner permutation and twists.
     #[must_use]
     pub const fn corners(&self) -> &CornerConfiguration {
         &self.corner_configuration
     }
+    /// The edge permutation and flips.
     #[must_use]
     pub const fn edges(&self) -> &EdgeConfiguration {
         &self.edge_configuration
     }
+    /// The center permutation.
     #[must_use]
     pub const fn centers(&self) -> &CenterConfiguration {
         &self.center_configuration
@@ -116,6 +119,7 @@ impl Cube3By3 {
         Self::default().move_sequence(m)
     }
 
+    /// Whether this state is the solved cube in any whole-cube rotation.
     #[must_use]
     pub fn is_solved(&self) -> bool {
         self.rotated_until_solved_centers() == Some(Self::default())

@@ -4,9 +4,12 @@ pub mod private {
     pub trait Sealed {}
 }
 
+/// One of the `N` pieces of a kind, named by its home slot.
 pub trait Piece<const N: usize>: Copy + Eq + private::Sealed {
+    /// Every piece, in slot order.
     const ALL: [Self; N];
 
+    /// The piece at position `index` of [`Self::ALL`], if any.
     fn from_index(index: usize) -> Option<Self> {
         Self::ALL.get(index).copied()
     }
@@ -21,6 +24,7 @@ where
     unsafe { (&raw const piece).cast::<u8>().read() as usize }
 }
 
+/// Where each of `N` pieces sits and how it is oriented, mod `O`.
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub struct PieceConfiguration<P, const N: usize, const O: usize> {
     pub(crate) permutation: [P; N],

@@ -8,7 +8,8 @@ const CO_COUNT: usize = 3;
 const EO_COUNT: usize = 2;
 
 macro_rules! new_piece {
-    ($type_name:ident, $amount:ident, [$($p:ident),+]) => {
+    ($(#[$attr:meta])* $type_name:ident, $amount:ident, [$($p:ident),+]) => {
+        $(#[$attr])*
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
         #[repr(u8)]
         pub enum $type_name {
@@ -30,15 +31,22 @@ macro_rules! new_piece {
     };
 }
 // Center slots are in blind standard order, i.e. `[U, F, R, B, L, D]`
-new_piece!(Center, CENTERS_COUNT, [U, F, R, B, L, D]);
+new_piece!(
+    /// The six center pieces, named by face.
+    Center,
+    CENTERS_COUNT,
+    [U, F, R, B, L, D]
+);
 // Corner slots are in blind standard order, i.e. `[UBL, UBR, UFR, UFL, DFL, DFR, DBR, DBL]`
 new_piece!(
+    /// The eight corner pieces, named by their three faces.
     Corner,
     CORNERS_COUNT,
     [Ubl, Ubr, Ufr, Ufl, Dfl, Dfr, Dbr, Dbl]
 );
 // Edge slots are clockwise per layer, i.e. `[UB, UR, UF, UL, FL, FR, BR, BL, DF, DR, DB, DL]`
 new_piece!(
+    /// The twelve edge pieces, named by their two faces.
     Edge,
     EDGES_COUNT,
     [Ub, Ur, Uf, Ul, Fl, Fr, Br, Bl, Df, Dr, Db, Dl]
