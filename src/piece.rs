@@ -1,5 +1,5 @@
 use crate::ops::Inv;
-use crate::zn::ZnRing;
+use crate::zn::Zn;
 pub mod private {
     pub trait Sealed {}
 }
@@ -28,7 +28,7 @@ where
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub struct PieceConfiguration<P, const N: usize, const O: usize> {
     pub(crate) permutation: [P; N],
-    pub(crate) orientation: [ZnRing<O>; N],
+    pub(crate) orientation: [Zn<O>; N],
 }
 
 impl<P, const N: usize, const O: usize> Default for PieceConfiguration<P, N, O>
@@ -56,7 +56,7 @@ where
     /// The solved state for a given piece type
     pub const IDENTITY: Self = Self {
         permutation: P::ALL,
-        orientation: [ZnRing::ZERO; N],
+        orientation: [Zn::ZERO; N],
     };
 
     /// The piece now sitting in `slot`.
@@ -76,7 +76,7 @@ where
     /// Centers have no orientation, so on a center configuration this always
     /// returns zero.
     #[must_use]
-    pub const fn orientation_at(&self, slot: P) -> ZnRing<O> {
+    pub const fn orientation_at(&self, slot: P) -> Zn<O> {
         self.orientation[index(slot)]
     }
 
@@ -84,9 +84,9 @@ where
     ///
     /// Panics if `self.permutation` is not a valid permutation
     #[must_use]
-    pub(crate) fn parity(&self) -> ZnRing<2> {
+    pub(crate) fn parity(&self) -> Zn<2> {
         let mut visited = Vec::new();
-        let mut par = ZnRing::new(0);
+        let mut par = Zn::new(0);
         for p in self.permutation {
             if !visited.contains(&p) {
                 visited.push(p);
@@ -103,17 +103,17 @@ where
                         .get(index(*travel))
                         .expect("self.permutation must be a valid permutation");
                 }
-                par = par + ZnRing::new(cycle_size - 1);
+                par = par + Zn::new(cycle_size - 1);
             }
         }
         par
     }
 
     #[must_use]
-    pub(crate) fn orientation_sum(&self) -> ZnRing<O> {
+    pub(crate) fn orientation_sum(&self) -> Zn<O> {
         self.orientation
             .iter()
-            .fold(ZnRing::new(0), |prev, &next| prev + next)
+            .fold(Zn::new(0), |prev, &next| prev + next)
     }
 
     /// Compose permutations done by `self` with `other`
