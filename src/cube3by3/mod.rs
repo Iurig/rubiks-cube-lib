@@ -7,7 +7,7 @@ pub mod pieces;
 use self::{moves::*, pieces::*};
 use crate::{
     ops::{Inv, Pow},
-    zn::ZnRing,
+    zn::Zn,
 };
 
 /// A 3x3x3 cube state; `a * b` applies `a` then `b`.
@@ -170,13 +170,13 @@ impl Cube3By3 {
     /// Corner twists sum to zero mod 3: a face turn twists corners by amounts
     /// that cancel, so a lone twisted corner is unreachable.
     fn twists_cancel(&self) -> bool {
-        self.corners().orientation_sum() == ZnRing::ZERO
+        self.corners().orientation_sum() == Zn::ZERO
     }
 
     /// Edge flips sum to zero mod 2: a face turn flips an even number of
     /// edges, so a lone flipped edge is unreachable.
     fn flips_cancel(&self) -> bool {
-        self.edges().orientation_sum() == ZnRing::ZERO
+        self.edges().orientation_sum() == Zn::ZERO
     }
 
     /// The permutation parities of corners, edges, and centers sum to zero
@@ -184,7 +184,7 @@ impl Cube3By3 {
     /// edges and centers. Every move flips exactly two of the three, so the
     /// sum stays zero. A two-way corner/edge check would reject a lone `M`.
     fn parities_cancel(&self) -> bool {
-        self.corners().parity() + self.edges().parity() + self.centers().parity() == ZnRing::ZERO
+        self.corners().parity() + self.edges().parity() + self.centers().parity() == Zn::ZERO
     }
 
     /// The centers sit as one of the 24 whole-cube rotations. A 3-cycle of
@@ -246,7 +246,7 @@ mod tests {
         assert!(
             !Cube3By3 {
                 corner_configuration: CornerConfiguration {
-                    orientation: ZnRing::array([1, 0, 0, 0, 0, 0, 0, 0,]),
+                    orientation: Zn::array([1, 0, 0, 0, 0, 0, 0, 0,]),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -260,7 +260,7 @@ mod tests {
         assert!(
             !Cube3By3 {
                 edge_configuration: EdgeConfiguration {
-                    orientation: ZnRing::array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]),
+                    orientation: Zn::array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -391,11 +391,11 @@ mod tests {
         // its twist is added to the twist R gives the UBR slot.
         let r = Cube3By3::from_solved("R")?;
         let mut twisted = Cube3By3::default();
-        twisted.corner_configuration.orientation[Corner::Ufr as usize] = ZnRing::new(1);
+        twisted.corner_configuration.orientation[Corner::Ufr as usize] = Zn::new(1);
         let after = twisted * r;
         let mut expected = r;
         expected.corner_configuration.orientation[Corner::Ubr as usize] =
-            expected.corner_configuration.orientation[Corner::Ubr as usize] + ZnRing::new(1);
+            expected.corner_configuration.orientation[Corner::Ubr as usize] + Zn::new(1);
         assert_eq!(after, expected);
         Ok(())
     }

@@ -1,7 +1,7 @@
 // `?` reports setup failures; `assert!` reports the property under test failing.
 #![allow(clippy::panic_in_result_fn)]
 
-use rubiks_cube_lib::{Center, Corner, Cube3By3, Edge, Inv, Pow, zn::ZnRing};
+use rubiks_cube_lib::{Center, Corner, Cube3By3, Edge, Inv, Pow, zn::Zn};
 use std::error::Error;
 
 const IMPLEMENTED_MOVES: [&str; 12] = ["R", "U", "D", "L", "F", "B", "E", "S", "M", "y", "z", "x"];
@@ -130,7 +130,7 @@ fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), Box<dyn Error
     let r = Cube3By3::from_solved("R")?;
     for c in [Corner::Ubl, Corner::Ufl, Corner::Dfl, Corner::Dbl] {
         assert_eq!(r.corners().piece_at(c), c);
-        assert_eq!(r.corners().orientation_at(c), ZnRing::ZERO);
+        assert_eq!(r.corners().orientation_at(c), Zn::ZERO);
     }
     for e in [
         Edge::Ub,
@@ -143,7 +143,7 @@ fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), Box<dyn Error
         Edge::Dl,
     ] {
         assert_eq!(r.edges().piece_at(e), e);
-        assert_eq!(r.edges().orientation_at(e), ZnRing::ZERO);
+        assert_eq!(r.edges().orientation_at(e), Zn::ZERO);
     }
     assert!(r.is_reachable());
     Ok(())

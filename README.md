@@ -79,7 +79,7 @@ The cube is the direct product of three independent piece groups:
 - **Edges**: 12 pieces, orientation in ℤ/2ℤ.
 
 Each is a `PieceConfiguration<P, N, O>`: a permutation array of `N` pieces of type `P` plus an
-orientation array of `N` values in `ZnRing<O>`. Composition (`then`) permutes and adds orientations;
+orientation array of `N` values in `Zn<O>`. Composition (`then`) permutes and adds orientations;
 inversion negates them. `Cube3By3` just composes its three configurations component-wise.
 
 Piece types are fieldless `#[repr(u8)]` enums implementing the `Piece` trait, which lets the
@@ -113,13 +113,13 @@ that string parsing looks up. A derived move therefore cannot drift from its bas
 | `Cube3By3::is_reachable()`               | Whether some move sequence produces this state from solved: twists sum to 0 mod 3, flips to 0 mod 2, the permutation parities of corners, edges, and centers sum to 0 mod 2, and the centers form a whole-cube rotation. |
 | `Cube3By3::corners()`, `edges()`, `centers()` | The three piece configurations, by reference. |
 | `PieceConfiguration::piece_at(slot)`     | The piece now sitting in `slot`. `piece_at(Ubr) == Ufr` reads "the UFR piece sits in the UBR slot". |
-| `PieceConfiguration::orientation_at(slot)` | The twist or flip held at `slot`, as a `ZnRing`. Always zero for centers. |
+| `PieceConfiguration::orientation_at(slot)` | The twist or flip held at `slot`, as a `Zn`. Always zero for centers. |
 | `Corner`, `Edge`, `Center`               | The piece enums. One enum names both a slot and the piece whose home is that slot, so a returned piece can be fed back in as the next slot. |
 | `impl Mul for Cube3By3`                  | `a * b` applies `a` then `b`. Associative, not commutative. |
 | `Inv` trait                              | `inverse()`, implemented for cubes and piece configurations.|
 | `Pow` trait                              | `pow(n)` by exponentiation by squaring; provided for any `Mul + Clone` type with an `IDENTITY`. |
 | `PieceConfiguration`, `Piece`            | Generic building blocks for other puzzles. `Piece` is sealed: nameable in bounds, implemented only inside the crate. |
-| `zn::ZnRing<N>`                          | Integers mod `N`, `const`-friendly, with `Add` and `Neg`. `new(n)` reduces, `value()` reads the representative in `0..N` back out. |
+| `zn::Zn<N>`                              | Integers mod `N`, `const`-friendly, with `Add` and `Neg`. `new(n)` reduces, `value()` reads the representative in `0..N` back out. |
 
 ## Project layout
 
@@ -127,7 +127,7 @@ that string parsing looks up. A derived move therefore cannot drift from its bas
 src/
   lib.rs                  public exports
   ops.rs                  Inv and Pow traits
-  zn.rs                   ZnRing<N>
+  zn.rs                   Zn<N>
   piece.rs                sealed Piece trait, PieceConfiguration with the piece_at / orientation_at
                           queries and the permutation parity
   cube3by3/

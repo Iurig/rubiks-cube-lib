@@ -12,7 +12,7 @@ use {
     super::{MovablePart, MovablePart::*, MoveModifier, MoveModifier::*},
     crate::{
         cube3by3::{Cube3By3, pieces::*},
-        zn::ZnRing,
+        zn::Zn,
     },
 };
 
@@ -131,7 +131,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
                     Corner::Dbr,
                     Corner::Dfr,
                 ]]);
-                corners.orientation = ZnRing::array([0, 1, 2, 0, 0, 1, 2, 0]);
+                corners.orientation = Zn::array([0, 1, 2, 0, 0, 1, 2, 0]);
                 corners
             },
             edge_configuration: EdgeConfiguration::cycle([[
@@ -154,7 +154,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
                     Corner::Dfl,
                     Corner::Dbl,
                 ]]);
-                corners.orientation = ZnRing::array([2, 0, 0, 1, 2, 0, 0, 1]);
+                corners.orientation = Zn::array([2, 0, 0, 1, 2, 0, 0, 1]);
                 corners
             },
             edge_configuration: EdgeConfiguration::cycle([[
@@ -177,7 +177,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
                     Corner::Ubl,
                     Corner::Ubr,
                 ]]);
-                corners.orientation = ZnRing::array([0, 0, 0, 0, 0, 0, 0, 0]);
+                corners.orientation = Zn::array([0, 0, 0, 0, 0, 0, 0, 0]);
                 corners
             },
             edge_configuration: EdgeConfiguration::cycle([[
@@ -200,7 +200,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
                     Corner::Dbl,
                     Corner::Dfl,
                 ]]);
-                corners.orientation = ZnRing::array([0, 0, 0, 0, 0, 0, 0, 0]);
+                corners.orientation = Zn::array([0, 0, 0, 0, 0, 0, 0, 0]);
                 corners
             },
             edge_configuration: EdgeConfiguration::cycle([[
@@ -223,13 +223,13 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
                     Corner::Ufl,
                     Corner::Ufr,
                 ]]);
-                corners.orientation = ZnRing::array([0, 0, 1, 2, 1, 2, 0, 0]);
+                corners.orientation = Zn::array([0, 0, 1, 2, 1, 2, 0, 0]);
                 corners
             },
             edge_configuration: EdgeConfiguration {
                 permutation: EdgeConfiguration::cycle([[Edge::Df, Edge::Fl, Edge::Uf, Edge::Fr]])
                     .permutation,
-                orientation: ZnRing::array([0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0]),
+                orientation: Zn::array([0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0]),
             },
         },
         part: Face(Faces::F),
@@ -245,13 +245,13 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
                     Corner::Dbl,
                     Corner::Dbr,
                 ]]);
-                corners.orientation = ZnRing::array([1, 2, 0, 0, 0, 0, 1, 2]);
+                corners.orientation = Zn::array([1, 2, 0, 0, 0, 0, 1, 2]);
                 corners
             },
             edge_configuration: EdgeConfiguration {
                 permutation: EdgeConfiguration::cycle([[Edge::Br, Edge::Ub, Edge::Bl, Edge::Db]])
                     .permutation,
-                orientation: ZnRing::array([1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0]),
+                orientation: Zn::array([1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0]),
             },
         },
         part: Face(Faces::B),
@@ -269,7 +269,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
             edge_configuration: EdgeConfiguration {
                 permutation: EdgeConfiguration::cycle([[Edge::Fr, Edge::Br, Edge::Bl, Edge::Fl]])
                     .permutation,
-                orientation: ZnRing::array([0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0]),
+                orientation: Zn::array([0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0]),
             },
         },
         part: Slice(Slices::E),
@@ -287,7 +287,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
             edge_configuration: EdgeConfiguration {
                 permutation: EdgeConfiguration::cycle([[Edge::Uf, Edge::Df, Edge::Db, Edge::Ub]])
                     .permutation,
-                orientation: ZnRing::array([1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0]),
+                orientation: Zn::array([1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0]),
             },
         },
         part: Slice(Slices::M),
@@ -305,7 +305,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
             edge_configuration: EdgeConfiguration {
                 permutation: EdgeConfiguration::cycle([[Edge::Ul, Edge::Ur, Edge::Dr, Edge::Dl]])
                     .permutation,
-                orientation: ZnRing::array([0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1]),
+                orientation: Zn::array([0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1]),
             },
         },
         part: Slice(Slices::S),
