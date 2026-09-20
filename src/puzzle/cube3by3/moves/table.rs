@@ -4,15 +4,14 @@
 //! are derived from them, and every move's inverse and double are then generated.
 
 use crate::Piece;
-
 // `allow` instead of `expect` because the lint is skipped once the
 // library is compiled with `cfg(test)`
 #[allow(clippy::wildcard_imports, clippy::enum_glob_use)]
 use {
     super::{MovablePart, MovablePart::*, MoveModifier, MoveModifier::*},
     crate::{
-        cube3by3::{Cube3By3, pieces::*},
-        zn::Zn,
+        puzzle::cube3by3::{Cube3By3, pieces::*},
+        zn::Zn
     },
 };
 

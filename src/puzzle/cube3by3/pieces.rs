@@ -15,8 +15,8 @@ macro_rules! new_piece {
         pub enum $type_name {
             $($p),+
         }
-        impl Piece<$amount> for $type_name {
-            const ALL: [Self; $amount] = [
+        impl Piece for $type_name {
+            const ALL: &'static [Self] = &[
                 $($type_name::$p),+
             ];
         }
@@ -51,6 +51,33 @@ new_piece!(
     EDGES_COUNT,
     [Ub, Ur, Uf, Ul, Fl, Fr, Br, Bl, Df, Dr, Db, Dl]
 );
+
+#[derive(PartialEq, Eq, Clone, Copy)]
+pub enum Pieces3By3 {
+    Center(Center),
+    Corner(Corner),
+    Edge(Edge),
+}
+
+impl Piece for Pieces3By3 {
+    const ALL: &'static [Self] = &{
+        let mut all = [Self::Center(Center::U); CENTERS_COUNT + CORNERS_COUNT + EDGES_COUNT];
+        let mut i = 0;
+        while i < CENTERS_COUNT {
+            all[i] = Self::Center(Center::ALL[i]);
+            i += 1;
+        }
+        while i < CENTERS_COUNT + CORNERS_COUNT {
+            all[i] = Self::Corner(Corner::ALL[i - CENTERS_COUNT]);
+            i += 1;
+        }
+        while i < CENTERS_COUNT + CORNERS_COUNT + EDGES_COUNT {
+            all[i] = Self::Edge(Edge::ALL[i - CENTERS_COUNT - CORNERS_COUNT]);
+            i += 1;
+        }
+        all
+    };
+}
 
 pub type CenterConfiguration = PieceConfiguration<Center, CENTERS_COUNT, CENTER_ORIENTATION_COUNT>;
 pub type CornerConfiguration = PieceConfiguration<Corner, CORNERS_COUNT, CO_COUNT>;
