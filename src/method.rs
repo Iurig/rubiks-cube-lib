@@ -1,7 +1,7 @@
 use crate::Piece;
-use crate::puzzle::{Move, Puzzle};
+use crate::puzzle::{Move, Puzzle, cube3by3::pieces::Pieces3By3};
 
-pub struct StepByPiece(&'static [crate::Corner]);
+pub struct StepByPiece(&'static [Pieces3By3]);
 
 impl Step for StepByPiece {
     type Puzzle = crate::Cube3By3;
@@ -10,7 +10,7 @@ impl Step for StepByPiece {
     }
 }
 
-pub const do_all: StepByPiece = StepByPiece(crate::Corner::ALL);
+pub const do_all: StepByPiece = StepByPiece(Pieces3By3::ALL);
 
 pub trait Step {
     type Puzzle: Puzzle;
