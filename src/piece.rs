@@ -1,11 +1,12 @@
 use crate::ops::Inv;
+use crate::piece::private::Sealed;
 use crate::zn::Zn;
 pub mod private {
     pub trait Sealed {}
 }
 
 /// One of the `N` pieces of a kind, named by its home slot.
-pub trait Piece: Copy + Eq + 'static {
+pub const trait Piece: Copy + [const] Eq + 'static + Sealed {
     /// Every piece, in slot order.
     const ALL: &'static [Self];
 
@@ -16,19 +17,21 @@ pub trait Piece: Copy + Eq + 'static {
     fn from_index(index: usize) -> Option<Self> {
         Self::ALL.get(index).copied()
     }
-}
 
-#[must_use]
-#[allow(clippy::redundant_pub_crate)]
-pub(crate) const fn index<P, const N: usize>(piece: P) -> usize
-where
-    P: Piece,
-{
-    unsafe { (&raw const piece).cast::<u8>().read() as usize }
+    #[must_use]
+    fn index<const N: usize>(piece: Self) -> usize {
+        for i in 0..Self::ALL.len() {
+            if Self::ALL[i] == piece {
+                return i;
+            }
+        }
+        panic!()
+    }
 }
 
 /// Where each of `N` pieces sits and how it is oriented, mod `O`.
-#[derive(PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
+#[derive_const(PartialEq, Eq)]
 pub struct PieceConfiguration<P: Piece, const N: usize, const O: usize> {
     pub(crate) permutation: [P; N],
     pub(crate) orientation: [Zn<O>; N],
@@ -52,9 +55,9 @@ where
     }
 }
 
-impl<P, const N: usize, const O: usize> PieceConfiguration<P, N, O>
+const impl<P, const N: usize, const O: usize> PieceConfiguration<P, N, O>
 where
-    P: Piece,
+    P: [const] Piece,
 {
     /// The solved state for a given piece type.
     ///
@@ -80,8 +83,8 @@ where
     /// the returned piece can be fed back in as the next slot when tracing a
     /// cycle, the way blind memorization does.
     #[must_use]
-    pub const fn piece_at(&self, slot: P) -> P {
-        self.permutation[index::<P, { N }>(slot)]
+    pub fn piece_at(&self, slot: P) -> P {
+        self.permutation[P::index::<N>(slot)]
     }
 
     /// The orientation held at `slot`: the twist or flip of the piece sitting
@@ -90,10 +93,56 @@ where
     /// Centers have no orientation, so on a center configuration this always
     /// returns zero.
     #[must_use]
-    pub const fn orientation_at(&self, slot: P) -> Zn<O> {
-        self.orientation[index::<P, { N }>(slot)]
+    pub fn orientation_at(&self, slot: P) -> Zn<O> {
+        self.orientation[P::index::<N>(slot)]
     }
 
+    /// Compose permutations done by `self` with `other`
+    #[must_use]
+    pub(crate) fn then(&self, other: &Self) -> Self {
+        let mut composed = Self::IDENTITY;
+        let mut i = 0;
+        while i < N {
+            composed.permutation[i] = self.permutation[P::index::<N>(other.permutation[i])];
+            composed.orientation[i] = self.orientation[P::index::<N>(other.permutation[i])]
+                .const_add(other.orientation[i]);
+            i += 1;
+        }
+        composed
+    }
+
+    pub(crate) fn cycle<const CYCLE_SIZE: usize, const CYCLE_AMOUNT: usize>(
+        to_cycle: [[P; CYCLE_SIZE]; CYCLE_AMOUNT],
+    ) -> Self {
+        let mut resp = Self::IDENTITY;
+        let mut i = 0;
+        while i < CYCLE_AMOUNT {
+            let mut j = 0;
+            while j < CYCLE_SIZE {
+                resp.permutation[P::index::<N>(to_cycle[i][(j + 1) % CYCLE_SIZE])] = to_cycle[i][j];
+                j += 1;
+            }
+            i += 1;
+        }
+        resp
+    }
+
+    #[must_use = "the inverse is returned"]
+    pub(crate) fn const_inverse(&self) -> Self {
+        let mut inv = Self::IDENTITY;
+        let mut i = 0;
+        while i < N {
+            inv.permutation[P::index::<N>(self.permutation[i])] = P::ALL[i];
+            inv.orientation[P::index::<N>(self.permutation[i])] = self.orientation[i].const_neg();
+            i += 1;
+        }
+        inv
+    }
+}
+impl<P, const N: usize, const O: usize> PieceConfiguration<P, N, O>
+where
+    P: Piece,
+{
     /// # Panics
     ///
     /// Panics if `self.permutation` is not a valid permutation
@@ -101,12 +150,13 @@ where
     pub(crate) fn parity(&self) -> Zn<2> {
         let mut visited = Vec::new();
         let mut par = Zn::new(0);
-        for p in self.permutation {
+        for i in 0..self.permutation.len() {
+            let p = self.permutation[i];
             if !visited.contains(&p) {
                 visited.push(p);
                 let mut travel = self
                     .permutation
-                    .get(index::<P, { N }>(p))
+                    .get(P::index::<N>(p))
                     .expect("self.permutation must be a valid permutation");
                 let mut cycle_size = 1;
                 while travel != &p {
@@ -114,7 +164,7 @@ where
                     cycle_size += 1;
                     travel = self
                         .permutation
-                        .get(index::<P, { N }>(*travel))
+                        .get(P::index::<N>(*travel))
                         .expect("self.permutation must be a valid permutation");
                 }
                 par = par + Zn::new(cycle_size - 1);
@@ -128,50 +178,6 @@ where
         self.orientation
             .iter()
             .fold(Zn::new(0), |prev, &next| prev + next)
-    }
-
-    /// Compose permutations done by `self` with `other`
-    #[must_use]
-    pub(crate) const fn then(&self, other: &Self) -> Self {
-        let mut composed = Self::IDENTITY;
-        let mut i = 0;
-        while i < N {
-            composed.permutation[i] = self.permutation[index::<P, { N }>(other.permutation[i])];
-            composed.orientation[i] = self.orientation[index::<P, { N }>(other.permutation[i])]
-                .const_add(other.orientation[i]);
-            i += 1;
-        }
-        composed
-    }
-
-    pub(crate) const fn cycle<const CYCLE_SIZE: usize, const CYCLE_AMOUNT: usize>(
-        to_cycle: [[P; CYCLE_SIZE]; CYCLE_AMOUNT],
-    ) -> Self {
-        let mut resp = Self::IDENTITY;
-        let mut i = 0;
-        while i < CYCLE_AMOUNT {
-            let mut j = 0;
-            while j < CYCLE_SIZE {
-                resp.permutation[index::<P, { N }>(to_cycle[i][(j + 1) % CYCLE_SIZE])] =
-                    to_cycle[i][j];
-                j += 1;
-            }
-            i += 1;
-        }
-        resp
-    }
-
-    #[must_use = "the inverse is returned"]
-    pub(crate) const fn const_inverse(&self) -> Self {
-        let mut inv = Self::IDENTITY;
-        let mut i = 0;
-        while i < N {
-            inv.permutation[index::<P, { N }>(self.permutation[i])] = P::ALL[i];
-            inv.orientation[index::<P, { N }>(self.permutation[i])] =
-                self.orientation[i].const_neg();
-            i += 1;
-        }
-        inv
     }
 }
 
@@ -195,10 +201,10 @@ mod tests {
     fn cycle_is_a_permutation_and_moves_pieces_forward_and_leaves_rest() {
         use Corner::{Dbr, Dfr, Ubr, Ufr};
         let mut perm = CornerConfiguration::cycle([[Ufr, Ubr, Dbr, Dfr]]).permutation;
-        assert_eq!(perm[index::<Corner, { Corner::N }>(Ubr)], Ufr);
-        assert_eq!(perm[index::<Corner, { Corner::N }>(Dbr)], Ubr);
-        assert_eq!(perm[index::<Corner, { Corner::N }>(Dfr)], Dbr);
-        assert_eq!(perm[index::<Corner, { Corner::N }>(Ufr)], Dfr);
+        assert_eq!(perm[Corner::index::<{ Corner::N }>(Ubr)], Ufr);
+        assert_eq!(perm[Corner::index::<{ Corner::N }>(Dbr)], Ubr);
+        assert_eq!(perm[Corner::index::<{ Corner::N }>(Dfr)], Dbr);
+        assert_eq!(perm[Corner::index::<{ Corner::N }>(Ufr)], Dfr);
         for c in [Corner::Ubl, Corner::Ufl, Corner::Dfl, Corner::Dbl] {
             assert_eq!(perm[c as usize], c);
         }

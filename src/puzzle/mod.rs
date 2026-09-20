@@ -13,7 +13,7 @@ impl<P: Puzzle> std::fmt::Display for Move<P> {
     }
 }
 
-pub trait Puzzle:
+pub const trait Puzzle:
     std::ops::Mul<Self, Output = Self> + std::ops::Mul<Move<Self>, Output = Self> + Clone
 {
     type MovablePart: std::fmt::Display;
