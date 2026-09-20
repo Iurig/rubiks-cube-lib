@@ -7,6 +7,7 @@ pub mod pieces;
 use self::{moves::*, pieces::*};
 use crate::{
     ops::{Inv, Pow},
+    puzzle,
     zn::Zn,
 };
 
@@ -25,6 +26,13 @@ pub struct Cube3By3 {
     edge_configuration: EdgeConfiguration,
 }
 
+impl puzzle::Puzzle for Cube3By3 {
+    type MovablePart = MovablePart;
+    type MoveModifier = MoveModifier;
+    type PuzzlePieces = Pieces3By3;
+    const IDENTITY: Self = Self::IDENTITY;
+}
+
 impl std::ops::Mul for Cube3By3 {
     type Output = Self;
     /// Applies the state (permutations and orientations) that is the second argument to the first argument, which is a cube
@@ -34,9 +42,9 @@ impl std::ops::Mul for Cube3By3 {
     }
 }
 
-impl std::ops::Mul<Move> for Cube3By3 {
+impl std::ops::Mul<puzzle::Move<Cube3By3>> for Cube3By3 {
     type Output = Self;
-    fn mul(self, m: Move) -> Self::Output {
+    fn mul(self, m: puzzle::Move<Cube3By3>) -> Self::Output {
         self.const_mul(Self::from(m))
     }
 }
@@ -136,18 +144,27 @@ impl Cube3By3 {
         .contains(&Faces::F)
         {
             rotated_self = rotated_self
-                * Move::new(MovablePart::Rotation(Rotations::y), MoveModifier::Clockwise);
+                * puzzle::Move::<Cube3By3> {
+                    part: MovablePart::Rotation(Rotations::y),
+                    modifier: MoveModifier::Clockwise,
+                };
         }
         for _ in 0..4 {
             if rotated_self.centers().piece_at(Faces::F) != Faces::F {
                 rotated_self = rotated_self
-                    * Move::new(MovablePart::Rotation(Rotations::x), MoveModifier::Clockwise);
+                    * puzzle::Move::<Cube3By3> {
+                        part: MovablePart::Rotation(Rotations::x),
+                        modifier: MoveModifier::Clockwise,
+                    };
             }
         }
         for _ in 0..4 {
             if rotated_self.centers().piece_at(Faces::U) != Faces::U {
                 rotated_self = rotated_self
-                    * Move::new(MovablePart::Rotation(Rotations::z), MoveModifier::Clockwise);
+                    * puzzle::Move::<Cube3By3> {
+                        part: MovablePart::Rotation(Rotations::z),
+                        modifier: MoveModifier::Clockwise,
+                    };
             }
         }
 
@@ -275,8 +292,11 @@ mod tests {
             !Cube3By3 {
                 corner_configuration: CornerConfiguration {
                     permutation: {
-                        let mut p = Corner::ALL;
-                        p.swap(index(Corner::Ufr), index(Corner::Ubr));
+                        let mut p = CornerConfiguration::IDENTITY.permutation;
+                        p.swap(
+                            index::<Corner, { Corner::N }>(Corner::Ufr),
+                            index::<Corner, { Corner::N }>(Corner::Ubr),
+                        );
                         p
                     },
                     ..Default::default()

@@ -4,8 +4,8 @@ mod table;
 // library is compiled with `cfg(test)`
 #[allow(clippy::wildcard_imports)]
 use crate::{
-    cube3by3::{Cube3By3, pieces::*},
     ops,
+    puzzle::cube3by3::{Cube3By3, pieces::*},
 };
 
 use table::cube_state;
@@ -279,6 +279,11 @@ impl From<Move> for Cube3By3 {
         cube_state(m.part, m.modifier)
     }
 }
+impl From<crate::puzzle::Move<Cube3By3>> for Cube3By3 {
+    fn from(m: crate::puzzle::Move<Cube3By3>) -> Self {
+        cube_state(m.part, m.modifier)
+    }
+}
 
 #[cfg(test)]
 #[expect(
@@ -402,7 +407,7 @@ mod tests {
 
     #[test]
     fn lowercase_face_is_the_wide_move() {
-        for face in Faces::ALL {
+        for &face in Faces::ALL {
             let wide = MovablePart::Wide(face).to_string();
             let lower = MovablePart::Face(face).to_string().to_lowercase();
             for modifier in ["", "'", "2", "2'"] {
