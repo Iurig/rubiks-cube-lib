@@ -218,7 +218,7 @@ impl Cube3By3 {
 )]
 mod tests {
 
-    use crate::{Piece, piece::index};
+    use crate::Piece;
 
     use super::*;
 
@@ -294,8 +294,8 @@ mod tests {
                     permutation: {
                         let mut p = CornerConfiguration::IDENTITY.permutation;
                         p.swap(
-                            index::<Corner, { Corner::N }>(Corner::Ufr),
-                            index::<Corner, { Corner::N }>(Corner::Ubr),
+                            Corner::index::<{ Corner::N }>(Corner::Ufr),
+                            Corner::index::<{ Corner::N }>(Corner::Ubr),
                         );
                         p
                     },

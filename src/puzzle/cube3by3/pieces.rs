@@ -10,12 +10,13 @@ const EO_COUNT: usize = 2;
 macro_rules! new_piece {
     ($(#[$attr:meta])* $type_name:ident, $amount:ident, [$($p:ident),+]) => {
         $(#[$attr])*
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+        #[derive(Debug, Clone, Copy, Hash, PartialOrd, Ord)]
+        #[derive_const(PartialEq, Eq)]
         #[repr(u8)]
         pub enum $type_name {
             $($p),+
         }
-        impl Piece for $type_name {
+        const impl Piece for $type_name {
             const ALL: &'static [Self] = &[
                 $($type_name::$p),+
             ];
@@ -58,6 +59,8 @@ pub enum Pieces3By3 {
     Corner(Corner),
     Edge(Edge),
 }
+
+impl crate::piece::private::Sealed for Pieces3By3 {}
 
 impl Piece for Pieces3By3 {
     const ALL: &'static [Self] = &{

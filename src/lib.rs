@@ -1,5 +1,15 @@
 #![doc = include_str!("../README.md")]
-#![feature(const_trait_impl)]
+#![feature(
+    const_trait_impl,
+    const_cmp,
+    const_for,
+    const_iter,
+    const_index,
+    const_ops,
+    const_convert,
+    const_heap,
+    derive_const
+)]
 mod method;
 mod ops;
 mod piece;

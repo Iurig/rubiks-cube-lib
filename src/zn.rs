@@ -6,7 +6,8 @@ use std::ops::Neg;
 /// The representative fits a byte: a twist is at most 2 and a flip at most
 /// 1, and `N` is capped at 256 so any modulus this crate could want still
 /// fits. The public face works in `usize`; the byte never leaks.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, Default)]
+#[derive_const(PartialEq, Eq)]
 pub struct Zn<const N: usize>(u8);
 
 impl<const N: usize> From<usize> for Zn<N> {
@@ -14,7 +15,7 @@ impl<const N: usize> From<usize> for Zn<N> {
         Self::new(integer)
     }
 }
-impl<const N: usize> std::ops::Add for Zn<N> {
+const impl<const N: usize> std::ops::Add for Zn<N> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
         self.const_add(rhs)
