@@ -1,5 +1,6 @@
 pub mod cube3by3;
 pub trait Puzzle {
+    #[must_use]
     fn random_state_with_seed(rng: &mut fastrand::Rng) -> Self;
 
     #[must_use]
