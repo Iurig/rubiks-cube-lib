@@ -279,8 +279,8 @@ impl From<Move> for Cube3By3 {
         cube_state(m.part, m.modifier)
     }
 }
-impl From<crate::puzzle::Move<Cube3By3>> for Cube3By3 {
-    fn from(m: crate::puzzle::Move<Cube3By3>) -> Self {
+impl From<crate::puzzle::Move<Self>> for Cube3By3 {
+    fn from(m: crate::puzzle::Move<Self>) -> Self {
         cube_state(m.part, m.modifier)
     }
 }

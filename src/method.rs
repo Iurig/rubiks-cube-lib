@@ -1,22 +1,32 @@
-use crate::Piece;
 use crate::puzzle::{Move, Puzzle, cube3by3::pieces::Pieces3By3};
+use crate::{Cube3By3, Piece, puzzle};
 
-pub struct StepByPiece(&'static [Pieces3By3]);
+pub struct StepByPiece {
+    pub pieces: &'static [Pieces3By3],
+    pub algs: AllowedAlgs<Cube3By3>,
+}
+
+pub struct AllowedAlgs<T: Puzzle>(Vec<Move<T>>);
 
 impl Step for StepByPiece {
     type Puzzle = crate::Cube3By3;
+    type O = AllowedAlgs<Cube3By3>;
+    const options: Self::O = Self.algs;
     fn solve(&self, scrambled_puzzle: Self::Puzzle) -> (Vec<Move<Self::Puzzle>>, String) {
         todo!()
     }
 }
 
-pub const do_all: StepByPiece = StepByPiece(Pieces3By3::ALL);
+pub const do_all: StepByPiece = StepByPiece {
+    pieces: Pieces3By3::ALL,
+    algs: AllowedAlgs::<Cube3By3>(todo!()),
+};
 
 pub trait Step {
     type Puzzle: Puzzle;
-    fn solve(&self, scrambled_puzzle: Self::Puzzle) -> (Vec<Move<Self::Puzzle>>, String) {
-        todo!()
-    }
+    type O;
+    const options: Self::O;
+    fn solve(&self, scrambled_puzzle: Self::Puzzle) -> (Vec<Move<Self::Puzzle>>, String);
 }
 
 pub trait Method {
@@ -87,7 +97,6 @@ impl<'a, P: Puzzle> ToRecon<P> for (Solve<'a, P>, FormatingOptions) {
     fn to_recon(&self) -> String {
         self.0
             .clone()
-            .into_iter()
             .map(move |step| (step, self.1.clone()).to_recon())
             .collect::<Vec<String>>()
             .join("\n")
@@ -109,7 +118,7 @@ impl<P: Puzzle, S: Step<Puzzle = P>, const N: usize> Method for SteppedMethod<N,
     ) -> impl Iterator<Item = (Vec<Move<P>>, String)> {
         self.0
             .iter()
-            .map(move |step| step.solve(scrambled_puzzle.clone()))
+            .map(move |step| step.solve(scrambled_puzzle.clone(), S::Options))
     }
 }
 /*

@@ -1,3 +1,4 @@
+pub mod methods;
 pub mod moves;
 pub mod pieces;
 
@@ -42,9 +43,9 @@ impl std::ops::Mul for Cube3By3 {
     }
 }
 
-impl std::ops::Mul<puzzle::Move<Cube3By3>> for Cube3By3 {
+impl std::ops::Mul<puzzle::Move<Self>> for Cube3By3 {
     type Output = Self;
-    fn mul(self, m: puzzle::Move<Cube3By3>) -> Self::Output {
+    fn mul(self, m: puzzle::Move<Self>) -> Self::Output {
         self.const_mul(Self::from(m))
     }
 }
@@ -144,7 +145,7 @@ impl Cube3By3 {
         .contains(&Faces::F)
         {
             rotated_self = rotated_self
-                * puzzle::Move::<Cube3By3> {
+                * puzzle::Move::<Self> {
                     part: MovablePart::Rotation(Rotations::y),
                     modifier: MoveModifier::Clockwise,
                 };
@@ -152,7 +153,7 @@ impl Cube3By3 {
         for _ in 0..4 {
             if rotated_self.centers().piece_at(Faces::F) != Faces::F {
                 rotated_self = rotated_self
-                    * puzzle::Move::<Cube3By3> {
+                    * puzzle::Move::<Self> {
                         part: MovablePart::Rotation(Rotations::x),
                         modifier: MoveModifier::Clockwise,
                     };
@@ -161,7 +162,7 @@ impl Cube3By3 {
         for _ in 0..4 {
             if rotated_self.centers().piece_at(Faces::U) != Faces::U {
                 rotated_self = rotated_self
-                    * puzzle::Move::<Cube3By3> {
+                    * puzzle::Move::<Self> {
                         part: MovablePart::Rotation(Rotations::z),
                         modifier: MoveModifier::Clockwise,
                     };
