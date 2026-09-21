@@ -1,12 +1,15 @@
 pub mod moves;
 pub mod pieces;
 
+use std::ops::Neg;
+
 // `allow` instead of `expect` because the lint is skipped once the
 // library is compiled with `cfg(test)`
 #[allow(clippy::wildcard_imports)]
 use self::{moves::*, pieces::*};
 use crate::{
     ops::{Inv, Pow},
+    puzzles::Puzzle,
     zn::Zn,
 };
 
@@ -23,6 +26,34 @@ pub struct Cube3By3 {
     corner_configuration: CornerConfiguration,
     /// 0 is oriented, 1 is misoriented
     edge_configuration: EdgeConfiguration,
+}
+
+impl Puzzle for Cube3By3 {
+    fn random_state_with_seed(rng: &mut fastrand::Rng) -> Self {
+        let mut attempt = Self {
+            corner_configuration: CornerConfiguration::random_state_with_seed(rng),
+            edge_configuration: EdgeConfiguration::random_state_with_seed(rng),
+            ..Default::default()
+        };
+        attempt.corner_configuration.orientation[0] = attempt.corner_configuration.orientation[0]
+            + attempt
+                .corner_configuration
+                .orientation
+                .iter()
+                .fold(Zn::ZERO, |sum, next| sum + *next)
+                .neg();
+        attempt.edge_configuration.orientation[0] = attempt.edge_configuration.orientation[0]
+            + attempt
+                .edge_configuration
+                .orientation
+                .iter()
+                .fold(Zn::ZERO, |sum, next| sum + *next)
+                .neg();
+        if !(attempt.is_reachable()) {
+            attempt.edge_configuration.permutation.swap(0, 1);
+        }
+        attempt
+    }
 }
 
 impl std::ops::Mul for Cube3By3 {
@@ -206,6 +237,16 @@ mod tests {
     use super::*;
 
     use std::error::Error;
+
+    #[test]
+    fn hundred_random_states_are_solvable() {
+        let mut rng = fastrand::Rng::with_seed(40);
+        for i in 0..100 {
+            println!("test {i} started");
+            assert!(Cube3By3::random_state_with_seed(&mut rng).is_reachable());
+            println!("test {i} done");
+        }
+    }
 
     #[test]
     fn default_is_solved() {
