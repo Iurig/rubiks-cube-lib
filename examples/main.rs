@@ -20,7 +20,7 @@ fn main() {
         .collect();
 
     let recon: String = Roux {
-        cmll: one_look,
+        cmll: Cmll::OneLook,
         ..Default::default()
     }
     .solve(scrambled)
