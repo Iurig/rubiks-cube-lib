@@ -89,7 +89,9 @@ impl Cube3By3 {
 }
 
 impl Pow for Cube3By3 {
-    const IDENTITY: Self = Self::IDENTITY; // Sets Pow's IDENTITY to Cube3By3's IDENTITY
+    fn identity() -> Self {
+        Self::IDENTITY
+    } // Sets Pow's IDENTITY to Cube3By3's IDENTITY
 }
 
 impl Inv for Cube3By3 {
