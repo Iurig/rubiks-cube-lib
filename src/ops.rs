@@ -36,7 +36,7 @@ pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
     /// The result of an empty product.
     fn identity() -> Self;
 
-    /// Performs the power operation based on `std::ops::Mul` assuming an empty multiplication returns `IDENTITY`
+    /// Performs the power operation based on `std::ops::Mul` assuming an empty multiplication returns [`Self::identity`]
     ///
     /// # Examples
     ///

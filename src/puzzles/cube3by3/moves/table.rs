@@ -1,7 +1,8 @@
-//! The table of every implemented move, built at compile time.
+//! The table of every implemented move, built once on first use.
 //!
-//! The nine face and slice moves are written out by hand; the three rotations
-//! are derived from them, and every move's inverse and double are then generated.
+//! The nine face and slice moves are written out by hand as a `const`; the
+//! rotations and wide moves are derived from them, and every move's inverse and
+//! double are then generated, all inside the [`LazyLock`] behind [`cube_state`].
 
 use std::sync::LazyLock;
 
@@ -47,6 +48,10 @@ const fn table_index(part: MovablePart, modifier: MoveModifier) -> usize {
             CounterDouble | Double => 2,
         }
 }
+#[expect(
+    clippy::indexing_slicing,
+    reason = "building `ALL_MOVES` asserts every entry sits at its own `table_index`"
+)]
 pub fn cube_state(part: MovablePart, modifier: MoveModifier) -> Cube3By3 {
     ALL_MOVES[table_index(part, modifier)].cube_state
 }
@@ -69,7 +74,10 @@ impl MoveInformation {
         modifier: Clockwise,
     };
 
-    #[expect(clippy::panic, reason = "only used privately at compile time")]
+    #[expect(
+        clippy::panic,
+        reason = "private, and only called on clockwise entries while building the table"
+    )]
     fn double(&self) -> Self {
         Self {
             cube_state: self.cube_state * self.cube_state,
@@ -309,12 +317,19 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
     },
 ];
 
-#[expect(clippy::panic, reason = "TODO")]
+#[expect(
+    clippy::panic,
+    reason = "every face is followed or opposed by a slice, so the loop always returns"
+)]
+#[expect(
+    clippy::indexing_slicing,
+    reason = "`table_index_clockwise` is below `CLOCKWISE_MOVE_COUNT` for every part"
+)]
 fn slice_along(face: Faces, placed: &[MoveInformation; CLOCKWISE_MOVE_COUNT]) -> Cube3By3 {
     for s in Slices::ALL {
-        if s.follows() as u8 == face as u8 {
+        if s.follows() == face {
             return placed[table_index_clockwise(Slice(s))].cube_state;
-        } else if s.follows().opposite() as u8 == face as u8 {
+        } else if s.follows().opposite() == face {
             return placed[table_index_clockwise(Slice(s))].cube_state.inverse();
         }
     }
@@ -323,6 +338,10 @@ fn slice_along(face: Faces, placed: &[MoveInformation; CLOCKWISE_MOVE_COUNT]) ->
 
 const CLOCKWISE_MOVE_COUNT: usize =
     FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT + Faces::ALL.len() + Rotations::ALL.len();
+#[expect(
+    clippy::indexing_slicing,
+    reason = "`table_index_clockwise` is below `CLOCKWISE_MOVE_COUNT` for every part, and the counters stop at each array's length"
+)]
 fn all_clockwise_moves() -> [MoveInformation; CLOCKWISE_MOVE_COUNT] {
     let mut all_clockwise_moves = [MoveInformation::IDENTITY; CLOCKWISE_MOVE_COUNT];
     let mut i = 0;
@@ -363,7 +382,14 @@ fn all_clockwise_moves() -> [MoveInformation; CLOCKWISE_MOVE_COUNT] {
     all_clockwise_moves
 }
 
-static ALL_MOVES: LazyLock<[MoveInformation; 3 * CLOCKWISE_MOVE_COUNT]> = LazyLock::new(|| {
+static ALL_MOVES: LazyLock<[MoveInformation; 3 * CLOCKWISE_MOVE_COUNT]> = LazyLock::new(all_moves);
+
+// A named function because a closure cannot carry `#[expect]`.
+#[expect(
+    clippy::indexing_slicing,
+    reason = "`i` stops at `CLOCKWISE_MOVE_COUNT`, a third of the table's length"
+)]
+fn all_moves() -> [MoveInformation; 3 * CLOCKWISE_MOVE_COUNT] {
     let clockwise_moves = all_clockwise_moves();
     let mut all_moves = [MoveInformation::IDENTITY; 3 * CLOCKWISE_MOVE_COUNT];
     let mut i = 0;
@@ -379,7 +405,7 @@ static ALL_MOVES: LazyLock<[MoveInformation; 3 * CLOCKWISE_MOVE_COUNT]> = LazyLo
         i += 1;
     }
     all_moves
-});
+}
 
 #[cfg(test)]
 mod tests {
