@@ -15,10 +15,18 @@ macro_rules! new_piece {
         pub enum $type_name {
             $($p),+
         }
+        impl $type_name{
+            pub (crate) const ALL: [$type_name; $amount] = [$($type_name::$p),+];
+        }
+        impl Default for $type_name{
+            fn default() -> Self {
+                Self::ALL[0]
+            }
+        }
         impl Piece<$amount> for $type_name {
-            const ALL: [Self; $amount] = [
-                $($type_name::$p),+
-            ];
+            fn all_pieces() -> [Self; $amount] {
+                Self::ALL
+            }
         }
         impl crate::piece::private::Sealed for $type_name {}
         const _: () = {
@@ -56,6 +64,7 @@ pub type CenterConfiguration = PieceConfiguration<Center, CENTERS_COUNT, CENTER_
 pub type CornerConfiguration = PieceConfiguration<Corner, CORNERS_COUNT, CO_COUNT>;
 pub type EdgeConfiguration = PieceConfiguration<Edge, EDGES_COUNT, EO_COUNT>;
 pub type Faces = Center;
+
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum Slices {
     M,

@@ -161,7 +161,7 @@ fn identity_is_two_sided() -> Result<(), Box<dyn Error>> {
 fn pow_0_gives_identity_cube() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("R U R' U'")?.pow(0),
-        Cube3By3::IDENTITY
+        Cube3By3::default()
     );
     Ok(())
 }
@@ -240,7 +240,7 @@ fn u_and_d_commute() -> Result<(), Box<dyn Error>> {
 fn multiple_moves_break_down_correctly() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3By3::from_solved("R U R' U'")?,
-        Cube3By3::IDENTITY
+        Cube3By3::default()
             .move_sequence("R")?
             .move_sequence("U")?
             .move_sequence("R'")?
@@ -445,7 +445,7 @@ fn adjacent_face_sequence_has_constant_and_correct_period() -> Result<(), Box<dy
     ];
     let period = 105;
     for p in adjacent_face_pairs {
-        let mut c = Cube3By3::IDENTITY;
+        let mut c = Cube3By3::default();
         for _ in 1..period {
             c = c.move_sequence(p.0)?.move_sequence(p.1)?;
             assert!(
@@ -484,7 +484,7 @@ fn slice_face_has_constant_and_correct_period() -> Result<(), Box<dyn Error>> {
     ];
     let period = 8;
     for p in pairs {
-        let mut c = Cube3By3::IDENTITY;
+        let mut c = Cube3By3::default();
         for i in 1..period {
             c = c.move_sequence(p.0)?.move_sequence(p.1)?;
             assert!(

@@ -9,11 +9,12 @@ pub mod private {
 /// One of the `N` pieces of a kind, named by its home slot.
 pub trait Piece<const N: usize>: Copy + Eq + private::Sealed + Debug {
     /// Every piece, in slot order.
-    const ALL: [Self; N];
+    fn all_pieces() -> [Self; N];
 
     /// The piece at position `index` of [`Self::ALL`], if any.
+    #[must_use]
     fn from_index(index: usize) -> Option<Self> {
-        Self::ALL.get(index).copied()
+        Self::all_pieces().get(index).copied()
     }
 
     #[must_use]
@@ -25,7 +26,7 @@ pub trait Piece<const N: usize>: Copy + Eq + private::Sealed + Debug {
     /// Random permutation of a piece set
     #[must_use]
     fn random_permutation_with_seed(rng: &mut fastrand::Rng) -> [Self; N] {
-        let mut permutation = Self::ALL;
+        let mut permutation = Self::all_pieces();
         for i in 0..N {
             permutation.swap(i, rng.usize(i..N));
         }
@@ -54,7 +55,7 @@ where
     P: Piece<N>,
 {
     fn default() -> Self {
-        Self::IDENTITY
+        Self::identity()
     }
 }
 
@@ -62,13 +63,20 @@ impl<P, const N: usize, const O: usize> Inv for PieceConfiguration<P, N, O>
 where
     P: Piece<N>,
 {
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "wrong indexing should panic instead of failing silently"
+    )]
     fn inverse(&self) -> Self {
-        let mut inv = Self::IDENTITY;
-        let mut i = 0;
-        while i < N {
-            inv.permutation[index(self.permutation[i])] = P::ALL[i];
-            inv.orientation[index(self.permutation[i])] = self.orientation[i].const_neg();
-            i += 1;
+        let mut inv = Self::identity();
+        for ((&piece, orientation), home) in self
+            .permutation
+            .iter()
+            .zip(&self.orientation)
+            .zip(P::all_pieces())
+        {
+            inv.permutation[index(piece)] = home;
+            inv.orientation[index(piece)] = orientation.const_neg();
         }
         inv
     }
@@ -79,10 +87,13 @@ where
     P: Piece<N>,
 {
     /// The solved state for a given piece type
-    pub const IDENTITY: Self = Self {
-        permutation: P::ALL,
-        orientation: [Zn::ZERO; N],
-    };
+    #[must_use]
+    pub fn identity() -> Self {
+        Self {
+            permutation: P::all_pieces(),
+            orientation: [Zn::ZERO; N],
+        }
+    }
 
     /// The piece now sitting in `slot`.
     ///
@@ -90,9 +101,12 @@ where
     /// `piece_at(Ubr) == Ufr` reads "the UFR piece sits in the UBR slot", and
     /// the returned piece can be fed back in as the next slot when tracing a
     /// cycle, the way blind memorization does.
+    ///
+    /// # Panics
+    /// Only panics under internal logic error
     #[must_use]
     pub fn piece_at(&self, slot: P) -> P {
-        self.permutation[index(slot)]
+        unsafe { *self.permutation.get_unchecked(index(slot)) }
     }
 
     /// The orientation held at `slot`: the twist or flip of the piece sitting
@@ -102,7 +116,7 @@ where
     /// returns zero.
     #[must_use]
     pub fn orientation_at(&self, slot: P) -> Zn<O> {
-        self.orientation[index(slot)]
+        unsafe { *self.orientation.get_unchecked(index(slot)) }
     }
 
     /// # Panics
@@ -144,13 +158,11 @@ where
     /// Compose permutations done by `self` with `other`
     #[must_use]
     pub(crate) fn then(&self, other: &Self) -> Self {
-        let mut composed = Self::IDENTITY;
-        let mut i = 0;
-        while i < N {
+        let mut composed = Self::identity();
+        for i in 0..N {
             composed.permutation[i] = self.permutation[index(other.permutation[i])];
             composed.orientation[i] =
                 self.orientation[index(other.permutation[i])].const_add(other.orientation[i]);
-            i += 1;
         }
         composed
     }
@@ -158,7 +170,7 @@ where
     pub(crate) fn cycle<const CYCLE_SIZE: usize, const CYCLE_AMOUNT: usize>(
         to_cycle: [[P; CYCLE_SIZE]; CYCLE_AMOUNT],
     ) -> Self {
-        let mut resp = Self::IDENTITY;
+        let mut resp = Self::identity();
         let mut i = 0;
         while i < CYCLE_AMOUNT {
             let mut j = 0;
@@ -191,11 +203,11 @@ mod tests {
     use crate::puzzles::cube3by3::pieces::*;
     #[test]
     fn corner_and_edge_all_match_discriminants() {
-        for (i, c) in Corner::ALL.iter().enumerate() {
+        for (i, c) in Corner::all_pieces().iter().enumerate() {
             assert_eq!(*c as usize, i);
             assert_eq!(Corner::from_index(i), Some(*c));
         }
-        for (i, e) in Edge::ALL.iter().enumerate() {
+        for (i, e) in Edge::all_pieces().iter().enumerate() {
             assert_eq!(*e as usize, i);
             assert_eq!(Edge::from_index(i), Some(*e));
         }
@@ -213,7 +225,7 @@ mod tests {
             assert_eq!(perm[c as usize], c);
         }
         perm.sort();
-        assert_eq!(perm, Corner::ALL);
+        assert_eq!(perm, Corner::all_pieces());
     }
 
     #[test]
@@ -223,6 +235,6 @@ mod tests {
         assert_eq!(perm[Uf as usize], Ub);
         assert_eq!(perm[Ub as usize], Uf);
         perm.sort();
-        assert_eq!(perm, Edge::ALL);
+        assert_eq!(perm, Edge::all_pieces());
     }
 }
