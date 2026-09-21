@@ -148,6 +148,10 @@ where
 
     /// Compose permutations done by `self` with `other`
     #[must_use]
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "`i < N`, and `index(piece) < N` by the `const _` block in `pieces.rs`"
+    )]
     pub(crate) fn then(&self, other: &Self) -> Self {
         let mut composed = Self::IDENTITY;
         let mut i = 0;
