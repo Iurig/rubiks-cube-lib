@@ -15,18 +15,10 @@ macro_rules! new_piece {
         pub enum $type_name {
             $($p),+
         }
-        impl $type_name{
-            pub (crate) const ALL: [$type_name; $amount] = [$($type_name::$p),+];
-        }
-        impl Default for $type_name{
-            fn default() -> Self {
-                Self::ALL[0]
-            }
-        }
         impl Piece<$amount> for $type_name {
-            fn all_pieces() -> [Self; $amount] {
-                Self::ALL
-            }
+            const ALL: [Self; $amount] = [
+                $($type_name::$p),+
+            ];
         }
         impl crate::piece::private::Sealed for $type_name {}
         const _: () = {

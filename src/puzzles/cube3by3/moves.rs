@@ -17,15 +17,9 @@ pub enum MovablePart {
     Rotation(Rotations),
     Wide(Faces),
 }
-impl Default for MovablePart {
-    fn default() -> Self {
-        Self::Face(Faces::R)
-    }
-}
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, Default)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum MoveModifier {
-    #[default]
     Clockwise,
     CounterClockwise,
     Double,
@@ -295,7 +289,7 @@ mod tests {
     //! Enumerations of every part, modifier, and move. Only tests need them
     //! today; move them out of this module when a production caller appears.
     use super::*;
-
+    use crate::Piece;
     use std::error::Error;
 
     impl MovablePart {
