@@ -4,8 +4,8 @@ mod table;
 // library is compiled with `cfg(test)`
 #[allow(clippy::wildcard_imports)]
 use crate::{
-    cube3by3::{Cube3By3, pieces::*},
     ops,
+    puzzles::cube3by3::{Cube3By3, pieces::*},
 };
 
 use table::cube_state;

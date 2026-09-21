@@ -162,7 +162,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::cube3by3::pieces::*;
+    use crate::puzzles::cube3by3::pieces::*;
     #[test]
     fn corner_and_edge_all_match_discriminants() {
         for (i, c) in Corner::ALL.iter().enumerate() {
