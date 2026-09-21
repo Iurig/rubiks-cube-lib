@@ -12,6 +12,7 @@ pub trait Piece<const N: usize>: Copy + Eq + private::Sealed + Debug {
     const ALL: [Self; N];
 
     /// The piece at position `index` of [`Self::ALL`], if any.
+    #[must_use]
     fn from_index(index: usize) -> Option<Self> {
         Self::ALL.get(index).copied()
     }
@@ -62,8 +63,19 @@ impl<P, const N: usize, const O: usize> Inv for PieceConfiguration<P, N, O>
 where
     P: Piece<N>,
 {
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "wrong indexing should panic instead of failing silently"
+    )]
     fn inverse(&self) -> Self {
-        self.const_inverse()
+        let mut inv = Self::IDENTITY;
+        for ((&piece, orientation), home) in
+            self.permutation.iter().zip(&self.orientation).zip(P::ALL)
+        {
+            inv.permutation[index(piece)] = home;
+            inv.orientation[index(piece)] = -*orientation;
+        }
+        inv
     }
 }
 
@@ -136,14 +148,16 @@ where
 
     /// Compose permutations done by `self` with `other`
     #[must_use]
-    pub(crate) const fn then(&self, other: &Self) -> Self {
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "`i < N`, and `index(piece) < N` by the `const _` block in `pieces.rs`"
+    )]
+    pub(crate) fn then(&self, other: &Self) -> Self {
         let mut composed = Self::IDENTITY;
-        let mut i = 0;
-        while i < N {
+        for i in 0..N {
             composed.permutation[i] = self.permutation[index(other.permutation[i])];
             composed.orientation[i] =
-                self.orientation[index(other.permutation[i])].const_add(other.orientation[i]);
-            i += 1;
+                self.orientation[index(other.permutation[i])] + (other.orientation[i]);
         }
         composed
     }
@@ -162,18 +176,6 @@ where
             i += 1;
         }
         resp
-    }
-
-    #[must_use = "the inverse is returned"]
-    pub(crate) const fn const_inverse(&self) -> Self {
-        let mut inv = Self::IDENTITY;
-        let mut i = 0;
-        while i < N {
-            inv.permutation[index(self.permutation[i])] = P::ALL[i];
-            inv.orientation[index(self.permutation[i])] = self.orientation[i].const_neg();
-            i += 1;
-        }
-        inv
     }
 
     pub fn random_state_with_seed(rng: &mut fastrand::Rng) -> Self {

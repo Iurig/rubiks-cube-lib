@@ -27,8 +27,23 @@ pub struct Cube3By3 {
     /// 0 is oriented, 1 is misoriented
     edge_configuration: EdgeConfiguration,
 }
-
+macro_rules! unify_pieces {
+    ($($piece_type:ident: [$($p:ident),+]),+ $(,)?) => {
+        [
+            $($(Pieces3By3::$piece_type($piece_type::$p)),+),+
+        ]
+    };
+}
 impl Puzzle for Cube3By3 {
+    type Pieces = Pieces3By3;
+
+    const ALL_PIECES: &'static [Self::Pieces] = unify_pieces!(
+        Center: [U, F, R, B, L, D],
+        Corner: [Ubl, Ubr, Ufr, Ufl, Dfl, Dfr, Dbr, Dbl],
+        Edge: [Ub, Ur, Uf, Ul, Fl, Fr, Br, Bl, Df, Dr, Db, Dl],
+    )
+    .as_slice();
+
     fn random_state_with_seed(rng: &mut fastrand::Rng) -> Self {
         let mut attempt = Self {
             corner_configuration: CornerConfiguration::random_state_with_seed(rng),
@@ -61,40 +76,34 @@ impl std::ops::Mul for Cube3By3 {
     /// Applies the state (permutations and orientations) that is the second argument to the first argument, which is a cube
     /// IMPORTANT: associative, but non-commutative
     fn mul(self, rhs: Self) -> Self::Output {
-        self.const_mul(rhs)
+        Self {
+            center_configuration: self.center_configuration.then(&rhs.center_configuration),
+            corner_configuration: self.corner_configuration.then(&rhs.corner_configuration),
+            edge_configuration: self.edge_configuration.then(&rhs.edge_configuration),
+        }
     }
 }
 
 impl std::ops::Mul<Move> for Cube3By3 {
     type Output = Self;
     fn mul(self, m: Move) -> Self::Output {
-        self.const_mul(Self::from(m))
-    }
-}
-
-impl Cube3By3 {
-    const fn const_mul(self, to_be_aplied: Self) -> Self {
-        Self {
-            center_configuration: self
-                .center_configuration
-                .then(&to_be_aplied.center_configuration),
-            corner_configuration: self
-                .corner_configuration
-                .then(&to_be_aplied.corner_configuration),
-            edge_configuration: self
-                .edge_configuration
-                .then(&to_be_aplied.edge_configuration),
-        }
+        self * Self::from(m)
     }
 }
 
 impl Pow for Cube3By3 {
-    const IDENTITY: Self = Self::IDENTITY; // Sets Pow's IDENTITY to Cube3By3's IDENTITY
+    fn identity() -> Self {
+        Self::IDENTITY
+    }
 }
 
 impl Inv for Cube3By3 {
     fn inverse(&self) -> Self {
-        self.const_inverse()
+        Self {
+            center_configuration: self.center_configuration.inverse(),
+            corner_configuration: self.corner_configuration.inverse(),
+            edge_configuration: self.edge_configuration.inverse(),
+        }
     }
 }
 
@@ -105,14 +114,6 @@ impl Cube3By3 {
         corner_configuration: CornerConfiguration::IDENTITY,
         edge_configuration: EdgeConfiguration::IDENTITY,
     };
-
-    const fn const_inverse(&self) -> Self {
-        Self {
-            center_configuration: self.center_configuration.const_inverse(),
-            corner_configuration: self.corner_configuration.const_inverse(),
-            edge_configuration: self.edge_configuration.const_inverse(),
-        }
-    }
 
     /// The corner permutation and twists.
     #[must_use]
@@ -387,7 +388,7 @@ mod tests {
     fn r_prime_is_inverse_of_r() -> Result<(), Box<dyn Error>> {
         let r = Cube3By3::from_solved("R")?;
         let r_prime = Cube3By3::from_solved("R'")?;
-        assert_eq!(r.const_inverse(), r_prime);
+        assert_eq!(r.inverse(), r_prime);
         Ok(())
     }
 
@@ -457,7 +458,7 @@ mod tests {
         assert_eq!(cube.move_sequence("// nothing here")?, cube);
         assert_eq!(
             Cube3By3::from_solved("\n  // only comments\n")?,
-            Cube3By3::IDENTITY
+            Cube3By3::default()
         );
         Ok(())
     }

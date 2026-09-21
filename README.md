@@ -117,9 +117,9 @@ that string parsing looks up. A derived move therefore cannot drift from its bas
 | `Corner`, `Edge`, `Center`               | The piece enums. One enum names both a slot and the piece whose home is that slot, so a returned piece can be fed back in as the next slot. |
 | `impl Mul for Cube3By3`                  | `a * b` applies `a` then `b`. Associative, not commutative. |
 | `Inv` trait                              | `inverse()`, implemented for cubes and piece configurations.|
-| `Pow` trait                              | `pow(n)` by exponentiation by squaring; provided for any `Mul + Clone` type with an `IDENTITY`. |
+| `Pow` trait                              | `pow(n)` by exponentiation by squaring; provided for any `Mul + Clone` type that implements `identity()`. |
 | `PieceConfiguration`, `Piece`            | Generic building blocks for other puzzles. `Piece` is sealed: nameable in bounds, implemented only inside the crate. |
-| `zn::Zn<N>`                              | Integers mod `N`, `const`-friendly, with `Add` and `Neg`. `new(n)` reduces, `value()` reads the representative in `0..N` back out. |
+| `zn::Zn<N>`                              | Integers mod `N`, with `Add` and `Neg`; `new`, `value`, and `array` are `const fn`. `new(n)` reduces, `value()` reads the representative in `0..N` back out. |
 
 ## Project layout
 

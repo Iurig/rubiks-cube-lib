@@ -1,9 +1,12 @@
-//! The table of every implemented move, built at compile time.
+//! The table of every implemented move, built once on first use.
 //!
-//! The nine face and slice moves are written out by hand; the three rotations
-//! are derived from them, and every move's inverse and double are then generated.
+//! The nine face and slice moves are written out by hand as a `const`; the
+//! rotations and wide moves are derived from them, and every move's inverse and
+//! double are then generated, all inside the [`LazyLock`] behind [`cube_state`].
 
-use crate::Piece;
+use std::sync::LazyLock;
+
+use crate::{Inv, Piece};
 
 // `allow` instead of `expect` because the lint is skipped once the
 // library is compiled with `cfg(test)`
@@ -37,14 +40,6 @@ const fn table_index_clockwise(part: MovablePart) -> usize {
     }
 }
 
-const _: () = const {
-    let mut i = 0;
-    while i < ALL_MOVES.len() {
-        assert!(i == table_index(ALL_MOVES[i].part, ALL_MOVES[i].modifier));
-        i += 1;
-    }
-};
-
 const fn table_index(part: MovablePart, modifier: MoveModifier) -> usize {
     3 * table_index_clockwise(part)
         + match modifier {
@@ -53,30 +48,39 @@ const fn table_index(part: MovablePart, modifier: MoveModifier) -> usize {
             CounterDouble | Double => 2,
         }
 }
-pub const fn cube_state(part: MovablePart, modifier: MoveModifier) -> Cube3By3 {
+#[expect(
+    clippy::indexing_slicing,
+    reason = "building `ALL_MOVES` asserts every entry sits at its own `table_index`"
+)]
+pub fn cube_state(part: MovablePart, modifier: MoveModifier) -> Cube3By3 {
     ALL_MOVES[table_index(part, modifier)].cube_state
 }
 
+impl Inv for MoveInformation {
+    fn inverse(&self) -> Self {
+        Self {
+            cube_state: self.cube_state.inverse(),
+            part: self.part,
+            modifier: self.modifier.inverse(),
+        }
+    }
+}
+
 impl MoveInformation {
+    /// Placeholder that fills the table arrays before every entry is placed.
     const IDENTITY: Self = Self {
         cube_state: Cube3By3::IDENTITY,
         part: Face(Faces::R),
         modifier: Clockwise,
     };
 
-    const fn const_inverse(&self) -> Self {
+    #[expect(
+        clippy::panic,
+        reason = "private, and only called on clockwise entries while building the table"
+    )]
+    fn double(&self) -> Self {
         Self {
-            cube_state: self.cube_state.const_inverse(),
-
-            part: self.part,
-            modifier: self.modifier.inverse(),
-        }
-    }
-
-    #[expect(clippy::panic, reason = "only used privately at compile time")]
-    const fn const_double(&self) -> Self {
-        Self {
-            cube_state: self.cube_state.const_mul(self.cube_state),
+            cube_state: self.cube_state * self.cube_state,
             part: self.part,
             modifier: {
                 match self.modifier {
@@ -313,81 +317,87 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
     },
 ];
 
-#[expect(clippy::panic, reason = "only used at compile time")]
-const fn slice_along(face: Faces, placed: &[MoveInformation; CLOCKWISE_MOVE_COUNT]) -> Cube3By3 {
-    let mut i = 0;
-    while i < Slices::ALL.len() {
-        if Slices::ALL[i].follows() as u8 == face as u8 {
-            return placed[table_index_clockwise(Slice(Slices::ALL[i]))].cube_state;
-        } else if Slices::ALL[i].follows().opposite() as u8 == face as u8 {
-            return placed[table_index_clockwise(Slice(Slices::ALL[i]))]
-                .cube_state
-                .const_inverse();
+#[expect(
+    clippy::panic,
+    reason = "every face is followed or opposed by a slice, so the loop always returns"
+)]
+#[expect(
+    clippy::indexing_slicing,
+    reason = "`table_index_clockwise` is below `CLOCKWISE_MOVE_COUNT` for every part"
+)]
+fn slice_along(face: Faces, placed: &[MoveInformation; CLOCKWISE_MOVE_COUNT]) -> Cube3By3 {
+    for s in Slices::ALL {
+        if s.follows() == face {
+            return placed[table_index_clockwise(Slice(s))].cube_state;
+        } else if s.follows().opposite() == face {
+            return placed[table_index_clockwise(Slice(s))].cube_state.inverse();
         }
-        i += 1;
     }
     panic!("all faces must have a slice_along")
 }
 
 const CLOCKWISE_MOVE_COUNT: usize =
     FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT + Faces::ALL.len() + Rotations::ALL.len();
-const ALL_CLOCKWISE_MOVES: [MoveInformation; CLOCKWISE_MOVE_COUNT] = {
+#[expect(
+    clippy::indexing_slicing,
+    reason = "`table_index_clockwise` is below `CLOCKWISE_MOVE_COUNT` for every part, and the counters stop at each array's length"
+)]
+fn all_clockwise_moves() -> [MoveInformation; CLOCKWISE_MOVE_COUNT] {
     let mut all_clockwise_moves = [MoveInformation::IDENTITY; CLOCKWISE_MOVE_COUNT];
-    let mut i = 0;
-    while i < FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT {
+
+    for i in 0..FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT {
         all_clockwise_moves[table_index_clockwise(ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[i].part)] =
             ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[i];
-        i += 1;
     }
 
-    let mut i = 0;
-    while i < Rotations::ALL.len() {
+    for i in 0..Rotations::ALL.len() {
         all_clockwise_moves[table_index_clockwise(Rotation(Rotations::ALL[i]))] = MoveInformation {
             cube_state: all_clockwise_moves
                 [table_index_clockwise(Face(Rotations::ALL[i].follows()))]
             .cube_state
-            .const_mul(
-                all_clockwise_moves
+                * (all_clockwise_moves
                     [table_index_clockwise(Face(Rotations::ALL[i].follows().opposite()))]
                 .cube_state
-                .const_inverse(),
-            )
-            .const_mul(slice_along(
-                Rotations::ALL[i].follows(),
-                &all_clockwise_moves,
-            )),
+                .inverse())
+                * (slice_along(Rotations::ALL[i].follows(), &all_clockwise_moves)),
             part: Rotation(Rotations::ALL[i]),
             modifier: Clockwise,
         };
-        i += 1;
     }
-    let mut i = 0;
-    while i < Faces::ALL.len() {
+    for i in 0..Faces::ALL.len() {
         let face = Faces::ALL[i];
         all_clockwise_moves[table_index_clockwise(Wide(face))] = MoveInformation {
-            cube_state: all_clockwise_moves[table_index_clockwise(Face(face))]
-                .cube_state
-                .const_mul(slice_along(face, &all_clockwise_moves)),
+            cube_state: all_clockwise_moves[table_index_clockwise(Face(face))].cube_state
+                * (slice_along(face, &all_clockwise_moves)),
             part: Wide(face),
             modifier: Clockwise,
         };
-        i += 1;
     }
 
     all_clockwise_moves
-};
+}
 
-const ALL_MOVES: [MoveInformation; 3 * CLOCKWISE_MOVE_COUNT] = {
+static ALL_MOVES: LazyLock<[MoveInformation; 3 * CLOCKWISE_MOVE_COUNT]> = LazyLock::new(all_moves);
+
+// A named function because a closure cannot carry `#[expect]`.
+#[expect(
+    clippy::indexing_slicing,
+    reason = "`i` stops at `CLOCKWISE_MOVE_COUNT`, a third of the table's length"
+)]
+fn all_moves() -> [MoveInformation; 3 * CLOCKWISE_MOVE_COUNT] {
+    let clockwise_moves = all_clockwise_moves();
     let mut all_moves = [MoveInformation::IDENTITY; 3 * CLOCKWISE_MOVE_COUNT];
-    let mut i = 0;
-    while i < CLOCKWISE_MOVE_COUNT {
-        all_moves[3 * i] = ALL_CLOCKWISE_MOVES[i];
-        all_moves[3 * i + 1] = ALL_CLOCKWISE_MOVES[i].const_inverse();
-        all_moves[3 * i + 2] = ALL_CLOCKWISE_MOVES[i].const_double();
-        i += 1;
+
+    for i in 0..CLOCKWISE_MOVE_COUNT {
+        all_moves[3 * i] = clockwise_moves[i];
+        all_moves[3 * i + 1] = clockwise_moves[i].inverse();
+        all_moves[3 * i + 2] = clockwise_moves[i].double();
+    }
+    for (i, m) in all_moves.iter().enumerate() {
+        assert_eq!(i, table_index(m.part, m.modifier));
     }
     all_moves
-};
+}
 
 #[cfg(test)]
 mod tests {
@@ -405,8 +415,8 @@ mod tests {
     // A mirrored slice mirrors its rotation with it and still passes here.
 
     fn seq(parts: &[(MovablePart, MoveModifier)]) -> Cube3By3 {
-        parts.iter().fold(Cube3By3::IDENTITY, |cube, &(p, m)| {
-            cube.const_mul(cube_state(p, m))
+        parts.iter().fold(Cube3By3::default(), |cube, &(p, m)| {
+            cube * (cube_state(p, m))
         })
     }
 
@@ -459,18 +469,18 @@ mod tests {
 
     #[test]
     fn every_part_has_consistent_modifiers() {
-        for entry in ALL_CLOCKWISE_MOVES {
+        for entry in all_clockwise_moves() {
             let part = entry.part;
             let cw = cube_state(part, Clockwise);
             let ccw = cube_state(part, CounterClockwise);
             assert_eq!(
-                cw.const_mul(ccw),
-                Cube3By3::IDENTITY,
+                cw * ccw,
+                Cube3By3::default(),
                 "{part:?}' must undo {part:?}"
             );
             assert_eq!(
                 cube_state(part, Double),
-                cw.const_mul(cw),
+                cw * cw,
                 "{part:?}2 must be {part:?} twice"
             );
             assert_eq!(
