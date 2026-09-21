@@ -35,7 +35,7 @@ pub trait Piece<const N: usize>: Copy + Eq + private::Sealed + Debug {
 
 #[must_use]
 #[allow(clippy::redundant_pub_crate)]
-pub(crate) const fn index<P, const N: usize>(piece: P) -> usize
+pub(crate) fn index<P, const N: usize>(piece: P) -> usize
 where
     P: Piece<N>,
 {
@@ -63,7 +63,14 @@ where
     P: Piece<N>,
 {
     fn inverse(&self) -> Self {
-        self.const_inverse()
+        let mut inv = Self::IDENTITY;
+        let mut i = 0;
+        while i < N {
+            inv.permutation[index(self.permutation[i])] = P::ALL[i];
+            inv.orientation[index(self.permutation[i])] = self.orientation[i].const_neg();
+            i += 1;
+        }
+        inv
     }
 }
 
@@ -84,7 +91,7 @@ where
     /// the returned piece can be fed back in as the next slot when tracing a
     /// cycle, the way blind memorization does.
     #[must_use]
-    pub const fn piece_at(&self, slot: P) -> P {
+    pub fn piece_at(&self, slot: P) -> P {
         self.permutation[index(slot)]
     }
 
@@ -94,7 +101,7 @@ where
     /// Centers have no orientation, so on a center configuration this always
     /// returns zero.
     #[must_use]
-    pub const fn orientation_at(&self, slot: P) -> Zn<O> {
+    pub fn orientation_at(&self, slot: P) -> Zn<O> {
         self.orientation[index(slot)]
     }
 
@@ -136,7 +143,7 @@ where
 
     /// Compose permutations done by `self` with `other`
     #[must_use]
-    pub(crate) const fn then(&self, other: &Self) -> Self {
+    pub(crate) fn then(&self, other: &Self) -> Self {
         let mut composed = Self::IDENTITY;
         let mut i = 0;
         while i < N {
@@ -148,7 +155,7 @@ where
         composed
     }
 
-    pub(crate) const fn cycle<const CYCLE_SIZE: usize, const CYCLE_AMOUNT: usize>(
+    pub(crate) fn cycle<const CYCLE_SIZE: usize, const CYCLE_AMOUNT: usize>(
         to_cycle: [[P; CYCLE_SIZE]; CYCLE_AMOUNT],
     ) -> Self {
         let mut resp = Self::IDENTITY;
@@ -162,18 +169,6 @@ where
             i += 1;
         }
         resp
-    }
-
-    #[must_use = "the inverse is returned"]
-    pub(crate) const fn const_inverse(&self) -> Self {
-        let mut inv = Self::IDENTITY;
-        let mut i = 0;
-        while i < N {
-            inv.permutation[index(self.permutation[i])] = P::ALL[i];
-            inv.orientation[index(self.permutation[i])] = self.orientation[i].const_neg();
-            i += 1;
-        }
-        inv
     }
 
     pub fn random_state_with_seed(rng: &mut fastrand::Rng) -> Self {
