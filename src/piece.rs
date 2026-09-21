@@ -154,12 +154,10 @@ where
     )]
     pub(crate) fn then(&self, other: &Self) -> Self {
         let mut composed = Self::IDENTITY;
-        let mut i = 0;
-        while i < N {
+        for i in 0..N {
             composed.permutation[i] = self.permutation[index(other.permutation[i])];
             composed.orientation[i] =
                 self.orientation[index(other.permutation[i])] + (other.orientation[i]);
-            i += 1;
         }
         composed
     }
