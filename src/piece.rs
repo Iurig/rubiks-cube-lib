@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use crate::ops::Inv;
 use crate::zn::Zn;
 pub mod private {
@@ -5,13 +7,29 @@ pub mod private {
 }
 
 /// One of the `N` pieces of a kind, named by its home slot.
-pub trait Piece<const N: usize>: Copy + Eq + private::Sealed {
+pub trait Piece<const N: usize>: Copy + Eq + private::Sealed + Debug {
     /// Every piece, in slot order.
     const ALL: [Self; N];
 
     /// The piece at position `index` of [`Self::ALL`], if any.
     fn from_index(index: usize) -> Option<Self> {
         Self::ALL.get(index).copied()
+    }
+
+    #[must_use]
+    fn random_permutation() -> [Self; N] {
+        let mut rng = fastrand::Rng::new();
+        Self::random_permutation_with_seed(&mut rng)
+    }
+
+    /// Random permutation of a piece set
+    #[must_use]
+    fn random_permutation_with_seed(rng: &mut fastrand::Rng) -> [Self; N] {
+        let mut permutation = Self::ALL;
+        for i in 0..N {
+            permutation.swap(i, rng.usize(i..N));
+        }
+        permutation
     }
 }
 
@@ -156,6 +174,19 @@ where
             i += 1;
         }
         inv
+    }
+
+    pub fn random_state_with_seed(rng: &mut fastrand::Rng) -> Self {
+        Self {
+            permutation: P::random_permutation_with_seed(rng),
+            orientation: {
+                let mut or = [Zn::ZERO; N];
+                for flip in or.iter_mut().take(N) {
+                    *flip = Zn::new(rng.usize(0..O));
+                }
+                or
+            },
+        }
     }
 }
 
