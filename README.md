@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     assert!(Cube3By3::from_solved("R U R' U'")?.pow(6).is_solved());
 
     // Chain moves onto an existing state
-    let cube = Cube3By3::IDENTITY.move_sequence("R U")?.move_sequence("R' U'")?;
+    let cube = Cube3By3::default().move_sequence("R U")?.move_sequence("R' U'")?;
     assert_eq!(cube, Cube3By3::from_solved("R U R' U'")?);
 
     // Unknown tokens are errors, not panics

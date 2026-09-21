@@ -5,7 +5,7 @@
 
 use std::sync::LazyLock;
 
-use crate::{Inv, Piece};
+use crate::Inv;
 
 // `allow` instead of `expect` because the lint is skipped once the
 // library is compiled with `cfg(test)`
@@ -18,7 +18,7 @@ use {
     },
 };
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Default)]
 struct MoveInformation {
     cube_state: Cube3By3,
     part: MovablePart,
@@ -38,8 +38,6 @@ fn table_index_clockwise(part: MovablePart) -> usize {
         }
     }
 }
-
-const _: () = const {};
 
 fn table_index(part: MovablePart, modifier: MoveModifier) -> usize {
     3 * table_index_clockwise(part)
@@ -64,12 +62,6 @@ impl Inv for MoveInformation {
 }
 
 impl MoveInformation {
-    const IDENTITY: Self = Self {
-        cube_state: Cube3By3::IDENTITY,
-        part: Face(Faces::R),
-        modifier: Clockwise,
-    };
-
     #[expect(clippy::panic, reason = "only used privately at compile time")]
     fn double(&self) -> Self {
         Self {
@@ -123,7 +115,7 @@ static ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: LazyLock<
     [
         MoveInformation {
             cube_state: Cube3By3 {
-                center_configuration: CenterConfiguration::IDENTITY,
+                center_configuration: CenterConfiguration::identity(),
                 corner_configuration: {
                     let mut corners = CornerConfiguration::cycle([[
                         Corner::Ufr,
@@ -146,7 +138,7 @@ static ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: LazyLock<
         },
         MoveInformation {
             cube_state: Cube3By3 {
-                center_configuration: CenterConfiguration::IDENTITY,
+                center_configuration: CenterConfiguration::identity(),
                 corner_configuration: {
                     let mut corners = CornerConfiguration::cycle([[
                         Corner::Ubl,
@@ -169,7 +161,7 @@ static ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: LazyLock<
         },
         MoveInformation {
             cube_state: Cube3By3 {
-                center_configuration: CenterConfiguration::IDENTITY,
+                center_configuration: CenterConfiguration::identity(),
                 corner_configuration: {
                     let mut corners = CornerConfiguration::cycle([[
                         Corner::Ufr,
@@ -192,7 +184,7 @@ static ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: LazyLock<
         },
         MoveInformation {
             cube_state: Cube3By3 {
-                center_configuration: CenterConfiguration::IDENTITY,
+                center_configuration: CenterConfiguration::identity(),
                 corner_configuration: {
                     let mut corners = CornerConfiguration::cycle([[
                         Corner::Dfr,
@@ -215,7 +207,7 @@ static ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: LazyLock<
         },
         MoveInformation {
             cube_state: Cube3By3 {
-                center_configuration: CenterConfiguration::IDENTITY,
+                center_configuration: CenterConfiguration::identity(),
                 corner_configuration: {
                     let mut corners = CornerConfiguration::cycle([[
                         Corner::Dfr,
@@ -242,7 +234,7 @@ static ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: LazyLock<
         },
         MoveInformation {
             cube_state: Cube3By3 {
-                center_configuration: CenterConfiguration::IDENTITY,
+                center_configuration: CenterConfiguration::identity(),
                 corner_configuration: {
                     let mut corners = CornerConfiguration::cycle([[
                         Corner::Ubr,
@@ -275,7 +267,7 @@ static ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: LazyLock<
                     Center::B,
                     Center::L,
                 ]]),
-                corner_configuration: CornerConfiguration::IDENTITY,
+                corner_configuration: CornerConfiguration::identity(),
                 edge_configuration: EdgeConfiguration {
                     permutation: EdgeConfiguration::cycle([[
                         Edge::Fr,
@@ -298,7 +290,7 @@ static ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: LazyLock<
                     Center::B,
                     Center::U,
                 ]]),
-                corner_configuration: CornerConfiguration::IDENTITY,
+                corner_configuration: CornerConfiguration::identity(),
                 edge_configuration: EdgeConfiguration {
                     permutation: EdgeConfiguration::cycle([[
                         Edge::Uf,
@@ -321,7 +313,7 @@ static ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: LazyLock<
                     Center::D,
                     Center::L,
                 ]]),
-                corner_configuration: CornerConfiguration::IDENTITY,
+                corner_configuration: CornerConfiguration::identity(),
                 edge_configuration: EdgeConfiguration {
                     permutation: EdgeConfiguration::cycle([[
                         Edge::Ul,
@@ -352,10 +344,10 @@ fn slice_along(face: Faces, placed: &[MoveInformation; CLOCKWISE_MOVE_COUNT]) ->
 }
 
 const CLOCKWISE_MOVE_COUNT: usize =
-    { FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT + Faces::ALL.len() + Rotations::ALL.len() };
+    FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT + Faces::ALL.len() + Rotations::ALL.len();
 static ALL_CLOCKWISE_MOVES: LazyLock<[MoveInformation; CLOCKWISE_MOVE_COUNT]> =
     LazyLock::new(|| {
-        let mut all_clockwise_moves = [MoveInformation::IDENTITY; CLOCKWISE_MOVE_COUNT];
+        let mut all_clockwise_moves = [MoveInformation::default(); CLOCKWISE_MOVE_COUNT];
         let mut i = 0;
         while i < FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT {
             all_clockwise_moves
@@ -397,7 +389,7 @@ static ALL_CLOCKWISE_MOVES: LazyLock<[MoveInformation; CLOCKWISE_MOVE_COUNT]> =
     });
 
 static ALL_MOVES: LazyLock<[MoveInformation; 3 * CLOCKWISE_MOVE_COUNT]> = LazyLock::new(|| {
-    let mut all_moves = [MoveInformation::IDENTITY; 3 * CLOCKWISE_MOVE_COUNT];
+    let mut all_moves = [MoveInformation::default(); 3 * CLOCKWISE_MOVE_COUNT];
     let mut i = 0;
     while i < CLOCKWISE_MOVE_COUNT {
         all_moves[3 * i] = ALL_CLOCKWISE_MOVES[i];
@@ -429,7 +421,7 @@ mod tests {
     // A mirrored slice mirrors its rotation with it and still passes here.
 
     fn seq(parts: &[(MovablePart, MoveModifier)]) -> Cube3By3 {
-        parts.iter().fold(Cube3By3::IDENTITY, |cube, &(p, m)| {
+        parts.iter().fold(Cube3By3::default(), |cube, &(p, m)| {
             cube * (cube_state(p, m))
         })
     }
@@ -487,7 +479,11 @@ mod tests {
             let part = entry.part;
             let cw = cube_state(part, Clockwise);
             let ccw = cube_state(part, CounterClockwise);
-            assert_eq!(cw * ccw, Cube3By3::IDENTITY, "{part:?}' must undo {part:?}");
+            assert_eq!(
+                cw * ccw,
+                Cube3By3::default(),
+                "{part:?}' must undo {part:?}"
+            );
             assert_eq!(
                 cube_state(part, Double),
                 cw * cw,
