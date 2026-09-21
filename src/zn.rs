@@ -17,13 +17,13 @@ impl<const N: usize> From<usize> for Zn<N> {
 impl<const N: usize> std::ops::Add for Zn<N> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
-        self.const_add(rhs)
+        Self::new(self.value() + rhs.value())
     }
 }
 impl<const N: usize> Neg for Zn<N> {
     type Output = Self;
     fn neg(self) -> Self::Output {
-        self.const_neg()
+        Self::new(N - self.value())
     }
 }
 
@@ -59,18 +59,6 @@ impl<const N: usize> Zn<N> {
             i += 1;
         }
         final_array
-    }
-
-    /// Addition mod `N`, usable in `const` contexts.
-    #[must_use = "the addition is returned"]
-    pub const fn const_add(self, rhs: Self) -> Self {
-        Self::new(self.value() + rhs.value())
-    }
-
-    /// Negation mod `N`, usable in `const` contexts.
-    #[must_use = "the negation is returned"]
-    pub const fn const_neg(&self) -> Self {
-        Self::new(N - self.value())
     }
 }
 #[cfg(test)]

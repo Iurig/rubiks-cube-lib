@@ -78,8 +78,8 @@ impl std::ops::Mul<Move> for Cube3By3 {
 
 impl Pow for Cube3By3 {
     fn identity() -> Self {
-        Self::default()
-    } // Sets Pow's IDENTITY to Cube3By3's IDENTITY
+        Self::IDENTITY
+    }
 }
 
 impl Inv for Cube3By3 {
@@ -93,6 +93,13 @@ impl Inv for Cube3By3 {
 }
 
 impl Cube3By3 {
+    /// The multiplicative identity of the cube group: the solved cube
+    pub const IDENTITY: Self = Self {
+        center_configuration: CenterConfiguration::IDENTITY,
+        corner_configuration: CornerConfiguration::IDENTITY,
+        edge_configuration: EdgeConfiguration::IDENTITY,
+    };
+
     /// The corner permutation and twists.
     #[must_use]
     pub const fn corners(&self) -> &CornerConfiguration {
@@ -295,7 +302,7 @@ mod tests {
             !Cube3By3 {
                 corner_configuration: CornerConfiguration {
                     permutation: {
-                        let mut p = Corner::all_pieces();
+                        let mut p = Corner::ALL;
                         p.swap(index(Corner::Ufr), index(Corner::Ubr));
                         p
                     },
