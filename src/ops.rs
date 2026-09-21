@@ -34,7 +34,7 @@ pub trait Inv: Sized {
 /// Repeated multiplication by fast exponentiation.
 pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
     /// The result of an empty product.
-    const IDENTITY: Self;
+    fn identity() -> Self;
 
     /// Performs the power operation based on `std::ops::Mul` assuming an empty multiplication returns `IDENTITY`
     ///
@@ -54,7 +54,9 @@ pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
     /// }
     ///
     /// impl Pow for TurnCount {
-    ///     const IDENTITY: Self = TurnCount(0);
+    ///     fn identity() -> Self {
+    ///         TurnCount(0)
+    ///     }
     /// }
     ///
     /// assert_eq!(TurnCount(2).pow(3), TurnCount(2));
@@ -63,7 +65,7 @@ pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
     fn pow(&self, exponent: u32) -> Self {
         // values 0, 1 and 2 are needed for recursion on `_` branch
         match exponent {
-            0 => Self::IDENTITY,
+            0 => Self::identity(),
             1 => self.clone(),
             2 => self.clone() * self.clone(),
             _ => self.pow(exponent % 2) * self.pow(exponent / 2).pow(2),
