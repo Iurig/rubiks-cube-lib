@@ -344,15 +344,13 @@ const CLOCKWISE_MOVE_COUNT: usize =
 )]
 fn all_clockwise_moves() -> [MoveInformation; CLOCKWISE_MOVE_COUNT] {
     let mut all_clockwise_moves = [MoveInformation::IDENTITY; CLOCKWISE_MOVE_COUNT];
-    let mut i = 0;
-    while i < FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT {
+
+    for i in 0..FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT {
         all_clockwise_moves[table_index_clockwise(ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[i].part)] =
             ALL_FACE_AND_SLICES_CLOCKWISE_MOVES[i];
-        i += 1;
     }
 
-    let mut i = 0;
-    while i < Rotations::ALL.len() {
+    for i in 0..Rotations::ALL.len() {
         all_clockwise_moves[table_index_clockwise(Rotation(Rotations::ALL[i]))] = MoveInformation {
             cube_state: all_clockwise_moves
                 [table_index_clockwise(Face(Rotations::ALL[i].follows()))]
@@ -365,10 +363,8 @@ fn all_clockwise_moves() -> [MoveInformation; CLOCKWISE_MOVE_COUNT] {
             part: Rotation(Rotations::ALL[i]),
             modifier: Clockwise,
         };
-        i += 1;
     }
-    let mut i = 0;
-    while i < Faces::ALL.len() {
+    for i in 0..Faces::ALL.len() {
         let face = Faces::ALL[i];
         all_clockwise_moves[table_index_clockwise(Wide(face))] = MoveInformation {
             cube_state: all_clockwise_moves[table_index_clockwise(Face(face))].cube_state
@@ -376,7 +372,6 @@ fn all_clockwise_moves() -> [MoveInformation; CLOCKWISE_MOVE_COUNT] {
             part: Wide(face),
             modifier: Clockwise,
         };
-        i += 1;
     }
 
     all_clockwise_moves
@@ -392,17 +387,14 @@ static ALL_MOVES: LazyLock<[MoveInformation; 3 * CLOCKWISE_MOVE_COUNT]> = LazyLo
 fn all_moves() -> [MoveInformation; 3 * CLOCKWISE_MOVE_COUNT] {
     let clockwise_moves = all_clockwise_moves();
     let mut all_moves = [MoveInformation::IDENTITY; 3 * CLOCKWISE_MOVE_COUNT];
-    let mut i = 0;
-    while i < CLOCKWISE_MOVE_COUNT {
+
+    for i in 0..CLOCKWISE_MOVE_COUNT {
         all_moves[3 * i] = clockwise_moves[i];
         all_moves[3 * i + 1] = clockwise_moves[i].inverse();
         all_moves[3 * i + 2] = clockwise_moves[i].double();
-        i += 1;
     }
-    let mut i = 0;
-    while i < all_moves.len() {
-        assert_eq!(i, table_index(all_moves[i].part, all_moves[i].modifier));
-        i += 1;
+    for (i, m) in all_moves.iter().enumerate() {
+        assert_eq!(i, table_index(m.part, m.modifier));
     }
     all_moves
 }
