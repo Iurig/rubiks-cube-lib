@@ -27,8 +27,23 @@ pub struct Cube3By3 {
     /// 0 is oriented, 1 is misoriented
     edge_configuration: EdgeConfiguration,
 }
-
+macro_rules! unify_pieces {
+    ($($piece_type:ident: [$($p:ident),+]),+ $(,)?) => {
+        [
+            $($(Pieces3By3::$piece_type($piece_type::$p)),+),+
+        ]
+    };
+}
 impl Puzzle for Cube3By3 {
+    type Pieces = Pieces3By3;
+
+    const ALL_PIECES: &'static [Self::Pieces] = unify_pieces!(
+        Center: [U, F, R, B, L, D],
+        Corner: [Ubl, Ubr, Ufr, Ufl, Dfl, Dfr, Dbr, Dbl],
+        Edge: [Ub, Ur, Uf, Ul, Fl, Fr, Br, Bl, Df, Dr, Db, Dl],
+    )
+    .as_slice();
+
     fn random_state_with_seed(rng: &mut fastrand::Rng) -> Self {
         let mut attempt = Self {
             corner_configuration: CornerConfiguration::random_state_with_seed(rng),

@@ -57,6 +57,13 @@ pub type CornerConfiguration = PieceConfiguration<Corner, CORNERS_COUNT, CO_COUN
 pub type EdgeConfiguration = PieceConfiguration<Edge, EDGES_COUNT, EO_COUNT>;
 pub type Faces = Center;
 
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Pieces3By3 {
+    Center(Center),
+    Edge(Edge),
+    Corner(Corner),
+}
+
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum Slices {
     M,

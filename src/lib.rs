@@ -1,9 +1,11 @@
 #![doc = include_str!("../README.md")]
+mod method;
 mod ops;
 mod piece;
 mod puzzles;
 pub mod zn;
 
+pub use method::SolveMethod;
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};
 pub use puzzles::Puzzle;
