@@ -17,7 +17,7 @@ pub struct SimpleStep3x3 {
     pub name: String,
     pub before: Box<[Pieces3x3]>,
     pub after: Box<[Pieces3x3]>,
-    pub allowed: fn(&Move3x3) -> bool,
+    pub allowed: Vec<Vec<Move3x3>>,
 }
 #[derive(Default)]
 pub struct NoOptions();
@@ -70,31 +70,30 @@ impl SolveStep<Cube3x3, NamedSolution3x3, SimpleMethod3x3> for SimpleStep3x3 {
     #[expect(clippy::panic)]
     fn solve(&self, p: &mut Cube3x3) -> NamedSolution3x3 {
         let mut to_investigate = VecDeque::from([(*p, None, 0)]);
-        let mut investigated: HashMap<Cube3x3, Option<Move3x3>> = HashMap::new();
+        let mut investigated: HashMap<Cube3x3, Option<Vec<Move3x3>>> = HashMap::new();
         let mut prev_depth = 0;
-        let available_moves: Vec<Move3x3> = Cube3x3::ALL_MOVES
-            .iter()
-            .filter(|&m| (self.allowed)(m))
-            .copied()
-            .collect();
         while let Some((current_cube, current_move, depth)) = to_investigate.pop_front() {
             if investigated.contains_key(&current_cube) {
                 continue;
             }
             investigated.insert(current_cube, current_move);
-            for &m in &available_moves {
-                let moved_cube = current_cube * m;
+            for m in self.allowed.clone() {
+                let moved_cube = m.iter().fold(current_cube, |c, m| c * *m);
                 if self.step_is_solved(&moved_cube) {
                     *p = moved_cube;
                     let mut solution = VecDeque::from([m]);
                     let mut cube = current_cube;
-                    while let Some(backtracking_move) = investigated[&cube] {
-                        solution.push_front(backtracking_move);
-                        cube = cube * backtracking_move.inverse();
+                    while let Some(ref backtracking_move) = investigated[&cube] {
+                        solution.push_front(backtracking_move.clone());
+                        cube = backtracking_move
+                            .iter()
+                            .rev()
+                            .map(|&m| m.inverse())
+                            .fold(cube, |c, m| c * m);
                     }
                     return NamedSolution3x3(vec![NamedMoveSequence3x3(
                         self.name.clone(),
-                        Vec::from(solution),
+                        solution.iter().flatten().copied().collect(),
                     )]);
                 }
                 to_investigate.push_back((moved_cube, Some(m), depth + 1));

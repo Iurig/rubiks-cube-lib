@@ -1,7 +1,7 @@
 // `?` reports setup failures; `assert!` reports the property under test failing.
 #![allow(clippy::panic_in_result_fn)]
 
-use rubiks_cube_lib::{Center, Corner, Cube3x3, Edge, Inv, Pow, zn::Zn};
+use rubiks_cube_lib::{zn::Zn, *};
 use std::error::Error;
 
 const IMPLEMENTED_MOVES: [&str; 12] = ["R", "U", "D", "L", "F", "B", "E", "S", "M", "y", "z", "x"];
@@ -374,6 +374,20 @@ fn roux_solve_removes_comments() -> Result<(), Box<dyn Error>> {
         ))?
     );
     Ok(())
+}
+
+#[test]
+fn full_solve_and_checking_bfs() {
+    let scr = "U B' D L2 U B2 R2 D2 L2 D' U2 B2 R2 L U2 F' R' B L D'\n";
+    let mut scrambled = Cube3x3::from_solved(scr).expect("deu ruim");
+
+    let recon: String = (ROUX).solve(&mut scrambled).to_recon(NoOptions::default());
+
+    assert_eq!(
+        Cube3x3::from_solved(&(scr.to_string() + recon.as_str())).expect("deu OUTRO ruim"),
+        Cube3x3::default()
+    );
+    println!("{recon}");
 }
 
 #[test]
