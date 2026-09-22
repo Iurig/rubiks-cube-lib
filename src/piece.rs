@@ -44,7 +44,7 @@ where
 }
 
 /// Where each of `N` pieces sits and how it is oriented, mod `O`.
-#[derive(PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Hash)]
 pub struct PieceConfiguration<P, const N: usize, const O: usize> {
     pub(crate) permutation: [P; N],
     pub(crate) orientation: [Zn<O>; N],
@@ -96,8 +96,8 @@ where
     /// the returned piece can be fed back in as the next slot when tracing a
     /// cycle, the way blind memorization does.
     #[must_use]
-    pub const fn piece_at(&self, slot: P) -> P {
-        self.permutation[index(slot)]
+    pub const fn piece_at(&self, slot: &P) -> P {
+        self.permutation[index(*slot)]
     }
 
     /// The orientation held at `slot`: the twist or flip of the piece sitting
@@ -106,8 +106,8 @@ where
     /// Centers have no orientation, so on a center configuration this always
     /// returns zero.
     #[must_use]
-    pub const fn orientation_at(&self, slot: P) -> Zn<O> {
-        self.orientation[index(slot)]
+    pub const fn orientation_at(&self, slot: &P) -> Zn<O> {
+        self.orientation[index(*slot)]
     }
 
     /// # Panics

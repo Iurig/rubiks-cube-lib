@@ -1,13 +1,19 @@
 //! Modular integers for piece orientation.
-use std::ops::Neg;
+use std::{fmt::Debug, ops::Neg};
 
 /// Integers mod `N`, stored as the representative in `0..N`.
 ///
 /// The representative fits a byte: a twist is at most 2 and a flip at most
 /// 1, and `N` is capped at 256 so any modulus this crate could want still
 /// fits. The public face works in `usize`; the byte never leaks.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, PartialEq, Eq, Default, Hash)]
 pub struct Zn<const N: usize>(u8);
+
+impl<const N: usize> Debug for Zn<N> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value())
+    }
+}
 
 impl<const N: usize> From<usize> for Zn<N> {
     fn from(integer: usize) -> Self {
