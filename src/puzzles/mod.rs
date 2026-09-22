@@ -8,6 +8,8 @@ pub trait Puzzle: Default + Mul + Debug {
     const ALL_PIECES: &'static [Self::Pieces];
     const ALL_MOVES: &'static [Self::Moves];
 
+    fn piece_location(&self, piece: &Self::Pieces) -> Self::Pieces;
+
     fn piece_at(&self, slot: &Self::Pieces) -> Self::Pieces;
 
     fn orientation_at(&self, slot: &Self::Pieces) -> usize;

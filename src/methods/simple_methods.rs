@@ -69,21 +69,28 @@ impl SolveStep<Cube3x3, NamedSolution3x3, SimpleMethod3x3> for SimpleStep3x3 {
     }
     #[expect(clippy::panic)]
     fn solve(&self, p: &mut Cube3x3) -> NamedSolution3x3 {
+        let mask = |&c: &Cube3x3| {
+            self.after
+                .iter()
+                .map(|p| (c.piece_location(p), c.orientation_at(&c.piece_location(p))))
+                .collect::<Vec<(Pieces3x3, usize)>>()
+        };
         let mut to_investigate = VecDeque::from([(*p, None, 0)]);
-        let mut investigated: HashMap<Cube3x3, Option<Vec<Move3x3>>> = HashMap::new();
+        let mut investigated: HashMap<Vec<(Pieces3x3, usize)>, Option<Vec<Move3x3>>> =
+            HashMap::new();
         let mut prev_depth = 0;
         while let Some((current_cube, current_move, depth)) = to_investigate.pop_front() {
-            if investigated.contains_key(&current_cube) {
+            if investigated.contains_key(&mask(&current_cube)) {
                 continue;
             }
-            investigated.insert(current_cube, current_move);
+            investigated.insert(mask(&current_cube), current_move);
             for m in self.allowed.clone() {
                 let moved_cube = m.iter().fold(current_cube, |c, m| c * *m);
                 if self.step_is_solved(&moved_cube) {
                     *p = moved_cube;
                     let mut solution = VecDeque::from([m]);
                     let mut cube = current_cube;
-                    while let Some(ref backtracking_move) = investigated[&cube] {
+                    while let Some(ref backtracking_move) = investigated[&mask(&cube)] {
                         solution.push_front(backtracking_move.clone());
                         cube = backtracking_move
                             .iter()
