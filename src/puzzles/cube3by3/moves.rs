@@ -5,7 +5,7 @@ mod table;
 #[allow(clippy::wildcard_imports)]
 use crate::{
     ops,
-    puzzles::cube3by3::{Cube3By3, pieces::*},
+    puzzles::cube3by3::{Cube3x3, pieces::*},
 };
 
 use table::cube_state;
@@ -38,12 +38,12 @@ impl MoveModifier {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub struct Move {
-    part: MovablePart,
-    modifier: MoveModifier,
+pub struct Move3x3 {
+    pub part: MovablePart,
+    pub modifier: MoveModifier,
 }
 
-impl Move {
+impl Move3x3 {
     pub const fn new(part: MovablePart, modifier: MoveModifier) -> Self {
         Self { part, modifier }
     }
@@ -88,20 +88,20 @@ impl std::fmt::Display for MoveModifier {
     }
 }
 
-impl std::fmt::Display for Move {
+impl std::fmt::Display for Move3x3 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}{}", self.part, self.modifier)
     }
 }
 
-impl std::ops::Mul for Move {
-    type Output = Cube3By3;
+impl std::ops::Mul for Move3x3 {
+    type Output = Cube3x3;
     fn mul(self, rhs: Self) -> Self::Output {
-        Cube3By3::from(self) * Cube3By3::from(rhs)
+        Cube3x3::from(self) * Cube3x3::from(rhs)
     }
 }
 
-impl ops::Inv for Move {
+impl ops::Inv for Move3x3 {
     fn inverse(&self) -> Self {
         Self {
             part: self.part,
@@ -191,7 +191,7 @@ impl std::fmt::Display for ParseSequenceError {
     }
 }
 
-impl TryFrom<&str> for Move {
+impl TryFrom<&str> for Move3x3 {
     type Error = ParseMoveError;
     /// One move in notation: a part, then a modifier.
     ///
@@ -250,7 +250,7 @@ impl TryFrom<&str> for Move {
     }
 }
 
-impl Move {
+impl Move3x3 {
     /// Every move in a move sequence, in order.
     ///
     /// `//` starts a comment that runs to the end of the line, whitespace
@@ -274,8 +274,8 @@ impl Move {
     }
 }
 
-impl From<Move> for Cube3By3 {
-    fn from(m: Move) -> Self {
+impl From<Move3x3> for Cube3x3 {
+    fn from(m: Move3x3) -> Self {
         cube_state(m.part, m.modifier)
     }
 }
@@ -336,7 +336,7 @@ mod tests {
         ];
     }
 
-    impl Move {
+    impl Move3x3 {
         const ALL: [Self; MovablePart::ALL.len() * MoveModifier::ALL.len()] = {
             let mut all: [Self; MovablePart::ALL.len() * MoveModifier::ALL.len()] = [Self {
                 part: MovablePart::Face(Faces::R),
@@ -361,13 +361,13 @@ mod tests {
 
     #[test]
     fn move_display_round_trip() {
-        for m in Move::ALL {
-            assert_eq!(m, Move::try_from(m.to_string().as_str()).unwrap());
+        for m in Move3x3::ALL {
+            assert_eq!(m, Move3x3::try_from(m.to_string().as_str()).unwrap());
         }
     }
 
-    fn moves_of(text: &str) -> Result<Vec<Move>, ParseSequenceError> {
-        Move::sequence(text).collect()
+    fn moves_of(text: &str) -> Result<Vec<Move3x3>, ParseSequenceError> {
+        Move3x3::sequence(text).collect()
     }
 
     #[test]
@@ -407,8 +407,8 @@ mod tests {
             let lower = MovablePart::Face(face).to_string().to_lowercase();
             for modifier in ["", "'", "2", "2'"] {
                 assert_eq!(
-                    Move::try_from(format!("{lower}{modifier}").as_str()),
-                    Move::try_from(format!("{wide}{modifier}").as_str()),
+                    Move3x3::try_from(format!("{lower}{modifier}").as_str()),
+                    Move3x3::try_from(format!("{wide}{modifier}").as_str()),
                 );
             }
         }
@@ -474,7 +474,7 @@ mod tests {
                 },
             ),
         ] {
-            assert_eq!(Move::try_from(bad), Err(expected_err));
+            assert_eq!(Move3x3::try_from(bad), Err(expected_err));
         }
         assert!(moves_of("R Q U").is_err());
     }
