@@ -87,7 +87,7 @@ pub static SB_SQUARE: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
 
 pub static SB: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
     name: "SB Pair".to_string(),
-    before: SB_SQUARE.after.clone(),
+    before: FB.after.clone(),
     after: FB
         .after
         .iter()
@@ -122,10 +122,12 @@ pub static CMLL: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
         .into_boxed_slice(),
     allowed: [
         "R U R' U R U2 R'",
+        "R U2 R' U' R U' R'",
         "R U R' F' R U R' U' R' F R2 U' R'",
         "U",
         "U2",
         "U'",
+        "F R U' R' U' R U R' F' R U R' U' R' F R F'",
     ]
     .iter()
     .map(|&r| Move3x3::sequence(r).map(|p| p.unwrap()).collect())
@@ -152,7 +154,7 @@ pub static LSE: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
 pub static ROUX: LazyLock<SimpleMethod3x3> = LazyLock::new(|| {
     SimpleMethod3x3(vec![
         FB.clone(),
-        SB_SQUARE.clone(),
+        //SB_SQUARE.clone(),
         SB.clone(),
         CMLL.clone(),
         LSE.clone(),

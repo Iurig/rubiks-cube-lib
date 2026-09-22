@@ -76,6 +76,14 @@ impl Puzzle for Cube3x3 {
         .as_slice()
     };
 
+    fn piece_location(&self, piece: &Self::Pieces) -> Self::Pieces {
+        Self::ALL_PIECES
+            .iter()
+            .find(|&slot| self.piece_at(slot) == *piece)
+            .copied()
+            .expect("All Cubes should have all pieces somewhere")
+    }
+
     fn piece_at(&self, slot: &Self::Pieces) -> Self::Pieces {
         match slot {
             Self::Pieces::Corner(co) => Pieces3x3::Corner(self.corner_configuration.piece_at(co)),
