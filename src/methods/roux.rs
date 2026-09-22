@@ -1,9 +1,9 @@
 use std::sync::LazyLock;
 
 use crate::{
-    SimpleMethod3x3, SimpleStep3x3,
+    Cube3x3, Puzzle, SimpleMethod3x3, SimpleStep3x3,
     puzzles::cube3by3::{
-        moves::MovablePart,
+        moves::{MovablePart, Move3x3},
         pieces::{Faces, Pieces3x3, Slices},
     },
 };
@@ -17,12 +17,9 @@ const FB_PIECES: [Pieces3x3; 6] = [
     Pieces3x3::Edge(crate::Edge::Bl),
 ];
 
-const SB_EDGE_PIECES: [Pieces3x3; 2] = [
+const SB_SQUARE_PIECES: [Pieces3x3; 4] = [
     Pieces3x3::Center(crate::Center::R),
     Pieces3x3::Edge(crate::Edge::Dr),
-];
-
-const SB_SQUARE_PIECES: [Pieces3x3; 2] = [
     Pieces3x3::Corner(crate::Corner::Dbr),
     Pieces3x3::Edge(crate::Edge::Br),
 ];
@@ -60,33 +57,12 @@ pub static FB: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
     name: "FB".to_string(),
     before: Box::new([]),
     after: Box::new(FB_PIECES),
-    allowed: |_| true,
-});
-
-pub static SB_EDGE: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
-    name: "SB Edge".to_string(),
-    before: FB.after.clone(),
-    after: FB
-        .after
-        .iter()
-        .chain(SB_EDGE_PIECES.iter())
-        .copied()
-        .collect::<Vec<Pieces3x3>>()
-        .into_boxed_slice(),
-    allowed: |&m| {
-        [
-            MovablePart::Face(Faces::U),
-            MovablePart::Face(Faces::R),
-            MovablePart::Slice(Slices::M),
-            MovablePart::Wide(Faces::R),
-        ]
-        .contains(&m.part)
-    },
+    allowed: Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]).collect(),
 });
 
 pub static SB_SQUARE: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
     name: "SB Square".to_string(),
-    before: SB_EDGE.after.clone(),
+    before: FB.after.clone(),
     after: FB
         .after
         .iter()
@@ -94,15 +70,19 @@ pub static SB_SQUARE: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
         .copied()
         .collect::<Vec<Pieces3x3>>()
         .into_boxed_slice(),
-    allowed: |&m| {
-        [
-            MovablePart::Face(Faces::U),
-            MovablePart::Face(Faces::R),
-            MovablePart::Slice(Slices::M),
-            MovablePart::Wide(Faces::R),
-        ]
-        .contains(&m.part)
-    },
+    allowed: Cube3x3::ALL_MOVES
+        .iter()
+        .filter(|&m| {
+            [
+                MovablePart::Face(Faces::U),
+                MovablePart::Face(Faces::R),
+                MovablePart::Slice(Slices::M),
+                MovablePart::Wide(Faces::R),
+            ]
+            .contains(&m.part)
+        })
+        .map(|&m| vec![m])
+        .collect(),
 });
 
 pub static SB: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
@@ -115,15 +95,19 @@ pub static SB: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
         .copied()
         .collect::<Vec<Pieces3x3>>()
         .into_boxed_slice(),
-    allowed: |&m| {
-        [
-            MovablePart::Face(Faces::U),
-            MovablePart::Face(Faces::R),
-            MovablePart::Slice(Slices::M),
-            MovablePart::Wide(Faces::R),
-        ]
-        .contains(&m.part)
-    },
+    allowed: Cube3x3::ALL_MOVES
+        .iter()
+        .filter(|&m| {
+            [
+                MovablePart::Face(Faces::U),
+                MovablePart::Face(Faces::R),
+                MovablePart::Slice(Slices::M),
+                MovablePart::Wide(Faces::R),
+            ]
+            .contains(&m.part)
+        })
+        .map(|&m| vec![m])
+        .collect(),
 });
 
 pub static CMLL: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
@@ -136,7 +120,16 @@ pub static CMLL: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
         .copied()
         .collect::<Vec<Pieces3x3>>()
         .into_boxed_slice(),
-    allowed: |_| true,
+    allowed: [
+        "R U R' U R U2 R'",
+        "R U R' F' R U R' U' R' F R2 U' R'",
+        "U",
+        "U2",
+        "U'",
+    ]
+    .iter()
+    .map(|&r| Move3x3::sequence(r).map(|p| p.unwrap()).collect())
+    .collect(),
 });
 
 pub static LSE: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
@@ -149,13 +142,16 @@ pub static LSE: LazyLock<SimpleStep3x3> = LazyLock::new(|| SimpleStep3x3 {
         .copied()
         .collect::<Vec<Pieces3x3>>()
         .into_boxed_slice(),
-    allowed: |&m| [MovablePart::Face(Faces::U), MovablePart::Slice(Slices::M)].contains(&m.part),
+    allowed: Cube3x3::ALL_MOVES
+        .iter()
+        .filter(|&m| [MovablePart::Face(Faces::U), MovablePart::Slice(Slices::M)].contains(&m.part))
+        .map(|&m| vec![m])
+        .collect(),
 });
 
 pub static ROUX: LazyLock<SimpleMethod3x3> = LazyLock::new(|| {
     SimpleMethod3x3(vec![
         FB.clone(),
-        SB_EDGE.clone(),
         SB_SQUARE.clone(),
         SB.clone(),
         CMLL.clone(),
@@ -175,7 +171,6 @@ mod test {
         assert_eq!(
             FB_PIECES
                 .iter()
-                .chain(SB_EDGE_PIECES.iter())
                 .chain(SB_SQUARE_PIECES.iter())
                 .chain(SB_PIECES.iter())
                 .chain(CMLL_PIECES.iter())
@@ -192,18 +187,30 @@ mod test {
             match i {
                 0 => {
                     assert_eq!(*step.before, []);
-                    assert_eq!(*step.after, *ROUX.0[i + 1].before);
+                    assert_eq!(
+                        HashSet::<Pieces3x3>::from_iter(step.after.iter().copied()),
+                        HashSet::<Pieces3x3>::from_iter(ROUX.0[i + 1].before.iter().copied())
+                    );
                 }
-                3 => {
+                x if x == ((*ROUX.0).len() - 1) => {
                     assert_eq!(
                         step.after.iter().copied().collect::<HashSet<Pieces3x3>>(),
                         HashSet::from_iter(Cube3x3::ALL_PIECES.iter().copied())
                     );
-                    assert_eq!(*step.before, *ROUX.0[i - 1].after);
+                    assert_eq!(
+                        HashSet::<Pieces3x3>::from_iter(step.before.iter().copied()),
+                        HashSet::<Pieces3x3>::from_iter(ROUX.0[i - 1].after.iter().copied())
+                    );
                 }
                 _ => {
-                    assert_eq!(*step.before, *ROUX.0[i - 1].after);
-                    assert_eq!(*step.after, *ROUX.0[i + 1].before);
+                    assert_eq!(
+                        HashSet::<Pieces3x3>::from_iter(step.before.iter().copied()),
+                        HashSet::<Pieces3x3>::from_iter(ROUX.0[i - 1].after.iter().copied())
+                    );
+                    assert_eq!(
+                        HashSet::<Pieces3x3>::from_iter(step.after.iter().copied()),
+                        HashSet::<Pieces3x3>::from_iter(ROUX.0[i + 1].before.iter().copied())
+                    );
                 }
             }
         }
