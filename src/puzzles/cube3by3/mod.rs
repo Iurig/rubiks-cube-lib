@@ -7,19 +7,20 @@ use std::ops::Neg;
 // library is compiled with `cfg(test)`
 #[allow(clippy::wildcard_imports)]
 use self::{moves::*, pieces::*};
+#[allow(clippy::enum_glob_use)]
 use crate::{
     ops::{Inv, Pow},
-    puzzles::Puzzle,
+    puzzles::{Puzzle, cube3by3::moves::MoveModifier::*},
     zn::Zn,
 };
 
 /// A 3x3x3 cube state; `a * b` applies `a` then `b`.
-#[derive(Debug, Clone, PartialEq, Eq, Default, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Copy, Hash)]
 #[expect(
     clippy::struct_field_names,
     reason = "_configuration makes clear what all variables are"
 )]
-pub struct Cube3By3 {
+pub struct Cube3x3 {
     /// `CENTER_ORIENTATION_COUNT` is 1, centers are considered without orientation
     center_configuration: CenterConfiguration,
     /// Corner orientation is done with the convention of clockwise rotations from white/yellow sticker being in the faces U and D
@@ -30,12 +31,13 @@ pub struct Cube3By3 {
 macro_rules! unify_pieces {
     ($($piece_type:ident: [$($p:ident),+]),+ $(,)?) => {
         [
-            $($(Pieces3By3::$piece_type($piece_type::$p)),+),+
+            $($(Pieces3x3::$piece_type($piece_type::$p)),+),+
         ]
     };
 }
-impl Puzzle for Cube3By3 {
-    type Pieces = Pieces3By3;
+impl Puzzle for Cube3x3 {
+    type Pieces = Pieces3x3;
+    type Moves = Move3x3;
 
     const ALL_PIECES: &'static [Self::Pieces] = unify_pieces!(
         Center: [U, F, R, B, L, D],
@@ -43,6 +45,60 @@ impl Puzzle for Cube3By3 {
         Edge: [Ub, Ur, Uf, Ul, Fl, Fr, Br, Bl, Df, Dr, Db, Dl],
     )
     .as_slice();
+
+    const ALL_MOVES: &'static [Self::Moves] = {
+        #[allow(clippy::enum_glob_use)]
+        use crate::{Center::*, puzzles::cube3by3::moves::MovablePart::*};
+        use moves::Move3x3;
+        [
+            Move3x3::new(Face(F), Clockwise),
+            Move3x3::new(Face(F), CounterClockwise),
+            Move3x3::new(Face(F), Double),
+            Move3x3::new(Face(U), Clockwise),
+            Move3x3::new(Face(U), CounterClockwise),
+            Move3x3::new(Face(U), Double),
+            Move3x3::new(Face(R), Clockwise),
+            Move3x3::new(Face(R), CounterClockwise),
+            Move3x3::new(Face(R), Double),
+            Move3x3::new(Face(L), Clockwise),
+            Move3x3::new(Face(L), CounterClockwise),
+            Move3x3::new(Face(L), Double),
+            Move3x3::new(Face(D), Clockwise),
+            Move3x3::new(Face(D), CounterClockwise),
+            Move3x3::new(Face(D), Double),
+            Move3x3::new(Face(B), Clockwise),
+            Move3x3::new(Face(B), CounterClockwise),
+            Move3x3::new(Face(B), Double),
+            Move3x3::new(Slice(Slices::M), Clockwise),
+            Move3x3::new(Slice(Slices::M), CounterClockwise),
+            Move3x3::new(Slice(Slices::M), Double),
+        ]
+        .as_slice()
+    };
+
+    fn piece_location(&self, piece: &Self::Pieces) -> Self::Pieces {
+        Self::ALL_PIECES
+            .iter()
+            .find(|&slot| self.piece_at(slot) == *piece)
+            .copied()
+            .expect("All Cubes should have all pieces somewhere")
+    }
+
+    fn piece_at(&self, slot: &Self::Pieces) -> Self::Pieces {
+        match slot {
+            Self::Pieces::Corner(co) => Pieces3x3::Corner(self.corner_configuration.piece_at(co)),
+            Self::Pieces::Edge(ed) => Pieces3x3::Edge(self.edge_configuration.piece_at(ed)),
+            Self::Pieces::Center(ce) => Pieces3x3::Center(self.center_configuration.piece_at(ce)),
+        }
+    }
+
+    fn orientation_at(&self, slot: &Self::Pieces) -> usize {
+        match slot {
+            Self::Pieces::Corner(co) => self.corner_configuration.orientation_at(co).value(),
+            Self::Pieces::Edge(ed) => self.edge_configuration.orientation_at(ed).value(),
+            Self::Pieces::Center(ce) => self.center_configuration.orientation_at(ce).value(),
+        }
+    }
 
     fn random_state_with_seed(rng: &mut fastrand::Rng) -> Self {
         let mut attempt = Self {
@@ -71,7 +127,7 @@ impl Puzzle for Cube3By3 {
     }
 }
 
-impl std::ops::Mul for Cube3By3 {
+impl std::ops::Mul for Cube3x3 {
     type Output = Self;
     /// Applies the state (permutations and orientations) that is the second argument to the first argument, which is a cube
     /// IMPORTANT: associative, but non-commutative
@@ -84,20 +140,20 @@ impl std::ops::Mul for Cube3By3 {
     }
 }
 
-impl std::ops::Mul<Move> for Cube3By3 {
+impl std::ops::Mul<Move3x3> for Cube3x3 {
     type Output = Self;
-    fn mul(self, m: Move) -> Self::Output {
+    fn mul(self, m: Move3x3) -> Self::Output {
         self * Self::from(m)
     }
 }
 
-impl Pow for Cube3By3 {
+impl Pow for Cube3x3 {
     fn identity() -> Self {
         Self::IDENTITY
     }
 }
 
-impl Inv for Cube3By3 {
+impl Inv for Cube3x3 {
     fn inverse(&self) -> Self {
         Self {
             center_configuration: self.center_configuration.inverse(),
@@ -107,7 +163,7 @@ impl Inv for Cube3By3 {
     }
 }
 
-impl Cube3By3 {
+impl Cube3x3 {
     /// The multiplicative identity of the cube group: the solved cube
     pub const IDENTITY: Self = Self {
         center_configuration: CenterConfiguration::IDENTITY,
@@ -139,7 +195,7 @@ impl Cube3By3 {
     /// as a move; the error names that &str and its line and position, both counted
     /// from 1, using the type [`ParseSequenceError`]
     pub fn move_sequence(&self, moves: &str) -> Result<Self, ParseSequenceError> {
-        Move::sequence(moves).try_fold(*self, |cube, m| Ok(cube * Self::from(m?)))
+        Move3x3::sequence(moves).try_fold(*self, |cube, m| Ok(cube * Self::from(m?)))
     }
 
     /// Applies a move sequence to the solved cube.
@@ -160,26 +216,26 @@ impl Cube3By3 {
     fn rotated_until_solved_centers(&self) -> Option<Self> {
         let mut rotated_self = *self;
         if ![
-            rotated_self.centers().piece_at(Center::F),
-            rotated_self.centers().piece_at(Center::U),
-            rotated_self.centers().piece_at(Center::B),
-            rotated_self.centers().piece_at(Center::D),
+            rotated_self.centers().piece_at(&Center::F),
+            rotated_self.centers().piece_at(&Center::U),
+            rotated_self.centers().piece_at(&Center::B),
+            rotated_self.centers().piece_at(&Center::D),
         ]
         .contains(&Faces::F)
         {
             rotated_self = rotated_self
-                * Move::new(MovablePart::Rotation(Rotations::y), MoveModifier::Clockwise);
+                * Move3x3::new(MovablePart::Rotation(Rotations::y), MoveModifier::Clockwise);
         }
         for _ in 0..4 {
-            if rotated_self.centers().piece_at(Faces::F) != Faces::F {
+            if rotated_self.centers().piece_at(&Faces::F) != Faces::F {
                 rotated_self = rotated_self
-                    * Move::new(MovablePart::Rotation(Rotations::x), MoveModifier::Clockwise);
+                    * Move3x3::new(MovablePart::Rotation(Rotations::x), MoveModifier::Clockwise);
             }
         }
         for _ in 0..4 {
-            if rotated_self.centers().piece_at(Faces::U) != Faces::U {
+            if rotated_self.centers().piece_at(&Faces::U) != Faces::U {
                 rotated_self = rotated_self
-                    * Move::new(MovablePart::Rotation(Rotations::z), MoveModifier::Clockwise);
+                    * Move3x3::new(MovablePart::Rotation(Rotations::z), MoveModifier::Clockwise);
             }
         }
 
@@ -244,26 +300,26 @@ mod tests {
         let mut rng = fastrand::Rng::with_seed(40);
         for i in 0..100 {
             println!("test {i} started");
-            assert!(Cube3By3::random_state_with_seed(&mut rng).is_reachable());
+            assert!(Cube3x3::random_state_with_seed(&mut rng).is_reachable());
             println!("test {i} done");
         }
     }
 
     #[test]
     fn default_is_solved() {
-        assert!(Cube3By3::default().is_solved());
+        assert!(Cube3x3::default().is_solved());
     }
 
     #[test]
     fn y_rotated_solved_is_solved() -> Result<(), Box<dyn Error>> {
-        let rotated_def = Cube3By3::from_solved("y")?;
+        let rotated_def = Cube3x3::from_solved("y")?;
         assert!(rotated_def.is_solved());
         Ok(())
     }
 
     #[test]
     fn rotated_solved_is_solved() -> Result<(), Box<dyn Error>> {
-        let rotated_def = Cube3By3::from_solved("y z y z x2 z2")?;
+        let rotated_def = Cube3x3::from_solved("y z y z x2 z2")?;
         assert!(rotated_def.is_solved());
         Ok(())
     }
@@ -271,7 +327,7 @@ mod tests {
     #[test]
     fn center_3_cyle_isnt_reachable_even_if_respects_parity() {
         assert!(
-            !Cube3By3 {
+            !Cube3x3 {
                 center_configuration: CenterConfiguration::cycle([[
                     Center::F,
                     Center::R,
@@ -286,7 +342,7 @@ mod tests {
     #[test]
     fn corner_twist_isnt_reachable() {
         assert!(
-            !Cube3By3 {
+            !Cube3x3 {
                 corner_configuration: CornerConfiguration {
                     orientation: Zn::array([1, 0, 0, 0, 0, 0, 0, 0,]),
                     ..Default::default()
@@ -300,7 +356,7 @@ mod tests {
     #[test]
     fn edge_flip_isnt_reachable() {
         assert!(
-            !Cube3By3 {
+            !Cube3x3 {
                 edge_configuration: EdgeConfiguration {
                     orientation: Zn::array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]),
                     ..Default::default()
@@ -314,7 +370,7 @@ mod tests {
     #[test]
     fn single_swap_isnt_reachable() {
         assert!(
-            !Cube3By3 {
+            !Cube3x3 {
                 corner_configuration: CornerConfiguration {
                     permutation: {
                         let mut p = Corner::ALL;
@@ -331,53 +387,44 @@ mod tests {
 
     #[test]
     fn incorrect_strings_return_error() {
-        assert!(Cube3By3::from_solved("Q").is_err());
-        assert!(Cube3By3::from_solved("R Q U").is_err());
-        assert!(Cube3By3::from_solved("R3").is_err());
+        assert!(Cube3x3::from_solved("Q").is_err());
+        assert!(Cube3x3::from_solved("R Q U").is_err());
+        assert!(Cube3x3::from_solved("R3").is_err());
     }
 
     #[test]
     fn rotations_match_moves() -> Result<(), Box<dyn Error>> {
-        assert_eq!(
-            Cube3By3::from_solved("y")?,
-            Cube3By3::from_solved("U E' D'")?
-        );
-        assert_eq!(
-            Cube3By3::from_solved("z")?,
-            Cube3By3::from_solved("F S B'")?
-        );
-        assert_eq!(
-            Cube3By3::from_solved("x")?,
-            Cube3By3::from_solved("R M' L'")?
-        );
+        assert_eq!(Cube3x3::from_solved("y")?, Cube3x3::from_solved("U E' D'")?);
+        assert_eq!(Cube3x3::from_solved("z")?, Cube3x3::from_solved("F S B'")?);
+        assert_eq!(Cube3x3::from_solved("x")?, Cube3x3::from_solved("R M' L'")?);
         Ok(())
     }
 
     #[test]
     fn all_axes_rotated_solved_is_solved_but_not_after_a_face_turn() -> Result<(), Box<dyn Error>> {
-        assert!(Cube3By3::from_solved("x y2 z'")?.is_solved());
-        assert!(!Cube3By3::from_solved("x y2 z' R")?.is_solved());
+        assert!(Cube3x3::from_solved("x y2 z'")?.is_solved());
+        assert!(!Cube3x3::from_solved("x y2 z' R")?.is_solved());
         Ok(())
     }
 
     #[test]
     fn r_4_times_is_solved() -> Result<(), Box<dyn Error>> {
-        let cube = Cube3By3::from_solved("R R R R")?;
+        let cube = Cube3x3::from_solved("R R R R")?;
         assert!(cube.is_solved());
         Ok(())
     }
 
     #[test]
     fn r_2_is_equal_to_r_prime_2() -> Result<(), Box<dyn Error>> {
-        let r2 = Cube3By3::from_solved("R2")?;
-        let r_prime_2 = Cube3By3::from_solved("R' R'")?;
+        let r2 = Cube3x3::from_solved("R2")?;
+        let r_prime_2 = Cube3x3::from_solved("R' R'")?;
         assert_eq!(r2, r_prime_2);
         Ok(())
     }
 
     #[test]
     fn r_r_prime_is_solved() -> Result<(), Box<dyn Error>> {
-        let mut cube = Cube3By3::from_solved("R")?;
+        let mut cube = Cube3x3::from_solved("R")?;
         assert!(!cube.is_solved());
         cube = cube.move_sequence("R'")?;
         assert!(cube.is_solved());
@@ -386,16 +433,16 @@ mod tests {
 
     #[test]
     fn r_prime_is_inverse_of_r() -> Result<(), Box<dyn Error>> {
-        let r = Cube3By3::from_solved("R")?;
-        let r_prime = Cube3By3::from_solved("R'")?;
+        let r = Cube3x3::from_solved("R")?;
+        let r_prime = Cube3x3::from_solved("R'")?;
         assert_eq!(r.inverse(), r_prime);
         Ok(())
     }
 
     #[test]
     fn composing_u_and_r_works() -> Result<(), Box<dyn Error>> {
-        let u = Cube3By3::from_solved("U")?;
-        let ur = Cube3By3::from_solved("U R")?;
+        let u = Cube3x3::from_solved("U")?;
+        let ur = Cube3x3::from_solved("U R")?;
         assert_eq!(u.move_sequence("R")?, ur);
         Ok(())
     }
@@ -404,9 +451,9 @@ mod tests {
     fn composition_works() -> Result<(), Box<dyn Error>> {
         let scramble_string = "R' ";
         let solution_string = "D2";
-        let scramble = Cube3By3::from_solved(scramble_string)?;
+        let scramble = Cube3x3::from_solved(scramble_string)?;
         assert_eq!(
-            Cube3By3::from_solved(&format!("{scramble_string} {solution_string}"))?,
+            Cube3x3::from_solved(&format!("{scramble_string} {solution_string}"))?,
             scramble.move_sequence(solution_string)?,
             "composing {scramble_string} and {solution_string} doesn't result in applying {scramble_string} {solution_string}"
         );
@@ -418,9 +465,9 @@ mod tests {
         let scramble_string =
             "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F";
         let solution_string = "D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'";
-        let scramble = Cube3By3::from_solved(scramble_string)?;
+        let scramble = Cube3x3::from_solved(scramble_string)?;
         assert_eq!(
-            Cube3By3::from_solved(&format!("{scramble_string} {solution_string}"))?,
+            Cube3x3::from_solved(&format!("{scramble_string} {solution_string}"))?,
             scramble.move_sequence(solution_string)?,
             "composing {scramble_string} and {solution_string} doesn't result in applying {scramble_string} {solution_string}"
         );
@@ -431,8 +478,8 @@ mod tests {
     fn mul_carries_orientation_along_with_the_piece() -> Result<(), Box<dyn Error>> {
         // Pre-twist the piece at UFR, then apply R: that piece lands at UBR and
         // its twist is added to the twist R gives the UBR slot.
-        let r = Cube3By3::from_solved("R")?;
-        let mut twisted = Cube3By3::default();
+        let r = Cube3x3::from_solved("R")?;
+        let mut twisted = Cube3x3::default();
         twisted.corner_configuration.orientation[Corner::Ufr as usize] = Zn::new(1);
         let after = twisted * r;
         let mut expected = r;
@@ -444,21 +491,21 @@ mod tests {
     #[test]
     fn u_perm_repeats_after_3_applications() {
         use Edge::{Uf, Ul, Ur};
-        let u_perm = Cube3By3 {
+        let u_perm = Cube3x3 {
             edge_configuration: EdgeConfiguration::cycle([[Ur, Uf, Ul]]),
             ..Default::default()
         };
-        assert_eq!(u_perm.pow(3), Cube3By3::default());
+        assert_eq!(u_perm.pow(3), Cube3x3::default());
     }
 
     #[test]
     fn sequences_without_moves_leave_the_cube_unchanged() -> Result<(), Box<dyn Error>> {
-        let cube = Cube3By3::from_solved("R U")?;
+        let cube = Cube3x3::from_solved("R U")?;
         assert_eq!(cube.move_sequence("")?, cube);
         assert_eq!(cube.move_sequence("// nothing here")?, cube);
         assert_eq!(
-            Cube3By3::from_solved("\n  // only comments\n")?,
-            Cube3By3::default()
+            Cube3x3::from_solved("\n  // only comments\n")?,
+            Cube3x3::default()
         );
         Ok(())
     }

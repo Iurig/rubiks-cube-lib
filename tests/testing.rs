@@ -1,7 +1,7 @@
 // `?` reports setup failures; `assert!` reports the property under test failing.
 #![allow(clippy::panic_in_result_fn)]
 
-use rubiks_cube_lib::{Center, Corner, Cube3By3, Edge, Inv, Pow, zn::Zn};
+use rubiks_cube_lib::{zn::Zn, *};
 use std::error::Error;
 
 const IMPLEMENTED_MOVES: [&str; 12] = ["R", "U", "D", "L", "F", "B", "E", "S", "M", "y", "z", "x"];
@@ -9,7 +9,7 @@ const IMPLEMENTED_MOVES: [&str; 12] = ["R", "U", "D", "L", "F", "B", "E", "S", "
 /// A reconstruction is a scramble followed by a solution. The scrambled state
 /// must be reachable, and the final state must be reachable and solved.
 fn assert_reconstruction(scramble: &str, solution: &str) -> Result<(), Box<dyn Error>> {
-    let scrambled = Cube3By3::from_solved(scramble)?;
+    let scrambled = Cube3x3::from_solved(scramble)?;
     assert!(
         scrambled.is_reachable(),
         "scramble reached an unreachable state: {scrambled:?}"
@@ -22,24 +22,24 @@ fn assert_reconstruction(scramble: &str, solution: &str) -> Result<(), Box<dyn E
 
 #[test]
 fn default_is_reachable() {
-    assert!(Cube3By3::default().is_reachable());
+    assert!(Cube3x3::default().is_reachable());
 }
 
 #[test]
 fn r_is_reachable() -> Result<(), Box<dyn Error>> {
-    assert!(Cube3By3::from_solved("R")?.is_reachable());
+    assert!(Cube3x3::from_solved("R")?.is_reachable());
     Ok(())
 }
 
 #[test]
 fn m_is_reachable() -> Result<(), Box<dyn Error>> {
-    assert!(Cube3By3::from_solved("M")?.is_reachable());
+    assert!(Cube3x3::from_solved("M")?.is_reachable());
     Ok(())
 }
 
 #[test]
 fn y_is_reachable() -> Result<(), Box<dyn Error>> {
-    assert!(Cube3By3::from_solved("y")?.is_reachable());
+    assert!(Cube3x3::from_solved("y")?.is_reachable());
     Ok(())
 }
 
@@ -52,7 +52,7 @@ fn y_is_reachable() -> Result<(), Box<dyn Error>> {
 #[test]
 fn r_takes_front_top_corner_to_back_top() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3By3::from_solved("R")?.corners().piece_at(Corner::Ubr),
+        Cube3x3::from_solved("R")?.corners().piece_at(&Corner::Ubr),
         Corner::Ufr
     );
     Ok(())
@@ -60,7 +60,7 @@ fn r_takes_front_top_corner_to_back_top() -> Result<(), Box<dyn Error>> {
 #[test]
 fn l_takes_back_top_corner_to_front_top() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3By3::from_solved("L")?.corners().piece_at(Corner::Ufl),
+        Cube3x3::from_solved("L")?.corners().piece_at(&Corner::Ufl),
         Corner::Ubl
     );
     Ok(())
@@ -68,7 +68,7 @@ fn l_takes_back_top_corner_to_front_top() -> Result<(), Box<dyn Error>> {
 #[test]
 fn u_takes_front_right_corner_to_front_left() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3By3::from_solved("U")?.corners().piece_at(Corner::Ufl),
+        Cube3x3::from_solved("U")?.corners().piece_at(&Corner::Ufl),
         Corner::Ufr
     );
     Ok(())
@@ -76,7 +76,7 @@ fn u_takes_front_right_corner_to_front_left() -> Result<(), Box<dyn Error>> {
 #[test]
 fn d_takes_front_right_corner_to_back_right() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3By3::from_solved("D")?.corners().piece_at(Corner::Dbr),
+        Cube3x3::from_solved("D")?.corners().piece_at(&Corner::Dbr),
         Corner::Dfr
     );
     Ok(())
@@ -84,7 +84,7 @@ fn d_takes_front_right_corner_to_back_right() -> Result<(), Box<dyn Error>> {
 #[test]
 fn f_takes_top_right_corner_to_bottom_right() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3By3::from_solved("F")?.corners().piece_at(Corner::Dfr),
+        Cube3x3::from_solved("F")?.corners().piece_at(&Corner::Dfr),
         Corner::Ufr
     );
     Ok(())
@@ -92,7 +92,7 @@ fn f_takes_top_right_corner_to_bottom_right() -> Result<(), Box<dyn Error>> {
 #[test]
 fn b_takes_top_right_corner_to_top_left() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3By3::from_solved("B")?.corners().piece_at(Corner::Ubl),
+        Cube3x3::from_solved("B")?.corners().piece_at(&Corner::Ubl),
         Corner::Ubr
     );
     Ok(())
@@ -103,7 +103,7 @@ fn b_takes_top_right_corner_to_top_left() -> Result<(), Box<dyn Error>> {
 #[test]
 fn e_follows_d_and_takes_front_center_to_right() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3By3::from_solved("E")?.centers().piece_at(Center::R),
+        Cube3x3::from_solved("E")?.centers().piece_at(&Center::R),
         Center::F
     );
     Ok(())
@@ -111,7 +111,7 @@ fn e_follows_d_and_takes_front_center_to_right() -> Result<(), Box<dyn Error>> {
 #[test]
 fn m_follows_l_and_takes_top_center_to_front() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3By3::from_solved("M")?.centers().piece_at(Center::F),
+        Cube3x3::from_solved("M")?.centers().piece_at(&Center::F),
         Center::U
     );
     Ok(())
@@ -119,7 +119,7 @@ fn m_follows_l_and_takes_top_center_to_front() -> Result<(), Box<dyn Error>> {
 #[test]
 fn s_follows_f_and_takes_top_center_to_right() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3By3::from_solved("S")?.centers().piece_at(Center::R),
+        Cube3x3::from_solved("S")?.centers().piece_at(&Center::R),
         Center::U
     );
     Ok(())
@@ -127,10 +127,10 @@ fn s_follows_f_and_takes_top_center_to_right() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), Box<dyn Error>> {
-    let r = Cube3By3::from_solved("R")?;
+    let r = Cube3x3::from_solved("R")?;
     for c in [Corner::Ubl, Corner::Ufl, Corner::Dfl, Corner::Dbl] {
-        assert_eq!(r.corners().piece_at(c), c);
-        assert_eq!(r.corners().orientation_at(c), Zn::ZERO);
+        assert_eq!(r.corners().piece_at(&c), c);
+        assert_eq!(r.corners().orientation_at(&c), Zn::ZERO);
     }
     for e in [
         Edge::Ub,
@@ -142,8 +142,8 @@ fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), Box<dyn Error
         Edge::Db,
         Edge::Dl,
     ] {
-        assert_eq!(r.edges().piece_at(e), e);
-        assert_eq!(r.edges().orientation_at(e), Zn::ZERO);
+        assert_eq!(r.edges().piece_at(&e), e);
+        assert_eq!(r.edges().orientation_at(&e), Zn::ZERO);
     }
     assert!(r.is_reachable());
     Ok(())
@@ -151,17 +151,17 @@ fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), Box<dyn Error
 
 #[test]
 fn identity_is_two_sided() -> Result<(), Box<dyn Error>> {
-    let r = Cube3By3::from_solved("R")?;
-    assert_eq!(Cube3By3::default() * r, r);
-    assert_eq!(r * Cube3By3::default(), r);
+    let r = Cube3x3::from_solved("R")?;
+    assert_eq!(Cube3x3::default() * r, r);
+    assert_eq!(r * Cube3x3::default(), r);
     Ok(())
 }
 
 #[test]
 fn pow_0_gives_identity_cube() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3By3::from_solved("R U R' U'")?.pow(0),
-        Cube3By3::default()
+        Cube3x3::from_solved("R U R' U'")?.pow(0),
+        Cube3x3::default()
     );
     Ok(())
 }
@@ -169,7 +169,7 @@ fn pow_0_gives_identity_cube() -> Result<(), Box<dyn Error>> {
 #[test]
 fn pow_finishes_correctly_for_large_exponent() -> Result<(), Box<dyn Error>> {
     let large_u32 = u32::MAX - 2;
-    let r = Cube3By3::from_solved("R")?;
+    let r = Cube3x3::from_solved("R")?;
     assert_eq!(large_u32 % 4, 1);
     assert_eq!(r.pow(large_u32), r);
     Ok(())
@@ -178,7 +178,7 @@ fn pow_finishes_correctly_for_large_exponent() -> Result<(), Box<dyn Error>> {
 #[test]
 fn clockwise_moves_have_order_exactly_4() -> Result<(), Box<dyn Error>> {
     for m in &IMPLEMENTED_MOVES[..9] {
-        let cube = Cube3By3::from_solved(m)?;
+        let cube = Cube3x3::from_solved(m)?;
         for k in 1..4 {
             assert!(!cube.pow(k).is_solved(), "{m}^{k} should not be solved");
         }
@@ -190,7 +190,7 @@ fn clockwise_moves_have_order_exactly_4() -> Result<(), Box<dyn Error>> {
 #[test]
 fn move_inverse_is_move_cubed() -> Result<(), Box<dyn Error>> {
     for m in IMPLEMENTED_MOVES {
-        let cube = Cube3By3::from_solved(m)?;
+        let cube = Cube3x3::from_solved(m)?;
         assert_eq!(cube.inverse(), cube.pow(3));
     }
     Ok(())
@@ -199,26 +199,26 @@ fn move_inverse_is_move_cubed() -> Result<(), Box<dyn Error>> {
 #[test]
 fn inverse_is_an_involution() -> Result<(), Box<dyn Error>> {
     for m in IMPLEMENTED_MOVES {
-        let cube = Cube3By3::from_solved(m)?;
+        let cube = Cube3x3::from_solved(m)?;
         assert_eq!(cube.inverse().inverse(), cube);
     }
-    assert_eq!(Cube3By3::default().inverse(), Cube3By3::default());
+    assert_eq!(Cube3x3::default().inverse(), Cube3x3::default());
     Ok(())
 }
 
 #[test]
 fn mul_is_associative() -> Result<(), Box<dyn Error>> {
-    let a = Cube3By3::from_solved("R")?;
-    let b = Cube3By3::from_solved("U2 L")?.pow(2);
-    let c = Cube3By3::from_solved("y")?.inverse();
+    let a = Cube3x3::from_solved("R")?;
+    let b = Cube3x3::from_solved("U2 L")?.pow(2);
+    let c = Cube3x3::from_solved("y")?.inverse();
     assert_eq!((a * b) * c, a * (b * c));
     Ok(())
 }
 
 #[test]
 fn inverse_of_product_reverses_order() -> Result<(), Box<dyn Error>> {
-    let a = Cube3By3::from_solved("U")?.pow(1);
-    let b = Cube3By3::from_solved("R")?.pow(2);
+    let a = Cube3x3::from_solved("U")?.pow(1);
+    let b = Cube3x3::from_solved("R")?.pow(2);
     assert_eq!((a * b).inverse(), b.inverse() * a.inverse());
     assert_ne!((a * b).inverse(), a.inverse() * b.inverse());
     Ok(())
@@ -226,21 +226,21 @@ fn inverse_of_product_reverses_order() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn r_and_l_commute() -> Result<(), Box<dyn Error>> {
-    assert!(Cube3By3::from_solved("R L R' L'")?.is_solved());
+    assert!(Cube3x3::from_solved("R L R' L'")?.is_solved());
     Ok(())
 }
 
 #[test]
 fn u_and_d_commute() -> Result<(), Box<dyn Error>> {
-    assert!(Cube3By3::from_solved("U D U' D'")?.is_solved());
+    assert!(Cube3x3::from_solved("U D U' D'")?.is_solved());
     Ok(())
 }
 
 #[test]
 fn multiple_moves_break_down_correctly() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3By3::from_solved("R U R' U'")?,
-        Cube3By3::default()
+        Cube3x3::from_solved("R U R' U'")?,
+        Cube3x3::default()
             .move_sequence("R")?
             .move_sequence("U")?
             .move_sequence("R'")?
@@ -251,10 +251,10 @@ fn multiple_moves_break_down_correctly() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn fmc_wr_as_multiplication() -> Result<(), Box<dyn Error>> {
-    let scramble = Cube3By3::from_solved(
+    let scramble = Cube3x3::from_solved(
         "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F",
     )?;
-    let solve = Cube3By3::from_solved("    D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")?;
+    let solve = Cube3x3::from_solved("    D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")?;
     assert!(scramble.is_reachable());
     assert!((scramble * solve).is_solved(), "{:?}", scramble * solve);
     Ok(())
@@ -356,7 +356,7 @@ fn roux_solve_without_wide_moves() -> Result<(), Box<dyn Error>> {
 #[test]
 fn roux_solve_removes_comments() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3By3::from_solved(concat!(
+        Cube3x3::from_solved(concat!(
             "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
             "y2 F' M F' R U' R U' Fw z'
             U R U r M' U' R U2' R'
@@ -364,7 +364,7 @@ fn roux_solve_removes_comments() -> Result<(), Box<dyn Error>> {
             U M' U' M U' U' M' U M
             U' U' M2' U' M U' U' M' U' U' M2' "
         ))?,
-        Cube3By3::from_solved(concat!(
+        Cube3x3::from_solved(concat!(
             "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
             "y2 F' M F' R U' R U' Fw z' // FB
             U R U r M' U' R U2' R' // SS
@@ -377,8 +377,22 @@ fn roux_solve_removes_comments() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+fn full_solve_and_checking_bfs() {
+    let scr = "U B' D L2 U B2 R2 D2 L2 D' U2 B2 R2 L U2 F' R' B L D'\n";
+    let mut scrambled = Cube3x3::from_solved(scr).expect("deu ruim");
+
+    let recon: String = (ROUX).solve(&mut scrambled).to_recon(NoOptions::default());
+
+    assert_eq!(
+        Cube3x3::from_solved(&(scr.to_string() + recon.as_str())).expect("deu OUTRO ruim"),
+        Cube3x3::default()
+    );
+    println!("{recon}");
+}
+
+#[test]
 fn bad_move_error_names_its_line_and_position() {
-    let e = Cube3By3::from_solved(
+    let e = Cube3x3::from_solved(
         "R U R'
     F U F'
     Mw' M",
@@ -418,7 +432,7 @@ fn sexy_move_has_correct_period_on_all_face_pairs() -> Result<(), Box<dyn Error>
         .map(|&(m1, m2)| String::from(m1) + " " + m2 + " " + m1 + "' " + m2 + "' ")
         .collect();
     for s in sexy {
-        let cube = Cube3By3::from_solved(&s)?;
+        let cube = Cube3x3::from_solved(&s)?;
         for k in 1..6 {
             assert!(!cube.pow(k).is_solved(), "({s})^{k} should not be solved");
         }
@@ -445,7 +459,7 @@ fn adjacent_face_sequence_has_constant_and_correct_period() -> Result<(), Box<dy
     ];
     let period = 105;
     for p in adjacent_face_pairs {
-        let mut c = Cube3By3::default();
+        let mut c = Cube3x3::default();
         for _ in 1..period {
             c = c.move_sequence(p.0)?.move_sequence(p.1)?;
             assert!(
@@ -484,7 +498,7 @@ fn slice_face_has_constant_and_correct_period() -> Result<(), Box<dyn Error>> {
     ];
     let period = 8;
     for p in pairs {
-        let mut c = Cube3By3::default();
+        let mut c = Cube3x3::default();
         for i in 1..period {
             c = c.move_sequence(p.0)?.move_sequence(p.1)?;
             assert!(
@@ -530,17 +544,17 @@ fn random_words_stay_reachable_and_undo_cleanly() -> Result<(), Box<dyn Error>> 
         let forward = forward.join(" ");
         let backward = backward.join(" ");
 
-        let mut cube = Cube3By3::default();
+        let mut cube = Cube3x3::default();
         for token in forward.split(' ') {
             cube = cube.move_sequence(token)?;
             assert!(cube.is_reachable(), "unreachable somewhere in {forward}");
         }
-        assert_eq!(Cube3By3::from_solved(&forward)?, cube);
+        assert_eq!(Cube3x3::from_solved(&forward)?, cube);
         assert!(
             cube.move_sequence(&backward)?.is_solved(),
             "{forward} then {backward} should be solved"
         );
-        assert_eq!(cube * cube.inverse(), Cube3By3::default());
+        assert_eq!(cube * cube.inverse(), Cube3x3::default());
     }
     Ok(())
 }

@@ -14,14 +14,14 @@ use crate::{Inv, Piece};
 use {
     super::{MovablePart, MovablePart::*, MoveModifier, MoveModifier::*},
     crate::{
-        puzzles::cube3by3::{Cube3By3, pieces::*},
+        puzzles::cube3by3::{Cube3x3, pieces::*},
         zn::Zn,
     },
 };
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 struct MoveInformation {
-    cube_state: Cube3By3,
+    cube_state: Cube3x3,
     part: MovablePart,
     modifier: MoveModifier,
 }
@@ -52,7 +52,7 @@ const fn table_index(part: MovablePart, modifier: MoveModifier) -> usize {
     clippy::indexing_slicing,
     reason = "building `ALL_MOVES` asserts every entry sits at its own `table_index`"
 )]
-pub fn cube_state(part: MovablePart, modifier: MoveModifier) -> Cube3By3 {
+pub fn cube_state(part: MovablePart, modifier: MoveModifier) -> Cube3x3 {
     ALL_MOVES[table_index(part, modifier)].cube_state
 }
 
@@ -69,7 +69,7 @@ impl Inv for MoveInformation {
 impl MoveInformation {
     /// Placeholder that fills the table arrays before every entry is placed.
     const IDENTITY: Self = Self {
-        cube_state: Cube3By3::IDENTITY,
+        cube_state: Cube3x3::IDENTITY,
         part: Face(Faces::R),
         modifier: Clockwise,
     };
@@ -126,7 +126,7 @@ impl Faces {
 const FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT: usize = Faces::ALL.len() + Slices::ALL.len();
 const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLOCKWISE_MOVE_COUNT] = [
     MoveInformation {
-        cube_state: Cube3By3 {
+        cube_state: Cube3x3 {
             center_configuration: CenterConfiguration::IDENTITY,
             corner_configuration: {
                 let mut corners = CornerConfiguration::cycle([[
@@ -149,7 +149,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
         modifier: Clockwise,
     },
     MoveInformation {
-        cube_state: Cube3By3 {
+        cube_state: Cube3x3 {
             center_configuration: CenterConfiguration::IDENTITY,
             corner_configuration: {
                 let mut corners = CornerConfiguration::cycle([[
@@ -172,7 +172,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
         modifier: Clockwise,
     },
     MoveInformation {
-        cube_state: Cube3By3 {
+        cube_state: Cube3x3 {
             center_configuration: CenterConfiguration::IDENTITY,
             corner_configuration: {
                 let mut corners = CornerConfiguration::cycle([[
@@ -195,7 +195,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
         modifier: Clockwise,
     },
     MoveInformation {
-        cube_state: Cube3By3 {
+        cube_state: Cube3x3 {
             center_configuration: CenterConfiguration::IDENTITY,
             corner_configuration: {
                 let mut corners = CornerConfiguration::cycle([[
@@ -218,7 +218,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
         modifier: Clockwise,
     },
     MoveInformation {
-        cube_state: Cube3By3 {
+        cube_state: Cube3x3 {
             center_configuration: CenterConfiguration::IDENTITY,
             corner_configuration: {
                 let mut corners = CornerConfiguration::cycle([[
@@ -240,7 +240,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
         modifier: Clockwise,
     },
     MoveInformation {
-        cube_state: Cube3By3 {
+        cube_state: Cube3x3 {
             center_configuration: CenterConfiguration::IDENTITY,
             corner_configuration: {
                 let mut corners = CornerConfiguration::cycle([[
@@ -262,7 +262,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
         modifier: Clockwise,
     },
     MoveInformation {
-        cube_state: Cube3By3 {
+        cube_state: Cube3x3 {
             center_configuration: CenterConfiguration::cycle([[
                 Center::F,
                 Center::R,
@@ -280,7 +280,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
         modifier: Clockwise,
     },
     MoveInformation {
-        cube_state: Cube3By3 {
+        cube_state: Cube3x3 {
             center_configuration: CenterConfiguration::cycle([[
                 Center::F,
                 Center::D,
@@ -298,7 +298,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
         modifier: Clockwise,
     },
     MoveInformation {
-        cube_state: Cube3By3 {
+        cube_state: Cube3x3 {
             center_configuration: CenterConfiguration::cycle([[
                 Center::U,
                 Center::R,
@@ -325,7 +325,7 @@ const ALL_FACE_AND_SLICES_CLOCKWISE_MOVES: [MoveInformation; FACE_AND_SLICES_CLO
     clippy::indexing_slicing,
     reason = "`table_index_clockwise` is below `CLOCKWISE_MOVE_COUNT` for every part"
 )]
-fn slice_along(face: Faces, placed: &[MoveInformation; CLOCKWISE_MOVE_COUNT]) -> Cube3By3 {
+fn slice_along(face: Faces, placed: &[MoveInformation; CLOCKWISE_MOVE_COUNT]) -> Cube3x3 {
     for s in Slices::ALL {
         if s.follows() == face {
             return placed[table_index_clockwise(Slice(s))].cube_state;
@@ -407,15 +407,15 @@ mod tests {
     //! through the public queries.
     use super::*;
 
-    fn clockwise(part: MovablePart) -> Cube3By3 {
+    fn clockwise(part: MovablePart) -> Cube3x3 {
         cube_state(part, Clockwise)
     }
 
     // Derivation identities: these pin the derivation, not the base moves.
     // A mirrored slice mirrors its rotation with it and still passes here.
 
-    fn seq(parts: &[(MovablePart, MoveModifier)]) -> Cube3By3 {
-        parts.iter().fold(Cube3By3::default(), |cube, &(p, m)| {
+    fn seq(parts: &[(MovablePart, MoveModifier)]) -> Cube3x3 {
+        parts.iter().fold(Cube3x3::default(), |cube, &(p, m)| {
             cube * (cube_state(p, m))
         })
     }
@@ -473,11 +473,7 @@ mod tests {
             let part = entry.part;
             let cw = cube_state(part, Clockwise);
             let ccw = cube_state(part, CounterClockwise);
-            assert_eq!(
-                cw * ccw,
-                Cube3By3::default(),
-                "{part:?}' must undo {part:?}"
-            );
+            assert_eq!(cw * ccw, Cube3x3::default(), "{part:?}' must undo {part:?}");
             assert_eq!(
                 cube_state(part, Double),
                 cw * cw,
