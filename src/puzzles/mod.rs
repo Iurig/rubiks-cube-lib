@@ -1,9 +1,11 @@
 use std::{fmt::Debug, ops::Mul};
 
 pub mod cube3by3;
-pub trait Puzzle: Default + Mul + Debug {
+pub trait Puzzle: Default + Mul<Self::Moves, Output = Self> + Debug + Clone {
+    /// The type that represents the puzzle's pieces
     type Pieces: Copy + Eq + Debug + 'static;
-    type Moves: 'static;
+    /// The type that represents a move sequence: usually implemented as a `&'static [Move]` for a type `Move` that represents a move for the puzzle
+    type Moves: crate::Inv + Copy + 'static;
 
     const ALL_PIECES: &'static [Self::Pieces];
     const ALL_MOVES: &'static [Self::Moves];
