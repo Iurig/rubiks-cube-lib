@@ -1,3 +1,4 @@
+pub mod algs;
 pub mod moves;
 pub mod pieces;
 
