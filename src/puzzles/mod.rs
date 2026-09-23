@@ -1,16 +1,23 @@
-use std::{fmt::Debug, ops::Mul};
+use std::{
+    fmt::{Debug, Display},
+    hash::Hash,
+    ops::Mul,
+};
 
 pub mod cube3by3;
-pub trait Puzzle: Default + Mul<Self::Moves, Output = Self> + Debug + Clone {
+pub trait Puzzle: Default + Mul<Self::Moves, Output = Self> + Debug + Clone + 'static {
     /// The type that represents the puzzle's pieces
-    type Pieces: Copy + Eq + Debug + 'static;
+    type Pieces: Copy + Eq + Debug + Hash + 'static;
     /// The type that represents a move sequence: usually implemented as a `&'static [Move]` for a type `Move` that represents a move for the puzzle
-    type Moves: crate::Inv + Copy + 'static;
+    type Moves: crate::Inv + Copy + 'static + Display;
 
     const ALL_PIECES: &'static [Self::Pieces];
     const ALL_MOVES: &'static [Self::Moves];
 
     fn piece_location(&self, piece: &Self::Pieces) -> Self::Pieces;
+
+    #[must_use]
+    fn is_solved(&self) -> bool;
 
     fn piece_at(&self, slot: &Self::Pieces) -> Self::Pieces;
 

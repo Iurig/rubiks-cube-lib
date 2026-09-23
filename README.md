@@ -17,7 +17,7 @@ so the entire move table is built at compile time.
 ## Quick example
 
 ```rust
-use rubiks_cube_lib::{Cube3x3, Inv, Pow};
+use rubiks_cube_lib::{Cube3x3, Inv, Pow, Puzzle};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Apply a sequence to the solved cube, example is Sebastiano Tronto's 16 move FMC WR

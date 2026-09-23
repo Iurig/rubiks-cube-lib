@@ -5,13 +5,34 @@ fn main() {
     let scr = "D2 F2 R2 U L2 D R2 U' B2 L2 B L2 F' L D2 U R' B D2\n";
     let mut scrambled = Cube3x3::from_solved(scr).expect("deu ruim");
 
-    let recon: String = (ROUX)
+    let recon_beginner_options: String = scr.to_string()
+        + Roux::from_options(RouxOptions {
+            fb_as_one_step: false,
+            sb_square_as_one_step: false,
+            ..Default::default()
+        })
         .solve(&mut scrambled)
-        .recon_with_options(NoOptions::default());
-
-    assert_eq!(
-        Cube3x3::from_solved(&(scr.to_string() + recon.as_str())).expect("deu OUTRO ruim"),
-        Cube3x3::default()
+        .recon_with_options(NoOptions::default())
+        .as_str();
+    assert!(
+        Cube3x3::from_solved(&recon_beginner_options)
+            .expect("deu OUTRO ruim")
+            .is_solved()
     );
-    println!("{recon}");
+
+    println!("{recon_beginner_options}");
+
+    scrambled = Cube3x3::from_solved(scr).expect("deu ruim");
+
+    let recon_default_options: String = scr.to_string()
+        + Roux::default()
+            .solve(&mut scrambled)
+            .recon_with_options(NoOptions::default())
+            .as_str();
+
+    assert!(
+        Cube3x3::from_solved(&recon_default_options)
+            .expect("deu OUTRO ruim")
+            .is_solved(),
+    );
 }

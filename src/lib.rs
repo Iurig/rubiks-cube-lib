@@ -7,8 +7,8 @@ pub mod zn;
 
 pub use methods::{
     Solution, SolveMethod, SolveStep,
-    roux::{CMLL, FB, LSE, ROUX, SB},
-    simple_methods::{NoOptions, SimpleMethod3x3, SimpleStep3x3},
+    roux::{Roux, RouxOptions},
+    simple_methods::{NamedMoveSequences, NoOptions, SimpleStep},
 };
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};

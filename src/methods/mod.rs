@@ -1,14 +1,15 @@
 pub mod roux;
+pub mod search;
 pub mod simple_methods;
 
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     hash::Hash,
 };
 
 use crate::{ops::Inv, puzzles::Puzzle};
 
-pub trait Solution {
+pub trait Solution: 'static {
     type ReconOptions: Default;
     fn new() -> Self;
     fn recon_with_options(&self, options: Self::ReconOptions) -> String;
@@ -21,9 +22,11 @@ pub trait Solution {
 }
 
 pub trait SolveStep<P: Puzzle, S: Solution, M: SolveMethod<P, S>> {
-    fn options_allow(&self, options: &M::MethodOptions) -> bool;
+    fn options_allow(&self, method: &M) -> bool;
     fn step_is_solved(&self, p: &P) -> bool;
     fn can_apply(&self, p: &P) -> bool;
+    fn needs_solved(&self) -> Vec<P::Pieces>;
+    fn solved_pieces(&self) -> Vec<P::Pieces>;
     fn step_name(&self) -> String;
     fn allowed_move_sequences(&self) -> Vec<Vec<P::Moves>>;
 
@@ -31,65 +34,42 @@ pub trait SolveStep<P: Puzzle, S: Solution, M: SolveMethod<P, S>> {
     fn mask(&self, puzzle: &P) -> Self::PartialCube;
 
     fn solve(&self, p: &mut P) -> S;
-
-    #[expect(clippy::panic)]
-    fn solve_bfs(&self, p: &mut P) -> Vec<P::Moves> {
-        let mut to_investigate = VecDeque::from([(p.clone(), None, 0)]);
-        let mut investigated: HashMap<Self::PartialCube, Option<Vec<P::Moves>>> = HashMap::new();
-        let mut prev_depth = 0;
-
-        while let Some((current_cube, current_move_sequence, depth)) = to_investigate.pop_front() {
-            if investigated.contains_key(&self.mask(&current_cube)) {
-                continue;
-            }
-            investigated.insert(self.mask(&current_cube), current_move_sequence);
-            for sequence in self.allowed_move_sequences() {
-                let moved_cube = sequence.iter().fold(current_cube.clone(), |c, m| c * *m);
-                if self.step_is_solved(&moved_cube) {
-                    *p = moved_cube;
-                    let mut solution = VecDeque::from([sequence]);
-                    let mut cube = current_cube;
-                    while let Some(backtracking_move) = investigated
-                        .get(&self.mask(&cube))
-                        .expect("previously investigated cube was not found")
-                    {
-                        solution.push_front(backtracking_move.clone());
-                        cube = backtracking_move
-                            .iter()
-                            .rev()
-                            .fold(cube, |c, m| c * m.inverse());
-                    }
-                    return solution.iter().flatten().copied().collect();
-                }
-                to_investigate.push_back((moved_cube, Some(sequence), depth + 1));
-            }
-            if depth != prev_depth {
-                println!("Step: {}\t Depth:{depth}", self.step_name());
-                prev_depth = depth;
-            }
-        }
-        panic!("Step is unsolvable");
-    }
 }
 
-pub trait SolveMethod<P: Puzzle, S: Solution>: std::marker::Sized {
+pub trait SolveMethod<P: Puzzle, S: Solution>: std::marker::Sized + Default {
     type MethodOptions: Default;
 
-    fn steps(&self) -> Vec<impl SolveStep<P, S, Self>>;
+    fn steps(&self) -> Vec<&impl SolveStep<P, S, Self>>;
 
-    fn solve(&self, puzzle: &mut P) -> S {
-        self.solve_with_options(puzzle, Self::MethodOptions::default())
+    fn from_options(options: Self::MethodOptions) -> Self;
+
+    fn to_options(&self) -> &Self::MethodOptions;
+
+    #[must_use]
+    fn new() -> Self {
+        Self::default()
     }
 
-    fn solve_with_options(&self, puzzle: &mut P, options: Self::MethodOptions) -> S {
+    fn solve(&self, puzzle: &mut P) -> S {
         let mut sol = S::new();
-        for step in self.steps() {
-            if step.can_apply(puzzle) && step.options_allow(&options) {
-                println!("Starting step: {}", step.step_name());
-                let step_solution = step.solve(puzzle);
-                println!("Finished step: {}", step.step_name());
-                println!("{}", step_solution.to_recon());
-                sol = sol.then(step_solution);
+        let mut solved_pieces = HashSet::new();
+
+        while !puzzle.is_solved() {
+            for step in self.steps().iter().filter(|&s| s.options_allow(self)) {
+                if step.can_apply(puzzle)
+                    && solved_pieces
+                        .iter()
+                        .all(|p| step.needs_solved().contains(p))
+                {
+                    println!("Starting step: {}", step.step_name());
+                    let step_solution = step.solve(puzzle);
+                    println!("Finished step: {}", step.step_name());
+                    println!("{}", step_solution.to_recon());
+                    solved_pieces.extend(step.solved_pieces());
+                    sol = sol.then(step_solution);
+                } else {
+                    //dbg!(step.step_name(), &solved_pieces, step.needs_solved());
+                }
             }
         }
         sol

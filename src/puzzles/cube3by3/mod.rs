@@ -77,6 +77,11 @@ impl Puzzle for Cube3x3 {
         .as_slice()
     };
 
+    /// Whether this state is the solved cube in any whole-cube rotation.
+    fn is_solved(&self) -> bool {
+        self.rotated_until_solved_centers() == Some(Self::default())
+    }
+
     fn piece_location(&self, piece: &Self::Pieces) -> Self::Pieces {
         Self::ALL_PIECES
             .iter()
@@ -206,12 +211,6 @@ impl Cube3x3 {
     /// Same as [`Self::move_sequence`].
     pub fn from_solved(m: &str) -> Result<Self, ParseSequenceError> {
         Self::default().move_sequence(m)
-    }
-
-    /// Whether this state is the solved cube in any whole-cube rotation.
-    #[must_use]
-    pub fn is_solved(&self) -> bool {
-        self.rotated_until_solved_centers() == Some(Self::default())
     }
 
     fn rotated_until_solved_centers(&self) -> Option<Self> {

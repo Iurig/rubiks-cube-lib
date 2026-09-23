@@ -1,111 +1,43 @@
+use std::{fmt::Display, marker::PhantomData};
+
 #[allow(clippy::wildcard_imports)]
-use crate::{
-    Cube3x3,
-    methods::*,
-    puzzles::cube3by3::{moves::Move3x3, pieces::Pieces3x3},
-};
+use crate::{Puzzle, methods::*};
 
-#[derive(Clone, Debug)]
-pub struct NamedMoveSequence3x3(String, Vec<Move3x3>);
-#[derive(Debug)]
-pub struct NamedSolution3x3(Vec<NamedMoveSequence3x3>);
 #[derive(Clone)]
-pub struct SimpleStep3x3 {
+pub struct SimpleStep<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> {
     pub name: String,
-    pub before: Box<[Pieces3x3]>,
-    pub after: Box<[Pieces3x3]>,
-    pub allowed: Vec<Vec<Move3x3>>,
-}
-#[derive(Default)]
-pub struct NoOptions();
-pub struct SimpleMethod3x3(pub Vec<SimpleStep3x3>);
-
-impl Solution for NamedSolution3x3 {
-    type ReconOptions = NoOptions;
-    fn new() -> Self {
-        Self(Vec::new())
-    }
-    fn recon_with_options(&self, _: Self::ReconOptions) -> String {
-        self.0
-            .iter()
-            .map(|NamedMoveSequence3x3(name, move_sequence)| {
-                move_sequence
-                    .iter()
-                    .map(Move3x3::to_string)
-                    .collect::<Vec<String>>()
-                    .join(" ")
-                    + "\t//"
-                    + name
-                    + "\n"
-            })
-            .collect::<String>()
-    }
-    fn then(&self, next: Self) -> Self {
-        let mut concatenation = self.0.clone();
-        concatenation.extend(next.0);
-        Self(concatenation)
-    }
+    pub before: Box<[P::Pieces]>,
+    pub after: Box<[P::Pieces]>,
+    pub allowed_moves: Vec<Vec<P::Moves>>,
+    pub is_allowed: fn(&M) -> bool,
+    //pub memo: Mutex<BFSMemo<P>>,
+    pub phantom: PhantomData<M>,
 }
 
-impl SolveStep<Cube3x3, NamedSolution3x3, SimpleMethod3x3> for SimpleStep3x3 {
-    fn can_apply(&self, cube: &Cube3x3) -> bool {
-        (*self.before)
-            .iter()
-            .all(|piece| cube.piece_at(piece) == *piece && cube.orientation_at(piece) == 0)
-    }
-    fn options_allow(
-        &self,
-        _options: &<SimpleMethod3x3 as SolveMethod<Cube3x3, NamedSolution3x3>>::MethodOptions,
-    ) -> bool {
-        true
-    }
-    fn step_is_solved(&self, cube: &Cube3x3) -> bool {
-        (*self.after)
-            .iter()
-            .all(|piece| cube.piece_at(piece) == *piece && cube.orientation_at(piece) == 0)
-    }
-    fn step_name(&self) -> String {
-        self.name.clone()
-    }
-    fn allowed_move_sequences(&self) -> Vec<Vec<<Cube3x3 as Puzzle>::Moves>> {
-        self.allowed.clone()
-    }
+type MoveSequence<P> = Vec<<P as Puzzle>::Moves>;
 
-    type PartialCube = Vec<(Pieces3x3, usize)>;
-    fn mask(&self, puzzle: &Cube3x3) -> Self::PartialCube {
-        self.after
-            .iter()
-            .map(|p| {
-                (
-                    puzzle.piece_location(p),
-                    puzzle.orientation_at(&puzzle.piece_location(p)),
-                )
-            })
-            .collect::<Vec<(Pieces3x3, usize)>>()
-    }
-    fn solve(&self, p: &mut Cube3x3) -> NamedSolution3x3 {
-        NamedSolution3x3(vec![NamedMoveSequence3x3(
-            self.step_name(),
-            self.solve_bfs(p),
-        )])
-    }
-    /*
-    #[expect(clippy::panic)]
-    fn solve(&self, p: &mut Cube3x3) -> NamedSolution3x3 {
-        let mut to_investigate = VecDeque::from([(*p, None, 0)]);
-        let mut investigated: HashMap<Self::PartialCube, Option<Vec<Move3x3>>> = HashMap::new();
+pub type NamedMoveSequences<P> = Vec<(String, MoveSequence<P>)>;
+
+impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
+    #[expect(clippy::panic, clippy::type_complexity)]
+    fn solve_bfs(&self, p: &mut P) -> Vec<P::Moves> {
+        let mut to_investigate = VecDeque::from([(p.clone(), None, 0)]);
+        let mut investigated: HashMap<
+            <Self as SolveStep<P, NamedMoveSequences<P>, M>>::PartialCube,
+            Option<MoveSequence<P>>,
+        > = HashMap::new();
         let mut prev_depth = 0;
 
-        while let Some((current_cube, current_move, depth)) = to_investigate.pop_front() {
+        while let Some((current_cube, current_move_sequence, depth)) = to_investigate.pop_front() {
             if investigated.contains_key(&self.mask(&current_cube)) {
                 continue;
             }
-            investigated.insert(self.mask(&current_cube), current_move);
-            for m in self.allowed.clone() {
-                let moved_cube = m.iter().fold(current_cube, |c, m| c * *m);
+            investigated.insert(self.mask(&current_cube), current_move_sequence);
+            for sequence in self.allowed_move_sequences() {
+                let moved_cube = sequence.iter().fold(current_cube.clone(), |c, m| c * *m);
                 if self.step_is_solved(&moved_cube) {
                     *p = moved_cube;
-                    let mut solution = VecDeque::from([m]);
+                    let mut solution = VecDeque::from([sequence]);
                     let mut cube = current_cube;
                     while let Some(backtracking_move) = investigated
                         .get(&self.mask(&cube))
@@ -115,29 +47,100 @@ impl SolveStep<Cube3x3, NamedSolution3x3, SimpleMethod3x3> for SimpleStep3x3 {
                         cube = backtracking_move
                             .iter()
                             .rev()
-                            .map(|&m| m.inverse())
-                            .fold(cube, |c, m| c * m);
+                            .fold(cube, |c, m| c * m.inverse());
                     }
-                    return NamedSolution3x3(vec![NamedMoveSequence3x3(
-                        self.name.clone(),
-                        solution.iter().flatten().copied().collect(),
-                    )]);
+                    return solution.iter().flatten().copied().collect();
                 }
-                to_investigate.push_back((moved_cube, Some(m), depth + 1));
+                to_investigate.push_back((moved_cube, Some(sequence), depth + 1));
             }
             if depth != prev_depth {
-                println!("Step: {}\t Depth:{depth}", self.name);
+                println!("Step: {}\t Depth:{depth}", self.step_name());
                 prev_depth = depth;
             }
         }
         panic!("Step is unsolvable");
-    }*/
+    }
 }
 
-impl SolveMethod<Cube3x3, NamedSolution3x3> for SimpleMethod3x3 {
-    type MethodOptions = NoOptions;
+#[derive(Default)]
+pub struct NoOptions();
 
-    fn steps(&self) -> Vec<impl SolveStep<Cube3x3, NamedSolution3x3, Self>> {
-        self.0.clone()
+impl<M> Solution for Vec<(String, Vec<M>)>
+where
+    M: crate::Inv + Copy + 'static + Display,
+{
+    type ReconOptions = NoOptions;
+    fn new() -> Self {
+        Self::new()
+    }
+    fn recon_with_options(&self, _: Self::ReconOptions) -> String {
+        self.iter()
+            .map(|(name, move_sequence)| {
+                move_sequence
+                    .iter()
+                    .map(M::to_string)
+                    .collect::<Vec<String>>()
+                    .join(" ")
+                    + "\t//"
+                    + name
+                    + "\n"
+            })
+            .collect::<String>()
+    }
+    fn then(&self, next: Self) -> Self {
+        let mut concatenation = self.clone();
+        concatenation.extend(next);
+        concatenation
+    }
+}
+
+impl<P, M> SolveStep<P, Vec<(String, Vec<P::Moves>)>, M> for SimpleStep<P, M>
+where
+    P: Puzzle,
+    M: SolveMethod<P, Vec<(String, Vec<P::Moves>)>>,
+{
+    fn options_allow(&self, method: &M) -> bool {
+        (self.is_allowed)(method)
+    }
+    fn can_apply(&self, cube: &P) -> bool {
+        (*self.before)
+            .iter()
+            .all(|piece| cube.piece_at(piece) == *piece && cube.orientation_at(piece) == 0)
+    }
+    fn needs_solved(&self) -> Vec<<P as Puzzle>::Pieces> {
+        (*self.before).to_vec()
+    }
+    fn solved_pieces(&self) -> Vec<<P as Puzzle>::Pieces> {
+        (*self.after).to_vec()
+    }
+    fn step_is_solved(&self, cube: &P) -> bool {
+        (*self.after)
+            .iter()
+            .all(|piece| cube.piece_at(piece) == *piece && cube.orientation_at(piece) == 0)
+    }
+    fn step_name(&self) -> String {
+        self.name.clone()
+    }
+    fn allowed_move_sequences(&self) -> Vec<Vec<<P as Puzzle>::Moves>> {
+        self.allowed_moves.clone()
+    }
+
+    type PartialCube = Vec<(P::Pieces, usize)>;
+    fn mask(&self, puzzle: &P) -> Self::PartialCube {
+        self.after
+            .iter()
+            .map(|p| {
+                (
+                    puzzle.piece_location(p),
+                    puzzle.orientation_at(&puzzle.piece_location(p)),
+                )
+            })
+            .collect::<Vec<(P::Pieces, usize)>>()
+    }
+    fn solve(&self, p: &mut P) -> Vec<(String, Vec<P::Moves>)> {
+        vec![(
+            <Self as SolveStep<P, Vec<(String, Vec<P::Moves>)>, M>>::step_name(self),
+            Self::solve_bfs(self, p),
+        )]
     }
 }
