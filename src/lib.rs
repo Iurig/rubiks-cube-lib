@@ -12,9 +12,9 @@ pub use methods::{
 };
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};
-pub use puzzles::Puzzle;
 pub use puzzles::cube3by3::{
     Cube3x3,
     moves::{ParseMoveError, ParseSequenceError},
-    pieces::{Center, Corner, Edge},
+    pieces::{Center, Corner, Edge, Pieces3x3},
 };
+pub use puzzles::{Mask, Puzzle};

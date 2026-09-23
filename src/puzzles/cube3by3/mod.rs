@@ -37,10 +37,10 @@ macro_rules! unify_pieces {
     };
 }
 impl Puzzle for Cube3x3 {
-    type Pieces = Pieces3x3;
+    type Piece = Pieces3x3;
     type Moves = Move3x3;
 
-    const ALL_PIECES: &'static [Self::Pieces] = unify_pieces!(
+    const ALL_PIECES: &'static [Self::Piece] = unify_pieces!(
         Center: [U, F, R, B, L, D],
         Corner: [Ubl, Ubr, Ufr, Ufl, Dfl, Dfr, Dbr, Dbl],
         Edge: [Ub, Ur, Uf, Ul, Fl, Fr, Br, Bl, Df, Dr, Db, Dl],
@@ -82,7 +82,7 @@ impl Puzzle for Cube3x3 {
         self.rotated_until_solved_centers() == Some(Self::default())
     }
 
-    fn piece_location(&self, piece: &Self::Pieces) -> Self::Pieces {
+    fn piece_location(&self, piece: &Self::Piece) -> Self::Piece {
         Self::ALL_PIECES
             .iter()
             .find(|&slot| self.piece_at(slot) == *piece)
@@ -90,19 +90,19 @@ impl Puzzle for Cube3x3 {
             .expect("All Cubes should have all pieces somewhere")
     }
 
-    fn piece_at(&self, slot: &Self::Pieces) -> Self::Pieces {
+    fn piece_at(&self, slot: &Self::Piece) -> Self::Piece {
         match slot {
-            Self::Pieces::Corner(co) => Pieces3x3::Corner(self.corner_configuration.piece_at(co)),
-            Self::Pieces::Edge(ed) => Pieces3x3::Edge(self.edge_configuration.piece_at(ed)),
-            Self::Pieces::Center(ce) => Pieces3x3::Center(self.center_configuration.piece_at(ce)),
+            Self::Piece::Corner(co) => Pieces3x3::Corner(self.corner_configuration.piece_at(co)),
+            Self::Piece::Edge(ed) => Pieces3x3::Edge(self.edge_configuration.piece_at(ed)),
+            Self::Piece::Center(ce) => Pieces3x3::Center(self.center_configuration.piece_at(ce)),
         }
     }
 
-    fn orientation_at(&self, slot: &Self::Pieces) -> usize {
+    fn orientation_at(&self, slot: &Self::Piece) -> usize {
         match slot {
-            Self::Pieces::Corner(co) => self.corner_configuration.orientation_at(co).value(),
-            Self::Pieces::Edge(ed) => self.edge_configuration.orientation_at(ed).value(),
-            Self::Pieces::Center(ce) => self.center_configuration.orientation_at(ce).value(),
+            Self::Piece::Corner(co) => self.corner_configuration.orientation_at(co).value(),
+            Self::Piece::Edge(ed) => self.edge_configuration.orientation_at(ed).value(),
+            Self::Piece::Center(ce) => self.center_configuration.orientation_at(ce).value(),
         }
     }
 

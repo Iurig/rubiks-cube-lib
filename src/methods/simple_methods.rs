@@ -1,22 +1,24 @@
-use std::{fmt::Display, marker::PhantomData};
+use std::{fmt::Display, marker::PhantomData, sync::Mutex};
 
+use crate::methods::search::BFSMemo;
 #[allow(clippy::wildcard_imports)]
 use crate::{Puzzle, methods::*};
 
-#[derive(Clone)]
 pub struct SimpleStep<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> {
     pub name: String,
-    pub before: Box<[P::Pieces]>,
-    pub after: Box<[P::Pieces]>,
+    pub before: Box<[P::Piece]>,
+    pub after: Box<[P::Piece]>,
     pub allowed_moves: Vec<Vec<P::Moves>>,
     pub is_allowed: fn(&M) -> bool,
-    //pub memo: Mutex<BFSMemo<P>>,
+    pub memo: Mutex<BFSMemo<P>>,
     pub phantom: PhantomData<M>,
 }
 
 type MoveSequence<P> = Vec<<P as Puzzle>::Moves>;
 
 pub type NamedMoveSequences<P> = Vec<(String, MoveSequence<P>)>;
+
+pub type SimpleMask<P> = Vec<(<P as Puzzle>::Piece, usize)>;
 
 impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
     #[expect(clippy::panic, clippy::type_complexity)]
@@ -107,10 +109,10 @@ where
             .iter()
             .all(|piece| cube.piece_at(piece) == *piece && cube.orientation_at(piece) == 0)
     }
-    fn needs_solved(&self) -> Vec<<P as Puzzle>::Pieces> {
+    fn needs_solved(&self) -> Vec<<P as Puzzle>::Piece> {
         (*self.before).to_vec()
     }
-    fn solved_pieces(&self) -> Vec<<P as Puzzle>::Pieces> {
+    fn solved_pieces(&self) -> Vec<<P as Puzzle>::Piece> {
         (*self.after).to_vec()
     }
     fn step_is_solved(&self, cube: &P) -> bool {
@@ -125,7 +127,7 @@ where
         self.allowed_moves.clone()
     }
 
-    type PartialCube = Vec<(P::Pieces, usize)>;
+    type PartialCube = SimpleMask<P>;
     fn mask(&self, puzzle: &P) -> Self::PartialCube {
         self.after
             .iter()
@@ -135,7 +137,7 @@ where
                     puzzle.orientation_at(&puzzle.piece_location(p)),
                 )
             })
-            .collect::<Vec<(P::Pieces, usize)>>()
+            .collect::<Vec<(P::Piece, usize)>>()
     }
     fn solve(&self, p: &mut P) -> Vec<(String, Vec<P::Moves>)> {
         vec![(

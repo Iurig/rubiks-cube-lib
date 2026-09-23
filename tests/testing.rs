@@ -1,10 +1,103 @@
 // `?` reports setup failures; `assert!` reports the property under test failing.
 #![allow(clippy::panic_in_result_fn)]
 
+use fastrand::Rng;
 use rubiks_cube_lib::{zn::Zn, *};
 use std::error::Error;
 
 const IMPLEMENTED_MOVES: [&str; 12] = ["R", "U", "D", "L", "F", "B", "E", "S", "M", "y", "z", "x"];
+
+#[test]
+fn mask_ignores_duplicates() {
+    let pieces1 = [
+        Pieces3x3::Center(Center::F),
+        Pieces3x3::Center(Center::U),
+        Pieces3x3::Edge(Edge::Uf),
+    ];
+    let pieces2 = [
+        Pieces3x3::Center(Center::F),
+        Pieces3x3::Center(Center::F),
+        Pieces3x3::Center(Center::U),
+        Pieces3x3::Edge(Edge::Uf),
+    ];
+    assert_eq!(
+        Mask::<Cube3x3>::new(pieces1, pieces1),
+        Mask::<Cube3x3>::new(pieces2, pieces2)
+    );
+}
+
+#[test]
+fn mask_ignores_order() {
+    let pieces1 = [
+        Pieces3x3::Center(Center::F),
+        Pieces3x3::Center(Center::U),
+        Pieces3x3::Edge(Edge::Uf),
+    ];
+    let pieces2 = [
+        Pieces3x3::Center(Center::F),
+        Pieces3x3::Edge(Edge::Uf),
+        Pieces3x3::Center(Center::U),
+    ];
+    assert_eq!(
+        Mask::<Cube3x3>::new(pieces1, pieces1),
+        Mask::<Cube3x3>::new(pieces2, pieces2)
+    );
+}
+
+#[test]
+fn masked_default_applies_to_default_but_not_r() {
+    let pieces1 = [
+        Pieces3x3::Center(Center::F),
+        Pieces3x3::Center(Center::U),
+        Pieces3x3::Edge(Edge::Ur),
+    ];
+    let pieces2 = [
+        Pieces3x3::Center(Center::F),
+        Pieces3x3::Edge(Edge::Ur),
+        Pieces3x3::Center(Center::U),
+    ];
+    assert!(Mask::new(pieces1, pieces2).applies_to(&Cube3x3::default()));
+    assert!(!Mask::new(pieces1, pieces2).applies_to(&Cube3x3::from_solved("R").unwrap()));
+}
+
+#[test]
+fn masked_default_applies_to_default_and_r_if_mask_excludes_r() {
+    let pieces1 = [
+        Pieces3x3::Center(Center::F),
+        Pieces3x3::Center(Center::U),
+        Pieces3x3::Edge(Edge::Ul),
+    ];
+    let pieces2 = [
+        Pieces3x3::Center(Center::F),
+        Pieces3x3::Edge(Edge::Ul),
+        Pieces3x3::Center(Center::U),
+    ];
+    assert!(Mask::new(pieces1, pieces2).applies_to(&Cube3x3::default()));
+    assert!(Mask::new(pieces1, pieces2).applies_to(&Cube3x3::from_solved("R").unwrap()));
+}
+
+#[test]
+fn masked_with_correct_permutation_but_wrong_orientation_parses_correctly() {
+    let pieces = [Pieces3x3::Corner(Corner::Ufr)];
+    assert!(Mask::new(pieces, []).applies_to(&Cube3x3::from_solved("R U").unwrap()));
+    assert!(!Mask::new([], pieces).applies_to(&Cube3x3::from_solved("R U").unwrap()));
+}
+
+#[test]
+fn masked_with_correct_orientation_but_wrong_permutation_parses_correctly() {
+    let pieces = [Pieces3x3::Corner(Corner::Ufr)];
+    assert!(!Mask::new(pieces, []).applies_to(&Cube3x3::from_solved("U").unwrap()));
+    assert!(Mask::new([], pieces).applies_to(&Cube3x3::from_solved("U").unwrap()));
+}
+
+#[test]
+fn empty_mask_always_applies() {
+    let mut random = Rng::new();
+    random.seed(3);
+    for _ in 0..100 {
+        assert!(Mask::new([], []).applies_to(&Cube3x3::random_state_with_seed(&mut random)));
+    }
+}
 
 /// A reconstruction is a scramble followed by a solution. The scrambled state
 /// must be reachable, and the final state must be reachable and solved.

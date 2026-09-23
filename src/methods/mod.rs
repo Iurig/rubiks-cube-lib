@@ -25,8 +25,8 @@ pub trait SolveStep<P: Puzzle, S: Solution, M: SolveMethod<P, S>> {
     fn options_allow(&self, method: &M) -> bool;
     fn step_is_solved(&self, p: &P) -> bool;
     fn can_apply(&self, p: &P) -> bool;
-    fn needs_solved(&self) -> Vec<P::Pieces>;
-    fn solved_pieces(&self) -> Vec<P::Pieces>;
+    fn needs_solved(&self) -> Vec<P::Piece>;
+    fn solved_pieces(&self) -> Vec<P::Piece>;
     fn step_name(&self) -> String;
     fn allowed_move_sequences(&self) -> Vec<Vec<P::Moves>>;
 

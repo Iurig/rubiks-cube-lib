@@ -1,7 +1,11 @@
-use std::{marker::PhantomData, sync::LazyLock};
+use std::{
+    marker::PhantomData,
+    sync::{LazyLock, Mutex},
+};
 
 use crate::{
     Cube3x3, NamedMoveSequences, Puzzle, SimpleStep, SolveMethod, SolveStep,
+    methods::search::BFSMemo,
     puzzles::cube3by3::{
         moves::{MovablePart, Move3x3},
         pieces::{Faces, Pieces3x3, Slices},
@@ -84,7 +88,7 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         after: Box::new(Roux::FB_FRONT_SQUARE_PIECES),
         allowed_moves: Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]).collect(),
         is_allowed: |m| !m.0.fb_as_one_step,
-        //memo: Mutex::new(BFSMemo::new()),
+        memo: Mutex::new(BFSMemo::new_empty()),
         phantom: PhantomData,
     };
 
@@ -94,6 +98,7 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         after: Box::new(Roux::FB_BACK_SQUARE_PIECES),
         allowed_moves: Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]).collect(),
         is_allowed: |m| !m.0.fb_as_one_step,
+        memo: Mutex::new(BFSMemo::new_empty()),
         phantom: PhantomData,
     };
 
@@ -103,6 +108,7 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         after: Box::new(Roux::FB_PIECES),
         allowed_moves: Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]).collect(),
         is_allowed: |m| !m.0.fb_as_one_step,
+        memo: Mutex::new(BFSMemo::new_empty()),
         phantom: PhantomData,
     };
 
@@ -112,6 +118,7 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         after: Box::new(Roux::FB_PIECES),
         allowed_moves: Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]).collect(),
         is_allowed: |m| !m.0.fb_as_one_step,
+        memo: Mutex::new(BFSMemo::new_empty()),
         phantom: PhantomData,
     };
 
@@ -121,6 +128,7 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         after: Box::new(Roux::FB_PIECES),
         allowed_moves: Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]).collect(),
         is_allowed: |_| true,
+        memo: Mutex::new(BFSMemo::new_empty()),
         phantom: PhantomData,
     };
 
@@ -146,6 +154,7 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
             .map(|&m| vec![m])
             .collect(),
         is_allowed: |m| !m.0.sb_square_as_one_step,
+        memo: Mutex::new(BFSMemo::new_empty()),
         phantom: PhantomData,
     };
 
@@ -164,6 +173,7 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
             .map(|&m| vec![m])
             .collect(),
         is_allowed: |m| !m.0.sb_square_as_one_step,
+        memo: Mutex::new(BFSMemo::new_empty()),
         phantom: PhantomData,
     };
 
@@ -182,6 +192,7 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
             .map(|&m| vec![m])
             .collect(),
         is_allowed: |m| m.0.sb_square_as_one_step,
+        memo: Mutex::new(BFSMemo::new_empty()),
         phantom: PhantomData,
     };
 
@@ -211,6 +222,7 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         })
         .collect(),
         is_allowed: |_| true,
+        memo: Mutex::new(BFSMemo::new_empty()),
         phantom: PhantomData,
     };
 
@@ -231,6 +243,7 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
             .map(|&m| vec![m])
             .collect(),
         is_allowed: |_| true,
+        memo: Mutex::new(BFSMemo::new_empty()),
         phantom: PhantomData,
     };
 

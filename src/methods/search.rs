@@ -1,27 +1,31 @@
-/*use std::{collections::HashMap, marker::PhantomData};
+use std::collections::HashMap;
 
-use crate::{NamedMoveSequences, Puzzle, SimpleStep, SolveMethod, SolveStep};
+use crate::{Puzzle, methods::simple_methods::SimpleMask};
 
-type Mask<P> = Vec<(<P as Puzzle>::Pieces, usize)>;
-
-pub struct BFSMemo<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> {
-    memorization: HashMap<Mask<P>, Vec<P::Moves>>,
-    to_deepen: Vec<Mask<P>>,
+pub struct BFSMemo<P: Puzzle> {
+    memorization: HashMap<SimpleMask<P>, Vec<P::Moves>>,
+    to_deepen: Vec<SimpleMask<P>>,
     depth: usize,
-    phantom: PhantomData<M>,
 }
 
-impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> BFSMemo<P, M> {
-    pub fn new(step: SimpleStep<P, M>) -> Self {
-        BFSMemo::<P, M> {
-            memorization: HashMap::from([(step.mask(&P::default()), Vec::new())]),
-            to_deepen: vec![step.mask(&P::default())],
+impl<P: Puzzle> BFSMemo<P> {
+    pub fn new_empty() -> Self {
+        Self {
+            memorization: HashMap::new(),
+            to_deepen: vec![],
             depth: 0,
-            phantom: PhantomData,
         }
     }
+
+    pub fn initialize(mask: SimpleMask<P>) -> Self {
+        Self {
+            memorization: HashMap::from([(mask.clone(), Vec::new())]),
+            to_deepen: vec![mask],
+            depth: 0,
+        }
+    }
+
     fn search_to(depth: usize) -> Self {
         todo!()
     }
 }
-*/
