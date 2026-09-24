@@ -1,8 +1,9 @@
 mod table;
 
-// `allow` instead of `expect` because the lint is skipped once the
-// library is compiled with `cfg(test)`
-#[allow(clippy::wildcard_imports)]
+#[allow(
+    clippy::wildcard_imports,
+    reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
+)]
 use crate::{
     ops,
     puzzles::cube3by3::{Cube3x3, pieces::*},

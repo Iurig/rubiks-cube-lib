@@ -1,5 +1,7 @@
-// `?` reports setup failures; `assert!` reports the property under test failing.
-#![allow(clippy::panic_in_result_fn)]
+#![expect(
+    clippy::panic_in_result_fn,
+    reason = "`?` reports setup failures; `assert!` reports the property under test failing"
+)]
 
 use fastrand::Rng;
 use rubiks_cube_lib::{zn::Zn, *};

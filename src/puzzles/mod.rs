@@ -37,7 +37,10 @@ pub trait Puzzle:
         Self::random_state_with_seed(&mut rng)
     }
 
-    #[allow(clippy::panic)]
+    #[expect(
+        clippy::panic,
+        reason = "`ALL_PIECES` lists every piece, so the loop always returns"
+    )]
     #[must_use]
     fn index(piece: Self::Piece) -> usize {
         for (i, &p) in Self::ALL_PIECES.iter().enumerate() {

@@ -69,14 +69,15 @@ pub trait SolveMethod<P: Puzzle, S: Solution>: std::marker::Sized + Default {
 
             for step in self.steps().iter().filter(|&s| s.options_allow(self)) {
                 if step.can_apply(puzzle) && solved_pieces == step.needs_solved() {
-                    println!("Starting step: {}", step.name());
+                    log::debug!("Starting step: {}", step.name());
                     let step_solution = step.solve(puzzle)?;
-                    println!("Finished step: {}", step.name());
-                    println!("{}", step_solution.to_recon());
+                    log::debug!(
+                        "Finished step: {}: {}",
+                        step.name(),
+                        step_solution.to_recon()
+                    );
                     solved_pieces = step.solved_pieces();
                     sol = sol.then(step_solution);
-                } else {
-                    //dbg!(step.step_name(), &solved_pieces, step.needs_solved());
                 }
             }
             counter += 1;
@@ -99,11 +100,19 @@ impl std::error::Error for MethodNotCompletable {}
 
 impl Display for StepNotCompletable {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.name)
+        write!(
+            f,
+            "step {} cannot be completed with its allowed moves",
+            self.name
+        )
     }
 }
 impl Display for MethodNotCompletable {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.name)
+        write!(
+            f,
+            "method {} did not solve the cube after 100 passes over its steps",
+            self.name
+        )
     }
 }

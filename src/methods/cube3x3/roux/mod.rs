@@ -87,7 +87,10 @@ const CMLL_PERMUTATION_ALGS: &str = include_str!("cmll/cp.txt");
 static STEPS: LazyLock<Vec<SimpleStep<Cube3x3, Roux>>> = LazyLock::new(roux_steps);
 
 /// Builds the step chain: each step's `before` is the previous step's `after`.
-#[expect(clippy::too_many_lines)]
+#[expect(
+    clippy::too_many_lines,
+    reason = "one literal per step, in solving order"
+)]
 fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
     let fb_front_square_after = Mask::<Cube3x3>::new_from_pieces(Roux::FB_FRONT_SQUARE_PIECES);
     let fb_front_square = SimpleStep::<Cube3x3, Roux> {

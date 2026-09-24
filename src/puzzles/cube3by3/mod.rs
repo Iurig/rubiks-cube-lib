@@ -5,12 +5,16 @@ pub mod pieces;
 
 use std::ops::Neg;
 
-// `allow` instead of `expect` because the lint is skipped once the
-// library is compiled with `cfg(test)`
-#[allow(clippy::wildcard_imports)]
+#[allow(
+    clippy::wildcard_imports,
+    reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
+)]
 use self::{moves::*, pieces::*};
 
-#[allow(clippy::enum_glob_use)]
+#[allow(
+    clippy::enum_glob_use,
+    reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
+)]
 use crate::{
     ops::{Inv, Pow},
     puzzles::{Puzzle, cube3by3::moves::MoveModifier::*},
@@ -50,7 +54,10 @@ impl Puzzle for Cube3x3 {
     .as_slice();
 
     const ALL_MOVES: &'static [Self::Moves] = {
-        #[allow(clippy::enum_glob_use)]
+        #[allow(
+            clippy::enum_glob_use,
+            reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
+        )]
         use crate::{Center::*, puzzles::cube3by3::moves::MovablePart::*};
         use moves::Move3x3;
         [
@@ -299,12 +306,13 @@ mod tests {
     use std::error::Error;
 
     #[test]
-    fn hundred_random_states_are_solvable() {
+    fn hundred_random_states_are_reachable() {
         let mut rng = fastrand::Rng::with_seed(40);
         for i in 0..100 {
-            println!("test {i} started");
-            assert!(Cube3x3::random_state_with_seed(&mut rng).is_reachable());
-            println!("test {i} done");
+            assert!(
+                Cube3x3::random_state_with_seed(&mut rng).is_reachable(),
+                "state {i} is not reachable"
+            );
         }
     }
 

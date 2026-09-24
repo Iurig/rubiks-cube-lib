@@ -1,7 +1,10 @@
 use std::{collections::hash_map::Entry, fmt::Display, marker::PhantomData, sync::Mutex};
 
 use crate::{Mask, methods::search::BFSMemo};
-#[allow(clippy::wildcard_imports)]
+#[allow(
+    clippy::wildcard_imports,
+    reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
+)]
 use crate::{Puzzle, methods::*};
 
 #[derive(Debug)]
@@ -60,7 +63,7 @@ impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
                     return Err(Box::new(StepNotCompletable { name: self.name() }));
                 }
             }
-            println!(
+            log::trace!(
                 "Step: {}\t forward states: {}\t forward depth: {forward_depth}\t memo frontier: {}",
                 self.name(),
                 level.len(),
@@ -127,7 +130,7 @@ impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct NoOptions();
 
 impl<M> Solution for Vec<(String, Vec<M>)>

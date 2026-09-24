@@ -3,3 +3,5 @@ allow-expect-in-tests = true
 allow-panic-in-tests = true
 allow-indexing-slicing-in-tests = true
 suppress-restriction-lint-in-const = true
+allow-print-in-tests = true
+allow-dbg-in-tests = true

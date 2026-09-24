@@ -35,7 +35,10 @@ pub trait Piece<const N: usize>: Copy + Eq + private::Sealed + Debug {
 }
 
 #[must_use]
-#[allow(clippy::redundant_pub_crate)]
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "`pub(crate)` says `index` is internal even if this module becomes public"
+)]
 pub(crate) const fn index<P, const N: usize>(piece: P) -> usize
 where
     P: Piece<N>,

@@ -26,7 +26,10 @@ impl<P: Puzzle> BFSMemo<P> {
     }
 
     #[must_use]
-    #[allow(clippy::indexing_slicing)]
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "masks have one entry per piece, and `P::index` of a piece is below that count"
+    )]
     pub(crate) fn filter_through(puzzle: &P, goal: &Mask<P>) -> Mask<P> {
         Mask {
             permutation: P::ALL_PIECES

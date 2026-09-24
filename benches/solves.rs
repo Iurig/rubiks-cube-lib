@@ -1,14 +1,19 @@
 //! Benchmark: two passes of 1000 seeded random solves with default Roux, timed and
 //! memory-tracked per step.
 //!
-//! Run with `cargo bench --bench solves > /dev/null`: the solver's progress goes to stdout, the
-//! results to stderr. The first solve of each pass is reported apart. `harness = false` in
-//! `Cargo.toml` makes this file a plain program, so `cargo bench` works on stable.
+//! Run with `cargo bench --bench solves`; results go to stderr. No logger is installed, so the
+//! solver's log calls print nothing and cost only a level check. The first solve of each pass is
+//! reported apart. `harness = false` in `Cargo.toml` makes this file a plain program, so
+//! `cargo bench` works on stable.
 //!
 //! Memory is heap bytes requested through the global allocator, not what the OS reports.
 //! "Peak" for a step is the highest heap in use during the step, minus the heap in use when it
 //! started: the search's working memory plus whatever the memo grew. "Live" at the end of a
 //! pass is what stays allocated between solves, which is mostly the memos.
+#![expect(
+    clippy::print_stderr,
+    reason = "the benchmark reports its results on stderr"
+)]
 use std::{
     alloc::{GlobalAlloc, Layout, System},
     collections::BTreeMap,

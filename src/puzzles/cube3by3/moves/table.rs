@@ -8,9 +8,11 @@ use std::sync::LazyLock;
 
 use crate::{Inv, Piece};
 
-// `allow` instead of `expect` because the lint is skipped once the
-// library is compiled with `cfg(test)`
-#[allow(clippy::wildcard_imports, clippy::enum_glob_use)]
+#[allow(
+    clippy::wildcard_imports,
+    clippy::enum_glob_use,
+    reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
+)]
 use {
     super::{MovablePart, MovablePart::*, MoveModifier, MoveModifier::*},
     crate::{
