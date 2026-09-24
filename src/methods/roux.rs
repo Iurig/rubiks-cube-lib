@@ -86,9 +86,13 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         name: "FB Square".to_string(),
         before: Box::new([]),
         after: Box::new(Roux::FB_FRONT_SQUARE_PIECES),
-        allowed_moves: Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]).collect(),
+        allowed_moves: Cube3x3::ALL_MOVES
+            .iter()
+            .map(|&m| (vec![m], true))
+            .collect(),
         is_allowed: |m| !m.0.fb_as_one_step,
         memo: Mutex::new(BFSMemo::new_empty()),
+        bfs_depth: 4,
         phantom: PhantomData,
     };
 
@@ -96,9 +100,13 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         name: "FB Square".to_string(),
         before: Box::new([]),
         after: Box::new(Roux::FB_BACK_SQUARE_PIECES),
-        allowed_moves: Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]).collect(),
+        allowed_moves: Cube3x3::ALL_MOVES
+            .iter()
+            .map(|&m| (vec![m], true))
+            .collect(),
         is_allowed: |m| !m.0.fb_as_one_step,
         memo: Mutex::new(BFSMemo::new_empty()),
+        bfs_depth: 0,
         phantom: PhantomData,
     };
 
@@ -106,9 +114,13 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         name: "FB Pair".to_string(),
         before: Box::new(Roux::FB_BACK_SQUARE_PIECES),
         after: Box::new(Roux::FB_PIECES),
-        allowed_moves: Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]).collect(),
+        allowed_moves: Cube3x3::ALL_MOVES
+            .iter()
+            .map(|&m| (vec![m], true))
+            .collect(),
         is_allowed: |m| !m.0.fb_as_one_step,
         memo: Mutex::new(BFSMemo::new_empty()),
+        bfs_depth: 0,
         phantom: PhantomData,
     };
 
@@ -116,9 +128,13 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         name: "FB Pair".to_string(),
         before: Box::new(Roux::FB_FRONT_SQUARE_PIECES),
         after: Box::new(Roux::FB_PIECES),
-        allowed_moves: Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]).collect(),
+        allowed_moves: Cube3x3::ALL_MOVES
+            .iter()
+            .map(|&m| (vec![m], true))
+            .collect(),
         is_allowed: |m| !m.0.fb_as_one_step,
         memo: Mutex::new(BFSMemo::new_empty()),
+        bfs_depth: 0,
         phantom: PhantomData,
     };
 
@@ -126,9 +142,13 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         name: "FB".to_string(),
         before: Box::new([]),
         after: Box::new(Roux::FB_PIECES),
-        allowed_moves: Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]).collect(),
+        allowed_moves: Cube3x3::ALL_MOVES
+            .iter()
+            .map(|&m| (vec![m], true))
+            .collect(),
         is_allowed: |_| true,
         memo: Mutex::new(BFSMemo::new_empty()),
+        bfs_depth: 0,
         phantom: PhantomData,
     };
 
@@ -151,10 +171,11 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         allowed_moves: Cube3x3::ALL_MOVES
             .iter()
             .filter(|&m| second_block_moves.contains(&m.part))
-            .map(|&m| vec![m])
+            .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |m| !m.0.sb_square_as_one_step,
         memo: Mutex::new(BFSMemo::new_empty()),
+        bfs_depth: 0,
         phantom: PhantomData,
     };
 
@@ -170,10 +191,11 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         allowed_moves: Cube3x3::ALL_MOVES
             .iter()
             .filter(|&m| second_block_moves.contains(&m.part))
-            .map(|&m| vec![m])
+            .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |m| !m.0.sb_square_as_one_step,
         memo: Mutex::new(BFSMemo::new_empty()),
+        bfs_depth: 0,
         phantom: PhantomData,
     };
 
@@ -189,10 +211,11 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         allowed_moves: Cube3x3::ALL_MOVES
             .iter()
             .filter(|&m| second_block_moves.contains(&m.part))
-            .map(|&m| vec![m])
+            .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |m| m.0.sb_square_as_one_step,
         memo: Mutex::new(BFSMemo::new_empty()),
+        bfs_depth: 0,
         phantom: PhantomData,
     };
 
@@ -206,23 +229,27 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
             .copied()
             .collect(),
         allowed_moves: [
-            "R U R' U R U2 R'",
-            "R U2 R' U' R U' R'",
-            "R U R' F' R U R' U' R' F R2 U' R'",
-            "U",
-            "U2",
-            "U'",
-            "F R U' R' U' R U R' F' R U R' U' R' F R F'",
+            ("R U R' U R U2 R'", true),
+            ("R U2 R' U' R U' R'", true),
+            ("R U R' F' R U R' U' R' F R2 U' R'", true),
+            ("U", false),
+            ("U2", false),
+            ("U'", false),
+            ("F R U' R' U' R U R' F' R U R' U' R' F R F'", true),
         ]
         .iter()
-        .map(|&r| {
-            Move3x3::sequence(r)
-                .map(|p| p.expect("manually curated sequences should always parse"))
-                .collect()
+        .map(|(r, has_cost)| {
+            (
+                Move3x3::sequence(r)
+                    .map(|p| p.expect("manually curated sequences should always parse"))
+                    .collect(),
+                *has_cost,
+            )
         })
         .collect(),
         is_allowed: |_| true,
         memo: Mutex::new(BFSMemo::new_empty()),
+        bfs_depth: 0,
         phantom: PhantomData,
     };
 
@@ -240,10 +267,11 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
             .filter(|&m| {
                 [MovablePart::Face(Faces::U), MovablePart::Slice(Slices::M)].contains(&m.part)
             })
-            .map(|&m| vec![m])
+            .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |_| true,
         memo: Mutex::new(BFSMemo::new_empty()),
+        bfs_depth: 0,
         phantom: PhantomData,
     };
 

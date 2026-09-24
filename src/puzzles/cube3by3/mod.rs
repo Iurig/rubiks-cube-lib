@@ -282,6 +282,7 @@ impl Cube3x3 {
         self.rotated_until_solved_centers().is_some()
     }
 }
+
 #[cfg(test)]
 #[expect(
     clippy::panic_in_result_fn,

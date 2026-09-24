@@ -486,6 +486,17 @@ fn full_solve_and_checking_bfs() {
 }
 
 #[test]
+fn skips_work() -> Result<(), Box<dyn Error>> {
+    let scrambled = Cube3x3::from_solved("U2")?;
+    let recon = Roux::default()
+        .solve(&mut scrambled.clone())
+        .recon_with_options(NoOptions::default());
+    println!("{recon}");
+    assert!(scrambled.move_sequence(&recon)?.is_solved());
+    Ok(())
+}
+
+#[test]
 fn bad_move_error_names_its_line_and_position() {
     let e = Cube3x3::from_solved(
         "R U R'

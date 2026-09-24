@@ -17,4 +17,4 @@ pub use puzzles::cube3by3::{
     moves::{ParseMoveError, ParseSequenceError},
     pieces::{Center, Corner, Edge, Pieces3x3},
 };
-pub use puzzles::{Mask, Puzzle};
+pub use puzzles::{Puzzle, mask::Mask};

@@ -8,9 +8,10 @@ pub struct SimpleStep<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> {
     pub name: String,
     pub before: Box<[P::Piece]>,
     pub after: Box<[P::Piece]>,
-    pub allowed_moves: Vec<Vec<P::Moves>>,
+    pub allowed_moves: Vec<(Vec<P::Moves>, bool)>,
     pub is_allowed: fn(&M) -> bool,
     pub memo: Mutex<BFSMemo<P>>,
+    pub bfs_depth: usize,
     pub phantom: PhantomData<M>,
 }
 
@@ -30,6 +31,11 @@ impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
         > = HashMap::new();
         let mut prev_depth = 0;
 
+        self.memo
+            .lock()
+            .unwrap()
+            .search_to(self.bfs_depth, self.allowed_moves.as_slice());
+
         while let Some((current_cube, current_move_sequence, depth)) = to_investigate.pop_front() {
             if investigated.contains_key(&self.mask(&current_cube)) {
                 continue;
@@ -37,23 +43,23 @@ impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
             investigated.insert(self.mask(&current_cube), current_move_sequence);
             for sequence in self.allowed_move_sequences() {
                 let moved_cube = sequence.iter().fold(current_cube.clone(), |c, m| c * *m);
-                if self.step_is_solved(&moved_cube) {
-                    *p = moved_cube;
-                    let mut solution = VecDeque::from([sequence]);
-                    let mut cube = current_cube;
-                    while let Some(backtracking_move) = investigated
-                        .get(&self.mask(&cube))
-                        .expect("previously investigated cube was not found")
-                    {
-                        solution.push_front(backtracking_move.clone());
-                        cube = backtracking_move
-                            .iter()
-                            .rev()
-                            .fold(cube, |c, m| c * m.inverse());
-                    }
-                    return solution.iter().flatten().copied().collect();
-                }
                 to_investigate.push_back((moved_cube, Some(sequence), depth + 1));
+            }
+            if self.step_is_solved(&current_cube) {
+                *p = current_cube.clone();
+                let mut solution = VecDeque::from([]);
+                let mut cube = current_cube;
+                while let Some(backtracking_move) = investigated
+                    .get(&self.mask(&cube))
+                    .expect("previously investigated cube was not found")
+                {
+                    solution.push_front(backtracking_move.clone());
+                    cube = backtracking_move
+                        .iter()
+                        .rev()
+                        .fold(cube, |c, m| c * m.inverse());
+                }
+                return solution.iter().flatten().copied().collect();
             }
             if depth != prev_depth {
                 println!("Step: {}\t Depth:{depth}", self.step_name());
@@ -124,7 +130,7 @@ where
         self.name.clone()
     }
     fn allowed_move_sequences(&self) -> Vec<Vec<<P as Puzzle>::Moves>> {
-        self.allowed_moves.clone()
+        self.allowed_moves.iter().map(|(m, _)| m).cloned().collect()
     }
 
     type PartialCube = SimpleMask<P>;
