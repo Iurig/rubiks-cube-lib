@@ -1,0 +1,42 @@
+R U R' F' R U R' U' R' F R2 U' R'   // O Adjacent
+F R U' R' U' R U R' F' R U R' U' R' F R F'  //O Diagonal
+R U R' U R U' R' U R U2 R'   // H Columns
+F R U R' U' R U R' U' R U R' U' F'   // H Rows
+R' F2 D R2 U R2 D' F2 R   // H Column
+r U' r2 D' r U' r' D r2 U r'   // H Row
+F R U R' U' R U R' U' F'   // Pi Right Bar
+F R' F' R U2 R U' R' U R U2 R'   // Pi Down Slash
+R' F2 D R2 U' R2 D' F2 R   // Pi X
+R U2 R' U' R U R' U2 R' F R F'   // Pi Up Slash
+r U' r2 D' r U r' D r2 U r'   // Pi Columns
+R' U' R' F R F' R U' R' U2 R   // Pi Left Bar
+R2 D R' U2 R D' R' U2 R'   // U Up Slash
+R2 D' R U2 R' D R U2 R   // U Down Slash
+R' U' R U' R' U2 R2 U R' U R U2 R'   // U Bottom Row
+F R2 D R' U R D' R2 U' F'   // U Rows
+r U' r' U r' D' r U' r' D r   // U X
+F R U R' U' F'   // U Upper Row
+R U R' U' R' F R F'   // T Left Bar
+L' U' L U L F' L' F   // T Right Bar
+R U2 R' U' R U' R2 U2 R U R' U R   // T Rows
+r' U r U2 R2 F R F' R   // T Bottom Row
+r' D' r U r' D r U' r U r'   // T Top Row
+r U' r2 D' r U2 r' D r2 U r'   // T Columns
+R U R' U R U2 R'   // Sune Left Bar
+L' U2 L U2 r U' r' F   // Sune X
+F R' F' R U2 R U2 R'   // Sune Up Slash
+R U R' U' R' F R F' R U R' U R U2 R'   // Sune Columns
+R U R' U R' F R F' R U2 R'   // Sune Right Bar
+r U' r' F R' F' R   // Sune Down Slash
+R' U' R U' R' U2 R   // Anti Sune Right Bar
+R U R2 F' r F R U' r2 F r   // Anti Sune Columns
+F' L F L' U2 L' U2 L   // Anti Sune Down Slash
+R U2 R' U2 R' F R F'   // Anti Sune X
+R' F R F' r U r'   // Anti Sune Up Slash
+R U2 R' F R' F' R U' R U' R'   // Anti Sune Left Bar
+F' r U r' U' r' F r   // L Best
+F R' F' R U R U' R'   // L Good
+R U R' U R U' R' U R U' R' U R U2 R'   // L Pure
+R U2 R D R' U2 R D' R2   // L Front Commutator
+R U2 R2 F R F' R U2 R'   // L Diagonal
+R' U2 R' D' R U2 R' D R2   // L Back Commutator

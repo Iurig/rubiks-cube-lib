@@ -10,7 +10,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         + Roux::from_options(RouxOptions {
             fb_as_one_step: false,
             sb_square_as_one_step: false,
-            ..Default::default()
+            one_look_cmll: false,
         })
         .solve(&mut scrambled)?
         .recon_with_options(NoOptions::default())
@@ -36,5 +36,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .expect("deu OUTRO ruim")
             .is_solved(),
     );
+
+    println!("{recon_default_options}");
+
     Ok(())
 }

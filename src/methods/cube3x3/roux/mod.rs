@@ -76,11 +76,18 @@ impl Roux {
     ];
 }
 
+/// One-look CMLL algorithms, one per line.
+const CMLL_ONE_LOOK_ALGS: &str = include_str!("cmll/one_look.txt");
+/// Algorithms that orient the U-layer corners, one per line.
+const CMLL_ORIENTATION_ALGS: &str = include_str!("cmll/co.txt");
+/// Algorithms that permute oriented U-layer corners, one per line.
+const CMLL_PERMUTATION_ALGS: &str = include_str!("cmll/cp.txt");
+
 /// The Roux steps in solving order, built once on first use.
 static STEPS: LazyLock<Vec<SimpleStep<Cube3x3, Roux>>> = LazyLock::new(roux_steps);
 
 /// Builds the step chain: each step's `before` is the previous step's `after`.
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines)]
 fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
     let fb_front_square_after = Mask::<Cube3x3>::new_from_pieces(Roux::FB_FRONT_SQUARE_PIECES);
     let fb_front_square = SimpleStep::<Cube3x3, Roux> {
@@ -231,26 +238,75 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         name: "CMLL".to_string(),
         before: sb.after.clone(),
         after: cmll_after.clone(),
-        allowed_moves: [
-            ("R U R' U R U2 R'", true),
-            ("R U2 R' U' R U' R'", true),
-            ("R U R' F' R U R' U' R' F R2 U' R'", true),
-            ("U", false),
-            ("U2", false),
-            ("U'", false),
-            ("F R U' R' U' R U R' F' R U R' U' R' F R F'", true),
-        ]
-        .iter()
-        .map(|(r, has_cost)| {
-            (
-                Move3x3::sequence(r)
-                    .map(|p| p.expect("manually curated sequences should always parse"))
-                    .collect(),
-                *has_cost,
-            )
-        })
-        .collect(),
-        is_allowed: |_| true,
+        allowed_moves: [("U", false), ("U2", false), ("U'", false)]
+            .iter()
+            .copied()
+            .chain(CMLL_ONE_LOOK_ALGS.lines().map(|line| (line, true)))
+            .map(|(r, has_cost)| {
+                (
+                    Move3x3::sequence(r)
+                        .map(|p| p.expect("manually curated sequences should always parse"))
+                        .collect(),
+                    has_cost,
+                )
+            })
+            .collect(),
+        is_allowed: |m| m.0.one_look_cmll,
+        memo: Mutex::new(BFSMemo::new(&cmll_after)),
+        phantom: PhantomData,
+    };
+
+    let cmll_orientation_after = Mask::<Cube3x3>::new(
+        Roux::FB_PIECES
+            .iter()
+            .chain(Roux::SB_PIECES.iter())
+            .copied(),
+        Roux::FB_PIECES
+            .iter()
+            .chain(Roux::SB_PIECES.iter())
+            .chain(Roux::CMLL_PIECES.iter())
+            .copied(),
+    );
+    let cmll_orientation = SimpleStep::<Cube3x3, Roux> {
+        name: "CO".to_string(),
+        before: sb.after.clone(),
+        after: cmll_orientation_after.clone(),
+        allowed_moves: [("U", false), ("U2", false), ("U'", false)]
+            .iter()
+            .copied()
+            .chain(CMLL_ORIENTATION_ALGS.lines().map(|line| (line, true)))
+            .map(|(r, has_cost)| {
+                (
+                    Move3x3::sequence(r)
+                        .map(|p| p.expect("manually curated sequences should always parse"))
+                        .collect(),
+                    has_cost,
+                )
+            })
+            .collect(),
+        is_allowed: |m| !m.0.one_look_cmll,
+        memo: Mutex::new(BFSMemo::new(&cmll_orientation_after)),
+        phantom: PhantomData,
+    };
+
+    let cmll_permutation = SimpleStep::<Cube3x3, Roux> {
+        name: "CP".to_string(),
+        before: cmll_orientation_after,
+        after: cmll_after.clone(),
+        allowed_moves: [("U", false), ("U2", false), ("U'", false)]
+            .iter()
+            .copied()
+            .chain(CMLL_PERMUTATION_ALGS.lines().map(|line| (line, true)))
+            .map(|(r, has_cost)| {
+                (
+                    Move3x3::sequence(r)
+                        .map(|p| p.expect("manually curated sequences should always parse"))
+                        .collect(),
+                    has_cost,
+                )
+            })
+            .collect(),
+        is_allowed: |m| !m.0.one_look_cmll,
         memo: Mutex::new(BFSMemo::new(&cmll_after)),
         phantom: PhantomData,
     };
@@ -289,6 +345,8 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         sb_pair,
         sb,
         cmll,
+        cmll_orientation,
+        cmll_permutation,
         lse,
     ]
 }

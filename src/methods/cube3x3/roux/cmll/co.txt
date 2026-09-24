@@ -1,0 +1,7 @@
+U R U R' U R U' R' U R U2 R'   // H Columns
+F R U R' U' R U R' U' F'   // Pi Right Bar
+F R U R' U' F'   // U Upper Row
+R U R' U' R' F R F'   // T Left Bar
+R U R' U R U2 R'   // Sune Left Bar
+R' U' R U' R' U2 R   // Anti Sune Right Bar
+F' r U r' U' r' F r   // L Best
