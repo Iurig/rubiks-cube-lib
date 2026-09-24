@@ -8,6 +8,12 @@ pub struct Mask<P: Puzzle> {
     pub(crate) orientation: Box<[Option<usize>]>,
 }
 
+impl<P: Puzzle> Default for Mask<P> {
+    fn default() -> Self {
+        Self::new_empty()
+    }
+}
+
 impl<P: Puzzle> Mask<P> {
     pub fn new_empty() -> Self {
         Self {
@@ -35,6 +41,13 @@ impl<P: Puzzle> Mask<P> {
                 .map(|piece| orient_iter.contains(piece).then_some(0))
                 .collect(),
         }
+    }
+
+    pub fn new_from_pieces<I>(pieces: I) -> Self
+    where
+        I: IntoIterator<Item = P::Piece> + Clone,
+    {
+        Self::new(pieces.clone(), pieces)
     }
 
     #[expect(

@@ -1,42 +1,33 @@
-use std::{collections::HashMap, error::Error};
+use std::collections::HashMap;
 
-use crate::{Mask, Puzzle};
+use crate::{Inv, Mask, Puzzle};
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct BFSMemo<P: Puzzle> {
+    /// Every state is filtered through this, so memo keys match the forward search's masks.
+    goal: Mask<P>,
     memorization: HashMap<Mask<P>, Vec<P::Moves>>,
     to_deepen: Vec<(Mask<P>, P)>,
     depth: usize,
 }
 
-#[derive(Debug)]
-pub struct MovableOrientationOnlyGoal;
-
-impl Error for MovableOrientationOnlyGoal {}
-impl std::fmt::Display for MovableOrientationOnlyGoal {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Ok(())
-    }
-}
-
 impl<P: Puzzle> BFSMemo<P> {
-    pub fn new_empty() -> Self {
+    pub fn new(goal: &Mask<P>) -> Self {
         Self {
-            memorization: HashMap::new(),
-            to_deepen: vec![],
+            goal: goal.clone(),
+            memorization: HashMap::from([(goal.clone(), vec![])]),
+            to_deepen: vec![(goal.clone(), P::default())],
             depth: 0,
         }
     }
 
-    fn initialize(mask: Mask<P>) -> Self {
-        Self {
-            memorization: HashMap::from([(mask.clone(), Vec::new())]),
-            to_deepen: vec![(mask, P::default())],
-            depth: 0,
-        }
+    pub fn solution(&self, mask: &Mask<P>) -> Option<Vec<P::Moves>> {
+        self.memorization.get(mask).cloned()
     }
 
     #[must_use]
-    fn filter_through(puzzle: &P, goal: &Mask<P>) -> Mask<P> {
+    #[allow(clippy::indexing_slicing)]
+    pub(crate) fn filter_through(puzzle: &P, goal: &Mask<P>) -> Mask<P> {
         Mask {
             permutation: P::ALL_PIECES
                 .iter()
@@ -70,54 +61,59 @@ impl<P: Puzzle> BFSMemo<P> {
         }
     }
 
-    pub(crate) fn search_to(
-        &mut self,
-        depth: usize,
-        possible_sequences: &[(Vec<P::Moves>, bool)],
-    ) -> Result<(), MovableOrientationOnlyGoal> {
+    /// Number of states the next [`Self::deepen`] starts from; 0 once every reachable state is memorized.
+    pub(crate) const fn frontier_len(&self) -> usize {
+        self.to_deepen.len()
+    }
+
+    /// Deepens until level `depth` is expanded.
+    #[cfg(test)]
+    pub(crate) fn search_to(&mut self, depth: usize, possible_sequences: &[(Vec<P::Moves>, bool)]) {
+        while self.depth <= depth {
+            self.deepen(possible_sequences);
+        }
+    }
+
+    /// Expands one level. `self.depth` is the next level to expand; expanding level `d` memorizes
+    /// every state of cost `d` (free sequences stay on this level) and some of cost `d + 1`.
+    pub(crate) fn deepen(&mut self, possible_sequences: &[(Vec<P::Moves>, bool)]) {
         let mut next_frontier = Vec::new();
+        while let Some((mask, p)) = self.to_deepen.pop() {
+            let parent_solution = self
+                .memorization
+                .get(&mask)
+                .expect("every mask in to_deepen was memorized when pushed")
+                .clone();
+            for (move_sequence, has_cost) in possible_sequences {
+                // Walk away from the goal by undoing `move_sequence`, so the way back applies
+                // `move_sequence` as written, then the parent's path.
+                let moved_puzzle = move_sequence
+                    .iter()
+                    .rev()
+                    .fold(p.clone(), |puzzle, m| puzzle * m.inverse());
+                let filtered_moved_puzzle = Self::filter_through(&moved_puzzle, &self.goal);
 
-        while self.depth < depth {
-            while let Some((mask, p)) = self.to_deepen.pop() {
-                for (move_sequence, has_cost) in possible_sequences {
-                    let moved_puzzle = move_sequence
-                        .iter()
-                        .fold(p.clone(), |puzzle, m| puzzle * *m);
-                    let filtered_moved_puzzle = Self::filter_through(&moved_puzzle, &mask);
-
-                    if let std::collections::hash_map::Entry::Vacant(e) =
-                        self.memorization.entry(filtered_moved_puzzle.clone())
-                    {
-                        e.insert(move_sequence.clone());
-                        if *has_cost {
-                            next_frontier.push((filtered_moved_puzzle.clone(), moved_puzzle));
-                        } else {
-                            self.to_deepen
-                                .push((filtered_moved_puzzle.clone(), moved_puzzle));
-                        }
+                if let std::collections::hash_map::Entry::Vacant(e) =
+                    self.memorization.entry(filtered_moved_puzzle.clone())
+                {
+                    e.insert(
+                        move_sequence
+                            .iter()
+                            .chain(parent_solution.iter())
+                            .copied()
+                            .collect(),
+                    );
+                    if *has_cost {
+                        next_frontier.push((filtered_moved_puzzle.clone(), moved_puzzle));
+                    } else {
+                        self.to_deepen
+                            .push((filtered_moved_puzzle.clone(), moved_puzzle));
                     }
-                    if !(mask
-                        .orientation
-                        .iter()
-                        .enumerate()
-                        .filter(|(index, orientation)| {
-                            mask.permutation[*index] == None && orientation.is_some()
-                        })
-                        .all(|(index, _)| {
-                            filtered_moved_puzzle.clone().orientation[index].is_some()
-                        }))
-                    {
-                        return Err(MovableOrientationOnlyGoal);
-                    };
                 }
             }
-
-            self.to_deepen = next_frontier;
-            next_frontier = Vec::new();
-            self.depth += 1;
         }
-
-        Ok(())
+        self.to_deepen = next_frontier;
+        self.depth += 1;
     }
 }
 
@@ -126,6 +122,7 @@ mod tests {
     use super::*;
     use crate::*;
     use fastrand::Rng;
+    use puzzles::cube3by3::moves::Move3x3;
 
     #[test]
     fn applying_mask_matches_filtering_through() {
@@ -145,6 +142,81 @@ mod tests {
                 Mask::new(pieces.clone(), pieces)
             );
         }
+    }
+
+    fn moves(text: &str) -> Vec<Move3x3> {
+        Move3x3::sequence(text).map(Result::unwrap).collect()
+    }
+
+    /// A memo over the whole cube, searched with R and U moves only.
+    fn r_u_memo(depth: usize) -> (BFSMemo<Cube3x3>, Mask<Cube3x3>) {
+        let goal = Mask::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
+        let allowed = ["R", "R'", "R2", "U", "U'", "U2"].map(|m| (moves(m), true));
+        let mut memo = BFSMemo::new(&goal);
+        memo.search_to(depth, &allowed);
+        (memo, goal)
+    }
+
+    #[test]
+    fn memo_solution_undoes_one_move() {
+        let (memo, goal) = r_u_memo(1);
+        let r = Cube3x3::from_solved("R").unwrap();
+        assert_eq!(
+            memo.solution(&BFSMemo::filter_through(&r, &goal)),
+            Some(moves("R'"))
+        );
+    }
+
+    #[test]
+    fn memo_solution_undoes_the_whole_path() {
+        let (memo, goal) = r_u_memo(2);
+        let r_u = Cube3x3::from_solved("R U").unwrap();
+        assert_eq!(
+            memo.solution(&BFSMemo::filter_through(&r_u, &goal)),
+            Some(moves("U' R'"))
+        );
+    }
+
+    /// The FR edge passes through UR on the way; the memo key must not keep UR's orientation.
+    #[test]
+    fn memo_keys_match_forward_masks_after_a_piece_leaves_home() {
+        let goal = Mask::<Cube3x3>::new_from_pieces([Pieces3x3::Edge(Edge::Fr)]);
+        let allowed = [(moves("R'"), true), (moves("U'"), true)];
+        let mut memo = BFSMemo::new(&goal);
+        memo.search_to(1, &allowed);
+        let r_u = Cube3x3::from_solved("R U").unwrap();
+        assert_eq!(
+            memo.solution(&BFSMemo::filter_through(&r_u, &goal)),
+            Some(moves("U' R'"))
+        );
+    }
+
+    /// Sune's inverse is not an allowed sequence, so the memo must solve with Sune as written.
+    #[test]
+    fn memo_solutions_use_the_allowed_sequences_as_written() {
+        let goal = Mask::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
+        let sune = "R U R' U R U2 R'";
+        let allowed = [(moves(sune), true)];
+        let mut memo = BFSMemo::new(&goal);
+        memo.search_to(0, &allowed);
+        let before_sune = Cube3x3::from_solved(sune).unwrap().inverse();
+        assert_eq!(
+            memo.solution(&BFSMemo::filter_through(&before_sune, &goal)),
+            Some(moves(sune))
+        );
+    }
+
+    #[test]
+    fn free_sequences_are_memorized_at_depth_zero() {
+        let goal = Mask::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
+        let allowed = [(moves("R"), true), (moves("U'"), false)];
+        let mut memo = BFSMemo::new(&goal);
+        memo.search_to(0, &allowed);
+        let u = Cube3x3::from_solved("U").unwrap();
+        assert_eq!(
+            memo.solution(&BFSMemo::filter_through(&u, &goal)),
+            Some(moves("U'"))
+        );
     }
 
     #[test]

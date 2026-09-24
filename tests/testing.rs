@@ -470,12 +470,12 @@ fn roux_solve_removes_comments() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn full_solve_and_checking_bfs() {
+fn full_solve_and_checking_bfs() -> Result<(), Box<dyn Error>> {
     let scr = "U B' D L2 U B2 R2 D2 L2 D' U2 B2 R2 L U2 F' R' B L D'\n";
     let mut scrambled = Cube3x3::from_solved(scr).expect("deu ruim");
 
     let recon: String = Roux::default()
-        .solve(&mut scrambled)
+        .solve(&mut scrambled)?
         .recon_with_options(NoOptions::default());
 
     assert_eq!(
@@ -483,13 +483,14 @@ fn full_solve_and_checking_bfs() {
         Cube3x3::default()
     );
     println!("{recon}");
+    Ok(())
 }
 
 #[test]
 fn skips_work() -> Result<(), Box<dyn Error>> {
     let scrambled = Cube3x3::from_solved("U2")?;
     let recon = Roux::default()
-        .solve(&mut scrambled.clone())
+        .solve(&mut scrambled.clone())?
         .recon_with_options(NoOptions::default());
     println!("{recon}");
     assert!(scrambled.move_sequence(&recon)?.is_solved());

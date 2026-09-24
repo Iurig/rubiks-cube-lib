@@ -1,4 +1,5 @@
 pub mod algs;
+pub mod facelets;
 pub mod moves;
 pub mod pieces;
 
@@ -8,6 +9,7 @@ use std::ops::Neg;
 // library is compiled with `cfg(test)`
 #[allow(clippy::wildcard_imports)]
 use self::{moves::*, pieces::*};
+
 #[allow(clippy::enum_glob_use)]
 use crate::{
     ops::{Inv, Pow},

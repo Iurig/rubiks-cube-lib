@@ -94,6 +94,11 @@ standard memorization order, except for edges which are clockwise by layer, star
 Corner orientation counts clockwise twists relative to the U/D sticker being in the U or D layer; edge orientation is 0 for
 oriented, 1 for flipped.
 
+`Cube3x3` implements `Display` as the unfolded sticker net, each facelet lettered by the face its
+sticker belongs to when solved (`println!("{cube}")`); `cube.facelets()` gives the same data as a
+`Facelets` value with a `face(Center)` accessor. This is the debugging view: it shows what a
+physical cube would look like, so a wrong twist or flip convention is visible at a glance.
+
 Only the nine base moves (six faces, three slices) are written by hand, as explicit cycles in
 [src/cube3by3/moves/table.rs](src/cube3by3/moves/table.rs). Rotations (`x = R M' L'`,
 `y = U E' D'`, `z = F S B'`), wide moves (a face turn followed by its parallel slice), and every
@@ -133,6 +138,8 @@ src/
   cube3by3/
     mod.rs                Cube3x3, Mul/Inv/Pow impls, accessors, rotation-aware is_solved, is_reachable
     pieces.rs             piece enums, counts, and type aliases for the 3×3
+    facelets.rs           Facelets: the sticker net view, Display for Cube3x3, twist and flip
+                          conventions as face tables; its tests pin the net against face turns
     moves.rs              Move type, MovablePart/MoveModifier enums, move-sequence parsing and printing
     moves/
       table.rs            compile-time ALL_MOVES table: 9 hand-written face and slice moves,

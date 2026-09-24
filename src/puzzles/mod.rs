@@ -4,8 +4,6 @@ use std::{
     ops::Mul,
 };
 
-use crate::Mask;
-
 pub mod cube3by3;
 pub mod mask;
 
@@ -15,7 +13,7 @@ pub trait Puzzle:
     /// The type that represents the puzzle's pieces
     type Piece: Copy + Eq + Debug + Hash + 'static;
     /// The type that represents a move sequence: usually implemented as a `&'static [Move]` for a type `Move` that represents a move for the puzzle
-    type Moves: crate::Inv + Copy + 'static + Display;
+    type Moves: crate::Inv + Eq + Copy + 'static + Display + Debug;
 
     /// A slice refference to all pieces in the puzzle, must contain all values `type Piece` can assume
     const ALL_PIECES: &'static [Self::Piece];

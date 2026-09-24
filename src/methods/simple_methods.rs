@@ -1,17 +1,17 @@
-use std::{fmt::Display, marker::PhantomData, sync::Mutex};
+use std::{collections::hash_map::Entry, fmt::Display, marker::PhantomData, sync::Mutex};
 
-use crate::methods::search::BFSMemo;
+use crate::{Mask, methods::search::BFSMemo};
 #[allow(clippy::wildcard_imports)]
 use crate::{Puzzle, methods::*};
 
+#[derive(Debug)]
 pub struct SimpleStep<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> {
     pub name: String,
-    pub before: Box<[P::Piece]>,
-    pub after: Box<[P::Piece]>,
+    pub before: Mask<P>,
+    pub after: Mask<P>,
     pub allowed_moves: Vec<(Vec<P::Moves>, bool)>,
     pub is_allowed: fn(&M) -> bool,
     pub memo: Mutex<BFSMemo<P>>,
-    pub bfs_depth: usize,
     pub phantom: PhantomData<M>,
 }
 
@@ -19,54 +19,111 @@ type MoveSequence<P> = Vec<<P as Puzzle>::Moves>;
 
 pub type NamedMoveSequences<P> = Vec<(String, MoveSequence<P>)>;
 
-pub type SimpleMask<P> = Vec<(<P as Puzzle>::Piece, usize)>;
-
 impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
-    #[expect(clippy::panic, clippy::type_complexity)]
-    fn solve_bfs(&self, p: &mut P) -> Vec<P::Moves> {
-        let mut to_investigate = VecDeque::from([(p.clone(), None, 0)]);
-        let mut investigated: HashMap<
-            <Self as SolveStep<P, NamedMoveSequences<P>, M>>::PartialCube,
-            Option<MoveSequence<P>>,
-        > = HashMap::new();
-        let mut prev_depth = 0;
+    /// Meet in the middle: a forward search from `p`, one level at a time, against the memo's
+    /// backward search from the goal. Each round grows whichever side has fewer states to expand.
+    #[expect(
+        clippy::significant_drop_tightening,
+        reason = "the memo is read and deepened on every round, so the lock is held for the whole search"
+    )]
+    fn solve_bfs(&self, p: &mut P) -> Result<Vec<P::Moves>, Box<dyn std::error::Error>> {
+        let mut memo = self.memo.lock().map_err(|e| e.to_string())?;
+        let mut investigated = HashMap::from([(self.mask(p), None)]);
+        let mut level = vec![p.clone()];
+        self.close_under_free_sequences(&mut level, &mut investigated);
+        let mut forward_depth = 0;
 
-        self.memo
-            .lock()
-            .unwrap()
-            .search_to(self.bfs_depth, self.allowed_moves.as_slice());
+        loop {
+            // Checking only the newest forward level is enough: an optimal solution passes
+            // through this level, and whatever it has left is in the memo once it is short enough.
+            let best = level
+                .iter()
+                .filter_map(|cube| {
+                    let tail = memo.solution(&self.mask(cube))?;
+                    let mut path = self.path_to(cube, &investigated);
+                    path.extend(tail.iter().copied());
+                    Some((path, tail, cube))
+                })
+                .min_by_key(|(path, _, _)| path.len());
+            if let Some((path, tail, cube)) = best {
+                *p = tail.iter().fold(cube.clone(), |c, m| c * *m);
+                return Ok(path);
+            }
 
-        while let Some((current_cube, current_move_sequence, depth)) = to_investigate.pop_front() {
-            if investigated.contains_key(&self.mask(&current_cube)) {
-                continue;
-            }
-            investigated.insert(self.mask(&current_cube), current_move_sequence);
-            for sequence in self.allowed_move_sequences() {
-                let moved_cube = sequence.iter().fold(current_cube.clone(), |c, m| c * *m);
-                to_investigate.push_back((moved_cube, Some(sequence), depth + 1));
-            }
-            if self.step_is_solved(&current_cube) {
-                *p = current_cube.clone();
-                let mut solution = VecDeque::from([]);
-                let mut cube = current_cube;
-                while let Some(backtracking_move) = investigated
-                    .get(&self.mask(&cube))
-                    .expect("previously investigated cube was not found")
-                {
-                    solution.push_front(backtracking_move.clone());
-                    cube = backtracking_move
-                        .iter()
-                        .rev()
-                        .fold(cube, |c, m| c * m.inverse());
+            let memo_frontier = memo.frontier_len();
+            if memo_frontier != 0 && memo_frontier <= level.len() {
+                memo.deepen(&self.allowed_moves);
+            } else {
+                level = self.next_level(&level, &mut investigated);
+                forward_depth += 1;
+                if level.is_empty() {
+                    return Err(Box::new(StepNotCompletable { name: self.name() }));
                 }
-                return solution.iter().flatten().copied().collect();
             }
-            if depth != prev_depth {
-                println!("Step: {}\t Depth:{depth}", self.step_name());
-                prev_depth = depth;
+            println!(
+                "Step: {}\t forward states: {}\t forward depth: {forward_depth}\t memo frontier: {}",
+                self.name(),
+                level.len(),
+                memo.frontier_len()
+            );
+        }
+    }
+
+    /// The states the costly sequences reach from `level`, closed under the free sequences.
+    fn next_level(
+        &self,
+        level: &[P],
+        investigated: &mut HashMap<Mask<P>, Option<MoveSequence<P>>>,
+    ) -> Vec<P> {
+        let mut next = Vec::new();
+        for cube in level {
+            for (sequence, _) in self.allowed_moves.iter().filter(|(_, has_cost)| *has_cost) {
+                let moved = sequence.iter().fold(cube.clone(), |c, m| c * *m);
+                if let Entry::Vacant(e) = investigated.entry(self.mask(&moved)) {
+                    e.insert(Some(sequence.clone()));
+                    next.push(moved);
+                }
             }
         }
-        panic!("Step is unsolvable");
+        self.close_under_free_sequences(&mut next, investigated);
+        next
+    }
+
+    /// Adds to `level` every new state its free sequences reach, repeatedly.
+    fn close_under_free_sequences(
+        &self,
+        level: &mut Vec<P>,
+        investigated: &mut HashMap<Mask<P>, Option<MoveSequence<P>>>,
+    ) {
+        let mut i = 0;
+        while let Some(cube) = level.get(i).cloned() {
+            i += 1;
+            for (sequence, _) in self.allowed_moves.iter().filter(|(_, has_cost)| !has_cost) {
+                let moved = sequence.iter().fold(cube.clone(), |c, m| c * *m);
+                if let Entry::Vacant(e) = investigated.entry(self.mask(&moved)) {
+                    e.insert(Some(sequence.clone()));
+                    level.push(moved);
+                }
+            }
+        }
+    }
+
+    /// The moves from the searched state to `cube`, read back through `investigated`.
+    fn path_to(
+        &self,
+        cube: &P,
+        investigated: &HashMap<Mask<P>, Option<MoveSequence<P>>>,
+    ) -> Vec<P::Moves> {
+        let mut path = VecDeque::new();
+        let mut cube = cube.clone();
+        while let Some(sequence) = investigated
+            .get(&self.mask(&cube))
+            .expect("every state in a level was investigated")
+        {
+            cube = sequence.iter().rev().fold(cube, |c, m| c * m.inverse());
+            path.push_front(sequence);
+        }
+        path.into_iter().flatten().copied().collect()
     }
 }
 
@@ -111,44 +168,31 @@ where
         (self.is_allowed)(method)
     }
     fn can_apply(&self, cube: &P) -> bool {
-        (*self.before)
-            .iter()
-            .all(|piece| cube.piece_at(piece) == *piece && cube.orientation_at(piece) == 0)
-    }
-    fn needs_solved(&self) -> Vec<<P as Puzzle>::Piece> {
-        (*self.before).to_vec()
-    }
-    fn solved_pieces(&self) -> Vec<<P as Puzzle>::Piece> {
-        (*self.after).to_vec()
+        self.before.applies_to(cube)
     }
     fn step_is_solved(&self, cube: &P) -> bool {
-        (*self.after)
-            .iter()
-            .all(|piece| cube.piece_at(piece) == *piece && cube.orientation_at(piece) == 0)
+        self.after.applies_to(cube)
     }
-    fn step_name(&self) -> String {
+    fn name(&self) -> String {
         self.name.clone()
     }
     fn allowed_move_sequences(&self) -> Vec<Vec<<P as Puzzle>::Moves>> {
         self.allowed_moves.iter().map(|(m, _)| m).cloned().collect()
     }
 
-    type PartialCube = SimpleMask<P>;
-    fn mask(&self, puzzle: &P) -> Self::PartialCube {
-        self.after
-            .iter()
-            .map(|p| {
-                (
-                    puzzle.piece_location(p),
-                    puzzle.orientation_at(&puzzle.piece_location(p)),
-                )
-            })
-            .collect::<Vec<(P::Piece, usize)>>()
+    fn needs_solved(&self) -> Mask<P> {
+        self.before.clone()
     }
-    fn solve(&self, p: &mut P) -> Vec<(String, Vec<P::Moves>)> {
-        vec![(
-            <Self as SolveStep<P, Vec<(String, Vec<P::Moves>)>, M>>::step_name(self),
-            Self::solve_bfs(self, p),
-        )]
+    fn solved_pieces(&self) -> Mask<P> {
+        self.after.clone()
+    }
+    fn mask(&self, puzzle: &P) -> Mask<P> {
+        BFSMemo::<P>::filter_through(puzzle, &self.after)
+    }
+    fn solve(&self, p: &mut P) -> Result<Vec<(String, Vec<P::Moves>)>, Box<dyn std::error::Error>> {
+        Ok(vec![(
+            <Self as SolveStep<P, Vec<(String, Vec<P::Moves>)>, M>>::name(self),
+            Self::solve_bfs(self, p)?,
+        )])
     }
 }

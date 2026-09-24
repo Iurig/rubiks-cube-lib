@@ -6,14 +6,15 @@ mod puzzles;
 pub mod zn;
 
 pub use methods::{
-    Solution, SolveMethod, SolveStep,
-    roux::{Roux, RouxOptions},
+    MethodNotCompletable, Solution, SolveMethod, SolveStep, StepNotCompletable,
+    cube3x3::roux::{Roux, RouxOptions},
     simple_methods::{NamedMoveSequences, NoOptions, SimpleStep},
 };
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};
 pub use puzzles::cube3by3::{
     Cube3x3,
+    facelets::Facelets,
     moves::{ParseMoveError, ParseSequenceError},
     pieces::{Center, Corner, Edge, Pieces3x3},
 };

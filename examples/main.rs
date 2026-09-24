@@ -1,7 +1,8 @@
 #[allow(clippy::wildcard_imports)]
 use rubiks_cube_lib::*;
 
-fn main() {
+#[allow(clippy::panic_in_result_fn)]
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let scr = "D2 F2 R2 U L2 D R2 U' B2 L2 B L2 F' L D2 U R' B D2\n";
     let mut scrambled = Cube3x3::from_solved(scr).expect("deu ruim");
 
@@ -11,7 +12,7 @@ fn main() {
             sb_square_as_one_step: false,
             ..Default::default()
         })
-        .solve(&mut scrambled)
+        .solve(&mut scrambled)?
         .recon_with_options(NoOptions::default())
         .as_str();
     assert!(
@@ -26,7 +27,7 @@ fn main() {
 
     let recon_default_options: String = scr.to_string()
         + Roux::default()
-            .solve(&mut scrambled)
+            .solve(&mut scrambled)?
             .recon_with_options(NoOptions::default())
             .as_str();
 
@@ -35,4 +36,5 @@ fn main() {
             .expect("deu OUTRO ruim")
             .is_solved(),
     );
+    Ok(())
 }

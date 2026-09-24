@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    Cube3x3, NamedMoveSequences, Puzzle, SimpleStep, SolveMethod, SolveStep,
+    Cube3x3, Mask, NamedMoveSequences, Puzzle, SimpleStep, SolveMethod, SolveStep,
     methods::search::BFSMemo,
     puzzles::cube3by3::{
         moves::{MovablePart, Move3x3},
@@ -12,7 +12,7 @@ use crate::{
     },
 };
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct Roux(RouxOptions);
 
 impl Roux {
@@ -82,73 +82,73 @@ static STEPS: LazyLock<Vec<SimpleStep<Cube3x3, Roux>>> = LazyLock::new(roux_step
 /// Builds the step chain: each step's `before` is the previous step's `after`.
 #[allow(clippy::too_many_lines)]
 fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
+    let fb_front_square_after = Mask::<Cube3x3>::new_from_pieces(Roux::FB_FRONT_SQUARE_PIECES);
     let fb_front_square = SimpleStep::<Cube3x3, Roux> {
         name: "FB Square".to_string(),
-        before: Box::new([]),
-        after: Box::new(Roux::FB_FRONT_SQUARE_PIECES),
+        before: Mask::<Cube3x3>::default(),
+        after: fb_front_square_after.clone(),
         allowed_moves: Cube3x3::ALL_MOVES
             .iter()
             .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |m| !m.0.fb_as_one_step,
-        memo: Mutex::new(BFSMemo::new_empty()),
-        bfs_depth: 4,
+        memo: Mutex::new(BFSMemo::new(&fb_front_square_after)),
         phantom: PhantomData,
     };
 
+    let fb_back_square_after = Mask::<Cube3x3>::new_from_pieces(Roux::FB_BACK_SQUARE_PIECES);
     let fb_back_square = SimpleStep::<Cube3x3, Roux> {
         name: "FB Square".to_string(),
-        before: Box::new([]),
-        after: Box::new(Roux::FB_BACK_SQUARE_PIECES),
+        before: Mask::<Cube3x3>::default(),
+        after: fb_back_square_after.clone(),
         allowed_moves: Cube3x3::ALL_MOVES
             .iter()
             .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |m| !m.0.fb_as_one_step,
-        memo: Mutex::new(BFSMemo::new_empty()),
-        bfs_depth: 0,
+        memo: Mutex::new(BFSMemo::new(&fb_back_square_after)),
         phantom: PhantomData,
     };
 
+    let fb_front_pair_after = Mask::<Cube3x3>::new_from_pieces(Roux::FB_PIECES);
     let fb_front_pair = SimpleStep::<Cube3x3, Roux> {
         name: "FB Pair".to_string(),
-        before: Box::new(Roux::FB_BACK_SQUARE_PIECES),
-        after: Box::new(Roux::FB_PIECES),
+        before: Mask::<Cube3x3>::new_from_pieces(Roux::FB_BACK_SQUARE_PIECES),
+        after: fb_front_pair_after.clone(),
         allowed_moves: Cube3x3::ALL_MOVES
             .iter()
             .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |m| !m.0.fb_as_one_step,
-        memo: Mutex::new(BFSMemo::new_empty()),
-        bfs_depth: 0,
+        memo: Mutex::new(BFSMemo::new(&fb_front_pair_after)),
         phantom: PhantomData,
     };
 
+    let fb_back_pair_after = Mask::<Cube3x3>::new_from_pieces(Roux::FB_PIECES);
     let fb_back_pair = SimpleStep::<Cube3x3, Roux> {
         name: "FB Pair".to_string(),
-        before: Box::new(Roux::FB_FRONT_SQUARE_PIECES),
-        after: Box::new(Roux::FB_PIECES),
+        before: Mask::<Cube3x3>::new_from_pieces(Roux::FB_FRONT_SQUARE_PIECES),
+        after: fb_back_pair_after.clone(),
         allowed_moves: Cube3x3::ALL_MOVES
             .iter()
             .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |m| !m.0.fb_as_one_step,
-        memo: Mutex::new(BFSMemo::new_empty()),
-        bfs_depth: 0,
+        memo: Mutex::new(BFSMemo::new(&fb_back_pair_after)),
         phantom: PhantomData,
     };
 
+    let fb_after = Mask::<Cube3x3>::new_from_pieces(Roux::FB_PIECES);
     let fb = SimpleStep::<Cube3x3, Roux> {
         name: "FB".to_string(),
-        before: Box::new([]),
-        after: Box::new(Roux::FB_PIECES),
+        before: Mask::<Cube3x3>::new_from_pieces([]),
+        after: fb_after.clone(),
         allowed_moves: Cube3x3::ALL_MOVES
             .iter()
             .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |_| true,
-        memo: Mutex::new(BFSMemo::new_empty()),
-        bfs_depth: 0,
+        memo: Mutex::new(BFSMemo::new(&fb_after)),
         phantom: PhantomData,
     };
 
@@ -159,75 +159,78 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         MovablePart::Wide(Faces::R),
     ];
 
+    let sb_square_after = Mask::<Cube3x3>::new_from_pieces(
+        Roux::FB_PIECES
+            .iter()
+            .chain(Roux::SB_SQUARE_PIECES.iter())
+            .copied(),
+    );
     let sb_square = SimpleStep::<Cube3x3, Roux> {
         name: "SB Square".to_string(),
         before: fb.after.clone(),
-        after: fb
-            .after
-            .iter()
-            .chain(Roux::SB_SQUARE_PIECES.iter())
-            .copied()
-            .collect(),
+        after: sb_square_after.clone(),
         allowed_moves: Cube3x3::ALL_MOVES
             .iter()
             .filter(|&m| second_block_moves.contains(&m.part))
             .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |m| !m.0.sb_square_as_one_step,
-        memo: Mutex::new(BFSMemo::new_empty()),
-        bfs_depth: 0,
+        memo: Mutex::new(BFSMemo::new(&sb_square_after)),
         phantom: PhantomData,
     };
 
+    let sb_pair_after = Mask::<Cube3x3>::new_from_pieces(
+        Roux::FB_PIECES
+            .iter()
+            .chain(Roux::SB_SQUARE_PIECES.iter())
+            .chain(Roux::SB_PIECES.iter())
+            .copied(),
+    );
     let sb_pair = SimpleStep::<Cube3x3, Roux> {
         name: "SB Pair".to_string(),
         before: sb_square.after.clone(),
-        after: fb
-            .after
-            .iter()
-            .chain(Roux::SB_PIECES.iter())
-            .copied()
-            .collect(),
+        after: sb_pair_after.clone(),
         allowed_moves: Cube3x3::ALL_MOVES
             .iter()
             .filter(|&m| second_block_moves.contains(&m.part))
             .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |m| !m.0.sb_square_as_one_step,
-        memo: Mutex::new(BFSMemo::new_empty()),
-        bfs_depth: 0,
+        memo: Mutex::new(BFSMemo::new(&sb_pair_after)),
         phantom: PhantomData,
     };
 
+    let sb_after = Mask::<Cube3x3>::new_from_pieces(
+        Roux::FB_PIECES
+            .iter()
+            .chain(Roux::SB_PIECES.iter())
+            .copied(),
+    );
     let sb = SimpleStep::<Cube3x3, Roux> {
         name: "SB".to_string(),
         before: fb.after.clone(),
-        after: fb
-            .after
-            .iter()
-            .chain(Roux::SB_PIECES.iter())
-            .copied()
-            .collect(),
+        after: sb_after.clone(),
         allowed_moves: Cube3x3::ALL_MOVES
             .iter()
             .filter(|&m| second_block_moves.contains(&m.part))
             .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |m| m.0.sb_square_as_one_step,
-        memo: Mutex::new(BFSMemo::new_empty()),
-        bfs_depth: 0,
+        memo: Mutex::new(BFSMemo::new(&sb_after)),
         phantom: PhantomData,
     };
 
+    let cmll_after = Mask::<Cube3x3>::new_from_pieces(
+        Roux::FB_PIECES
+            .iter()
+            .chain(Roux::SB_PIECES.iter())
+            .chain(Roux::CMLL_PIECES.iter())
+            .copied(),
+    );
     let cmll = SimpleStep::<Cube3x3, Roux> {
         name: "CMLL".to_string(),
         before: sb.after.clone(),
-        after: sb
-            .after
-            .iter()
-            .chain(Roux::CMLL_PIECES.iter())
-            .copied()
-            .collect(),
+        after: cmll_after.clone(),
         allowed_moves: [
             ("R U R' U R U2 R'", true),
             ("R U2 R' U' R U' R'", true),
@@ -248,20 +251,22 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         })
         .collect(),
         is_allowed: |_| true,
-        memo: Mutex::new(BFSMemo::new_empty()),
-        bfs_depth: 0,
+        memo: Mutex::new(BFSMemo::new(&cmll_after)),
         phantom: PhantomData,
     };
 
+    let lse_after = Mask::<Cube3x3>::new_from_pieces(
+        Roux::FB_PIECES
+            .iter()
+            .chain(Roux::SB_PIECES.iter())
+            .chain(Roux::CMLL_PIECES.iter())
+            .chain(Roux::LSE_PIECES.iter())
+            .copied(),
+    );
     let lse = SimpleStep::<Cube3x3, Roux> {
         name: "LSE".to_string(),
         before: cmll.after.clone(),
-        after: cmll
-            .after
-            .iter()
-            .chain(Roux::LSE_PIECES.iter())
-            .copied()
-            .collect(),
+        after: lse_after.clone(),
         allowed_moves: Cube3x3::ALL_MOVES
             .iter()
             .filter(|&m| {
@@ -270,8 +275,7 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
             .map(|&m| (vec![m], true))
             .collect(),
         is_allowed: |_| true,
-        memo: Mutex::new(BFSMemo::new_empty()),
-        bfs_depth: 0,
+        memo: Mutex::new(BFSMemo::new(&lse_after)),
         phantom: PhantomData,
     };
 
@@ -289,7 +293,7 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
     ]
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RouxOptions {
     pub sb_square_as_one_step: bool,
     pub fb_as_one_step: bool,
@@ -308,6 +312,10 @@ impl Default for RouxOptions {
 
 impl SolveMethod<Cube3x3, NamedMoveSequences<Cube3x3>> for Roux {
     type MethodOptions = RouxOptions;
+
+    fn name(&self) -> String {
+        "Roux".to_string()
+    }
 
     fn from_options(options: Self::MethodOptions) -> Self {
         Self(options)
@@ -329,7 +337,7 @@ mod test {
     use std::collections::HashSet;
 
     use super::*;
-    use crate::{Cube3x3, Puzzle};
+    use crate::{Cube3x3, Inv, Puzzle};
 
     #[test]
     fn all_step_pieces_are_all_cube_pieces() {
@@ -347,38 +355,17 @@ mod test {
     }
 
     #[test]
-    #[ignore = "reason"]
-    fn step_requirements_meet_bound_conditions() {
-        for (i, step) in STEPS.iter().enumerate() {
-            match i {
-                0 => {
-                    assert_eq!(*step.before, []);
-                    assert_eq!(
-                        HashSet::<Pieces3x3>::from_iter(step.after.iter().copied()),
-                        HashSet::<Pieces3x3>::from_iter(STEPS[i + 1].before.iter().copied())
-                    );
-                }
-                x if x == (STEPS.len() - 1) => {
-                    assert_eq!(
-                        step.after.iter().copied().collect::<HashSet<Pieces3x3>>(),
-                        HashSet::from_iter(Cube3x3::ALL_PIECES.iter().copied())
-                    );
-                    assert_eq!(
-                        HashSet::<Pieces3x3>::from_iter(step.before.iter().copied()),
-                        HashSet::<Pieces3x3>::from_iter(STEPS[i - 1].after.iter().copied())
-                    );
-                }
-                _ => {
-                    assert_eq!(
-                        HashSet::<Pieces3x3>::from_iter(step.before.iter().copied()),
-                        HashSet::<Pieces3x3>::from_iter(STEPS[i - 1].after.iter().copied())
-                    );
-                    assert_eq!(
-                        HashSet::<Pieces3x3>::from_iter(step.after.iter().copied()),
-                        HashSet::<Pieces3x3>::from_iter(STEPS[i + 1].before.iter().copied())
-                    );
-                }
-            }
+    fn cmll_step_leaves_the_cube_with_cmll_solved() {
+        let cmll = STEPS.iter().find(|s| s.name == "CMLL").unwrap();
+        let sune = Cube3x3::from_solved("R U R' U R U2 R'").unwrap();
+        for scramble in [Cube3x3::from_solved("U2").unwrap(), sune.inverse()] {
+            let mut cube = scramble;
+            cmll.solve(&mut cube).unwrap();
+            assert!(cmll.step_is_solved(&cube), "not solved:\n{cube}");
         }
     }
+
+    #[test]
+    #[ignore = "reason"]
+    fn step_requirements_meet_bound_conditions() {}
 }
