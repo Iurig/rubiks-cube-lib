@@ -50,7 +50,10 @@ impl<P: Puzzle> BFSMemo<P> {
                         .permutation
                         .iter()
                         .any(|piece| piece == &Some(puzzle.piece_at(&slot)))
-                        || goal.orientation[P::index(slot)].is_some()
+                        // A goal orientation belongs to the fixed slot only when the goal names no
+                        // piece there; otherwise it belongs to that piece and moves with it.
+                        || (goal.orientation[P::index(slot)].is_some()
+                            && goal.permutation[P::index(slot)].is_none())
                     {
                         Some(puzzle.orientation_at(&slot))
                     } else {
@@ -77,43 +80,59 @@ impl<P: Puzzle> BFSMemo<P> {
     /// Expands one level. `self.depth` is the next level to expand; expanding level `d` memorizes
     /// every state of cost `d` (free sequences stay on this level) and some of cost `d + 1`.
     pub(crate) fn deepen(&mut self, possible_sequences: &[(Vec<P::Moves>, bool)]) {
-        let mut next_frontier = Vec::new();
-        while let Some((mask, p)) = self.to_deepen.pop() {
-            let parent_solution = self
-                .memorization
-                .get(&mask)
-                .expect("every mask in to_deepen was memorized when pushed")
-                .clone();
-            for (move_sequence, has_cost) in possible_sequences {
-                // Walk away from the goal by undoing `move_sequence`, so the way back applies
-                // `move_sequence` as written, then the parent's path.
-                let moved_puzzle = move_sequence
-                    .iter()
-                    .rev()
-                    .fold(p.clone(), |puzzle, m| puzzle * m.inverse());
-                let filtered_moved_puzzle = Self::filter_through(&moved_puzzle, &self.goal);
+        // Close the level under the free sequences before any costly one runs: a state a free
+        // sequence reaches costs the same as the level, and a costly sequence that reached it
+        // first would memorize it, and everything after it, one level too deep.
+        let mut i = 0;
+        while let Some((mask, p)) = self.to_deepen.get(i).cloned() {
+            i += 1;
+            for (sequence, _) in possible_sequences.iter().filter(|(_, has_cost)| !has_cost) {
+                if let Some(state) = self.memorize(&mask, &p, sequence) {
+                    self.to_deepen.push(state);
+                }
+            }
+        }
 
-                if let std::collections::hash_map::Entry::Vacant(e) =
-                    self.memorization.entry(filtered_moved_puzzle.clone())
-                {
-                    e.insert(
-                        move_sequence
-                            .iter()
-                            .chain(parent_solution.iter())
-                            .copied()
-                            .collect(),
-                    );
-                    if *has_cost {
-                        next_frontier.push((filtered_moved_puzzle.clone(), moved_puzzle));
-                    } else {
-                        self.to_deepen
-                            .push((filtered_moved_puzzle.clone(), moved_puzzle));
-                    }
+        let mut next_frontier = Vec::new();
+        for (mask, p) in std::mem::take(&mut self.to_deepen) {
+            for (sequence, _) in possible_sequences.iter().filter(|(_, has_cost)| *has_cost) {
+                if let Some(state) = self.memorize(&mask, &p, sequence) {
+                    next_frontier.push(state);
                 }
             }
         }
         self.to_deepen = next_frontier;
         self.depth += 1;
+    }
+
+    /// Memorizes the state `sequence` leads back from, if it is new, and returns it with its mask.
+    fn memorize(
+        &mut self,
+        parent_mask: &Mask<P>,
+        parent: &P,
+        sequence: &[P::Moves],
+    ) -> Option<(Mask<P>, P)> {
+        // Walk away from the goal by undoing `sequence`, so the way back applies `sequence` as
+        // written, then the parent's path.
+        let moved = sequence
+            .iter()
+            .rev()
+            .fold(parent.clone(), |puzzle, m| puzzle * m.inverse());
+        let mask = Self::filter_through(&moved, &self.goal);
+        if self.memorization.contains_key(&mask) {
+            return None;
+        }
+        let solution = sequence
+            .iter()
+            .chain(
+                self.memorization
+                    .get(parent_mask)
+                    .expect("a parent is memorized before its children"),
+            )
+            .copied()
+            .collect();
+        self.memorization.insert(mask.clone(), solution);
+        Some((mask, moved))
     }
 }
 
@@ -203,6 +222,36 @@ mod tests {
         assert_eq!(
             memo.solution(&BFSMemo::filter_through(&before_sune, &goal)),
             Some(moves(sune))
+        );
+    }
+
+    /// The `U'` state is reachable by the costly `U` and by the free `U`; the costly one is tried
+    /// first. It still costs nothing, so what `R` reaches from it costs 1 and is in the memo after
+    /// level 0 is expanded.
+    #[test]
+    fn free_sequences_are_closed_before_costly_ones_claim_their_states() {
+        let goal = Mask::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
+        let allowed = [(moves("U"), true), (moves("R"), true), (moves("U"), false)];
+        let mut memo = BFSMemo::new(&goal);
+        memo.search_to(0, &allowed);
+        let before_r_u = Cube3x3::from_solved("R U").unwrap().inverse();
+        assert_eq!(
+            memo.solution(&BFSMemo::filter_through(&before_r_u, &goal)),
+            Some(moves("R U"))
+        );
+    }
+
+    /// The goal tracks the FR edge wherever it goes, orientation included. After `F` another
+    /// edge sits in the FR slot, and its orientation is not part of the goal.
+    #[test]
+    fn mask_ignores_orientation_of_other_pieces_in_a_goal_pieces_home_slot() {
+        let fr = Pieces3x3::Edge(Edge::Fr);
+        let goal = Mask::<Cube3x3>::new_from_pieces([fr]);
+        let f = Cube3x3::from_solved("F").unwrap();
+        assert_ne!(f.piece_at(&fr), fr);
+        assert_eq!(
+            BFSMemo::filter_through(&f, &goal).orientation[Cube3x3::index(fr)],
+            None
         );
     }
 
