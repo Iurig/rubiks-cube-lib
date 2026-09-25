@@ -102,7 +102,7 @@ fn bench(roux: &Method<Cube3x3>, seed: u64) -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
 
     for i in 0..SOLVES {
-        let scrambled = Cube3x3::random_state_with_seed(&mut rng);
+        let scrambled = Cube3x3::random_state_with_seed(rng.u64(..));
         let mut cube = scrambled;
         let t = Instant::now();
         let (solution, measured) = solve_measured(roux, &mut cube)?;

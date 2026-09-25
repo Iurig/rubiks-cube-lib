@@ -13,7 +13,10 @@ macro_rules! new_piece {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
         #[repr(u8)]
         pub enum $type_name {
-            $($p),+
+            $(
+                #[doc = concat!("The `", stringify!($p), "` piece, and the slot it is solved in.")]
+                $p
+            ),+
         }
         impl Piece<$amount> for $type_name {
             const ALL: [Self; $amount] = [
@@ -57,10 +60,15 @@ pub type CornerConfiguration = PieceConfiguration<Corner, CORNERS_COUNT, CO_COUN
 pub type EdgeConfiguration = PieceConfiguration<Edge, EDGES_COUNT, EO_COUNT>;
 pub type Faces = Center;
 
+/// Any piece of the 3×3 cube: the cube's [`Puzzle::Piece`](crate::Puzzle::Piece) type. Masks and
+/// piece queries on a [`Cube3x3`](crate::Cube3x3) take this type.
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub enum Pieces3x3 {
+    /// A center piece.
     Center(Center),
+    /// An edge piece.
     Edge(Edge),
+    /// A corner piece.
     Corner(Corner),
 }
 

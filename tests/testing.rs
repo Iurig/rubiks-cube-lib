@@ -3,7 +3,6 @@
     reason = "`?` reports setup failures; `assert!` reports the property under test failing"
 )]
 
-use fastrand::Rng;
 use rubiks_cube_lib::{zn::Zn, *};
 use std::error::Error;
 
@@ -94,10 +93,8 @@ fn masked_with_correct_orientation_but_wrong_permutation_parses_correctly() {
 
 #[test]
 fn empty_mask_always_applies() {
-    let mut random = Rng::new();
-    random.seed(3);
-    for _ in 0..100 {
-        assert!(Mask::new([], []).applies_to(&Cube3x3::random_state_with_seed(&mut random)));
+    for seed in 0..100 {
+        assert!(Mask::new([], []).applies_to(&Cube3x3::random_state_with_seed(seed)));
     }
 }
 
@@ -490,7 +487,7 @@ fn full_solve_and_checking_bfs() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn every_option_combination_solves() -> Result<(), Box<dyn Error>> {
-    let scr = "U B' D L2 U B2 R2 D2 L2 D' U2 B2 R2 L U2 F' R' B L D'\n";
+    let scrambles: Vec<Cube3x3> = (2026..2030).map(Cube3x3::random_state_with_seed).collect();
     for fb_as_one_step in [false, true] {
         for sb_square_as_one_step in [false, true] {
             for one_look_cmll in [false, true] {
@@ -500,16 +497,17 @@ fn every_option_combination_solves() -> Result<(), Box<dyn Error>> {
                     one_look_cmll,
                 };
                 let described = format!("{options:?}");
-                let recon = Method::roux(options)
-                    .solve(&mut Cube3x3::from_solved(scr)?)
-                    .map_err(|e| format!("{described}: {e}"))?
-                    .to_string();
-                assert!(
-                    Cube3x3::from_solved(scr)?
-                        .move_sequence(&recon)?
-                        .is_solved(),
-                    "{described} did not solve the scramble:\n{recon}"
-                );
+                let roux = Method::roux(options);
+                for (i, scrambled) in scrambles.iter().enumerate() {
+                    let recon = roux
+                        .solve(&mut scrambled.clone())
+                        .map_err(|e| format!("{described}, scramble {i}: {e}"))?
+                        .to_string();
+                    assert!(
+                        scrambled.move_sequence(&recon)?.is_solved(),
+                        "{described} did not solve scramble {i}:\n{scrambled}\n{recon}"
+                    );
+                }
             }
         }
     }

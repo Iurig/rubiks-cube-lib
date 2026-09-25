@@ -1,12 +1,24 @@
+pub mod memorization;
 use std::{collections::hash_map::Entry, sync::Mutex};
 
-use crate::{Mask, methods::search::BFSMemo};
+use crate::{Mask, methods::search_step::memorization::BFSMemo};
 #[allow(
     clippy::wildcard_imports,
     reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
 )]
 use crate::{Puzzle, methods::*};
 
+/// A step that searches for the cheapest way to bring a set of pieces home, using only the
+/// move sequences it was given.
+///
+/// The goal is the `after` [`Mask`]: the pieces that must end in place, and those that must
+/// also be oriented. Pieces outside the mask may end anywhere. Before it searches, the step
+/// checks its `before` mask and returns [`StepError::InvalidStartingState`] if the puzzle does
+/// not meet it.
+///
+/// The search meets in the middle. A forward search from the puzzle meets a backward search
+/// from the goal, which the step keeps in a memo. The memo keeps growing across solves, so
+/// later solves are faster, and methods that share this step through an `Arc` share its memo.
 #[derive(Debug)]
 pub struct SearchStep<P: Puzzle> {
     name: &'static str,
@@ -17,6 +29,12 @@ pub struct SearchStep<P: Puzzle> {
 }
 
 impl<P: Puzzle> SearchStep<P> {
+    /// A step named `name` that starts when `before` holds and searches until `after` holds.
+    ///
+    /// Each entry of `allowed_moves` is one move sequence the search may apply as a unit: a
+    /// single move, or a whole algorithm. The `bool` says whether the sequence costs one
+    /// (`true`) or nothing (`false`). The search finds a solution with the lowest total cost,
+    /// so a free sequence, such as a `U` turn between algorithms, adds no cost.
     #[must_use]
     pub fn new(
         name: &'static str,
@@ -47,8 +65,6 @@ impl<P: Puzzle> SearchStep<P> {
         let mut forward_depth = 0;
 
         loop {
-            // Checking only the newest forward level is enough: an optimal solution passes
-            // through this level, and whatever it has left is in the memo once it is short enough.
             let best = level
                 .iter()
                 .filter_map(|cube| {
@@ -70,7 +86,7 @@ impl<P: Puzzle> SearchStep<P> {
                 level = self.next_level(&level, &mut investigated);
                 forward_depth += 1;
                 if level.is_empty() {
-                    return Err(StepError::UnrecheableGoal);
+                    return Err(StepError::UnreachableGoal);
                 }
             }
             log::trace!(
@@ -143,9 +159,6 @@ impl<P: Puzzle> SearchStep<P> {
         self.before.applies_to(cube)
     }
 
-    pub(crate) fn before(&self) -> Mask<P> {
-        self.before.clone()
-    }
     pub(crate) fn after(&self) -> Mask<P> {
         self.after.clone()
     }
@@ -163,11 +176,10 @@ impl<P: Puzzle> Step<P> for SearchStep<P> {
         self.after.applies_to(puzzle)
     }
 
-    fn allowed_move_sequences(&self) -> Vec<Vec<<P as Puzzle>::Moves>> {
-        self.allowed_moves.iter().map(|(m, _)| m).cloned().collect()
-    }
-
     fn solve(&self, p: &mut P) -> Result<Solution<P>, StepError> {
+        if !self.can_apply(p) {
+            return Err(StepError::InvalidStartingState);
+        }
         Ok(Solution::from_iter([(self.solve_bfs(p)?, self.name())]))
     }
 }

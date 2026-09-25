@@ -1,7 +1,7 @@
 use std::sync::{Arc, LazyLock};
 
 use crate::{
-    Cube3x3, Mask, Method, Puzzle, SearchStep, Step,
+    Choose, Cube3x3, Mask, Method, Puzzle, SearchStep, Step,
     puzzles::cube3by3::{
         moves::{MovablePart, Move3x3, MoveModifier},
         pieces::{Faces, Pieces3x3, Slices},
@@ -31,7 +31,14 @@ const FB_PIECES: [Pieces3x3; 6] = [
     Pieces3x3::Edge(crate::Edge::Bl),
 ];
 
-const SB_SQUARE_PIECES: [Pieces3x3; 4] = [
+const SB_FRONT_SQUARE_PIECES: [Pieces3x3; 4] = [
+    Pieces3x3::Center(crate::Center::R),
+    Pieces3x3::Edge(crate::Edge::Dr),
+    Pieces3x3::Corner(crate::Corner::Dfr),
+    Pieces3x3::Edge(crate::Edge::Fr),
+];
+
+const SB_BACK_SQUARE_PIECES: [Pieces3x3; 4] = [
     Pieces3x3::Center(crate::Center::R),
     Pieces3x3::Edge(crate::Edge::Dr),
     Pieces3x3::Corner(crate::Corner::Dbr),
@@ -107,40 +114,42 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
     let mut all_parts: Vec<MovablePart> = Cube3x3::ALL_MOVES.iter().map(|m| m.part).collect();
     all_parts.dedup();
 
-    let fb_front_square = SearchStep::new(
-        "FB Square",
+    let fb_front_square = Arc::new(SearchStep::new(
+        "FB Front Square",
         Mask::<Cube3x3>::default(),
         Mask::<Cube3x3>::new_from_pieces(FB_FRONT_SQUARE_PIECES),
         moves_of(&all_parts),
-    );
+    ));
 
-    let fb_back_square = SearchStep::new(
-        "FB Square",
+    let fb_back_square = Arc::new(SearchStep::new(
+        "FB Back Square",
         Mask::<Cube3x3>::default(),
         Mask::<Cube3x3>::new_from_pieces(FB_BACK_SQUARE_PIECES),
         moves_of(&all_parts),
-    );
+    ));
 
-    let fb_front_pair = SearchStep::new(
-        "FB Pair",
+    // Finishes the block from the back square, so the pair it builds is the front one.
+    let fb_front_pair = Arc::new(SearchStep::new(
+        "FB Front Pair",
         Mask::<Cube3x3>::new_from_pieces(FB_BACK_SQUARE_PIECES),
         Mask::<Cube3x3>::new_from_pieces(FB_PIECES),
         moves_of(&all_parts),
-    );
+    ));
 
-    let fb_back_pair = SearchStep::new(
-        "FB Pair",
+    // Finishes the block from the front square, so the pair it builds is the back one.
+    let fb_back_pair = Arc::new(SearchStep::new(
+        "FB Back Pair",
         Mask::<Cube3x3>::new_from_pieces(FB_FRONT_SQUARE_PIECES),
         Mask::<Cube3x3>::new_from_pieces(FB_PIECES),
         moves_of(&all_parts),
-    );
+    ));
 
-    let fb = SearchStep::new(
+    let fb = Arc::new(SearchStep::new(
         "FB",
         Mask::<Cube3x3>::new_from_pieces([]),
         Mask::<Cube3x3>::new_from_pieces(FB_PIECES),
         moves_of(&all_parts),
-    );
+    ));
 
     let second_block_moves = [
         MovablePart::Face(Faces::U),
@@ -149,32 +158,55 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
         MovablePart::Wide(Faces::R),
     ];
 
-    let sb_square = SearchStep::new(
-        "SB Square",
-        fb.after(),
-        Mask::<Cube3x3>::new_from_pieces(FB_PIECES.iter().chain(SB_SQUARE_PIECES.iter()).copied()),
-        moves_of(&second_block_moves),
-    );
+    let sb_after =
+        Mask::<Cube3x3>::new_from_pieces(FB_PIECES.iter().chain(SB_PIECES.iter()).copied());
 
-    let sb_pair = SearchStep::new(
-        "SB Pair",
-        sb_square.after(),
+    let sb_front_square = Arc::new(SearchStep::new(
+        "SB Front Square",
+        fb.after(),
         Mask::<Cube3x3>::new_from_pieces(
             FB_PIECES
                 .iter()
-                .chain(SB_SQUARE_PIECES.iter())
-                .chain(SB_PIECES.iter())
+                .chain(SB_FRONT_SQUARE_PIECES.iter())
                 .copied(),
         ),
         moves_of(&second_block_moves),
-    );
+    ));
 
-    let sb = SearchStep::new(
+    let sb_back_square = Arc::new(SearchStep::new(
+        "SB Back Square",
+        fb.after(),
+        Mask::<Cube3x3>::new_from_pieces(
+            FB_PIECES
+                .iter()
+                .chain(SB_BACK_SQUARE_PIECES.iter())
+                .copied(),
+        ),
+        moves_of(&second_block_moves),
+    ));
+
+    // Finishes the block from the back square, so the pair it builds is the front one.
+    let sb_front_pair = Arc::new(SearchStep::new(
+        "SB Front Pair",
+        sb_back_square.after(),
+        sb_after.clone(),
+        moves_of(&second_block_moves),
+    ));
+
+    // Finishes the block from the front square, so the pair it builds is the back one.
+    let sb_back_pair = Arc::new(SearchStep::new(
+        "SB Back Pair",
+        sb_front_square.after(),
+        sb_after.clone(),
+        moves_of(&second_block_moves),
+    ));
+
+    let sb = Arc::new(SearchStep::new(
         "SB",
         fb.after(),
-        Mask::<Cube3x3>::new_from_pieces(FB_PIECES.iter().chain(SB_PIECES.iter()).copied()),
+        sb_after,
         moves_of(&second_block_moves),
-    );
+    ));
 
     let cmll_after = Mask::<Cube3x3>::new_from_pieces(
         FB_PIECES
@@ -183,12 +215,12 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
             .chain(CMLL_PIECES.iter())
             .copied(),
     );
-    let cmll = SearchStep::new(
+    let cmll = Arc::new(SearchStep::new(
         "CMLL",
         sb.after(),
         cmll_after.clone(),
         algorithms_with_free_auf(CMLL_ONE_LOOK_ALGS),
-    );
+    ));
 
     let cmll_orientation_after = Mask::<Cube3x3>::new(
         FB_PIECES.iter().chain(SB_PIECES.iter()).copied(),
@@ -198,21 +230,21 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
             .chain(CMLL_PIECES.iter())
             .copied(),
     );
-    let cmll_orientation = SearchStep::new(
+    let cmll_orientation = Arc::new(SearchStep::new(
         "CO",
         sb.after(),
         cmll_orientation_after.clone(),
         algorithms_with_free_auf(CMLL_ORIENTATION_ALGS),
-    );
+    ));
 
-    let cmll_permutation = SearchStep::new(
+    let cmll_permutation = Arc::new(SearchStep::new(
         "CP",
         cmll_orientation_after,
         cmll_after,
         algorithms_with_free_auf(CMLL_PERMUTATION_ALGS),
-    );
+    ));
 
-    let lse = SearchStep::new(
+    let lse = Arc::new(SearchStep::new(
         "LSE",
         cmll.after(),
         Mask::<Cube3x3>::new_from_pieces(
@@ -224,31 +256,40 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
                 .copied(),
         ),
         moves_of(&[MovablePart::Face(Faces::U), MovablePart::Slice(Slices::M)]),
-    );
+    ));
 
-    [
-        fb_front_square,
-        fb_back_square,
-        fb_front_pair,
-        fb_back_pair,
+    let steps: Vec<Arc<dyn Step<Cube3x3>>> = vec![
+        Arc::new(Choose::named(
+            "FB Square",
+            vec![fb_front_square, fb_back_square],
+        )),
+        Arc::new(Choose::named("FB Pair", vec![fb_front_pair, fb_back_pair])),
         fb,
-        sb_square,
-        sb_pair,
+        Arc::new(Choose::named(
+            "SB Square",
+            vec![sb_front_square, sb_back_square],
+        )),
+        Arc::new(Choose::named("SB Pair", vec![sb_front_pair, sb_back_pair])),
         sb,
         cmll,
         cmll_orientation,
         cmll_permutation,
         lse,
-    ]
-    .into_iter()
-    .map(|s| Arc::new(s) as Arc<dyn Step<Cube3x3>>)
-    .collect::<Vec<Arc<dyn Step<Cube3x3>>>>()
+    ];
+    steps
 });
 
+/// Which steps [`Method::roux`] uses. All three switches are on by default.
 #[derive(Clone, Debug, Copy)]
 pub struct RouxOptions {
+    /// Build the second block in one search. When off, build a square, front or back, whichever
+    /// takes fewer moves, and then the pair that square leaves.
     pub sb_as_one_step: bool,
+    /// Build the first block in one search. When off, build a square and then a pair, as for
+    /// the second block.
     pub fb_as_one_step: bool,
+    /// Solve the last-layer corners with one algorithm (CMLL). When off, orient them first
+    /// (`CO`) and then permute them (`CP`).
     pub one_look_cmll: bool,
 }
 
@@ -263,6 +304,15 @@ impl Default for RouxOptions {
 }
 
 impl Method<Cube3x3> {
+    /// The Roux method, with the steps `options` selects.
+    ///
+    /// The first block may use any move. The second block uses `U`, `R`, `M`, and `r`. The
+    /// last-layer corners use algorithms from a fixed list, each costing one, and `U` turns,
+    /// which cost nothing. The last six edges use `U` and `M`.
+    ///
+    /// Every method this returns shares the same built steps, so the search memos that one
+    /// solve grows speed up every later solve, whatever the options.
+    #[must_use]
     pub fn roux(options: RouxOptions) -> Self {
         let mut steps = ALL_ROUX_STEPS.clone();
 
@@ -290,7 +340,12 @@ impl Method<Cube3x3> {
 
 #[cfg(test)]
 mod test {
-    use std::collections::HashSet;
+    #![expect(
+        clippy::panic_in_result_fn,
+        reason = "`?` reports setup failures; `assert!` reports the property under test failing"
+    )]
+
+    use std::{collections::HashSet, error::Error};
 
     use super::*;
     use crate::{Cube3x3, Inv, Puzzle};
@@ -300,7 +355,8 @@ mod test {
         assert_eq!(
             FB_PIECES
                 .iter()
-                .chain(SB_SQUARE_PIECES.iter())
+                .chain(SB_FRONT_SQUARE_PIECES.iter())
+                .chain(SB_BACK_SQUARE_PIECES.iter())
                 .chain(SB_PIECES.iter())
                 .chain(CMLL_PIECES.iter())
                 .chain(LSE_PIECES.iter())
@@ -321,19 +377,78 @@ mod test {
         }
     }
 
+    /// A step owns its memo, so a method that holds the same step object as the static shares
+    /// the static's memo. Rebuilding steps per method would start every method from empty memos.
     #[test]
-    fn step_requirements_meet_bound_conditions() {
-        for (i, step) in ALL_ROUX_STEPS.iter().enumerate() {
-            let needs = step.needs_solved();
-            assert!(
-                needs == Mask::default()
-                    || ALL_ROUX_STEPS
-                        .iter()
-                        .take(i)
-                        .any(|earlier| earlier.solved_pieces() == needs),
-                "step {i} ({}) needs pieces that no earlier step solves",
-                step.name()
-            );
+    fn every_roux_method_shares_the_static_steps_and_their_memos() {
+        for fb_as_one_step in [false, true] {
+            for sb_as_one_step in [false, true] {
+                for one_look_cmll in [false, true] {
+                    let options = RouxOptions {
+                        sb_as_one_step,
+                        fb_as_one_step,
+                        one_look_cmll,
+                    };
+                    for step in Method::roux(options).steps() {
+                        assert!(
+                            ALL_ROUX_STEPS
+                                .iter()
+                                .any(|shared| Arc::ptr_eq(shared, &step)),
+                            "{options:?}: step {} is not the shared one",
+                            step.name()
+                        );
+                    }
+                }
+            }
         }
+    }
+
+    /// R, U, and F turns never touch the L center, DBL, BL, or DL, so the back square stays
+    /// solved and costs nothing, while F breaks the front square.
+    #[test]
+    fn split_fb_builds_the_back_square_when_it_is_cheaper() -> Result<(), Box<dyn Error>> {
+        let roux = Method::roux(RouxOptions {
+            fb_as_one_step: false,
+            ..RouxOptions::default()
+        });
+        let mut cube = Cube3x3::from_solved("F R U")?;
+
+        let solution = roux.solve(&mut cube)?;
+
+        let (moves, name) = solution
+            .iter()
+            .next()
+            .ok_or("the solution has no segments")?;
+        assert_eq!(name, "FB Back Square", "{solution}");
+        assert!(
+            moves.is_empty(),
+            "the back square was already solved:\n{solution}"
+        );
+        Ok(())
+    }
+
+    /// `R U R'` displaces the FR edge and DFR corner but returns DR, BR, and DBR home, and
+    /// neither R nor U touches the first block. So the second block's back square is solved
+    /// and its front square is not.
+    #[test]
+    fn split_sb_builds_the_back_square_when_it_is_cheaper() -> Result<(), Box<dyn Error>> {
+        let roux = Method::roux(RouxOptions {
+            sb_as_one_step: false,
+            ..RouxOptions::default()
+        });
+        let mut cube = Cube3x3::from_solved("R U R'")?;
+
+        let solution = roux.solve(&mut cube)?;
+
+        let (moves, name) = solution
+            .iter()
+            .find(|(_, name)| name.starts_with("SB"))
+            .ok_or("the solution has no SB segment")?;
+        assert_eq!(name, "SB Back Square", "{solution}");
+        assert!(
+            moves.is_empty(),
+            "the back square was already solved:\n{solution}"
+        );
+        Ok(())
     }
 }

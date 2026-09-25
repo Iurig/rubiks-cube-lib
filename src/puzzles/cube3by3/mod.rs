@@ -139,10 +139,11 @@ impl Puzzle for Cube3x3 {
         }
     }
 
-    fn random_state_with_seed(rng: &mut fastrand::Rng) -> Self {
+    fn random_state_with_seed(seed: u64) -> Self {
+        let mut rng = fastrand::Rng::with_seed(seed);
         let mut attempt = Self {
-            corner_configuration: CornerConfiguration::random_state_with_seed(rng),
-            edge_configuration: EdgeConfiguration::random_state_with_seed(rng),
+            corner_configuration: CornerConfiguration::random_state(&mut rng),
+            edge_configuration: EdgeConfiguration::random_state(&mut rng),
             ..Default::default()
         };
         attempt.corner_configuration.orientation[0] = attempt.corner_configuration.orientation[0]
@@ -331,11 +332,10 @@ mod tests {
 
     #[test]
     fn hundred_random_states_are_reachable() {
-        let mut rng = fastrand::Rng::with_seed(40);
-        for i in 0..100 {
+        for seed in 0..100 {
             assert!(
-                Cube3x3::random_state_with_seed(&mut rng).is_reachable(),
-                "state {i} is not reachable"
+                Cube3x3::random_state_with_seed(seed).is_reachable(),
+                "the state from seed {seed} is not reachable"
             );
         }
     }

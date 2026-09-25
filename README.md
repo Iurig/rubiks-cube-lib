@@ -4,7 +4,9 @@
 ![License](https://img.shields.io/github/license/Iurig/rubiks)
 
 
-A Rust library that models the 3×3×3 Rubik's Cube, with planned expansion for other cube types, as well as solving from an algorithm library.
+A Rust library that models the 3×3×3 Rubik's Cube and solves it the way a person would, one
+named step at a time. It has one solving method, Roux. More methods and other cube types are
+planned.
 
 A cube state is a value of type `Cube3x3`. Moves are cube states too, and applying a move is just
 group multiplication. Everything is `Copy`, and most operations are `const fn`,
@@ -12,7 +14,8 @@ so the entire move table is built at compile time.
 
 > **Status: early work in progress.** The core group structure and every move in standard
 > notation (faces, slices, rotations, wide moves) work and are tested against real
-> reconstructions. See [Current state](#current-state).
+> reconstructions. The Roux solver works, and its public API is still changing.
+> See [Current state](#current-state).
 
 ## Quick example
 
@@ -70,6 +73,57 @@ only a comment behaves the same as it would inside a longer sequence. A string w
 a comment on its own, leaves the cube unchanged. A token that is not a move makes the whole call
 return an `Err` naming that token.
 
+## Solving
+
+`Method::roux` builds the Roux method from a `RouxOptions`. `solve` runs the method's steps in
+order and returns a `Solution`, with one segment per step:
+
+```rust
+use rubiks_cube_lib::{Cube3x3, Method, Puzzle, RouxOptions};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let scramble = "D2 F2 R2 U L2 D R2 U' B2 L2 B L2 F' L D2 U R' B D2";
+    let roux = Method::roux(RouxOptions::default());
+
+    let mut cube = Cube3x3::from_solved(scramble)?;
+    let solution = roux.solve(&mut cube)?;
+    assert!(cube.is_solved());
+
+    // A printed solution is notation, so the scramble followed by it replays to solved.
+    let replayed = Cube3x3::from_solved(scramble)?.move_sequence(&solution.to_string())?;
+    assert!(replayed.is_solved());
+
+    // The same solve, one step per `next()`.
+    let mut cube = Cube3x3::from_solved(scramble)?;
+    for segment in roux.solve_steps(&mut cube) {
+        print!("{}", segment?);
+    }
+    Ok(())
+}
+```
+
+A printed solution has one line per step: the moves, then `//` and the step's name. One run of
+[examples/main.rs](examples/main.rs) printed this for the scramble above:
+
+```text
+F' Uw2 Rw Fw M' E' F2	//FB
+U Rw2 U M' U2 Rw' U Rw2 U R	//SB
+Rw' D' Rw U Rw' D Rw U' Rw U Rw' U'	//CMLL
+M U M2 U2 M U' M2 U' M U' M'	//LSE
+```
+
+`RouxOptions` switches the first and second blocks between one search and a square plus a
+pair, and the last-layer corners between one algorithm and two. With a split block the solver
+tries both the front and the back square and keeps the shorter.
+
+A method is a list of steps. The crate has two step types: `SearchStep`, which searches for a
+goal within a fixed set of moves or algorithms, and `Choose`, which keeps the shortest of
+several steps. Any type that implements the `Step` trait can join them. The
+[API documentation](#api-documentation) describes each type.
+
+`cargo bench --bench solves` times two passes of 1000 seeded Roux solves and reports time,
+moves, and heap use per step.
+
 ## How it works
 
 The cube is the direct product of three independent piece groups:
@@ -105,26 +159,26 @@ Only the nine base moves (six faces, three slices) are written by hand, as expli
 inverse and double are derived from those nine at compile time into a single `ALL_MOVES` table
 that string parsing looks up. A derived move therefore cannot drift from its base moves.
 
-## Public API
+## API documentation
 
-| Item                                     | Purpose                                                    |
-| ---------------------------------------- | ---------------------------------------------------------- |
-| `Cube3x3`                               | The cube state. `Default` and `IDENTITY` are the solved cube. |
-| `ParseMoveError`                         | Error for parsing a `&str` to a move: a `#[non_exhaustive]` enum with variants `EmptyString`, `BadModifier { invalid_move: String, modifier: String }`, and `BadPart { invalid_move: String, part: String }`. Match with a `_` arm. |
-| `ParseSequenceError`                     | Error for parsing a move string to a cube. Getters `cause(&self) -> &ParseMoveError`, `line(&self) -> usize`, and `position(&self) -> usize` read its private fields. |
-| `Cube3x3::from_solved(&str)`            | Apply a move string to the solved cube. Returns `Result<Cube3x3, ParseSequenceError>`; `ParseSequenceError` names the first token that is not a move. |
-| `Cube3x3::move_sequence(&self, &str)`   | Apply a move string to this state, returning a new one. Same `Result` contract. |
-| `Cube3x3::is_solved()`                  | Equality with the identity up to a whole-cube rotation: the cube is re-oriented by its centers before comparing. |
-| `Cube3x3::is_reachable()`               | Whether some move sequence produces this state from solved: twists sum to 0 mod 3, flips to 0 mod 2, the permutation parities of corners, edges, and centers sum to 0 mod 2, and the centers form a whole-cube rotation. |
-| `Cube3x3::corners()`, `edges()`, `centers()` | The three piece configurations, by reference. |
-| `PieceConfiguration::piece_at(slot)`     | The piece now sitting in `slot`. `piece_at(Ubr) == Ufr` reads "the UFR piece sits in the UBR slot". |
-| `PieceConfiguration::orientation_at(slot)` | The twist or flip held at `slot`, as a `Zn`. Always zero for centers. |
-| `Corner`, `Edge`, `Center`               | The piece enums. One enum names both a slot and the piece whose home is that slot, so a returned piece can be fed back in as the next slot. |
-| `impl Mul for Cube3x3`                  | `a * b` applies `a` then `b`. Associative, not commutative. |
-| `Inv` trait                              | `inverse()`, implemented for cubes and piece configurations.|
-| `Pow` trait                              | `pow(n)` by exponentiation by squaring; provided for any `Mul + Clone` type that implements `identity()`. |
-| `PieceConfiguration`, `Piece`            | Generic building blocks for other puzzles. `Piece` is sealed: nameable in bounds, implemented only inside the crate. |
-| `zn::Zn<N>`                              | Integers mod `N`, with `Add` and `Neg`; `new`, `value`, and `array` are `const fn`. `new(n)` reduces, `value()` reads the representative in `0..N` back out. |
+Every public item has a doc comment. Build and open the documentation with:
+
+```sh
+cargo doc --open
+```
+
+The main entry points:
+
+- **`Cube3x3`** is a cube state. `from_solved` and `move_sequence` apply notation, `*` composes
+  states, and `corners()`, `edges()`, and `centers()` give the pieces for queries such as
+  `piece_at`.
+- **`Puzzle`** is the trait the solver works through. Import it to call `is_solved` or
+  `random_state_with_seed`.
+- **`Method`** runs a list of steps. `Method::roux` builds Roux, and `solve` or `solve_steps`
+  runs it.
+- **`Step`**, **`SearchStep`**, and **`Choose`** are the steps a method is built from, and
+  **`Mask`** says what a step needs and what it solves.
+- **`Solution`**, **`StepError`**, and **`SolveError`** are what a solve returns.
 
 ## Project layout
 
@@ -135,29 +189,55 @@ src/
   zn.rs                   Zn<N>
   piece.rs                sealed Piece trait, PieceConfiguration with the piece_at / orientation_at
                           queries and the permutation parity
-  cube3by3/
-    mod.rs                Cube3x3, Mul/Inv/Pow impls, accessors, rotation-aware is_solved, is_reachable
-    pieces.rs             piece enums, counts, and type aliases for the 3×3
-    facelets.rs           Facelets: the sticker net view, Display for Cube3x3, twist and flip
+  puzzles/
+    mod.rs                the Puzzle trait
+    mask.rs               Mask: which pieces must be in place or oriented
+    cube3by3/
+      mod.rs              Cube3x3, Mul/Inv/Pow impls, accessors, rotation-aware is_solved,
+                          is_reachable
+      pieces.rs           piece enums, counts, and type aliases for the 3×3
+      facelets.rs         Facelets: the sticker net view, Display for Cube3x3, twist and flip
                           conventions as face tables; its tests pin the net against face turns
-    moves.rs              Move type, MovablePart/MoveModifier enums, move-sequence parsing and printing
-    moves/
-      table.rs            compile-time ALL_MOVES table: 9 hand-written face and slice moves,
+      moves.rs            Move type, MovablePart/MoveModifier enums, move-sequence parsing and
+                          printing
+      moves/
+        table.rs          compile-time ALL_MOVES table: 9 hand-written face and slice moves,
                           rotations and wide moves derived from them, then inverses and doubles
                           of everything; its tests pin the derivations only
+  methods/
+    mod.rs                the Step trait, Method and its solve loop, Solution, StepError,
+                          SolveError
+    search_step/
+      mod.rs              SearchStep: a forward search that meets the memo in the middle
+      memorization.rs     BFSMemo: the backward search from a step's goal, kept across solves
+    choose/
+      mod.rs              Choose: runs each alternative, keeps the one with the fewest moves
+    test_steps.rs         FixedStep, a hand-written step for tests (compiled only in tests)
+    cube3x3/roux/
+      mod.rs              RouxOptions, the Roux steps built once and shared, Method::roux
+      cmll/               the one-look CMLL, CO, and CP algorithms, one per line
 tests/
   testing.rs              integration tests: handedness pins for each base move, group laws,
-                          move orders, reachability, real solve reconstructions
+                          move orders, reachability, real solve reconstructions, and every Roux
+                          option combination on seeded random scrambles
+benches/
+  solves.rs               two passes of 1000 seeded Roux solves, timed and heap-counted per step
+examples/
+  main.rs                 solves one scramble with two option sets and prints the solutions
 ```
 
 ## Building and testing
 
-Requires a Rust toolchain with the 2024 edition (Rust 1.85 or newer). No runtime dependencies;
-`fastrand` is used only in tests.
+Requires a Rust toolchain with the 2024 edition (Rust 1.85 or newer). The library depends on
+`fastrand` for random cube states, and no public function takes or returns a `fastrand` type.
+It also depends on `log`, through which the solver reports each step at the `debug` level. It
+never prints.
 
 ```sh
 cargo build
 cargo test
+cargo bench --bench solves
+RUST_LOG=rubiks_cube_lib=debug cargo run --example main
 ```
 
 ## Current state
@@ -179,12 +259,20 @@ What works today:
   against these queries, from outside the crate.
 - `is_reachable` checks the twist, flip, and permutation-parity invariants, plus that the centers
   form a whole-cube rotation, so a state no move sequence can produce is rejected.
+- The Roux solver works with every combination of its options. A test runs all eight
+  combinations on four seeded random scrambles and replays each solution, and the benchmark
+  solves 2000 more.
+- A solve fails with a typed error that names the step: the step's own `StepError`, or
+  `NotDone` when the step returned without meeting its goal.
+- A method can mix step types, and `Choose` picks between alternatives by move count.
 
 ## Roadmap
 
-- Read moves back out (printing a sequence, fingertrick-aware output); this is why `2'` is kept
+- Fingertrick-aware output. A solution already prints as notation; this is why `2'` is kept
   distinct from `2` in the `Move` label even though they share a cube state.
-- Solving from an algorithm library, as mentioned in the introduction.
+- Build a step's moveset from notation text, so each step can use its own moves. Today the
+  first-block steps search with every move the cube has.
+- More methods (CFOP, ZZ, Petrus) and a command-line solver that prints a reconstruction.
 - Reuse `PieceConfiguration` / `Piece` for other puzzles.
 
 ## License

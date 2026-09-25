@@ -16,22 +16,15 @@ pub trait Piece<const N: usize>: Copy + Eq + private::Sealed + Debug {
     fn from_index(index: usize) -> Option<Self> {
         Self::ALL.get(index).copied()
     }
+}
 
-    #[must_use]
-    fn random_permutation() -> [Self; N] {
-        let mut rng = fastrand::Rng::new();
-        Self::random_permutation_with_seed(&mut rng)
+/// A uniformly random order of all `N` pieces (Fisher-Yates shuffle).
+fn random_permutation<P: Piece<N>, const N: usize>(rng: &mut fastrand::Rng) -> [P; N] {
+    let mut permutation = P::ALL;
+    for i in 0..N {
+        permutation.swap(i, rng.usize(i..N));
     }
-
-    /// Random permutation of a piece set
-    #[must_use]
-    fn random_permutation_with_seed(rng: &mut fastrand::Rng) -> [Self; N] {
-        let mut permutation = Self::ALL;
-        for i in 0..N {
-            permutation.swap(i, rng.usize(i..N));
-        }
-        permutation
-    }
+    permutation
 }
 
 #[must_use]
@@ -181,9 +174,11 @@ where
         resp
     }
 
-    pub fn random_state_with_seed(rng: &mut fastrand::Rng) -> Self {
+    /// A random permutation with random orientations. The orientations may not sum to zero and
+    /// the permutation parity is not fixed, so the caller repairs both.
+    pub(crate) fn random_state(rng: &mut fastrand::Rng) -> Self {
         Self {
-            permutation: P::random_permutation_with_seed(rng),
+            permutation: random_permutation(rng),
             orientation: {
                 let mut or = [Zn::ZERO; N];
                 for flip in or.iter_mut().take(N) {
