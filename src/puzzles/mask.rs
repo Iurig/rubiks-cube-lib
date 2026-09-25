@@ -2,11 +2,11 @@ use std::{collections::HashSet, iter::IntoIterator};
 
 use crate::Puzzle;
 
-/// A partially defined puzzle: often interpreted as a condition to be followed by which must sit
-/// in their home slots, and which slots must hold an oriented piece.
+/// A partly defined puzzle state, usually read as a condition: which pieces must sit in their
+/// home slots, and which slots must hold an oriented piece.
 ///
-/// [`SearchStep`]s use masks for where they start and what they solve. A mask ignores every piece
-/// it does not name.
+/// [`SearchStep`](crate::SearchStep)s use masks for where they start and what they solve. A mask
+/// ignores every piece it does not name.
 ///
 /// ```
 /// use rubiks_cube_lib::{Cube3x3, Edge, Mask, Pieces3x3};
@@ -40,6 +40,15 @@ impl<P: Puzzle> Mask<P> {
         }
     }
 
+    /// A mask where each piece in `pieces` must be solved: home and oriented. Same as
+    /// <code>[new](Self::new)(pieces.clone(), pieces)</code>.
+    pub fn new_from_pieces<I>(pieces: I) -> Self
+    where
+        I: IntoIterator<Item = P::Piece> + Clone,
+    {
+        Self::new(pieces.clone(), pieces)
+    }
+
     /// A mask where each piece in `permutations` must sit in its home slot, and the home slot of
     /// each piece in `orientations` must hold an oriented piece.
     ///
@@ -65,14 +74,6 @@ impl<P: Puzzle> Mask<P> {
                 .map(|piece| orient_iter.contains(piece).then_some(0))
                 .collect(),
         }
-    }
-
-    /// A mask where each piece in `pieces` must be solved: home and oriented.
-    pub fn new_from_pieces<I>(pieces: I) -> Self
-    where
-        I: IntoIterator<Item = P::Piece> + Clone,
-    {
-        Self::new(pieces.clone(), pieces)
     }
 
     #[expect(
