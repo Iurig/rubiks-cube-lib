@@ -23,7 +23,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use rubiks_cube_lib::{Cube3x3, Mask, Puzzle, Roux, Solution, SolveMethod, SolveStep};
+use rubiks_cube_lib::{Cube3x3, Method, Puzzle, RouxOptions, Solution};
 
 const SOLVES: u32 = 1000;
 
@@ -84,7 +84,7 @@ struct Measured {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let roux = Roux::default();
+    let roux = Method::roux(RouxOptions::default());
     // Pass 2 gets new scrambles but keeps the memos pass 1 grew, so what pass 2 no longer
     // pays for is memo growth.
     for (pass, seed) in [(1, 2026), (2, 2027)] {
@@ -95,7 +95,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn bench(roux: &Roux, seed: u64) -> Result<(), Box<dyn Error>> {
+fn bench(roux: &Method<Cube3x3>, seed: u64) -> Result<(), Box<dyn Error>> {
     let mut rng = fastrand::Rng::with_seed(seed);
     let mut whole = Stats::default();
     let mut per_step: BTreeMap<String, Stats> = BTreeMap::new();
@@ -142,35 +142,29 @@ fn bench(roux: &Roux, seed: u64) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// `SolveMethod::solve`, with each step timed and its peak extra heap recorded.
+/// Drives `Method::solve_steps`, timing each `next()` and recording its peak extra heap.
+/// Each `next()` runs exactly one step.
 fn solve_measured(
-    roux: &Roux,
+    roux: &Method<Cube3x3>,
     cube: &mut Cube3x3,
 ) -> Result<(Solution<Cube3x3>, Vec<Measured>), Box<dyn Error>> {
-    let mut solution = Solution::<Cube3x3>::new();
+    let mut steps = roux.solve_steps(cube);
+    let mut segments = Vec::new();
     let mut measured = Vec::new();
-    let mut solved_pieces = Mask::<Cube3x3>::default();
 
-    for _ in 0..100 {
-        if cube.is_solved() {
-            return Ok((solution, measured));
-        }
-        for step in roux.steps().iter().filter(|s| s.options_allow(roux)) {
-            if step.can_apply(cube) && solved_pieces == step.needs_solved() {
-                let before = LIVE.load(Relaxed);
-                PEAK.fetch_max(before, Relaxed);
-                let peak_before = PEAK.swap(before, Relaxed);
-                let t = Instant::now();
-                let step_solution = step.solve(cube)?;
-                let time = t.elapsed();
-                let peak = PEAK.fetch_max(peak_before, Relaxed).saturating_sub(before);
-                measured.push(Measured { time, peak });
-                solved_pieces = step.solved_pieces();
-                solution.extend(step_solution);
-            }
-        }
+    loop {
+        let before = LIVE.load(Relaxed);
+        PEAK.fetch_max(before, Relaxed);
+        let peak_before = PEAK.swap(before, Relaxed);
+        let t = Instant::now();
+        let next = steps.next();
+        let time = t.elapsed();
+        let peak = PEAK.fetch_max(peak_before, Relaxed).saturating_sub(before);
+        let Some(segment) = next else { break };
+        measured.push(Measured { time, peak });
+        segments.push(segment?);
     }
-    Err("no solve after 100 passes over the steps".into())
+    Ok((segments.into_iter().collect(), measured))
 }
 
 /// Bytes as MiB with one decimal.

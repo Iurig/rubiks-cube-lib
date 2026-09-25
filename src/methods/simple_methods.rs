@@ -1,4 +1,4 @@
-use std::{collections::hash_map::Entry, marker::PhantomData, sync::Mutex};
+use std::{collections::hash_map::Entry, sync::Mutex};
 
 use crate::{Mask, methods::search::BFSMemo};
 #[allow(
@@ -8,45 +8,39 @@ use crate::{Mask, methods::search::BFSMemo};
 use crate::{Puzzle, methods::*};
 
 #[derive(Debug)]
-pub struct SimpleStep<P: Puzzle, M: SolveMethod<P>> {
-    name: String,
+pub struct SearchStep<P: Puzzle> {
+    name: &'static str,
     before: Mask<P>,
     after: Mask<P>,
     allowed_moves: Vec<(Vec<P::Moves>, bool)>,
-    is_allowed: fn(&M) -> bool,
     memo: Mutex<BFSMemo<P>>,
-    phantom: PhantomData<M>,
 }
 
-impl<P: Puzzle, M: SolveMethod<P>> SimpleStep<P, M> {
+impl<P: Puzzle> SearchStep<P> {
+    #[must_use]
     pub fn new(
-        name: &str,
+        name: &'static str,
         before: Mask<P>,
         after: Mask<P>,
         allowed_moves: Vec<(Vec<P::Moves>, bool)>,
-        is_allowed: fn(&M) -> bool,
     ) -> Self {
         Self {
             memo: Mutex::new(BFSMemo::new(&after)),
-            name: name.to_string(),
+            name,
             before,
             after,
             allowed_moves,
-            is_allowed,
-            phantom: PhantomData,
         }
     }
-}
 
-impl<P: Puzzle, M: SolveMethod<P>> SimpleStep<P, M> {
     /// Meet in the middle: a forward search from `p`, one level at a time, against the memo's
     /// backward search from the goal. Each round grows whichever side has fewer states to expand.
     #[expect(
         clippy::significant_drop_tightening,
         reason = "the memo is read and deepened on every round, so the lock is held for the whole search"
     )]
-    fn solve_bfs(&self, p: &mut P) -> Result<Vec<P::Moves>, Box<dyn std::error::Error>> {
-        let mut memo = self.memo.lock().map_err(|e| e.to_string())?;
+    fn solve_bfs(&self, p: &mut P) -> Result<Vec<P::Moves>, StepError> {
+        let mut memo = self.memo.lock().map_err(|_| StepError::MemoPoisoned)?;
         let mut investigated = HashMap::from([(self.mask(p), None)]);
         let mut level = vec![p.clone()];
         self.close_under_free_sequences(&mut level, &mut investigated);
@@ -76,7 +70,7 @@ impl<P: Puzzle, M: SolveMethod<P>> SimpleStep<P, M> {
                 level = self.next_level(&level, &mut investigated);
                 forward_depth += 1;
                 if level.is_empty() {
-                    return Err(Box::new(StepNotCompletable { name: self.name() }));
+                    return Err(StepError::UnrecheableGoal);
                 }
             }
             log::trace!(
@@ -144,39 +138,36 @@ impl<P: Puzzle, M: SolveMethod<P>> SimpleStep<P, M> {
         }
         path.into_iter().flatten().copied().collect()
     }
-}
 
-impl<P, M> SolveStep<P, M> for SimpleStep<P, M>
-where
-    P: Puzzle,
-    M: SolveMethod<P>,
-{
-    fn options_allow(&self, method: &M) -> bool {
-        (self.is_allowed)(method)
-    }
     fn can_apply(&self, cube: &P) -> bool {
         self.before.applies_to(cube)
     }
-    fn step_is_solved(&self, cube: &P) -> bool {
-        self.after.applies_to(cube)
-    }
-    fn name(&self) -> String {
-        self.name.clone()
-    }
-    fn allowed_move_sequences(&self) -> Vec<Vec<<P as Puzzle>::Moves>> {
-        self.allowed_moves.iter().map(|(m, _)| m).cloned().collect()
-    }
 
-    fn needs_solved(&self) -> Mask<P> {
+    pub(crate) fn before(&self) -> Mask<P> {
         self.before.clone()
     }
-    fn solved_pieces(&self) -> Mask<P> {
+    pub(crate) fn after(&self) -> Mask<P> {
         self.after.clone()
     }
     fn mask(&self, puzzle: &P) -> Mask<P> {
         BFSMemo::<P>::filter_through(puzzle, &self.after)
     }
-    fn solve(&self, p: &mut P) -> Result<Solution<P>, Box<dyn std::error::Error>> {
+}
+
+impl<P: Puzzle> Step<P> for SearchStep<P> {
+    fn name(&self) -> &'static str {
+        self.name
+    }
+
+    fn is_done(&self, puzzle: &P) -> bool {
+        self.after.applies_to(puzzle)
+    }
+
+    fn allowed_move_sequences(&self) -> Vec<Vec<<P as Puzzle>::Moves>> {
+        self.allowed_moves.iter().map(|(m, _)| m).cloned().collect()
+    }
+
+    fn solve(&self, p: &mut P) -> Result<Solution<P>, StepError> {
         Ok(Solution::from_iter([(self.solve_bfs(p)?, self.name())]))
     }
 }

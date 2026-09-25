@@ -476,7 +476,9 @@ fn full_solve_and_checking_bfs() -> Result<(), Box<dyn Error>> {
     let scr = "U B' D L2 U B2 R2 D2 L2 D' U2 B2 R2 L U2 F' R' B L D'\n";
     let mut scrambled = Cube3x3::from_solved(scr).expect("deu ruim");
 
-    let recon: String = Roux::default().solve(&mut scrambled)?.to_string();
+    let recon: String = Method::roux(RouxOptions::default())
+        .solve(&mut scrambled)?
+        .to_string();
 
     assert_eq!(
         Cube3x3::from_solved(&(scr.to_string() + recon.as_str())).expect("deu OUTRO ruim"),
@@ -493,12 +495,12 @@ fn every_option_combination_solves() -> Result<(), Box<dyn Error>> {
         for sb_square_as_one_step in [false, true] {
             for one_look_cmll in [false, true] {
                 let options = RouxOptions {
-                    sb_square_as_one_step,
+                    sb_as_one_step: sb_square_as_one_step,
                     fb_as_one_step,
                     one_look_cmll,
                 };
                 let described = format!("{options:?}");
-                let recon = Roux::from_options(options)
+                let recon = Method::roux(options)
                     .solve(&mut Cube3x3::from_solved(scr)?)
                     .map_err(|e| format!("{described}: {e}"))?
                     .to_string();
@@ -517,7 +519,9 @@ fn every_option_combination_solves() -> Result<(), Box<dyn Error>> {
 #[test]
 fn skips_work() -> Result<(), Box<dyn Error>> {
     let scrambled = Cube3x3::from_solved("U2")?;
-    let recon = Roux::default().solve(&mut scrambled.clone())?.to_string();
+    let recon = Method::roux(RouxOptions::default())
+        .solve(&mut scrambled.clone())?
+        .to_string();
     println!("{recon}");
     assert!(scrambled.move_sequence(&recon)?.is_solved());
     Ok(())

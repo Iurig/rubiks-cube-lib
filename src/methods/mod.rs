@@ -4,25 +4,23 @@ pub mod simple_methods;
 
 use std::{
     collections::{HashMap, VecDeque},
+    error::Error,
     fmt::{Debug, Display},
+    sync::Arc,
 };
 
-use crate::{Mask, ops::Inv, puzzles::Puzzle};
+use crate::{ops::Inv, puzzles::Puzzle};
 
-pub trait SolveStep<P: Puzzle, M: SolveMethod<P>> {
-    fn options_allow(&self, method: &M) -> bool;
-    fn step_is_solved(&self, p: &P) -> bool;
-    fn can_apply(&self, p: &P) -> bool;
-    fn name(&self) -> String;
+pub trait Step<P: Puzzle>: Send + Sync + Debug {
+    fn name(&self) -> &'static str;
+
+    fn is_done(&self, puzzle: &P) -> bool;
+
     fn allowed_move_sequences(&self) -> Vec<Vec<P::Moves>>;
-
-    fn needs_solved(&self) -> Mask<P>;
-    fn solved_pieces(&self) -> Mask<P>;
-    fn mask(&self, puzzle: &P) -> Mask<P>;
 
     /// # Errors
     /// Errors if the moves allowed by the step can't finish the step
-    fn solve(&self, p: &mut P) -> Result<Solution<P>, Box<dyn std::error::Error>>;
+    fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, StepError>;
 }
 
 #[derive(Debug)]
@@ -47,14 +45,25 @@ impl<P: Puzzle> Solution<P> {
             .map(|(moves, _)| moves.len())
             .sum()
     }
+}
 
-    fn from_iter<I, D>(iter: I) -> Self
-    where
-        I: IntoIterator<Item = (Vec<P::Moves>, D)>,
-        D: Display,
-    {
+/// Builds a solution from `(moves, step name)` segments, in order.
+impl<P: Puzzle, D: Display> FromIterator<(Vec<P::Moves>, D)> for Solution<P> {
+    fn from_iter<I: IntoIterator<Item = (Vec<P::Moves>, D)>>(iter: I) -> Self {
         Self {
-            step_solutions: Vec::from_iter(iter.into_iter().map(|(v, d)| (v, d.to_string()))),
+            step_solutions: iter
+                .into_iter()
+                .map(|(moves, name)| (moves, name.to_string()))
+                .collect(),
+        }
+    }
+}
+
+/// Joins solutions into one, keeping every segment in order.
+impl<P: Puzzle> FromIterator<Self> for Solution<P> {
+    fn from_iter<I: IntoIterator<Item = Self>>(iter: I) -> Self {
+        Self {
+            step_solutions: iter.into_iter().flatten().collect(),
         }
     }
 }
@@ -107,78 +116,113 @@ impl<P: Puzzle> Display for Solution<P> {
     }
 }
 
-pub trait SolveMethod<P: Puzzle>: std::marker::Sized + Default {
-    type MethodOptions: Default;
+#[derive(Debug)]
+pub struct Method<P: Puzzle> {
+    steps: Vec<Arc<dyn Step<P>>>,
+    name: &'static str,
+}
 
-    fn name(&self) -> String;
+impl<P: Puzzle> Method<P> {
+    #[must_use]
+    pub const fn name(&self) -> &'static str {
+        self.name
+    }
 
-    fn steps(&self) -> Vec<&impl SolveStep<P, Self>>;
-
-    fn from_options(options: Self::MethodOptions) -> Self;
-
-    fn to_options(&self) -> &Self::MethodOptions;
+    pub fn steps(&self) -> impl Iterator<Item = Arc<dyn Step<P>>> {
+        self.steps.iter().cloned()
+    }
 
     #[must_use]
-    fn new() -> Self {
-        Self::default()
+    fn new(name: &'static str, steps: Vec<Arc<dyn Step<P>>>) -> Self {
+        Self { steps, name }
     }
 
+    /// Solves `puzzle` one step at a time. Each call to `next()` runs the next step and yields
+    /// its solution.
+    pub fn solve_steps(
+        &self,
+        puzzle: &mut P,
+    ) -> impl Iterator<Item = Result<Solution<P>, SolveError>> {
+        let mut failed = false;
+        self.steps().map_while(move |step| {
+            if failed {
+                return None;
+            }
+            let result = match step.solve(puzzle) {
+                Err(e) => Err(StepFailures::Internal(e)),
+                Ok(_) if !step.is_done(puzzle) => Err(StepFailures::Unsolved),
+                Ok(solution) => Ok(solution),
+            };
+            failed = result.is_err();
+            Some(result.map_err(|error| SolveError {
+                name: step.name(),
+                error,
+            }))
+        })
+    }
+
+    /// Runs every step in order and joins their solutions.
+    ///
     /// # Errors
-    /// Errors if any step of the method errors or if the steps can't be combined to solve a cube,
-    /// determined if 100 steps are applied and the cube is still unsolved, or if one of its steps
-    /// isn't completable
-    fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, Box<dyn std::error::Error>> {
-        let mut sol = Solution::new();
-        let mut solved_pieces = Mask::<P>::default();
-        let mut counter = 0;
-
-        while !puzzle.is_solved() {
-            if counter >= 100 {
-                return Err(Box::new(MethodNotCompletable { name: self.name() }));
-            }
-
-            for step in self.steps().iter().filter(|&s| s.options_allow(self)) {
-                if step.can_apply(puzzle) && solved_pieces == step.needs_solved() {
-                    log::debug!("Starting step: {}", step.name());
-                    let step_solution = step.solve(puzzle)?;
-                    log::debug!("Finished step: {}: {}", step.name(), step_solution);
-                    solved_pieces = step.solved_pieces();
-                    sol.extend(step_solution);
-                }
-            }
-            counter += 1;
-        }
-        Ok(sol)
+    /// Returns the first step's error, and runs no later steps.
+    pub fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, SolveError> {
+        self.solve_steps(puzzle).collect()
     }
 }
 
 #[derive(Debug)]
-pub struct StepNotCompletable {
-    name: String,
+pub enum StepError {
+    UnrecheableGoal,
+    InvalidStartingState,
+    /// Another thread panicked while deepening the step's memo, so the memo may be inconsistent.
+    MemoPoisoned,
+    Custom(Box<dyn Error + Send + Sync>),
 }
 #[derive(Debug)]
-pub struct MethodNotCompletable {
-    name: String,
+pub struct SolveError {
+    name: &'static str,
+    error: StepFailures,
 }
 
-impl std::error::Error for StepNotCompletable {}
-impl std::error::Error for MethodNotCompletable {}
+#[derive(Debug)]
+pub enum StepFailures {
+    Internal(StepError),
+    Unsolved,
+}
 
-impl Display for StepNotCompletable {
+impl std::error::Error for StepError {}
+impl std::error::Error for SolveError {}
+
+impl Display for StepError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "step {} cannot be completed with its allowed moves",
-            self.name
+            "{}",
+            match self {
+                Self::UnrecheableGoal =>
+                    "goal could not be reached with the given moveset".to_string(),
+                Self::InvalidStartingState =>
+                    "starting state doesn't fit expected properties".to_string(),
+                Self::MemoPoisoned =>
+                    "the step's memo is unusable: another solve panicked while deepening it"
+                        .to_string(),
+                Self::Custom(e) => e.to_string(),
+            }
         )
     }
 }
-impl Display for MethodNotCompletable {
+impl Display for SolveError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "method {} did not solve the cube after 100 passes over its steps",
-            self.name
+            "{}",
+            match &self.error {
+                StepFailures::Unsolved => format!(
+                    "step {} returned a solution, but its goal is not met",
+                    self.name
+                ),
+                StepFailures::Internal(e) => format!("step {} could not finish: {}", self.name, e),
+            }
         )
     }
 }

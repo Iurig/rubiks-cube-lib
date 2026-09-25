@@ -8,12 +8,12 @@ pub mod cube3by3;
 pub mod mask;
 
 pub trait Puzzle:
-    Default + Mul<Self::Moves, Output = Self> + Debug + Clone + Eq + Hash + 'static
+    Default + Mul<Self::Moves, Output = Self> + Debug + Clone + Eq + Hash + Send + Sync + 'static
 {
     /// The type that represents the puzzle's pieces
-    type Piece: Copy + Eq + Debug + Hash + 'static;
+    type Piece: Copy + Eq + Debug + Hash + 'static + Send + Sync;
     /// The type that represents a move sequence: usually implemented as a `&'static [Move]` for a type `Move` that represents a move for the puzzle
-    type Moves: crate::Inv + Eq + Copy + 'static + Display + Debug;
+    type Moves: crate::Inv + Eq + Copy + 'static + Display + Debug + Send + Sync;
 
     /// A slice refference to all pieces in the puzzle, must contain all values `type Piece` can assume
     const ALL_PIECES: &'static [Self::Piece];

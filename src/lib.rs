@@ -6,9 +6,8 @@ mod puzzles;
 pub mod zn;
 
 pub use methods::{
-    MethodNotCompletable, Solution, SolveMethod, SolveStep, StepNotCompletable,
-    cube3x3::roux::{Roux, RouxOptions},
-    simple_methods::SimpleStep,
+    Method, Solution, SolveError, Step, StepError, cube3x3::roux::RouxOptions,
+    simple_methods::SearchStep,
 };
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};

@@ -1,4 +1,4 @@
-use rubiks_cube_lib::{Cube3x3, Puzzle, Roux, RouxOptions, SolveMethod};
+use rubiks_cube_lib::{Cube3x3, Method, Puzzle, RouxOptions};
 
 #[expect(
     clippy::panic_in_result_fn,
@@ -15,9 +15,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut scrambled = Cube3x3::from_solved(scr)?;
 
     let recon_beginner_options: String = scr.to_string()
-        + Roux::from_options(RouxOptions {
+        + Method::roux(RouxOptions {
             fb_as_one_step: false,
-            sb_square_as_one_step: false,
+            sb_as_one_step: false,
             one_look_cmll: false,
         })
         .solve(&mut scrambled)?
@@ -29,8 +29,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     scrambled = Cube3x3::from_solved(scr)?;
 
-    let recon_default_options: String =
-        scr.to_string() + Roux::default().solve(&mut scrambled)?.to_string().as_str();
+    let recon_default_options: String = scr.to_string()
+        + Method::roux(RouxOptions::default())
+            .solve(&mut scrambled)?
+            .to_string()
+            .as_str();
 
     assert!(Cube3x3::from_solved(&recon_default_options)?.is_solved());
 
