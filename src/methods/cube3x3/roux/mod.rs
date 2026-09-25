@@ -1,7 +1,7 @@
 use std::sync::LazyLock;
 
 use crate::{
-    Cube3x3, Mask, NamedMoveSequences, Puzzle, SimpleStep, SolveMethod, SolveStep,
+    Cube3x3, Mask, Puzzle, SimpleStep, SolveMethod, SolveStep,
     puzzles::cube3by3::{
         moves::{MovablePart, Move3x3, MoveModifier},
         pieces::{Faces, Pieces3x3, Slices},
@@ -296,7 +296,7 @@ impl Default for RouxOptions {
     }
 }
 
-impl SolveMethod<Cube3x3, NamedMoveSequences<Cube3x3>> for Roux {
+impl SolveMethod<Cube3x3> for Roux {
     type MethodOptions = RouxOptions;
 
     fn name(&self) -> String {
@@ -311,9 +311,7 @@ impl SolveMethod<Cube3x3, NamedMoveSequences<Cube3x3>> for Roux {
         &self.0
     }
 
-    fn steps(
-        &self,
-    ) -> Vec<&impl SolveStep<Cube3x3, Vec<(String, Vec<<Cube3x3 as Puzzle>::Moves>)>, Self>> {
+    fn steps(&self) -> Vec<&impl SolveStep<Cube3x3, Self>> {
         STEPS.iter().collect()
     }
 }

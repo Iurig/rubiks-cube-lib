@@ -8,7 +8,7 @@ pub mod zn;
 pub use methods::{
     MethodNotCompletable, Solution, SolveMethod, SolveStep, StepNotCompletable,
     cube3x3::roux::{Roux, RouxOptions},
-    simple_methods::{NamedMoveSequences, NoOptions, SimpleStep},
+    simple_methods::SimpleStep,
 };
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};

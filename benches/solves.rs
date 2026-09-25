@@ -23,9 +23,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use rubiks_cube_lib::{
-    Cube3x3, Mask, NamedMoveSequences, Puzzle, Roux, Solution, SolveMethod, SolveStep,
-};
+use rubiks_cube_lib::{Cube3x3, Mask, Puzzle, Roux, Solution, SolveMethod, SolveStep};
 
 const SOLVES: u32 = 1000;
 
@@ -109,18 +107,18 @@ fn bench(roux: &Roux, seed: u64) -> Result<(), Box<dyn Error>> {
         let t = Instant::now();
         let (solution, measured) = solve_measured(roux, &mut cube)?;
         let elapsed = t.elapsed();
-        if !scrambled.move_sequence(&solution.to_recon())?.is_solved() {
+        if !scrambled.move_sequence(&solution.to_string())?.is_solved() {
             return Err(format!("solve {i} does not solve its scramble").into());
         }
         if i == 0 {
             eprintln!("  first solve: {elapsed:.2?}");
-            for ((name, _), m) in solution.iter().zip(&measured) {
+            for ((_, name), m) in solution.iter().zip(&measured) {
                 eprintln!("    {name}: {:.2?}, peak {}", m.time, mib(m.peak)?);
             }
             continue;
         }
         let mut total = 0;
-        for ((name, moves), m) in solution.iter().zip(&measured) {
+        for ((moves, name), m) in solution.iter().zip(&measured) {
             let stats = per_step.entry(name.clone()).or_default();
             stats.lengths.push(moves.len());
             stats.times.push(m.time);
@@ -148,8 +146,8 @@ fn bench(roux: &Roux, seed: u64) -> Result<(), Box<dyn Error>> {
 fn solve_measured(
     roux: &Roux,
     cube: &mut Cube3x3,
-) -> Result<(NamedMoveSequences<Cube3x3>, Vec<Measured>), Box<dyn Error>> {
-    let mut solution = NamedMoveSequences::<Cube3x3>::new();
+) -> Result<(Solution<Cube3x3>, Vec<Measured>), Box<dyn Error>> {
+    let mut solution = Solution::<Cube3x3>::new();
     let mut measured = Vec::new();
     let mut solved_pieces = Mask::<Cube3x3>::default();
 

@@ -1,4 +1,4 @@
-use std::{collections::hash_map::Entry, fmt::Display, marker::PhantomData, sync::Mutex};
+use std::{collections::hash_map::Entry, marker::PhantomData, sync::Mutex};
 
 use crate::{Mask, methods::search::BFSMemo};
 #[allow(
@@ -8,7 +8,7 @@ use crate::{Mask, methods::search::BFSMemo};
 use crate::{Puzzle, methods::*};
 
 #[derive(Debug)]
-pub struct SimpleStep<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> {
+pub struct SimpleStep<P: Puzzle, M: SolveMethod<P>> {
     name: String,
     before: Mask<P>,
     after: Mask<P>,
@@ -18,7 +18,7 @@ pub struct SimpleStep<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> {
     phantom: PhantomData<M>,
 }
 
-impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
+impl<P: Puzzle, M: SolveMethod<P>> SimpleStep<P, M> {
     pub fn new(
         name: &str,
         before: Mask<P>,
@@ -38,18 +38,14 @@ impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
     }
 }
 
-type MoveSequence<P> = Vec<<P as Puzzle>::Moves>;
-
-pub type NamedMoveSequences<P> = Vec<(String, MoveSequence<P>)>;
-
-impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
+impl<P: Puzzle, M: SolveMethod<P>> SimpleStep<P, M> {
     /// Meet in the middle: a forward search from `p`, one level at a time, against the memo's
     /// backward search from the goal. Each round grows whichever side has fewer states to expand.
     #[expect(
         clippy::significant_drop_tightening,
         reason = "the memo is read and deepened on every round, so the lock is held for the whole search"
     )]
-    fn solve_bfs(&self, p: &mut P) -> Result<Vec<P::Moves>, Box<dyn std::error::Error>> {
+    fn solve_bfs(&self, p: &mut P) -> Result<Solution<P>, Box<dyn std::error::Error>> {
         let mut memo = self.memo.lock().map_err(|e| e.to_string())?;
         let mut investigated = HashMap::from([(self.mask(p), None)]);
         let mut level = vec![p.clone()];
@@ -70,7 +66,9 @@ impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
                 .min_by_key(|(path, _, _)| path.len());
             if let Some((path, tail, cube)) = best {
                 *p = tail.iter().fold(cube.clone(), |c, m| c * *m);
-                return Ok(path);
+                return Ok(Solution {
+                    step_solutions: vec![(path, self.name())],
+                });
             }
 
             let memo_frontier = memo.frontier_len();
@@ -96,7 +94,7 @@ impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
     fn next_level(
         &self,
         level: &[P],
-        investigated: &mut HashMap<Mask<P>, Option<MoveSequence<P>>>,
+        investigated: &mut HashMap<Mask<P>, Option<Vec<P::Moves>>>,
     ) -> Vec<P> {
         let mut next = Vec::new();
         for cube in level {
@@ -116,7 +114,7 @@ impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
     fn close_under_free_sequences(
         &self,
         level: &mut Vec<P>,
-        investigated: &mut HashMap<Mask<P>, Option<MoveSequence<P>>>,
+        investigated: &mut HashMap<Mask<P>, Option<Vec<P::Moves>>>,
     ) {
         let mut i = 0;
         while let Some(cube) = level.get(i).cloned() {
@@ -135,7 +133,7 @@ impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
     fn path_to(
         &self,
         cube: &P,
-        investigated: &HashMap<Mask<P>, Option<MoveSequence<P>>>,
+        investigated: &HashMap<Mask<P>, Option<Vec<P::Moves>>>,
     ) -> Vec<P::Moves> {
         let mut path = VecDeque::new();
         let mut cube = cube.clone();
@@ -150,42 +148,10 @@ impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
     }
 }
 
-#[derive(Debug, Default)]
-pub struct NoOptions();
-
-impl<M> Solution for Vec<(String, Vec<M>)>
-where
-    M: crate::Inv + Copy + 'static + Display,
-{
-    type ReconOptions = NoOptions;
-    fn new() -> Self {
-        Self::new()
-    }
-    fn recon_with_options(&self, _: Self::ReconOptions) -> String {
-        self.iter()
-            .map(|(name, move_sequence)| {
-                move_sequence
-                    .iter()
-                    .map(M::to_string)
-                    .collect::<Vec<String>>()
-                    .join(" ")
-                    + "\t//"
-                    + name
-                    + "\n"
-            })
-            .collect::<String>()
-    }
-    fn then(&self, next: Self) -> Self {
-        let mut concatenation = self.clone();
-        concatenation.extend(next);
-        concatenation
-    }
-}
-
-impl<P, M> SolveStep<P, Vec<(String, Vec<P::Moves>)>, M> for SimpleStep<P, M>
+impl<P, M> SolveStep<P, M> for SimpleStep<P, M>
 where
     P: Puzzle,
-    M: SolveMethod<P, Vec<(String, Vec<P::Moves>)>>,
+    M: SolveMethod<P>,
 {
     fn options_allow(&self, method: &M) -> bool {
         (self.is_allowed)(method)
@@ -212,10 +178,7 @@ where
     fn mask(&self, puzzle: &P) -> Mask<P> {
         BFSMemo::<P>::filter_through(puzzle, &self.after)
     }
-    fn solve(&self, p: &mut P) -> Result<Vec<(String, Vec<P::Moves>)>, Box<dyn std::error::Error>> {
-        Ok(vec![(
-            <Self as SolveStep<P, Vec<(String, Vec<P::Moves>)>, M>>::name(self),
-            Self::solve_bfs(self, p)?,
-        )])
+    fn solve(&self, p: &mut P) -> Result<Solution<P>, Box<dyn std::error::Error>> {
+        Ok(Solution::from_iter(Self::solve_bfs(self, p)?))
     }
 }
