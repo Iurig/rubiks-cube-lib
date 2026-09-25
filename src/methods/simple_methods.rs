@@ -9,13 +9,33 @@ use crate::{Puzzle, methods::*};
 
 #[derive(Debug)]
 pub struct SimpleStep<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> {
-    pub name: String,
-    pub before: Mask<P>,
-    pub after: Mask<P>,
-    pub allowed_moves: Vec<(Vec<P::Moves>, bool)>,
-    pub is_allowed: fn(&M) -> bool,
-    pub memo: Mutex<BFSMemo<P>>,
-    pub phantom: PhantomData<M>,
+    name: String,
+    before: Mask<P>,
+    after: Mask<P>,
+    allowed_moves: Vec<(Vec<P::Moves>, bool)>,
+    is_allowed: fn(&M) -> bool,
+    memo: Mutex<BFSMemo<P>>,
+    phantom: PhantomData<M>,
+}
+
+impl<P: Puzzle, M: SolveMethod<P, NamedMoveSequences<P>>> SimpleStep<P, M> {
+    pub fn new(
+        name: &str,
+        before: Mask<P>,
+        after: Mask<P>,
+        allowed_moves: Vec<(Vec<P::Moves>, bool)>,
+        is_allowed: fn(&M) -> bool,
+    ) -> Self {
+        Self {
+            memo: Mutex::new(BFSMemo::new(&after)),
+            name: name.to_string(),
+            before,
+            after,
+            allowed_moves,
+            is_allowed,
+            phantom: PhantomData,
+        }
+    }
 }
 
 type MoveSequence<P> = Vec<<P as Puzzle>::Moves>;

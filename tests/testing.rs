@@ -489,6 +489,34 @@ fn full_solve_and_checking_bfs() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+fn every_option_combination_solves() -> Result<(), Box<dyn Error>> {
+    let scr = "U B' D L2 U B2 R2 D2 L2 D' U2 B2 R2 L U2 F' R' B L D'\n";
+    for fb_as_one_step in [false, true] {
+        for sb_square_as_one_step in [false, true] {
+            for one_look_cmll in [false, true] {
+                let options = RouxOptions {
+                    sb_square_as_one_step,
+                    fb_as_one_step,
+                    one_look_cmll,
+                };
+                let described = format!("{options:?}");
+                let recon = Roux::from_options(options)
+                    .solve(&mut Cube3x3::from_solved(scr)?)
+                    .map_err(|e| format!("{described}: {e}"))?
+                    .to_recon();
+                assert!(
+                    Cube3x3::from_solved(scr)?
+                        .move_sequence(&recon)?
+                        .is_solved(),
+                    "{described} did not solve the scramble:\n{recon}"
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
+#[test]
 fn skips_work() -> Result<(), Box<dyn Error>> {
     let scrambled = Cube3x3::from_solved("U2")?;
     let recon = Roux::default()

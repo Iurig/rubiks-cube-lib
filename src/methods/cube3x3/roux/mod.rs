@@ -1,13 +1,9 @@
-use std::{
-    marker::PhantomData,
-    sync::{LazyLock, Mutex},
-};
+use std::sync::LazyLock;
 
 use crate::{
     Cube3x3, Mask, NamedMoveSequences, Puzzle, SimpleStep, SolveMethod, SolveStep,
-    methods::search::BFSMemo,
     puzzles::cube3by3::{
-        moves::{MovablePart, Move3x3},
+        moves::{MovablePart, Move3x3, MoveModifier},
         pieces::{Faces, Pieces3x3, Slices},
     },
 };
@@ -74,6 +70,34 @@ impl Roux {
         Pieces3x3::Center(crate::Center::D),
         Pieces3x3::Center(crate::Center::B),
     ];
+
+    fn moves_of(parts: &[MovablePart]) -> Vec<(Vec<Move3x3>, bool)> {
+        parts.iter().fold(Vec::new(), |mut v, &part| {
+            v.push((vec![Move3x3::new(part, MoveModifier::Clockwise)], true));
+            v.push((
+                vec![Move3x3::new(part, MoveModifier::CounterClockwise)],
+                true,
+            ));
+            v.push((vec![Move3x3::new(part, MoveModifier::Double)], true));
+            v
+        })
+    }
+
+    fn algorithms_with_free_auf(algset: &str) -> Vec<(Vec<Move3x3>, bool)> {
+        [("U", false), ("U2", false), ("U'", false)]
+            .iter()
+            .copied()
+            .chain(algset.lines().map(|line| (line, true)))
+            .map(|(r, has_cost)| {
+                (
+                    Move3x3::sequence(r)
+                        .map(|p| p.expect("manually curated sequences should always parse"))
+                        .collect(),
+                    has_cost,
+                )
+            })
+            .collect()
+    }
 }
 
 /// One-look CMLL algorithms, one per line.
@@ -92,75 +116,48 @@ static STEPS: LazyLock<Vec<SimpleStep<Cube3x3, Roux>>> = LazyLock::new(roux_step
     reason = "one literal per step, in solving order"
 )]
 fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
-    let fb_front_square_after = Mask::<Cube3x3>::new_from_pieces(Roux::FB_FRONT_SQUARE_PIECES);
-    let fb_front_square = SimpleStep::<Cube3x3, Roux> {
-        name: "FB Square".to_string(),
-        before: Mask::<Cube3x3>::default(),
-        after: fb_front_square_after.clone(),
-        allowed_moves: Cube3x3::ALL_MOVES
-            .iter()
-            .map(|&m| (vec![m], true))
-            .collect(),
-        is_allowed: |m| !m.0.fb_as_one_step,
-        memo: Mutex::new(BFSMemo::new(&fb_front_square_after)),
-        phantom: PhantomData,
-    };
+    let mut all_parts: Vec<MovablePart> = Cube3x3::ALL_MOVES.iter().map(|m| m.part).collect();
+    all_parts.dedup();
 
-    let fb_back_square_after = Mask::<Cube3x3>::new_from_pieces(Roux::FB_BACK_SQUARE_PIECES);
-    let fb_back_square = SimpleStep::<Cube3x3, Roux> {
-        name: "FB Square".to_string(),
-        before: Mask::<Cube3x3>::default(),
-        after: fb_back_square_after.clone(),
-        allowed_moves: Cube3x3::ALL_MOVES
-            .iter()
-            .map(|&m| (vec![m], true))
-            .collect(),
-        is_allowed: |m| !m.0.fb_as_one_step,
-        memo: Mutex::new(BFSMemo::new(&fb_back_square_after)),
-        phantom: PhantomData,
-    };
+    let fb_front_square = SimpleStep::new(
+        "FB Square",
+        Mask::<Cube3x3>::default(),
+        Mask::<Cube3x3>::new_from_pieces(Roux::FB_FRONT_SQUARE_PIECES),
+        Roux::moves_of(&all_parts),
+        |m: &Roux| !m.0.fb_as_one_step,
+    );
 
-    let fb_front_pair_after = Mask::<Cube3x3>::new_from_pieces(Roux::FB_PIECES);
-    let fb_front_pair = SimpleStep::<Cube3x3, Roux> {
-        name: "FB Pair".to_string(),
-        before: Mask::<Cube3x3>::new_from_pieces(Roux::FB_BACK_SQUARE_PIECES),
-        after: fb_front_pair_after.clone(),
-        allowed_moves: Cube3x3::ALL_MOVES
-            .iter()
-            .map(|&m| (vec![m], true))
-            .collect(),
-        is_allowed: |m| !m.0.fb_as_one_step,
-        memo: Mutex::new(BFSMemo::new(&fb_front_pair_after)),
-        phantom: PhantomData,
-    };
+    let fb_back_square = SimpleStep::new(
+        "FB Square",
+        Mask::<Cube3x3>::default(),
+        Mask::<Cube3x3>::new_from_pieces(Roux::FB_BACK_SQUARE_PIECES),
+        Roux::moves_of(&all_parts),
+        |m: &Roux| !m.0.fb_as_one_step,
+    );
 
-    let fb_back_pair_after = Mask::<Cube3x3>::new_from_pieces(Roux::FB_PIECES);
-    let fb_back_pair = SimpleStep::<Cube3x3, Roux> {
-        name: "FB Pair".to_string(),
-        before: Mask::<Cube3x3>::new_from_pieces(Roux::FB_FRONT_SQUARE_PIECES),
-        after: fb_back_pair_after.clone(),
-        allowed_moves: Cube3x3::ALL_MOVES
-            .iter()
-            .map(|&m| (vec![m], true))
-            .collect(),
-        is_allowed: |m| !m.0.fb_as_one_step,
-        memo: Mutex::new(BFSMemo::new(&fb_back_pair_after)),
-        phantom: PhantomData,
-    };
+    let fb_front_pair = SimpleStep::new(
+        "FB Pair",
+        Mask::<Cube3x3>::new_from_pieces(Roux::FB_BACK_SQUARE_PIECES),
+        Mask::<Cube3x3>::new_from_pieces(Roux::FB_PIECES),
+        Roux::moves_of(&all_parts),
+        |m: &Roux| !m.0.fb_as_one_step,
+    );
 
-    let fb_after = Mask::<Cube3x3>::new_from_pieces(Roux::FB_PIECES);
-    let fb = SimpleStep::<Cube3x3, Roux> {
-        name: "FB".to_string(),
-        before: Mask::<Cube3x3>::new_from_pieces([]),
-        after: fb_after.clone(),
-        allowed_moves: Cube3x3::ALL_MOVES
-            .iter()
-            .map(|&m| (vec![m], true))
-            .collect(),
-        is_allowed: |_| true,
-        memo: Mutex::new(BFSMemo::new(&fb_after)),
-        phantom: PhantomData,
-    };
+    let fb_back_pair = SimpleStep::new(
+        "FB Pair",
+        Mask::<Cube3x3>::new_from_pieces(Roux::FB_FRONT_SQUARE_PIECES),
+        Mask::<Cube3x3>::new_from_pieces(Roux::FB_PIECES),
+        Roux::moves_of(&all_parts),
+        |m: &Roux| !m.0.fb_as_one_step,
+    );
+
+    let fb = SimpleStep::new(
+        "FB",
+        Mask::<Cube3x3>::new_from_pieces([]),
+        Mask::<Cube3x3>::new_from_pieces(Roux::FB_PIECES),
+        Roux::moves_of(&all_parts),
+        |_| true,
+    );
 
     let second_block_moves = [
         MovablePart::Face(Faces::U),
@@ -169,66 +166,45 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
         MovablePart::Wide(Faces::R),
     ];
 
-    let sb_square_after = Mask::<Cube3x3>::new_from_pieces(
-        Roux::FB_PIECES
-            .iter()
-            .chain(Roux::SB_SQUARE_PIECES.iter())
-            .copied(),
+    let sb_square = SimpleStep::new(
+        "SB Square",
+        fb.solved_pieces(),
+        Mask::<Cube3x3>::new_from_pieces(
+            Roux::FB_PIECES
+                .iter()
+                .chain(Roux::SB_SQUARE_PIECES.iter())
+                .copied(),
+        ),
+        Roux::moves_of(&second_block_moves),
+        |m: &Roux| !m.0.sb_square_as_one_step,
     );
-    let sb_square = SimpleStep::<Cube3x3, Roux> {
-        name: "SB Square".to_string(),
-        before: fb.after.clone(),
-        after: sb_square_after.clone(),
-        allowed_moves: Cube3x3::ALL_MOVES
-            .iter()
-            .filter(|&m| second_block_moves.contains(&m.part))
-            .map(|&m| (vec![m], true))
-            .collect(),
-        is_allowed: |m| !m.0.sb_square_as_one_step,
-        memo: Mutex::new(BFSMemo::new(&sb_square_after)),
-        phantom: PhantomData,
-    };
 
-    let sb_pair_after = Mask::<Cube3x3>::new_from_pieces(
-        Roux::FB_PIECES
-            .iter()
-            .chain(Roux::SB_SQUARE_PIECES.iter())
-            .chain(Roux::SB_PIECES.iter())
-            .copied(),
+    let sb_pair = SimpleStep::new(
+        "SB Pair",
+        sb_square.solved_pieces(),
+        Mask::<Cube3x3>::new_from_pieces(
+            Roux::FB_PIECES
+                .iter()
+                .chain(Roux::SB_SQUARE_PIECES.iter())
+                .chain(Roux::SB_PIECES.iter())
+                .copied(),
+        ),
+        Roux::moves_of(&second_block_moves),
+        |m: &Roux| !m.0.sb_square_as_one_step,
     );
-    let sb_pair = SimpleStep::<Cube3x3, Roux> {
-        name: "SB Pair".to_string(),
-        before: sb_square.after.clone(),
-        after: sb_pair_after.clone(),
-        allowed_moves: Cube3x3::ALL_MOVES
-            .iter()
-            .filter(|&m| second_block_moves.contains(&m.part))
-            .map(|&m| (vec![m], true))
-            .collect(),
-        is_allowed: |m| !m.0.sb_square_as_one_step,
-        memo: Mutex::new(BFSMemo::new(&sb_pair_after)),
-        phantom: PhantomData,
-    };
 
-    let sb_after = Mask::<Cube3x3>::new_from_pieces(
-        Roux::FB_PIECES
-            .iter()
-            .chain(Roux::SB_PIECES.iter())
-            .copied(),
+    let sb = SimpleStep::new(
+        "SB",
+        fb.solved_pieces(),
+        Mask::<Cube3x3>::new_from_pieces(
+            Roux::FB_PIECES
+                .iter()
+                .chain(Roux::SB_PIECES.iter())
+                .copied(),
+        ),
+        Roux::moves_of(&second_block_moves),
+        |m: &Roux| m.0.sb_square_as_one_step,
     );
-    let sb = SimpleStep::<Cube3x3, Roux> {
-        name: "SB".to_string(),
-        before: fb.after.clone(),
-        after: sb_after.clone(),
-        allowed_moves: Cube3x3::ALL_MOVES
-            .iter()
-            .filter(|&m| second_block_moves.contains(&m.part))
-            .map(|&m| (vec![m], true))
-            .collect(),
-        is_allowed: |m| m.0.sb_square_as_one_step,
-        memo: Mutex::new(BFSMemo::new(&sb_after)),
-        phantom: PhantomData,
-    };
 
     let cmll_after = Mask::<Cube3x3>::new_from_pieces(
         Roux::FB_PIECES
@@ -237,27 +213,13 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
             .chain(Roux::CMLL_PIECES.iter())
             .copied(),
     );
-    let cmll = SimpleStep::<Cube3x3, Roux> {
-        name: "CMLL".to_string(),
-        before: sb.after.clone(),
-        after: cmll_after.clone(),
-        allowed_moves: [("U", false), ("U2", false), ("U'", false)]
-            .iter()
-            .copied()
-            .chain(CMLL_ONE_LOOK_ALGS.lines().map(|line| (line, true)))
-            .map(|(r, has_cost)| {
-                (
-                    Move3x3::sequence(r)
-                        .map(|p| p.expect("manually curated sequences should always parse"))
-                        .collect(),
-                    has_cost,
-                )
-            })
-            .collect(),
-        is_allowed: |m| m.0.one_look_cmll,
-        memo: Mutex::new(BFSMemo::new(&cmll_after)),
-        phantom: PhantomData,
-    };
+    let cmll = SimpleStep::new(
+        "CMLL",
+        sb.solved_pieces(),
+        cmll_after.clone(),
+        Roux::algorithms_with_free_auf(CMLL_ONE_LOOK_ALGS),
+        |m: &Roux| m.0.one_look_cmll,
+    );
 
     let cmll_orientation_after = Mask::<Cube3x3>::new(
         Roux::FB_PIECES
@@ -270,73 +232,36 @@ fn roux_steps() -> Vec<SimpleStep<Cube3x3, Roux>> {
             .chain(Roux::CMLL_PIECES.iter())
             .copied(),
     );
-    let cmll_orientation = SimpleStep::<Cube3x3, Roux> {
-        name: "CO".to_string(),
-        before: sb.after.clone(),
-        after: cmll_orientation_after.clone(),
-        allowed_moves: [("U", false), ("U2", false), ("U'", false)]
-            .iter()
-            .copied()
-            .chain(CMLL_ORIENTATION_ALGS.lines().map(|line| (line, true)))
-            .map(|(r, has_cost)| {
-                (
-                    Move3x3::sequence(r)
-                        .map(|p| p.expect("manually curated sequences should always parse"))
-                        .collect(),
-                    has_cost,
-                )
-            })
-            .collect(),
-        is_allowed: |m| !m.0.one_look_cmll,
-        memo: Mutex::new(BFSMemo::new(&cmll_orientation_after)),
-        phantom: PhantomData,
-    };
-
-    let cmll_permutation = SimpleStep::<Cube3x3, Roux> {
-        name: "CP".to_string(),
-        before: cmll_orientation_after,
-        after: cmll_after.clone(),
-        allowed_moves: [("U", false), ("U2", false), ("U'", false)]
-            .iter()
-            .copied()
-            .chain(CMLL_PERMUTATION_ALGS.lines().map(|line| (line, true)))
-            .map(|(r, has_cost)| {
-                (
-                    Move3x3::sequence(r)
-                        .map(|p| p.expect("manually curated sequences should always parse"))
-                        .collect(),
-                    has_cost,
-                )
-            })
-            .collect(),
-        is_allowed: |m| !m.0.one_look_cmll,
-        memo: Mutex::new(BFSMemo::new(&cmll_after)),
-        phantom: PhantomData,
-    };
-
-    let lse_after = Mask::<Cube3x3>::new_from_pieces(
-        Roux::FB_PIECES
-            .iter()
-            .chain(Roux::SB_PIECES.iter())
-            .chain(Roux::CMLL_PIECES.iter())
-            .chain(Roux::LSE_PIECES.iter())
-            .copied(),
+    let cmll_orientation = SimpleStep::new(
+        "CO",
+        sb.solved_pieces(),
+        cmll_orientation_after.clone(),
+        Roux::algorithms_with_free_auf(CMLL_ORIENTATION_ALGS),
+        |m: &Roux| !m.0.one_look_cmll,
     );
-    let lse = SimpleStep::<Cube3x3, Roux> {
-        name: "LSE".to_string(),
-        before: cmll.after.clone(),
-        after: lse_after.clone(),
-        allowed_moves: Cube3x3::ALL_MOVES
-            .iter()
-            .filter(|&m| {
-                [MovablePart::Face(Faces::U), MovablePart::Slice(Slices::M)].contains(&m.part)
-            })
-            .map(|&m| (vec![m], true))
-            .collect(),
-        is_allowed: |_| true,
-        memo: Mutex::new(BFSMemo::new(&lse_after)),
-        phantom: PhantomData,
-    };
+
+    let cmll_permutation = SimpleStep::new(
+        "CP",
+        cmll_orientation_after,
+        cmll_after,
+        Roux::algorithms_with_free_auf(CMLL_PERMUTATION_ALGS),
+        |m: &Roux| !m.0.one_look_cmll,
+    );
+
+    let lse = SimpleStep::new(
+        "LSE",
+        cmll.solved_pieces(),
+        Mask::<Cube3x3>::new_from_pieces(
+            Roux::FB_PIECES
+                .iter()
+                .chain(Roux::SB_PIECES.iter())
+                .chain(Roux::CMLL_PIECES.iter())
+                .chain(Roux::LSE_PIECES.iter())
+                .copied(),
+        ),
+        Roux::moves_of(&[MovablePart::Face(Faces::U), MovablePart::Slice(Slices::M)]),
+        |_| true,
+    );
 
     vec![
         fb_front_square,
@@ -417,7 +342,7 @@ mod test {
 
     #[test]
     fn cmll_step_leaves_the_cube_with_cmll_solved() {
-        let cmll = STEPS.iter().find(|s| s.name == "CMLL").unwrap();
+        let cmll = STEPS.iter().find(|s| s.name() == "CMLL").unwrap();
         let sune = Cube3x3::from_solved("R U R' U R U2 R'").unwrap();
         for scramble in [Cube3x3::from_solved("U2").unwrap(), sune.inverse()] {
             let mut cube = scramble;
@@ -427,6 +352,18 @@ mod test {
     }
 
     #[test]
-    #[ignore = "reason"]
-    fn step_requirements_meet_bound_conditions() {}
+    fn step_requirements_meet_bound_conditions() {
+        for (i, step) in STEPS.iter().enumerate() {
+            let needs = step.needs_solved();
+            assert!(
+                needs == Mask::default()
+                    || STEPS
+                        .iter()
+                        .take(i)
+                        .any(|earlier| earlier.solved_pieces() == needs),
+                "step {i} ({}) needs pieces that no earlier step solves",
+                step.name()
+            );
+        }
+    }
 }
