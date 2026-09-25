@@ -229,7 +229,7 @@ impl Facelets {
 }
 
 impl Cube3x3 {
-    /// The colour on every facelet of this cube state.
+    /// The colour on every facelet of a cube state.
     #[must_use]
     #[expect(
         clippy::missing_panics_doc,

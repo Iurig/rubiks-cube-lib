@@ -110,7 +110,7 @@ impl Puzzle for Cube3x3 {
         .as_slice()
     };
 
-    /// Whether this state is the solved cube in any whole-cube rotation.
+    /// Whether this state is a (possibly rotated) solved cube.
     fn is_solved(&self) -> bool {
         self.rotated_until_solved_centers() == Some(Self::default())
     }
@@ -169,7 +169,8 @@ impl Puzzle for Cube3x3 {
 
 impl std::ops::Mul for Cube3x3 {
     type Output = Self;
-    /// Applies the state (permutations and orientations) that is the second argument to the first argument, which is a cube
+    /// Applies the state (permutations and orientations) that is the second argument to the first argument, which is a cube.
+    ///
     /// IMPORTANT: associative, but non-commutative
     fn mul(self, rhs: Self) -> Self::Output {
         Self {
@@ -221,13 +222,13 @@ impl Cube3x3 {
     pub const fn edges(&self) -> &EdgeConfiguration {
         &self.edge_configuration
     }
-    /// The center permutation.
+    /// The center permutation. For consistency, acompanied by a `Zn::ZERO` orientation
     #[must_use]
     pub const fn centers(&self) -> &CenterConfiguration {
         &self.center_configuration
     }
 
-    /// Applies a move sequence to this cube state, in order.
+    /// Applies a move sequence to this cube state, in order, from a `&str`
     ///
     /// # Errors
     ///
@@ -279,8 +280,9 @@ impl Cube3x3 {
 
     /// Whether some move sequence produces this state from the solved cube.
     ///
-    /// Four invariants, one per helper below. Every move preserves each of
-    /// them, so a state that breaks one cannot be reached.
+    /// Checks for four invariants: that centers are solved with respect to each other, that edge flips are even,
+    /// that corner twists are divisable by 3, and that an even number of 2-swaps reaches the permutation of the
+    /// pieces.
     #[must_use]
     pub fn is_reachable(&self) -> bool {
         self.twists_cancel()

@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 use crate::{Puzzle, Solution, Step, StepError};
 
-/// A step that tries several steps and keeps the solution with the fewest moves.
+/// A step that tries several steps and keeps the shortest working solution.
 ///
-/// Each alternative solves its own copy of the puzzle. An alternative that returns
-/// [`StepError::InvalidStartingState`] is skipped, so `Choose` also picks whichever
+/// Each alternative solves its own copy of the puzzle. Alternatives returning
+/// [`StepError::InvalidStartingState`] are skipped, so `Choose` also picks whichever
 /// alternatives can start at all. Any other error ends the whole choice. On a tie, the earlier
 /// alternative wins. The solution keeps the name of the alternative that ran, and the puzzle is
 /// left as that alternative left it.
@@ -21,8 +21,21 @@ pub struct Choose<P: Puzzle> {
 }
 
 impl<P: Puzzle> Choose<P> {
-    /// A choice between `steps`, named `name`. The name appears in errors about the choice
-    /// itself. When an alternative runs, the solution names that alternative instead.
+    /// A choice between `steps`, its name is a simple direct refference to the steps it chooses,
+    /// e.g. `"step1 or step2 or step3"`. The name appears in errors about the choice itself.
+    /// When an alternative runs, the solution names that alternative instead.
+    #[must_use]
+    pub fn new(steps: Vec<Arc<dyn Step<P>>>) -> Self {
+        let name = steps
+            .iter()
+            .map(|s| s.name())
+            .collect::<Vec<&str>>()
+            .join(" or ");
+        Self { steps, name }
+    }
+
+    /// A choice between `steps`, explicitly named `name`.
+    #[must_use]
     pub fn named(name: impl Into<String>, steps: Vec<Arc<dyn Step<P>>>) -> Self {
         Self {
             steps,

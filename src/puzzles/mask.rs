@@ -2,11 +2,11 @@ use std::{collections::HashSet, iter::IntoIterator};
 
 use crate::Puzzle;
 
-/// A condition on a puzzle's pieces: which must sit in their home slots, and which slots must
-/// hold an oriented piece.
+/// A partially defined puzzle: often interpreted as a condition to be followed by which must sit
+/// in their home slots, and which slots must hold an oriented piece.
 ///
-/// Steps use masks for where they start and what they solve. A mask ignores every piece it does
-/// not name.
+/// [`SearchStep`]s use masks for where they start and what they solve. A mask ignores every piece
+/// it does not name.
 ///
 /// ```
 /// use rubiks_cube_lib::{Cube3x3, Edge, Mask, Pieces3x3};
