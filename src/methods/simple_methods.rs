@@ -45,7 +45,7 @@ impl<P: Puzzle, M: SolveMethod<P>> SimpleStep<P, M> {
         clippy::significant_drop_tightening,
         reason = "the memo is read and deepened on every round, so the lock is held for the whole search"
     )]
-    fn solve_bfs(&self, p: &mut P) -> Result<Solution<P>, Box<dyn std::error::Error>> {
+    fn solve_bfs(&self, p: &mut P) -> Result<Vec<P::Moves>, Box<dyn std::error::Error>> {
         let mut memo = self.memo.lock().map_err(|e| e.to_string())?;
         let mut investigated = HashMap::from([(self.mask(p), None)]);
         let mut level = vec![p.clone()];
@@ -66,9 +66,7 @@ impl<P: Puzzle, M: SolveMethod<P>> SimpleStep<P, M> {
                 .min_by_key(|(path, _, _)| path.len());
             if let Some((path, tail, cube)) = best {
                 *p = tail.iter().fold(cube.clone(), |c, m| c * *m);
-                return Ok(Solution {
-                    step_solutions: vec![(path, self.name())],
-                });
+                return Ok(path);
             }
 
             let memo_frontier = memo.frontier_len();
@@ -179,6 +177,6 @@ where
         BFSMemo::<P>::filter_through(puzzle, &self.after)
     }
     fn solve(&self, p: &mut P) -> Result<Solution<P>, Box<dyn std::error::Error>> {
-        Ok(Solution::from_iter(Self::solve_bfs(self, p)?))
+        Ok(Solution::from_iter([(self.solve_bfs(p)?, self.name())]))
     }
 }
