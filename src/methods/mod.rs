@@ -149,7 +149,8 @@ impl<P: Puzzle> Display for Solution<P> {
     }
 }
 
-/// A solving method: a name and an ordered list of [`Step`]s.
+/// A solving method: a name and an ordered list of [`Step`]s. Specific methods are constructors
+/// of this struct.
 ///
 /// [`Method::roux`] builds the Roux method for [`Cube3x3`](crate::Cube3x3). Any other list of
 /// steps works too, and the steps can be of different types.
@@ -193,6 +194,16 @@ impl<P: Puzzle> Method<P> {
         Self { steps, name }
     }
 
+    /// Runs every step in order and joins their solutions: [`solve_steps`](Self::solve_steps),
+    /// collected.
+    ///
+    /// # Errors
+    /// The first [`SolveError`]. No later step runs, and `puzzle` is left as the failing step
+    /// left it.
+    pub fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, SolveError> {
+        self.solve_steps(puzzle).collect()
+    }
+
     /// Solves `puzzle` one step at a time. Each call to `next()` runs the next step and yields
     /// its solution, so a caller can time a step or report progress before the next one runs.
     ///
@@ -234,16 +245,6 @@ impl<P: Puzzle> Method<P> {
             failed = result.is_err();
             Some(result)
         })
-    }
-
-    /// Runs every step in order and joins their solutions: [`solve_steps`](Self::solve_steps),
-    /// collected.
-    ///
-    /// # Errors
-    /// The first [`SolveError`]. No later step runs, and `puzzle` is left as the failing step
-    /// left it.
-    pub fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, SolveError> {
-        self.solve_steps(puzzle).collect()
     }
 }
 
