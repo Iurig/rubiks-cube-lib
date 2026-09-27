@@ -67,7 +67,8 @@ impl<P: Puzzle> BFSMemo<P> {
         }
     }
 
-    /// Number of states the next [`Self::deepen`] starts from; 0 once every reachable state is memorized.
+    /// Number of states the next [`Self::deepen`] starts from; 0 once every reachable state is
+    /// memorized.
     pub(crate) const fn frontier_len(&self) -> usize {
         self.to_deepen.len()
     }

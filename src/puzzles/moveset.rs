@@ -5,12 +5,13 @@ use crate::{
 
 /// The move sequences a [`SearchStep`](crate::SearchStep) may apply, each as one unit.
 ///
-/// A sequence is costly, so it counts toward the step's cost, or free, such as a `U` turn
-/// between algorithms. For the cube, build one from notation text with
+/// A sequence is costly, so it counts toward the step's cost when searching, or free,
+/// such as a `U` turn between algorithms, which is only minimized if the number of algorithms is
+/// already minimal. For the cube, build one from notation text with
 /// [`from_parts`](Self::from_parts), [`from_algorithms`](Self::from_algorithms), or
 /// [`from_moves`](Self::from_moves), and join several with [`combined_with`](Self::combined_with).
-/// Parts and moves take `costly`: `true` for cost one, `false` for free.
-/// Algorithms always cost one per sequence.
+/// Parts and moves take `costly`: `true` for cost one, `false` for free. Algorithms always cost one
+/// per sequence.
 ///
 /// ```
 /// use rubiks_cube_lib::{Cube3x3, Moveset};
@@ -73,8 +74,8 @@ impl Moveset<Cube3x3> {
         ))
     }
 
-    /// One sequence per line of `text`, each costing one, such as an algorithm set. Lines with no moves,
-    /// such as blank or comment-only lines, are skipped.
+    /// One sequence per line of `text`, each costing one, such as an algorithm set. Lines with no
+    /// moves, such as blank or comment-only lines, are skipped.
     ///
     /// # Errors
     /// If `text` contains an invalid move. The error's line counts lines of the whole `text`.

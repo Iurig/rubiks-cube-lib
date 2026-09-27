@@ -30,7 +30,8 @@ use crate::{
 pub struct Cube3x3 {
     /// `CENTER_ORIENTATION_COUNT` is 1, centers are considered without orientation
     center_configuration: CenterConfiguration,
-    /// Corner orientation is done with the convention of clockwise rotations from white/yellow sticker being in the faces U and D
+    /// Corner orientation is done with the convention of clockwise rotations from white/yellow
+    /// sticker being in the faces U and D
     corner_configuration: CornerConfiguration,
     /// 0 is oriented, 1 is misoriented
     edge_configuration: EdgeConfiguration,
@@ -169,7 +170,8 @@ impl Puzzle for Cube3x3 {
 
 impl std::ops::Mul for Cube3x3 {
     type Output = Self;
-    /// Applies the state (permutations and orientations) that is the second argument to the first argument, which is a cube.
+    /// Applies the state (permutations and orientations) that is the second argument to the first
+    /// argument, which is a cube.
     ///
     /// IMPORTANT: associative, but non-commutative
     fn mul(self, rhs: Self) -> Self::Output {
@@ -280,9 +282,9 @@ impl Cube3x3 {
 
     /// Whether some move sequence produces this state from the solved cube.
     ///
-    /// Checks for four invariants: that centers are solved with respect to each other, that edge flips are even,
-    /// that corner twists are divisable by 3, and that an even number of 2-swaps reaches the permutation of the
-    /// pieces.
+    /// Checks for four invariants: that centers are solved with respect to each other, that edge
+    /// flips are even, that corner twists are divisable by 3, and that an even number of
+    /// 2-swaps reaches the permutation of the pieces.
     #[must_use]
     pub fn is_reachable(&self) -> bool {
         self.twists_cancel()
