@@ -3,7 +3,8 @@
 //!
 //! Run with `cargo bench --bench solves`; results go to stderr. No logger is installed, so the
 //! solver's log calls print nothing and cost only a level check. The first solve of each pass is
-//! reported apart. `harness = false` in `Cargo.toml` makes this file a plain program, so
+//! reported apart for timing and memory, but included in move counts. `harness = false`
+//! in `Cargo.toml` makes this file a plain program, so
 //! `cargo bench` works on stable.
 //!
 //! Memory is heap bytes requested through the global allocator, not what the OS reports.
@@ -115,26 +116,29 @@ fn bench(roux: &Method<Cube3x3>, seed: u64) -> Result<(), Box<dyn Error>> {
             for ((_, name), m) in solution.iter().zip(&measured) {
                 eprintln!("    {name}: {:.2?}, peak {}", m.time, mib(m.peak)?);
             }
-            continue;
         }
         let mut total = 0;
         for ((moves, name), m) in solution.iter().zip(&measured) {
             let stats = per_step.entry(name.clone()).or_default();
             stats.lengths.push(moves.len());
-            stats.times.push(m.time);
-            stats.peaks.push(m.peak);
+            if i != 0 {
+                stats.times.push(m.time);
+                stats.peaks.push(m.peak);
+            }
             total += moves.len();
         }
         whole.lengths.push(total);
-        whole.times.push(elapsed);
-        whole
-            .peaks
-            .push(measured.iter().map(|m| m.peak).max().unwrap_or_default());
+        if i != 0 {
+            whole.times.push(elapsed);
+            whole
+                .peaks
+                .push(measured.iter().map(|m| m.peak).max().unwrap_or_default());
+        }
     }
 
     eprintln!("  wall time: {:.2?}", start.elapsed());
     eprintln!("  live heap at end of pass: {}", mib(LIVE.load(Relaxed))?);
-    eprintln!("  solves 2-{SOLVES}:");
+    eprintln!("  timing and memory: solves 2-{SOLVES}; move counts: all {SOLVES} solves:");
     eprintln!("    whole solve: {}", summary(&mut whole)?);
     for (name, stats) in &mut per_step {
         eprintln!("    {name}: {}", summary(stats)?);
@@ -178,6 +182,7 @@ fn summary(stats: &mut Stats) -> Result<String, TryFromIntError> {
     stats.times.sort_unstable();
     stats.peaks.sort_unstable();
     let count = u32::try_from(stats.times.len())?;
+    let move_count = u32::try_from(stats.lengths.len())?;
     let at = |len: usize, p: usize| len.saturating_sub(1) * p / 100;
     let time_at = |p| {
         stats
@@ -195,14 +200,14 @@ fn summary(stats: &mut Stats) -> Result<String, TryFromIntError> {
     };
     let moves = u32::try_from(stats.lengths.iter().sum::<usize>())?;
     Ok(format!(
-        "time mean {:.2?}, median {:.2?}, p99 {:.2?}, max {:.2?} | peak median {}, max {} | moves mean {:.1}, max {} ({count} runs)",
+        "time mean {:.2?}, median {:.2?}, p99 {:.2?}, max {:.2?} ({count} runs) | peak median {}, max {} | moves mean {:.3}, max {} ({move_count} runs)",
         stats.times.iter().sum::<Duration>() / count.max(1),
         time_at(50),
         time_at(99),
         time_at(100),
         mib(peak_at(50))?,
         mib(peak_at(100))?,
-        f64::from(moves) / f64::from(count.max(1)),
+        f64::from(moves) / f64::from(move_count.max(1)),
         stats.lengths.iter().max().copied().unwrap_or_default(),
     ))
 }
