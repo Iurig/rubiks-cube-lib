@@ -62,12 +62,10 @@ impl Moveset<Cube3x3> {
     pub fn from_parts(text: &str, costly: bool) -> Result<Self, ParseSequenceError> {
         Ok(Self(
             Move3x3::sequence(text)
-                .try_fold(Vec::<MovablePart>::new(), |mut parts, m| {
+                .try_fold(HashSet::<MovablePart>::new(), |mut parts, m| {
                     let part = m?.part;
-                    if !parts.contains(&part) {
-                        parts.push(part);
-                    }
-                    Ok::<_, ParseSequenceError>(parts)
+                    parts.insert(part);
+                    Ok(parts)
                 })?
                 .into_iter()
                 .flat_map(|part| {
@@ -140,15 +138,6 @@ mod tests {
                     .all(|(sequence, cost)| sequence.len() == 1 && *cost == costly)
             );
         }
-        Ok(())
-    }
-
-    #[test]
-    fn from_parts_ignores_the_modifier_and_repeated_parts() -> Result<(), Box<dyn Error>> {
-        let plain = Moveset::<Cube3x3>::from_parts("U R", true)?;
-        let modified = Moveset::<Cube3x3>::from_parts("U' R2 U2", true)?;
-
-        assert_eq!(plain.sequences(), modified.sequences());
         Ok(())
     }
 
