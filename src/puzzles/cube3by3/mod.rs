@@ -426,9 +426,39 @@ mod tests {
 
     #[test]
     fn incorrect_strings_return_error() {
-        assert!(Cube3x3::from_solved("Q").is_err());
-        assert!(Cube3x3::from_solved("R Q U").is_err());
-        assert!(Cube3x3::from_solved("R3").is_err());
+        assert_eq!(
+            Cube3x3::from_solved("Q"),
+            Err(ParseSequenceError {
+                cause: ParseMoveError::BadPart {
+                    invalid_move: "Q".to_string(),
+                    part: "Q".to_string()
+                },
+                line: 1,
+                position: 1
+            })
+        );
+        assert_eq!(
+            Cube3x3::from_solved("R Q U"),
+            Err(ParseSequenceError {
+                cause: ParseMoveError::BadPart {
+                    invalid_move: "Q".to_string(),
+                    part: "Q".to_string()
+                },
+                line: 1,
+                position: 2
+            })
+        );
+        assert_eq!(
+            Cube3x3::from_solved("R3"),
+            Err(ParseSequenceError {
+                cause: ParseMoveError::BadModifier {
+                    invalid_move: "R3".to_string(),
+                    modifier: "3".to_string()
+                },
+                line: 1,
+                position: 1
+            })
+        );
     }
 
     #[test]

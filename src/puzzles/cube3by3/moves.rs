@@ -137,9 +137,9 @@ pub enum ParseMoveError {
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// A move in a sequence failed to parse; `line` and `position` count from 1.
 pub struct ParseSequenceError {
-    cause: ParseMoveError,
-    line: usize,
-    position: usize,
+    pub(crate) cause: ParseMoveError,
+    pub(crate) line: usize,
+    pub(crate) position: usize,
 }
 
 impl ParseSequenceError {
@@ -481,6 +481,16 @@ mod tests {
         ] {
             assert_eq!(Move3x3::try_from(bad), Err(expected_err));
         }
-        assert!(moves_of("R Q U").is_err());
+        assert_eq!(
+            moves_of("R Q U"),
+            Err(ParseSequenceError {
+                cause: ParseMoveError::BadPart {
+                    invalid_move: "Q".to_string(),
+                    part: "Q".to_string()
+                },
+                line: 1,
+                position: 2
+            })
+        );
     }
 }

@@ -36,6 +36,9 @@ pub(crate) const fn index<P, const N: usize>(piece: P) -> usize
 where
     P: Piece<N>,
 {
+    // SAFETY:
+    // Safety guaranteed by Piece being Sealed: Every implementation of Piece should be a
+    // `repr(u8)` enum.
     unsafe { (&raw const piece).cast::<u8>().read() as usize }
 }
 

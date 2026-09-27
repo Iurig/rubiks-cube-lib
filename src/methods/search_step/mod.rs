@@ -57,7 +57,10 @@ impl<P: Puzzle> SearchStep<P> {
         reason = "the memo is read and deepened on every round, so the lock is held for the whole search"
     )]
     fn solve_bfs(&self, p: &mut P) -> Result<Vec<P::Moves>, StepError> {
-        let mut memo = self.memo.lock().map_err(|_| StepError::MemoPoisoned)?;
+        let mut memo = self
+            .memo
+            .lock()
+            .map_err(|_memo_error| StepError::MemoPoisoned)?;
         let mut investigated = HashMap::from([(self.mask(p), None)]);
         let mut level = vec![p.clone()];
         self.close_under_free_sequences(&mut level, &mut investigated);

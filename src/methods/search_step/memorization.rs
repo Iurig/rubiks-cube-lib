@@ -276,10 +276,7 @@ mod tests {
     fn filter_through_follows_moves() {
         let mut mask = Mask::<Cube3x3>::new_empty();
 
-        let slot = mask
-            .permutation
-            .get_mut(Cube3x3::index(Pieces3x3::Corner(Corner::Ufl)))
-            .unwrap();
+        let slot = &mut mask.permutation[Cube3x3::index(Pieces3x3::Corner(Corner::Ufl))];
 
         *slot = Some(Pieces3x3::Corner(Corner::Ufr));
 
