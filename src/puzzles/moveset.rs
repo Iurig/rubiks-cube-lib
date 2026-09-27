@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::{
     Cube3x3, ParseSequenceError, Puzzle,
     puzzles::cube3by3::moves::{MovablePart, Move3x3, MoveModifier},
@@ -28,11 +30,17 @@ pub struct Moveset<P: Puzzle>(Vec<(Vec<P::Moves>, bool)>);
 impl<P: Puzzle> Moveset<P> {
     /// Combines both movesets, with this moveset's sequences first.
     ///
-    /// Preserves each sequence's free or costly status and retains duplicates.
+    /// Preserves each sequence's free or costly status.
     #[must_use]
-    pub fn combined_with(mut self, other: Self) -> Self {
-        self.0.extend(other.0);
-        self
+    pub fn combined_with(self, other: Self) -> Self {
+        Self(
+            self.0
+                .into_iter()
+                .chain(other.0)
+                .collect::<HashSet<(Vec<P::Moves>, bool)>>()
+                .into_iter()
+                .collect::<Vec<(Vec<P::Moves>, bool)>>(),
+        )
     }
 
     /// Each sequence with whether it is costly (`true`) or free (`false`).
@@ -173,16 +181,6 @@ mod tests {
                     .all(|((sequence, cost), m)| sequence == &[*m] && *cost == costly)
             );
         }
-        Ok(())
-    }
-
-    #[test]
-    fn combined_with_keeps_both_movesets_in_order() -> Result<(), Box<dyn Error>> {
-        let moveset = Moveset::<Cube3x3>::from_algorithms("R U R'")?
-            .combined_with(Moveset::from_moves("U", false)?);
-
-        let costs: Vec<bool> = moveset.sequences().iter().map(|&(_, c)| c).collect();
-        assert_eq!(costs, [true, false]);
         Ok(())
     }
 

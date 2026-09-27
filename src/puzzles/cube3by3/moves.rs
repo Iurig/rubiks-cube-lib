@@ -38,7 +38,7 @@ impl MoveModifier {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Move3x3 {
     pub part: MovablePart,
     pub modifier: MoveModifier,

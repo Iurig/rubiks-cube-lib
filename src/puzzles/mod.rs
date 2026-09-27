@@ -18,7 +18,7 @@ pub trait Puzzle:
     /// One piece of the puzzle. A piece also names its home slot.
     type Piece: Copy + Eq + Debug + Hash + 'static + Send + Sync;
     /// One move of the puzzle, such as `R'` on the cube.
-    type Moves: crate::Inv + Eq + Copy + 'static + Display + Debug + Send + Sync;
+    type Moves: crate::Inv + Eq + Copy + 'static + Display + Debug + Send + Sync + Hash;
 
     /// Every piece of the puzzle, each once.
     const ALL_PIECES: &'static [Self::Piece];
