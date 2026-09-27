@@ -158,6 +158,10 @@ impl ParseSequenceError {
     pub const fn position(&self) -> usize {
         self.position
     }
+    /// The same error on `line`, for text parsed one line at a time.
+    pub(crate) fn on_line(self, line: usize) -> Self {
+        Self { line, ..self }
+    }
 }
 
 impl std::error::Error for ParseMoveError {}

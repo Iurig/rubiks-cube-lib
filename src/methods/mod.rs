@@ -339,6 +339,7 @@ mod tests {
     };
 
     use super::{test_steps::FixedStep, *};
+    use crate::Moveset;
 
     fn fixed_failure() -> StepError {
         StepError::Custom("fixed failure".into())
@@ -363,7 +364,7 @@ mod tests {
             "UF then DF",
             uf_solved,
             Mask::new_from_pieces([Pieces3x3::Edge(Edge::Uf), Pieces3x3::Edge(Edge::Df)]),
-            Vec::new(),
+            Moveset::from_parts("", true)?,
         );
         let scrambled = Cube3x3::from_solved("U")?;
         let mut cube = scrambled;
@@ -416,9 +417,7 @@ mod tests {
     #[test]
     fn each_next_runs_one_step_and_leaves_the_cube_after_it() -> Result<(), Box<dyn Error>> {
         let uf_solved = Mask::<Cube3x3>::new_from_pieces([Pieces3x3::Edge(Edge::Uf)]);
-        let u_turns = Move3x3::sequence("U U' U2")
-            .map(|m| m.map(|m| (vec![m], true)))
-            .collect::<Result<Vec<_>, ParseSequenceError>>()?;
+        let u_turns = Moveset::from_parts("U", true)?;
         let solve_uf = Arc::new(SearchStep::new(
             "UF",
             Mask::default(),

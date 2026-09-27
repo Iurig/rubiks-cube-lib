@@ -1,7 +1,7 @@
 pub mod memorization;
 use std::{collections::hash_map::Entry, sync::Mutex};
 
-use crate::{Mask, methods::search_step::memorization::BFSMemo};
+use crate::{Mask, Moveset, methods::search_step::memorization::BFSMemo};
 #[allow(
     clippy::wildcard_imports,
     reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
@@ -24,23 +24,22 @@ pub struct SearchStep<P: Puzzle> {
     name: &'static str,
     before: Mask<P>,
     after: Mask<P>,
-    allowed_moves: Vec<(Vec<P::Moves>, bool)>,
+    allowed_moves: Moveset<P>,
     memo: Mutex<BFSMemo<P>>,
 }
 
 impl<P: Puzzle> SearchStep<P> {
     /// A step named `name` that starts when `before` holds and searches until `after` holds.
     ///
-    /// Each entry of `allowed_moves` is one move sequence the search may apply as a unit: a
-    /// single move, or a whole algorithm. The `bool` says whether the sequence costs one
-    /// (`true`) or nothing (`false`). The search finds a solution with the lowest total cost,
-    /// so a free sequence, such as a `U` turn between algorithms, adds no cost.
+    /// Each sequence of `allowed_moves` is applied as a unit: a single move, or a whole
+    /// algorithm. The search finds a solution with the lowest total cost, so a free sequence,
+    /// such as a `U` turn between algorithms, adds no cost.
     #[must_use]
     pub fn new(
         name: &'static str,
         before: Mask<P>,
         after: Mask<P>,
-        allowed_moves: Vec<(Vec<P::Moves>, bool)>,
+        allowed_moves: Moveset<P>,
     ) -> Self {
         Self {
             memo: Mutex::new(BFSMemo::new(&after)),
@@ -81,7 +80,7 @@ impl<P: Puzzle> SearchStep<P> {
 
             let memo_frontier = memo.frontier_len();
             if memo_frontier != 0 && memo_frontier <= level.len() {
-                memo.deepen(&self.allowed_moves);
+                memo.deepen(self.allowed_moves.sequences());
             } else {
                 level = self.next_level(&level, &mut investigated);
                 forward_depth += 1;
@@ -106,7 +105,12 @@ impl<P: Puzzle> SearchStep<P> {
     ) -> Vec<P> {
         let mut next = Vec::new();
         for cube in level {
-            for (sequence, _) in self.allowed_moves.iter().filter(|(_, has_cost)| *has_cost) {
+            for (sequence, _) in self
+                .allowed_moves
+                .sequences()
+                .iter()
+                .filter(|(_, has_cost)| *has_cost)
+            {
                 let moved = sequence.iter().fold(cube.clone(), |c, m| c * *m);
                 if let Entry::Vacant(e) = investigated.entry(self.mask(&moved)) {
                     e.insert(Some(sequence.clone()));
@@ -127,7 +131,12 @@ impl<P: Puzzle> SearchStep<P> {
         let mut i = 0;
         while let Some(cube) = level.get(i).cloned() {
             i += 1;
-            for (sequence, _) in self.allowed_moves.iter().filter(|(_, has_cost)| !has_cost) {
+            for (sequence, _) in self
+                .allowed_moves
+                .sequences()
+                .iter()
+                .filter(|(_, has_cost)| !has_cost)
+            {
                 let moved = sequence.iter().fold(cube.clone(), |c, m| c * *m);
                 if let Entry::Vacant(e) = investigated.entry(self.mask(&moved)) {
                     e.insert(Some(sequence.clone()));
