@@ -30,7 +30,7 @@
 //! [`RouxOptions`] chooses between its step variants. Solving returns a [`Solution`], which
 //! prints as notation with one line per step:
 //!
-//! ```no_run
+//! ```rust
 //! use rubiks_cube_lib::{Cube3x3, Method, Puzzle, RouxOptions};
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {

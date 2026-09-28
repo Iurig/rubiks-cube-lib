@@ -155,7 +155,7 @@ impl<P: Puzzle> Display for Solution<P> {
 /// [`Method::roux`] builds the Roux method for [`Cube3x3`](crate::Cube3x3). Any other list of
 /// steps works too, and the steps can be of different types.
 ///
-/// ```no_run
+/// ```rust
 /// use rubiks_cube_lib::{Cube3x3, Method, Puzzle, RouxOptions};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -211,7 +211,7 @@ impl<P: Puzzle> Method<P> {
     /// failure is yielded as an `Err`, and the iterator yields nothing after it. `puzzle` is
     /// left as the last step that ran left it.
     ///
-    /// ```no_run
+    /// ```rust
     /// use rubiks_cube_lib::{Cube3x3, Method, RouxOptions};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
