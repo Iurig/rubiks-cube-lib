@@ -101,10 +101,10 @@ impl<P: Puzzle> SearchStep<P> {
     }
 
     /// The states the costly sequences reach from `level`, closed under the free sequences.
-    fn next_level(
-        &self,
+    fn next_level<'a>(
+        &'a self,
         level: &[P],
-        investigated: &mut HashMap<Mask<P>, Option<Vec<P::Moves>>>,
+        investigated: &mut HashMap<Mask<P>, Option<&'a [P::Moves]>>,
     ) -> Vec<P> {
         let mut next = Vec::new();
         for cube in level {
@@ -116,7 +116,7 @@ impl<P: Puzzle> SearchStep<P> {
             {
                 let moved = sequence.iter().fold(cube.clone(), |c, m| c * *m);
                 if let Entry::Vacant(e) = investigated.entry(self.mask(&moved)) {
-                    e.insert(Some(sequence.clone()));
+                    e.insert(Some(sequence));
                     next.push(moved);
                 }
             }
@@ -126,10 +126,10 @@ impl<P: Puzzle> SearchStep<P> {
     }
 
     /// Adds to `level` every new state its free sequences reach, repeatedly.
-    fn close_under_free_sequences(
-        &self,
+    fn close_under_free_sequences<'a>(
+        &'a self,
         level: &mut Vec<P>,
-        investigated: &mut HashMap<Mask<P>, Option<Vec<P::Moves>>>,
+        investigated: &mut HashMap<Mask<P>, Option<&'a [P::Moves]>>,
     ) {
         let mut i = 0;
         while let Some(cube) = level.get(i).cloned() {
@@ -142,7 +142,7 @@ impl<P: Puzzle> SearchStep<P> {
             {
                 let moved = sequence.iter().fold(cube.clone(), |c, m| c * *m);
                 if let Entry::Vacant(e) = investigated.entry(self.mask(&moved)) {
-                    e.insert(Some(sequence.clone()));
+                    e.insert(Some(sequence));
                     level.push(moved);
                 }
             }
@@ -153,11 +153,11 @@ impl<P: Puzzle> SearchStep<P> {
     fn path_to(
         &self,
         cube: &P,
-        investigated: &HashMap<Mask<P>, Option<Vec<P::Moves>>>,
+        investigated: &HashMap<Mask<P>, Option<&[P::Moves]>>,
     ) -> Vec<P::Moves> {
         let mut path = VecDeque::new();
         let mut cube = cube.clone();
-        while let Some(sequence) = investigated
+        while let &Some(sequence) = investigated
             .get(&self.mask(&cube))
             .expect("every state in a level was investigated")
         {
