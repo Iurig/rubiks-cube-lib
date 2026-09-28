@@ -88,6 +88,10 @@ pub enum Orientation3x3 {
     Twist(Zn<3>),
 }
 
+#[expect(
+    unnameable_types,
+    reason = "reachable through `MovablePart::Slice`; exported together with `MovablePart`"
+)]
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum Slices {
     M,
@@ -99,6 +103,10 @@ impl Slices {
 }
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 #[expect(non_camel_case_types, reason = "rotations are inherently lower case")]
+#[expect(
+    unnameable_types,
+    reason = "reachable through `MovablePart::Rotation`; exported together with `MovablePart`"
+)]
 pub enum Rotations {
     x,
     y,

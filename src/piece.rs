@@ -2,6 +2,10 @@ use std::fmt::Debug;
 
 use crate::ops::Inv;
 use crate::zn::Zn;
+#[expect(
+    unnameable_types,
+    reason = "This trait only exists to seal private implementations"
+)]
 pub mod private {
     pub trait Sealed {}
 }

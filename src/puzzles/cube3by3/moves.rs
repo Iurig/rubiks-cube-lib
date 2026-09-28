@@ -11,6 +11,11 @@ use crate::{
 
 use table::cube_state;
 
+#[expect(
+    unnameable_types,
+    reason = "reachable through `Move3x3::part`; not exported until ticket 01 derives the parts' \
+              `Display` and `TryFrom` from one list and ticket 04 settles the face role"
+)]
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum MovablePart {
     Face(Faces),
@@ -19,6 +24,10 @@ pub enum MovablePart {
     Wide(Faces),
 }
 
+#[expect(
+    unnameable_types,
+    reason = "reachable through `Move3x3::modifier`; exported together with `Move3x3`"
+)]
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum MoveModifier {
     Clockwise,
@@ -28,6 +37,7 @@ pub enum MoveModifier {
 }
 
 impl MoveModifier {
+    #[must_use]
     pub const fn inverse(self) -> Self {
         match self {
             Self::Clockwise => Self::CounterClockwise,
@@ -38,6 +48,11 @@ impl MoveModifier {
     }
 }
 
+#[expect(
+    unnameable_types,
+    reason = "reachable as `<Cube3x3 as Puzzle>::Moves`, and callers build moves from notation; \
+              not exported until `MovablePart` is, since its fields are public"
+)]
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Move3x3 {
     pub part: MovablePart,
@@ -45,6 +60,7 @@ pub struct Move3x3 {
 }
 
 impl Move3x3 {
+    #[must_use]
     pub const fn new(part: MovablePart, modifier: MoveModifier) -> Self {
         Self { part, modifier }
     }

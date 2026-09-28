@@ -72,8 +72,8 @@ mod puzzles;
 pub mod zn;
 
 pub use methods::{
-    Method, Solution, SolveError, Step, StepError, choose::Choose, cube3x3::roux::RouxOptions,
-    search_step::SearchStep,
+    Method, Segment, Solution, SolveError, Step, StepError, choose::Choose,
+    cube3x3::roux::RouxOptions, search_step::SearchStep,
 };
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};

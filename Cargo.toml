@@ -42,6 +42,7 @@ rc_mutex = "warn"
 
 [lints.rust]
 missing_debug_implementations = "warn"
+unnameable_types = "warn"
 
 [dev-dependencies]
 env_logger = { version = "0.11.11", default-features = false }
