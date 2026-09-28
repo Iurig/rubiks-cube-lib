@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     Algorithm, Cube3x3, ParseSequenceError, Puzzle,
     fast_hash::FxSet,
@@ -26,7 +28,7 @@ use crate::{
 /// # }
 /// ```
 #[derive(Debug, Clone, Default)]
-pub struct AlgSet<P: Puzzle>(Vec<Algorithm<P>>);
+pub struct AlgSet<P: Puzzle>(Arc<[Algorithm<P>]>);
 
 impl<P: Puzzle> AlgSet<P> {
     /// Every sequence of either collection, each listed once.
@@ -34,14 +36,15 @@ impl<P: Puzzle> AlgSet<P> {
     /// The order of the sequences is not kept, and a sequence in both collections, or twice in
     /// one, appears once.
     #[must_use]
-    pub fn combined_with(self, other: Self) -> Self {
+    pub fn combined_with(&self, other: &Self) -> Self {
         Self(
             self.0
+                .iter()
+                .chain(other.0.iter())
+                .collect::<FxSet<&Algorithm<P>>>()
                 .into_iter()
-                .chain(other.0)
-                .collect::<FxSet<Algorithm<P>>>()
-                .into_iter()
-                .collect::<Vec<Algorithm<P>>>(),
+                .cloned()
+                .collect::<Arc<[Algorithm<P>]>>(),
         )
     }
 
