@@ -124,7 +124,7 @@ fn bench(roux: &Method<Cube3x3>, seed: u64) -> Result<(), Box<dyn Error>> {
         }
         let mut total = 0;
         for (segment, m) in solution.iter().zip(&measured) {
-            let stats = per_step.entry(segment.name().clone()).or_default();
+            let stats = per_step.entry(segment.name().to_string()).or_default();
             stats.lengths.push(segment.moves().len());
             if i != 0 {
                 stats.times.push(m.time);

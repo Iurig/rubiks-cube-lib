@@ -57,6 +57,7 @@ pub struct Solution<P: Puzzle> {
     step_solutions: Vec<Segment<P>>,
 }
 
+/// Segment of a solution: includes a name and the moves that make the solution up.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Segment<P: Puzzle> {
     moves: Algorithm<P>,
@@ -64,11 +65,15 @@ pub struct Segment<P: Puzzle> {
 }
 
 impl<P: Puzzle> Segment<P> {
-    pub fn moves(&self) -> Algorithm<P> {
-        self.moves.clone()
+    /// Getter for the name of the step that generated the segment.
+    #[must_use]
+    pub fn name(&self) -> &str {
+        &self.name
     }
-    pub fn name(&self) -> String {
-        self.name.clone()
+    /// Getter for the moves that make the segment up.
+    #[must_use]
+    pub fn moves(&self) -> &[P::Moves] {
+        &self.moves
     }
 }
 
@@ -468,7 +473,6 @@ mod tests {
         assert!(matches!(steps.next(), Some(Err(_))));
         assert!(steps.next().is_none());
         assert!(steps.next().is_none());
-        drop(steps);
         assert_eq!(later.runs(), 0, "no step runs after an error");
     }
 }
