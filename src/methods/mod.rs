@@ -5,7 +5,7 @@ pub mod search_step;
 mod test_steps;
 
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::VecDeque,
     error::Error,
     fmt::{Debug, Display},
     sync::Arc,

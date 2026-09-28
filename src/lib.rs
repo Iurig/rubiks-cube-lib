@@ -64,6 +64,7 @@
 //! [`Cube3x3`] is built from three [`PieceConfiguration`]s (centers, corners, and edges), each a
 //! permutation of [`Piece`]s with an orientation per piece in [`zn::Zn`]. The [`Puzzle`] trait
 //! is what the solver needs from a puzzle, and [`Facelets`] shows a cube as a sticker net.
+mod fast_hash;
 mod methods;
 mod ops;
 mod piece;

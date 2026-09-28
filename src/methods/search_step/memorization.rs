@@ -1,12 +1,10 @@
-use std::collections::HashMap;
-
-use crate::{Inv, Mask, Puzzle};
+use crate::{Inv, Mask, Puzzle, fast_hash::FxMap};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct BFSMemo<P: Puzzle> {
     /// Every state is filtered through this, so memo keys match the forward search's masks.
     goal: Mask<P>,
-    memorization: HashMap<Mask<P>, Vec<P::Moves>>,
+    memorization: FxMap<Mask<P>, Vec<P::Moves>>,
     to_deepen: Vec<(Mask<P>, P)>,
     depth: usize,
 }
@@ -15,7 +13,7 @@ impl<P: Puzzle> BFSMemo<P> {
     pub fn new(goal: &Mask<P>) -> Self {
         Self {
             goal: goal.clone(),
-            memorization: HashMap::from([(goal.clone(), vec![])]),
+            memorization: FxMap::from_iter([(goal.clone(), vec![])]),
             to_deepen: vec![(goal.clone(), P::default())],
             depth: 0,
         }

@@ -1,7 +1,7 @@
 pub mod memorization;
 use std::{collections::hash_map::Entry, sync::Mutex};
 
-use crate::{Mask, Moveset, methods::search_step::memorization::BFSMemo};
+use crate::{Mask, Moveset, fast_hash::FxMap, methods::search_step::memorization::BFSMemo};
 #[allow(
     clippy::wildcard_imports,
     reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
@@ -61,7 +61,7 @@ impl<P: Puzzle> SearchStep<P> {
             .memo
             .lock()
             .map_err(|_memo_error| StepError::MemoPoisoned)?;
-        let mut investigated = HashMap::from([(self.mask(p), None)]);
+        let mut investigated = FxMap::from_iter([(self.mask(p), None)]);
         let mut level = vec![p.clone()];
         self.close_under_free_sequences(&mut level, &mut investigated);
         let mut forward_depth = 0;
@@ -104,7 +104,7 @@ impl<P: Puzzle> SearchStep<P> {
     fn next_level<'a>(
         &'a self,
         level: &[P],
-        investigated: &mut HashMap<Mask<P>, Option<&'a [P::Moves]>>,
+        investigated: &mut FxMap<Mask<P>, Option<&'a [P::Moves]>>,
     ) -> Vec<P> {
         let mut next = Vec::new();
         for cube in level {
@@ -129,7 +129,7 @@ impl<P: Puzzle> SearchStep<P> {
     fn close_under_free_sequences<'a>(
         &'a self,
         level: &mut Vec<P>,
-        investigated: &mut HashMap<Mask<P>, Option<&'a [P::Moves]>>,
+        investigated: &mut FxMap<Mask<P>, Option<&'a [P::Moves]>>,
     ) {
         let mut i = 0;
         while let Some(cube) = level.get(i).cloned() {
@@ -153,7 +153,7 @@ impl<P: Puzzle> SearchStep<P> {
     fn path_to(
         &self,
         cube: &P,
-        investigated: &HashMap<Mask<P>, Option<&[P::Moves]>>,
+        investigated: &FxMap<Mask<P>, Option<&[P::Moves]>>,
     ) -> Vec<P::Moves> {
         let mut path = VecDeque::new();
         let mut cube = cube.clone();
