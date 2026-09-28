@@ -381,13 +381,13 @@ mod test {
 
         let solution = roux.solve(&mut cube)?;
 
-        let (moves, name) = solution
+        let fb_segment = solution
             .iter()
             .next()
             .ok_or("the solution has no segments")?;
-        assert_eq!(name, "FB Back Square", "{solution}");
+        assert_eq!(fb_segment.name, "FB Back Square", "{solution}");
         assert!(
-            moves.is_empty(),
+            fb_segment.moves.is_empty(),
             "the back square was already solved:\n{solution}"
         );
         Ok(())
@@ -406,13 +406,13 @@ mod test {
 
         let solution = roux.solve(&mut cube)?;
 
-        let (moves, name) = solution
+        let sb_segment = solution
             .iter()
-            .find(|(_, name)| name.starts_with("SB"))
+            .find(|segment| segment.name.starts_with("SB"))
             .ok_or("the solution has no SB segment")?;
-        assert_eq!(name, "SB Back Square", "{solution}");
+        assert_eq!(sb_segment.name, "SB Back Square", "{solution}");
         assert!(
-            moves.is_empty(),
+            sb_segment.moves.is_empty(),
             "the back square was already solved:\n{solution}"
         );
         Ok(())

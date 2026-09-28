@@ -1,4 +1,4 @@
-use crate::{AlgSet, Algorithm, Inv, Mask, Puzzle, fast_hash::FxMap};
+use crate::{AlgSet, Algorithm, Inv, Mask, Puzzle, fast_hash::FxMap, puzzles::mask::SlotCondition};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct BFSMemo<P: Puzzle> {
@@ -24,45 +24,25 @@ impl<P: Puzzle> BFSMemo<P> {
     }
 
     #[must_use]
-    #[expect(
-        clippy::indexing_slicing,
-        reason = "masks have one entry per piece, and `P::index` of a piece is below that count"
-    )]
     pub(crate) fn filter_through(puzzle: &P, goal: &Mask<P>) -> Mask<P> {
-        Mask {
-            permutation: P::ALL_PIECES
+        Mask(
+            P::ALL_PIECES
                 .iter()
-                .map(|&slot| {
-                    if goal
-                        .permutation
-                        .iter()
-                        .any(|piece| piece == &Some(puzzle.piece_at(&slot)))
-                    {
-                        Some(puzzle.piece_at(&slot))
-                    } else {
-                        None
-                    }
-                })
-                .collect::<Box<[Option<P::Piece>]>>(),
-            orientation: P::ALL_PIECES
-                .iter()
-                .map(|&slot| {
-                    if goal
-                        .permutation
-                        .iter()
-                        .any(|piece| piece == &Some(puzzle.piece_at(&slot)))
+                .zip(&goal.0)
+                .map(|(slot, goal_condition)| {
+                    let piece = puzzle.piece_at(slot);
+                    let tracked = goal.0.iter().any(|c| c.piece == Some(piece));
+                    SlotCondition {
+                        piece: tracked.then_some(piece),
                         // A goal orientation belongs to the fixed slot only when the goal names no
                         // piece there; otherwise it belongs to that piece and moves with it.
-                        || (goal.orientation[P::index(slot)].is_some()
-                            && goal.permutation[P::index(slot)].is_none())
-                    {
-                        Some(puzzle.orientation_at(&slot))
-                    } else {
-                        None
+                        orient: (tracked
+                            || (goal_condition.orient.is_some() && goal_condition.piece.is_none()))
+                        .then(|| puzzle.orientation_at(slot)),
                     }
                 })
-                .collect::<Box<[Option<P::Orientation>]>>(),
-        }
+                .collect(),
+        )
     }
 
     /// Number of states the next [`Self::deepen`] starts from; 0 once every reachable state is
@@ -265,7 +245,7 @@ mod tests {
         let f = Cube3x3::from_solved("F").unwrap();
         assert_ne!(f.piece_at(&fr), fr);
         assert_eq!(
-            BFSMemo::filter_through(&f, &goal).orientation[Cube3x3::index(fr)],
+            BFSMemo::filter_through(&f, &goal).0[Cube3x3::index(fr)].orient,
             None
         );
     }
@@ -288,7 +268,7 @@ mod tests {
     fn filter_through_follows_moves() {
         let mut mask = Mask::<Cube3x3>::new_empty();
 
-        let slot = &mut mask.permutation[Cube3x3::index(Pieces3x3::Corner(Corner::Ufl))];
+        let slot = &mut mask.0[Cube3x3::index(Pieces3x3::Corner(Corner::Ufl))].piece;
 
         *slot = Some(Pieces3x3::Corner(Corner::Ufr));
 
@@ -296,13 +276,19 @@ mod tests {
             BFSMemo::<Cube3x3>::filter_through(&Cube3x3::from_solved("U L").unwrap(), &mask);
 
         assert!(
-            l_corner.permutation[Cube3x3::index(Pieces3x3::Corner(Corner::Ufr))].is_none(),
+            l_corner.0[Cube3x3::index(Pieces3x3::Corner(Corner::Ufr))]
+                .piece
+                .is_none(),
             "{:?}",
-            l_corner.permutation[Cube3x3::index(Pieces3x3::Corner(Corner::Ufr))]
+            l_corner.0[Cube3x3::index(Pieces3x3::Corner(Corner::Ufr))].piece
         );
-        assert!(l_corner.permutation[Cube3x3::index(Pieces3x3::Corner(Corner::Ufl))].is_none());
+        assert!(
+            l_corner.0[Cube3x3::index(Pieces3x3::Corner(Corner::Ufl))]
+                .piece
+                .is_none()
+        );
         assert_eq!(
-            l_corner.permutation[Cube3x3::index(Pieces3x3::Corner(Corner::Dfl))],
+            l_corner.0[Cube3x3::index(Pieces3x3::Corner(Corner::Dfl))].piece,
             Some(Pieces3x3::Corner(Corner::Ufr))
         );
     }

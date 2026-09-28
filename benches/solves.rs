@@ -113,19 +113,24 @@ fn bench(roux: &Method<Cube3x3>, seed: u64) -> Result<(), Box<dyn Error>> {
         }
         if i == 0 {
             eprintln!("  first solve: {elapsed:.2?}");
-            for ((_, name), m) in solution.iter().zip(&measured) {
-                eprintln!("    {name}: {:.2?}, peak {}", m.time, mib(m.peak)?);
+            for (segment, m) in solution.iter().zip(&measured) {
+                eprintln!(
+                    "    {}: {:.2?}, peak {}",
+                    segment.name(),
+                    m.time,
+                    mib(m.peak)?
+                );
             }
         }
         let mut total = 0;
-        for ((moves, name), m) in solution.iter().zip(&measured) {
-            let stats = per_step.entry(name.clone()).or_default();
-            stats.lengths.push(moves.len());
+        for (segment, m) in solution.iter().zip(&measured) {
+            let stats = per_step.entry(segment.name().clone()).or_default();
+            stats.lengths.push(segment.moves().len());
             if i != 0 {
                 stats.times.push(m.time);
                 stats.peaks.push(m.peak);
             }
-            total += moves.len();
+            total += segment.moves().len();
         }
         whole.lengths.push(total);
         if i != 0 {

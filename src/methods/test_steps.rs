@@ -5,7 +5,9 @@ use std::sync::{
     atomic::{AtomicUsize, Ordering},
 };
 
-use crate::{Cube3x3, Solution, Step, StepError, puzzles::cube3by3::moves::Move3x3};
+use crate::{
+    Cube3x3, Solution, Step, StepError, methods::Segment, puzzles::cube3by3::moves::Move3x3,
+};
 
 /// A step whose result is fixed in advance. `solve` either returns the error from `error`,
 /// or applies `moves` to the cube and returns them as one segment named after the step.
@@ -66,6 +68,9 @@ impl Step<Cube3x3> for FixedStep {
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| StepError::Custom(Box::new(e)))?;
         *puzzle = moves.iter().fold(*puzzle, |cube, m| cube * *m);
-        Ok(Solution::from_iter([(moves, self.name)]))
+        Ok(Solution::from_iter([Segment {
+            moves,
+            name: self.name.to_string(),
+        }]))
     }
 }

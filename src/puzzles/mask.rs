@@ -19,9 +19,14 @@ use crate::Puzzle;
 /// # }
 /// ```
 #[derive(PartialEq, Eq, Debug, Clone, Hash)]
-pub struct Mask<P: Puzzle> {
-    pub(crate) permutation: Box<[Option<P::Piece>]>,
-    pub(crate) orientation: Box<[Option<P::Orientation>]>,
+pub struct Mask<P: Puzzle>(pub(crate) Box<[SlotCondition<P>]>);
+
+/// What a [`Mask`] asks of one slot: which piece must sit there, and which orientation the piece
+/// there must have. `None` asks nothing.
+#[derive(PartialEq, Eq, Debug, Clone, Hash)]
+pub struct SlotCondition<P: Puzzle> {
+    pub(crate) piece: Option<P::Piece>,
+    pub(crate) orient: Option<P::Orientation>,
 }
 
 impl<P: Puzzle> Default for Mask<P> {
@@ -34,10 +39,14 @@ impl<P: Puzzle> Mask<P> {
     /// A mask that names no piece, so every puzzle meets it. The same as `Mask::default()`.
     #[must_use]
     pub fn new_empty() -> Self {
-        Self {
-            permutation: (0..P::ALL_PIECES.len()).map(|_| None).collect(),
-            orientation: (0..P::ALL_PIECES.len()).map(|_| None).collect(),
-        }
+        Self(
+            (0..P::ALL_PIECES.len())
+                .map(|_| SlotCondition {
+                    piece: None,
+                    orient: None,
+                })
+                .collect(),
+        )
     }
 
     /// A mask where each piece in `pieces` must be solved: home and oriented. Same as
@@ -64,35 +73,29 @@ impl<P: Puzzle> Mask<P> {
             HashSet::<<P as Puzzle>::Piece>::from_iter(permutations);
         let orient_iter: HashSet<<P as Puzzle>::Piece> =
             HashSet::<<P as Puzzle>::Piece>::from_iter(orientations);
-        Self {
-            permutation: P::ALL_PIECES
+        Self(
+            P::ALL_PIECES
                 .iter()
-                .map(|piece| perm_iter.contains(piece).then_some(*piece))
-                .collect(),
-            orientation: P::ALL_PIECES
-                .iter()
-                .map(|piece| {
-                    orient_iter
-                        .contains(piece)
-                        .then_some(P::default().orientation_at(piece))
+                .map(|slot| SlotCondition {
+                    piece: perm_iter.contains(slot).then_some(*slot),
+                    orient: orient_iter
+                        .contains(slot)
+                        .then_some(P::default().orientation_at(slot)),
                 })
                 .collect(),
-        }
+        )
     }
 
-    #[expect(
-        clippy::indexing_slicing,
-        reason = "cannot panic if fields of Mask always are of the same size as P::ALL_PIECES, which should be maintained invariantly in all functions"
-    )]
     /// Whether `puzzle` meets every condition in this mask.
     #[must_use]
     pub fn applies_to(&self, puzzle: &P) -> bool {
-        self.permutation
-            .iter()
-            .enumerate()
-            .all(|(i, &some_p)| some_p.is_none_or(|p| puzzle.piece_at(&P::ALL_PIECES[i]) == p))
-            && self.orientation.iter().enumerate().all(|(i, &some_p)| {
-                some_p.is_none_or(|p| puzzle.orientation_at(&P::ALL_PIECES[i]) == p)
-            })
+        self.0.iter().zip(P::ALL_PIECES).all(|(condition, slot)| {
+            condition
+                .piece
+                .is_none_or(|piece| puzzle.piece_at(slot) == piece)
+                && condition
+                    .orient
+                    .is_none_or(|orient| puzzle.orientation_at(slot) == orient)
+        })
     }
 }

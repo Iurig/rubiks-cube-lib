@@ -11,7 +11,7 @@ use std::{
     sync::Arc,
 };
 
-use crate::{ops::Inv, puzzles::Puzzle};
+use crate::{Algorithm, ops::Inv, puzzles::Puzzle};
 
 /// One stage of a solving method, such as building the first block in Roux.
 ///
@@ -54,7 +54,22 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
 /// Collect `(moves, name)` pairs to build one, or collect solutions to join them.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Solution<P: Puzzle> {
-    step_solutions: Vec<(Vec<P::Moves>, String)>,
+    step_solutions: Vec<Segment<P>>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct Segment<P: Puzzle> {
+    moves: Algorithm<P>,
+    name: String,
+}
+
+impl<P: Puzzle> Segment<P> {
+    pub fn moves(&self) -> Algorithm<P> {
+        self.moves.clone()
+    }
+    pub fn name(&self) -> String {
+        self.name.clone()
+    }
 }
 
 impl<P: Puzzle> Solution<P> {
@@ -65,7 +80,7 @@ impl<P: Puzzle> Solution<P> {
     }
 
     /// Each segment's moves and step name, in solving order.
-    pub fn iter(&self) -> std::slice::Iter<'_, (Vec<P::Moves>, String)> {
+    pub fn iter(&self) -> std::slice::Iter<'_, Segment<P>> {
         self.step_solutions.iter()
     }
 
@@ -75,19 +90,16 @@ impl<P: Puzzle> Solution<P> {
     pub fn move_count(&self) -> usize {
         self.step_solutions
             .iter()
-            .map(|(moves, _)| moves.len())
+            .map(|segment| segment.moves.len())
             .sum()
     }
 }
 
 /// Builds a solution from `(moves, step name)` segments, in order.
-impl<P: Puzzle, D: Display> FromIterator<(Vec<P::Moves>, D)> for Solution<P> {
-    fn from_iter<I: IntoIterator<Item = (Vec<P::Moves>, D)>>(iter: I) -> Self {
+impl<P: Puzzle> FromIterator<Segment<P>> for Solution<P> {
+    fn from_iter<I: IntoIterator<Item = Segment<P>>>(iter: I) -> Self {
         Self {
-            step_solutions: iter
-                .into_iter()
-                .map(|(moves, name)| (moves, name.to_string()))
-                .collect(),
+            step_solutions: iter.into_iter().collect(),
         }
     }
 }
@@ -104,24 +116,24 @@ impl<P: Puzzle> FromIterator<Self> for Solution<P> {
 impl<P: Puzzle> Default for Solution<P> {
     fn default() -> Self {
         Self {
-            step_solutions: Vec::<(Vec<P::Moves>, String)>::new(),
+            step_solutions: Vec::<Segment<P>>::new(),
         }
     }
 }
 impl<'a, P: Puzzle> IntoIterator for &'a Solution<P> {
-    type Item = &'a (Vec<<P as Puzzle>::Moves>, String);
-    type IntoIter = std::slice::Iter<'a, (Vec<<P as Puzzle>::Moves>, String)>;
+    type Item = &'a Segment<P>;
+    type IntoIter = std::slice::Iter<'a, Segment<P>>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
 }
-impl<P: Puzzle> Extend<(Vec<P::Moves>, String)> for Solution<P> {
-    fn extend<T: IntoIterator<Item = (Vec<P::Moves>, String)>>(&mut self, iter: T) {
+impl<P: Puzzle> Extend<Segment<P>> for Solution<P> {
+    fn extend<T: IntoIterator<Item = Segment<P>>>(&mut self, iter: T) {
         self.step_solutions.extend(iter);
     }
 }
 impl<P: Puzzle> IntoIterator for Solution<P> {
-    type Item = (Vec<P::Moves>, String);
+    type Item = Segment<P>;
     type IntoIter = <Vec<Self::Item> as IntoIterator>::IntoIter;
     fn into_iter(self) -> Self::IntoIter {
         self.step_solutions.into_iter()
@@ -134,14 +146,15 @@ impl<P: Puzzle> Display for Solution<P> {
             "{}",
             self.step_solutions
                 .iter()
-                .map(|(move_sequence, name)| {
-                    move_sequence
+                .map(|segment| {
+                    segment
+                        .moves
                         .iter()
                         .map(P::Moves::to_string)
                         .collect::<Vec<String>>()
                         .join(" ")
                         + "\t//"
-                        + name
+                        + &segment.name
                         + "\n"
                 })
                 .collect::<String>()
@@ -282,9 +295,9 @@ pub enum SolveError {
 impl SolveError {
     /// The name of the step the solve stopped at.
     #[must_use]
-    pub fn step(&self) -> String {
+    pub const fn step(&self) -> &str {
         match self {
-            Self::Step { step, .. } | Self::NotDone { step } => step.clone(),
+            Self::Step { step, .. } | Self::NotDone { step } => step.as_str(),
         }
     }
 }
@@ -347,10 +360,11 @@ mod tests {
 
     #[test]
     fn move_count_counts_correctly() -> Result<(), Box<dyn Error>> {
-        let s: Solution<Cube3x3> = Solution::from_iter([(
-            Move3x3::sequence("y U2 r M'").collect::<Result<Vec<Move3x3>, ParseSequenceError>>()?,
-            "Step 1",
-        )]);
+        let s: Solution<Cube3x3> = Solution::from_iter([Segment {
+            moves: Move3x3::sequence("y U2 r M'")
+                .collect::<Result<Vec<Move3x3>, ParseSequenceError>>()?,
+            name: "Step 1".to_string(),
+        }]);
         assert_eq!(s.move_count(), 4);
         Ok(())
     }

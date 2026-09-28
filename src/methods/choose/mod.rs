@@ -125,7 +125,10 @@ mod tests {
             "only the short moves are applied"
         );
         assert_eq!(solution.move_count(), 1);
-        let names: Vec<&str> = solution.iter().map(|(_, name)| name.as_str()).collect();
+        let names: Vec<&str> = solution
+            .iter()
+            .map(|segment| segment.name.as_str())
+            .collect();
         assert_eq!(
             names,
             ["Short"],
@@ -148,7 +151,10 @@ mod tests {
         let solution = choose.solve(&mut cube)?;
 
         assert_eq!(cube, Cube3x3::from_solved("U")?);
-        let names: Vec<&str> = solution.iter().map(|(_, name)| name.as_str()).collect();
+        let names: Vec<&str> = solution
+            .iter()
+            .map(|segment| segment.name.as_str())
+            .collect();
         assert_eq!(names, ["Runs"]);
         Ok(())
     }

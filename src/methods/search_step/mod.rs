@@ -205,6 +205,9 @@ impl<P: Puzzle> Step<P> for SearchStep<P> {
         if !self.can_apply(p) {
             return Err(StepError::InvalidStartingState);
         }
-        Ok(Solution::from_iter([(self.solve_bfs(p)?, self.name())]))
+        Ok(Solution::from_iter([Segment {
+            moves: self.solve_bfs(p)?,
+            name: self.name().to_string(),
+        }]))
     }
 }
