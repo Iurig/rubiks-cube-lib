@@ -21,7 +21,7 @@ use crate::Puzzle;
 #[derive(PartialEq, Eq, Debug, Clone, Hash)]
 pub struct Mask<P: Puzzle> {
     pub(crate) permutation: Box<[Option<P::Piece>]>,
-    pub(crate) orientation: Box<[Option<usize>]>,
+    pub(crate) orientation: Box<[Option<P::Orientation>]>,
 }
 
 impl<P: Puzzle> Default for Mask<P> {
@@ -71,7 +71,11 @@ impl<P: Puzzle> Mask<P> {
                 .collect(),
             orientation: P::ALL_PIECES
                 .iter()
-                .map(|piece| orient_iter.contains(piece).then_some(0))
+                .map(|piece| {
+                    orient_iter
+                        .contains(piece)
+                        .then_some(P::default().orientation_at(piece))
+                })
                 .collect(),
         }
     }

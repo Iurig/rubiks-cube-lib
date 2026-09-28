@@ -1,4 +1,9 @@
-use crate::{Piece, piece::PieceConfiguration};
+use crate::{
+    Piece,
+    piece::PieceConfiguration,
+    puzzles::cube3by3::pieces::Orientation3x3::{Fixed, Flip, Twist},
+    zn::Zn,
+};
 
 const CENTERS_COUNT: usize = 6;
 const CORNERS_COUNT: usize = 8;
@@ -72,6 +77,17 @@ pub enum Pieces3x3 {
     Corner(Corner),
 }
 
+/// The orientation of one piece of the 3x3, with one variant per kind of piece.
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub enum Orientation3x3 {
+    /// A center, which has no orientation.
+    Fixed,
+    /// An edge's flip: 0 is oriented, 1 is flipped.
+    Flip(Zn<2>),
+    /// A corner's twist: 0 is oriented, 1 or 2 is twisted.
+    Twist(Zn<3>),
+}
+
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum Slices {
     M,
@@ -90,4 +106,20 @@ pub enum Rotations {
 }
 impl Rotations {
     pub const ALL: [Self; 3] = [Self::x, Self::y, Self::z];
+}
+
+#[expect(
+    clippy::unreachable,
+    reason = "if this arm is ever reached, the state of puzzle is absolutely unrecoverable"
+)]
+impl std::ops::Add for Orientation3x3 {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (Fixed, Fixed) => Fixed,
+            (Twist(lhs), Twist(rhs)) => Twist(lhs + rhs),
+            (Flip(lhs), Flip(rhs)) => Flip(lhs + rhs),
+            (_, _) => unreachable!("You should never add the orientation of different piece types"),
+        }
+    }
 }

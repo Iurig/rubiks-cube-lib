@@ -63,7 +63,7 @@ impl<P: Puzzle> BFSMemo<P> {
                         None
                     }
                 })
-                .collect::<Box<[Option<usize>]>>(),
+                .collect::<Box<[Option<P::Orientation>]>>(),
         }
     }
 

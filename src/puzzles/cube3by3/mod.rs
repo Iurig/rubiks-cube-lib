@@ -45,6 +45,7 @@ macro_rules! unify_pieces {
 }
 impl Puzzle for Cube3x3 {
     type Piece = Pieces3x3;
+    type Orientation = Orientation3x3;
     type Moves = Move3x3;
 
     const ALL_PIECES: &'static [Self::Piece] = unify_pieces!(
@@ -132,11 +133,15 @@ impl Puzzle for Cube3x3 {
         }
     }
 
-    fn orientation_at(&self, slot: &Self::Piece) -> usize {
+    fn orientation_at(&self, slot: &Self::Piece) -> Self::Orientation {
         match slot {
-            Self::Piece::Corner(co) => self.corner_configuration.orientation_at(co).value(),
-            Self::Piece::Edge(ed) => self.edge_configuration.orientation_at(ed).value(),
-            Self::Piece::Center(ce) => self.center_configuration.orientation_at(ce).value(),
+            Self::Piece::Corner(co) => {
+                Self::Orientation::Twist(self.corner_configuration.orientation_at(co))
+            }
+            Self::Piece::Edge(ed) => {
+                Self::Orientation::Flip(self.edge_configuration.orientation_at(ed))
+            }
+            Self::Piece::Center(_) => Self::Orientation::Fixed,
         }
     }
 

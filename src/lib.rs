@@ -80,7 +80,7 @@ pub use puzzles::cube3by3::{
     Cube3x3,
     facelets::Facelets,
     moves::{ParseMoveError, ParseSequenceError},
-    pieces::{Center, Corner, Edge, Pieces3x3},
+    pieces::{Center, Corner, Edge, Orientation3x3, Pieces3x3},
 };
 pub use puzzles::{Puzzle, mask::Mask, moveset::Moveset};
 

@@ -98,6 +98,32 @@ fn empty_mask_always_applies() {
     }
 }
 
+/// `Puzzle`'s composition law: a move does the same thing to every state, so what it does to
+/// the solved state says where every piece of any state goes, and how it turns.
+#[test]
+fn every_move_acts_on_any_state_as_it_acts_on_the_solved_state() {
+    for seed in 0..20 {
+        let p = Cube3x3::random_state_with_seed(seed);
+        for &m in Cube3x3::ALL_MOVES {
+            let action = Cube3x3::default() * m;
+            let moved = p * m;
+            for s in Cube3x3::ALL_PIECES {
+                let src = action.piece_at(s);
+                assert_eq!(
+                    moved.piece_at(s),
+                    p.piece_at(&src),
+                    "piece at {s:?} after {m}, seed {seed}"
+                );
+                assert_eq!(
+                    moved.orientation_at(s),
+                    p.orientation_at(&src) + action.orientation_at(s),
+                    "orientation at {s:?} after {m}, seed {seed}"
+                );
+            }
+        }
+    }
+}
+
 /// A reconstruction is a scramble followed by a solution. The scrambled state
 /// must be reachable, and the final state must be reachable and solved.
 fn assert_reconstruction(scramble: &str, solution: &str) -> Result<(), Box<dyn Error>> {
