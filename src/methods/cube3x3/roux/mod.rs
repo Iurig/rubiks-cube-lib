@@ -1,7 +1,7 @@
 use std::sync::{Arc, LazyLock};
 
 use crate::{
-    Choose, Cube3x3, Mask, Method, Moveset, SearchStep, Step, puzzles::cube3by3::pieces::Pieces3x3,
+    AlgSet, Choose, Cube3x3, Mask, Method, SearchStep, Step, puzzles::cube3by3::pieces::Pieces3x3,
 };
 
 const FB_FRONT_SQUARE_PIECES: [Pieces3x3; 4] = [
@@ -79,8 +79,8 @@ const CMLL_PERMUTATION_ALGS: &str = include_str!("cmll/cp.txt");
 
 /// The Roux steps in solving order, built once on first use.
 static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| {
-    let fb_moves = Moveset::from_parts("F U R L D B M r", true)
-        .expect("hand-written part lists should always parse");
+    let fb_moves =
+        AlgSet::from_parts("F U R L D B M r").expect("hand-written part lists should always parse");
 
     let fb_front_square = Arc::new(SearchStep::new(
         "FB Front Square",
@@ -120,7 +120,7 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
     ));
 
     let sb_moves =
-        Moveset::from_parts("U R M r", true).expect("hand-written part lists should always parse");
+        AlgSet::from_parts("U R M r").expect("hand-written part lists should always parse");
 
     let sb_after =
         Mask::<Cube3x3>::new_from_pieces(FB_PIECES.iter().chain(SB_PIECES.iter()).copied());
@@ -174,14 +174,14 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
             .chain(CMLL_PIECES.iter())
             .copied(),
     );
-    let free_auf = Moveset::from_moves("U U2 U'", false).expect("the AUF always parses");
-    let cmll = Arc::new(SearchStep::new(
+    let free_auf = AlgSet::from_moves("U U2 U'").expect("the AUF always parses");
+    let cmll = Arc::new(SearchStep::new_with_free_algs(
         "CMLL",
         sb.after(),
         cmll_after.clone(),
-        Moveset::from_algorithms(CMLL_ONE_LOOK_ALGS)
-            .expect("manually curated algorithm sets should always parse")
-            .combined_with(free_auf.clone()),
+        AlgSet::from_algorithms(CMLL_ONE_LOOK_ALGS)
+            .expect("manually curated algorithm sets should always parse"),
+        free_auf.clone(),
     ));
 
     let cmll_orientation_after = Mask::<Cube3x3>::new(
@@ -192,22 +192,22 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
             .chain(CMLL_PIECES.iter())
             .copied(),
     );
-    let cmll_orientation = Arc::new(SearchStep::new(
+    let cmll_orientation = Arc::new(SearchStep::new_with_free_algs(
         "CO",
         sb.after(),
         cmll_orientation_after.clone(),
-        Moveset::from_algorithms(CMLL_ORIENTATION_ALGS)
-            .expect("manually curated algorithm sets should always parse")
-            .combined_with(free_auf.clone()),
+        AlgSet::from_algorithms(CMLL_ORIENTATION_ALGS)
+            .expect("manually curated algorithm sets should always parse"),
+        free_auf.clone(),
     ));
 
-    let cmll_permutation = Arc::new(SearchStep::new(
+    let cmll_permutation = Arc::new(SearchStep::new_with_free_algs(
         "CP",
         cmll_orientation_after,
         cmll_after,
-        Moveset::from_algorithms(CMLL_PERMUTATION_ALGS)
-            .expect("manually curated algorithm sets should always parse")
-            .combined_with(free_auf),
+        AlgSet::from_algorithms(CMLL_PERMUTATION_ALGS)
+            .expect("manually curated algorithm sets should always parse"),
+        free_auf,
     ));
 
     let lse = Arc::new(SearchStep::new(
@@ -221,7 +221,7 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
                 .chain(LSE_PIECES.iter())
                 .copied(),
         ),
-        Moveset::from_parts("U M", true).expect("hand-written part lists should always parse"),
+        AlgSet::from_parts("U M").expect("hand-written part lists should always parse"),
     ));
 
     let steps: Vec<Arc<dyn Step<Cube3x3>>> = vec![

@@ -299,7 +299,7 @@ impl Display for StepError {
             "{}",
             match self {
                 Self::UnreachableGoal =>
-                    "goal could not be reached with the given moveset".to_string(),
+                    "goal could not be reached with the given algset".to_string(),
                 Self::InvalidStartingState =>
                     "starting state doesn't fit expected properties".to_string(),
                 Self::MemoPoisoned =>
@@ -339,7 +339,7 @@ mod tests {
     };
 
     use super::{test_steps::FixedStep, *};
-    use crate::Moveset;
+    use crate::AlgSet;
 
     fn fixed_failure() -> StepError {
         StepError::Custom("fixed failure".into())
@@ -364,7 +364,7 @@ mod tests {
             "UF then DF",
             uf_solved,
             Mask::new_from_pieces([Pieces3x3::Edge(Edge::Uf), Pieces3x3::Edge(Edge::Df)]),
-            Moveset::from_parts("", true)?,
+            AlgSet::from_parts("")?,
         );
         let scrambled = Cube3x3::from_solved("U")?;
         let mut cube = scrambled;
@@ -417,7 +417,7 @@ mod tests {
     #[test]
     fn each_next_runs_one_step_and_leaves_the_cube_after_it() -> Result<(), Box<dyn Error>> {
         let uf_solved = Mask::<Cube3x3>::new_from_pieces([Pieces3x3::Edge(Edge::Uf)]);
-        let u_turns = Moveset::from_parts("U", true)?;
+        let u_turns = AlgSet::from_parts("U")?;
         let solve_uf = Arc::new(SearchStep::new(
             "UF",
             Mask::default(),

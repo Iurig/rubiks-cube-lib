@@ -83,7 +83,7 @@ pub use puzzles::cube3by3::{
     moves::{ParseMoveError, ParseSequenceError},
     pieces::{Center, Corner, Edge, Orientation3x3, Pieces3x3},
 };
-pub use puzzles::{Puzzle, mask::Mask, moveset::Moveset};
+pub use puzzles::{Algorithm, Puzzle, algset::AlgSet, mask::Mask};
 
 /// Runs the Rust examples in `README.md` as doc tests, so they cannot drift from the code.
 /// This item exists only while doc tests run and never appears in the docs.

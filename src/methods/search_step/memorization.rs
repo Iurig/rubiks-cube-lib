@@ -1,10 +1,10 @@
-use crate::{Inv, Mask, Puzzle, fast_hash::FxMap};
+use crate::{AlgSet, Algorithm, Inv, Mask, Puzzle, fast_hash::FxMap};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct BFSMemo<P: Puzzle> {
     /// Every state is filtered through this, so memo keys match the forward search's masks.
     goal: Mask<P>,
-    memorization: FxMap<Mask<P>, Vec<P::Moves>>,
+    memorization: FxMap<Mask<P>, Algorithm<P>>,
     to_deepen: Vec<(Mask<P>, P)>,
     depth: usize,
 }
@@ -19,7 +19,7 @@ impl<P: Puzzle> BFSMemo<P> {
         }
     }
 
-    pub fn solution(&self, mask: &Mask<P>) -> Option<Vec<P::Moves>> {
+    pub fn solution(&self, mask: &Mask<P>) -> Option<Algorithm<P>> {
         self.memorization.get(mask).cloned()
     }
 
@@ -73,22 +73,31 @@ impl<P: Puzzle> BFSMemo<P> {
 
     /// Deepens until level `depth` is expanded.
     #[cfg(test)]
-    pub(crate) fn search_to(&mut self, depth: usize, possible_sequences: &[(Vec<P::Moves>, bool)]) {
+    pub(crate) fn search_to(
+        &mut self,
+        depth: usize,
+        possible_sequences: &AlgSet<P>,
+        free_possible_sequences: &AlgSet<P>,
+    ) {
         while self.depth <= depth {
-            self.deepen(possible_sequences);
+            self.deepen(possible_sequences, free_possible_sequences);
         }
     }
 
     /// Expands one level. `self.depth` is the next level to expand; expanding level `d` memorizes
     /// every state of cost `d` (free sequences stay on this level) and some of cost `d + 1`.
-    pub(crate) fn deepen(&mut self, possible_sequences: &[(Vec<P::Moves>, bool)]) {
+    pub(crate) fn deepen(
+        &mut self,
+        possible_sequences: &AlgSet<P>,
+        free_possible_sequences: &AlgSet<P>,
+    ) {
         // Close the level under the free sequences before any costly one runs: a state a free
         // sequence reaches costs the same as the level, and a costly sequence that reached it
         // first would memorize it, and everything after it, one level too deep.
         let mut i = 0;
         while let Some((mask, p)) = self.to_deepen.get(i).cloned() {
             i += 1;
-            for (sequence, _) in possible_sequences.iter().filter(|(_, has_cost)| !has_cost) {
+            for sequence in free_possible_sequences.algs() {
                 if let Some(state) = self.memorize(&mask, &p, sequence) {
                     self.to_deepen.push(state);
                 }
@@ -97,7 +106,7 @@ impl<P: Puzzle> BFSMemo<P> {
 
         let mut next_frontier = Vec::new();
         for (mask, p) in std::mem::take(&mut self.to_deepen) {
-            for (sequence, _) in possible_sequences.iter().filter(|(_, has_cost)| *has_cost) {
+            for sequence in possible_sequences.algs() {
                 if let Some(state) = self.memorize(&mask, &p, sequence) {
                     next_frontier.push(state);
                 }
@@ -172,9 +181,12 @@ mod tests {
     /// A memo over the whole cube, searched with R and U moves only.
     fn r_u_memo(depth: usize) -> (BFSMemo<Cube3x3>, Mask<Cube3x3>) {
         let goal = Mask::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
-        let allowed = ["R", "R'", "R2", "U", "U'", "U2"].map(|m| (moves(m), true));
+        let allowed = vec!["R", "R'", "R2", "U", "U'", "U2"]
+            .into_iter()
+            .map(moves)
+            .collect();
         let mut memo = BFSMemo::new(&goal);
-        memo.search_to(depth, &allowed);
+        memo.search_to(depth, &allowed, &AlgSet::default());
         (memo, goal)
     }
 
@@ -202,9 +214,9 @@ mod tests {
     #[test]
     fn memo_keys_match_forward_masks_after_a_piece_leaves_home() {
         let goal = Mask::<Cube3x3>::new_from_pieces([Pieces3x3::Edge(Edge::Fr)]);
-        let allowed = [(moves("R'"), true), (moves("U'"), true)];
+        let allowed = [moves("R'"), moves("U'")].into_iter().collect();
         let mut memo = BFSMemo::new(&goal);
-        memo.search_to(1, &allowed);
+        memo.search_to(1, &allowed, &AlgSet::default());
         let r_u = Cube3x3::from_solved("R U").unwrap();
         assert_eq!(
             memo.solution(&BFSMemo::filter_through(&r_u, &goal)),
@@ -217,9 +229,9 @@ mod tests {
     fn memo_solutions_use_the_allowed_sequences_as_written() {
         let goal = Mask::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
         let sune = "R U R' U R U2 R'";
-        let allowed = [(moves(sune), true)];
+        let allowed = std::iter::once(moves(sune)).collect();
         let mut memo = BFSMemo::new(&goal);
-        memo.search_to(0, &allowed);
+        memo.search_to(0, &allowed, &AlgSet::default());
         let before_sune = Cube3x3::from_solved(sune).unwrap().inverse();
         assert_eq!(
             memo.solution(&BFSMemo::filter_through(&before_sune, &goal)),
@@ -233,9 +245,10 @@ mod tests {
     #[test]
     fn free_sequences_are_closed_before_costly_ones_claim_their_states() {
         let goal = Mask::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
-        let allowed = [(moves("U"), true), (moves("R"), true), (moves("U"), false)];
+        let allowed = [moves("U"), moves("R")].into_iter().collect();
+        let free = std::iter::once(moves("U")).collect();
         let mut memo = BFSMemo::new(&goal);
-        memo.search_to(0, &allowed);
+        memo.search_to(0, &allowed, &free);
         let before_r_u = Cube3x3::from_solved("R U").unwrap().inverse();
         assert_eq!(
             memo.solution(&BFSMemo::filter_through(&before_r_u, &goal)),
@@ -260,9 +273,10 @@ mod tests {
     #[test]
     fn free_sequences_are_memorized_at_depth_zero() {
         let goal = Mask::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
-        let allowed = [(moves("R"), true), (moves("U'"), false)];
+        let allowed = AlgSet::from_moves("R").unwrap();
+        let free = AlgSet::from_moves("U'").unwrap();
         let mut memo = BFSMemo::new(&goal);
-        memo.search_to(0, &allowed);
+        memo.search_to(0, &allowed, &free);
         let u = Cube3x3::from_solved("U").unwrap();
         assert_eq!(
             memo.solution(&BFSMemo::filter_through(&u, &goal)),
