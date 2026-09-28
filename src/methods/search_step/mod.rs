@@ -34,8 +34,7 @@ pub struct SearchStep<P: Puzzle> {
 impl<P: Puzzle> SearchStep<P> {
     /// A step named `name` that starts when `before` holds and searches until `after` holds.
     ///
-    /// Each sequence of `search_algs` is applied as a unit: a single move, or a whole
-    /// algorithm.
+    /// Each sequence of `search_algs` is applied as a unit: a single move, or a whole algorithm.
     #[must_use]
     pub fn new(
         name: &'static str,
@@ -53,6 +52,9 @@ impl<P: Puzzle> SearchStep<P> {
         }
     }
 
+    /// Like [`new`](Self::new), but the sequences of `free_search_algs` add no cost: the search
+    /// finds the fewest sequences of `search_algs`, with any number of free ones between them,
+    /// such as an AUF between algorithms.
     #[must_use]
     pub fn new_with_free_algs(
         name: &'static str,

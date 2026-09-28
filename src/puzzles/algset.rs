@@ -108,7 +108,9 @@ impl AlgSet<Cube3x3> {
         ))
     }
 
-    /// Each move of `text` as its own sequence, keeping its modifiers.
+    /// Each move of `text` as its own sequence, keeping its modifier.
+    ///
+    /// A move written twice is listed once, and the order of the moves is not kept.
     ///
     /// # Errors
     /// If `text` contains an invalid move.
@@ -156,12 +158,15 @@ mod tests {
     }
 
     #[test]
-    fn from_moves_removes_duplucates() -> Result<(), Box<dyn Error>> {
-        let text = "U U2 U' U";
+    fn from_moves_removes_duplicates() -> Result<(), Box<dyn Error>> {
+        let expected: FxSet<Vec<Move3x3>> = Move3x3::sequence("U U2 U'")
+            .map(|m| m.map(|m| vec![m]))
+            .collect::<Result<_, _>>()?;
 
-        let algset = AlgSet::<Cube3x3>::from_moves(text)?;
+        let algset = AlgSet::<Cube3x3>::from_moves("U U2 U' U")?;
 
-        assert_eq!(algset.algs().len(), 3);
+        let actual: FxSet<Vec<Move3x3>> = algset.algs().iter().cloned().collect();
+        assert_eq!(actual, expected);
 
         Ok(())
     }

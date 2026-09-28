@@ -92,4 +92,5 @@ pub trait Puzzle:
     }
 }
 
+/// A sequence of moves applied in order, such as an algorithm or a step's solution.
 pub type Algorithm<P> = Vec<<P as Puzzle>::Moves>;
