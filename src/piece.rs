@@ -47,7 +47,7 @@ where
 }
 
 /// Where each of `N` pieces sits and how it is oriented, mod `O`.
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct PieceConfiguration<P, const N: usize, const O: usize> {
     pub(crate) permutation: [P; N],
     pub(crate) orientation: [Zn<O>; N],

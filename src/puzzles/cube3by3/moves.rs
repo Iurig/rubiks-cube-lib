@@ -16,7 +16,7 @@ use table::cube_state;
     reason = "reachable through `Move3x3::part`; not exported until ticket 01 derives the parts' \
               `Display` and `TryFrom` from one list and ticket 04 settles the face role"
 )]
-#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum MovablePart {
     Face(Faces),
     Slice(Slices),
@@ -28,7 +28,7 @@ pub enum MovablePart {
     unnameable_types,
     reason = "reachable through `Move3x3::modifier`; exported together with `Move3x3`"
 )]
-#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum MoveModifier {
     Clockwise,
     CounterClockwise,
@@ -53,7 +53,7 @@ impl MoveModifier {
     reason = "reachable as `<Cube3x3 as Puzzle>::Moves`, and callers build moves from notation; \
               not exported until `MovablePart` is, since its fields are public"
 )]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Move3x3 {
     pub part: MovablePart,
     pub modifier: MoveModifier,
@@ -129,7 +129,7 @@ impl ops::Inv for Move3x3 {
 
 /// Why one move failed to parse.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseMoveError {
     /// Reachable only through `Move::try_from("")`; a sequence never yields
     /// an empty move, so it carries no offending text.
@@ -150,7 +150,7 @@ pub enum ParseMoveError {
     },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 /// A move in a sequence failed to parse; `line` and `position` count from 1.
 pub struct ParseSequenceError {
     pub(crate) cause: ParseMoveError,

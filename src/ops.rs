@@ -6,7 +6,7 @@ pub trait Inv: Sized {
     ///
     /// ```
     /// use rubiks_cube_lib::Inv;
-    /// #[derive(Debug, Clone, PartialEq)]
+    /// #[derive(Clone, Debug, PartialEq)]
     /// enum FieldZ2 {
     ///     Zero,
     ///     One,
@@ -44,7 +44,7 @@ pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
     /// ```
     /// use rubiks_cube_lib::Pow;
     ///
-    /// #[derive(Debug, Clone, PartialEq)]
+    /// #[derive(Clone, Debug, PartialEq)]
     /// struct TurnCount(u32);
     ///
     /// impl std::ops::Mul for TurnCount {

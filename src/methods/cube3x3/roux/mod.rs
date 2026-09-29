@@ -246,7 +246,7 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
 });
 
 /// Which steps [`Method::roux`] uses. All three switches are on by default.
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct RouxOptions {
     /// Build the second block in one search. When off, build a square, front or back, whichever
     /// takes fewer moves, and then the pair that square leaves.

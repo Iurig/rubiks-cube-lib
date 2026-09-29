@@ -6,7 +6,7 @@ use std::{fmt::Debug, ops::Neg};
 /// The representative fits a byte: a twist is at most 2 and a flip at most
 /// 1, and `N` is capped at 256 so any modulus this crate could want still
 /// fits. The public face works in `usize`; the byte never leaks.
-#[derive(Clone, Copy, PartialEq, Eq, Default, Hash)]
+#[derive(Clone, Copy, Default, Eq, Hash, PartialEq)]
 pub struct Zn<const N: usize>(u8);
 
 impl<const N: usize> Debug for Zn<N> {

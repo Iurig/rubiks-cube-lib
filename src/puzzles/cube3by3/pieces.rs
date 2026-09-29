@@ -15,7 +15,7 @@ const EO_COUNT: usize = 2;
 macro_rules! new_piece {
     ($(#[$attr:meta])* $type_name:ident, $amount:ident, [$($p:ident),+]) => {
         $(#[$attr])*
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+        #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
         #[repr(u8)]
         pub enum $type_name {
             $(
@@ -67,7 +67,7 @@ pub type Faces = Center;
 
 /// Any piece of the 3×3 cube: the cube's [`Puzzle::Piece`](crate::Puzzle::Piece) type. Masks and
 /// piece queries on a [`Cube3x3`](crate::Cube3x3) take this type.
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Pieces3x3 {
     /// A center piece.
     Center(Center),
@@ -78,7 +78,7 @@ pub enum Pieces3x3 {
 }
 
 /// The orientation of one piece of the 3x3, with one variant per kind of piece.
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Orientation3x3 {
     /// A center, which has no orientation.
     Fixed,
@@ -92,7 +92,7 @@ pub enum Orientation3x3 {
     unnameable_types,
     reason = "reachable through `MovablePart::Slice`; exported together with `MovablePart`"
 )]
-#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Slices {
     M,
     S,
@@ -101,7 +101,7 @@ pub enum Slices {
 impl Slices {
     pub const ALL: [Self; 3] = [Self::M, Self::S, Self::E];
 }
-#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[expect(non_camel_case_types, reason = "rotations are inherently lower case")]
 #[expect(
     unnameable_types,

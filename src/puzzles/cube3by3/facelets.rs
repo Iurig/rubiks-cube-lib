@@ -37,7 +37,7 @@ use crate::{Piece, piece::index};
 /// assert_eq!(cube.to_string(), expected);
 /// # Ok::<(), rubiks_cube_lib::ParseSequenceError>(())
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Facelets {
     faces: [[Center; 9]; 6],
 }

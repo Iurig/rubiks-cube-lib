@@ -18,12 +18,12 @@ use crate::Puzzle;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(PartialEq, Eq, Debug, Clone, Hash)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Mask<P: Puzzle>(pub(crate) Box<[SlotCondition<P>]>);
 
 /// What a [`Mask`] asks of one slot: which piece must sit there, and which orientation the piece
 /// there must have. `None` asks nothing.
-#[derive(PartialEq, Eq, Debug, Clone, Hash)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SlotCondition<P: Puzzle> {
     pub(crate) piece: Option<P::Piece>,
     pub(crate) orient: Option<P::Orientation>,

@@ -52,13 +52,13 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
 /// ```
 ///
 /// Collect `(moves, name)` pairs to build one, or collect solutions to join them.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Solution<P: Puzzle> {
     step_solutions: Vec<Segment<P>>,
 }
 
 /// Segment of a solution: includes a name and the moves that make the solution up.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Segment<P: Puzzle> {
     moves: Algorithm<P>,
     name: String,

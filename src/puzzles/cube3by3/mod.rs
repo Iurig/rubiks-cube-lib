@@ -22,7 +22,7 @@ use crate::{
 };
 
 /// A 3x3x3 cube state; `a * b` applies `a` then `b`.
-#[derive(Debug, Clone, PartialEq, Eq, Default, Copy, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 #[expect(
     clippy::struct_field_names,
     reason = "_configuration makes clear what all variables are"

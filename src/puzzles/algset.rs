@@ -27,7 +27,7 @@ use crate::{
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct AlgSet<P: Puzzle>(Arc<[Algorithm<P>]>);
 
 impl<P: Puzzle> AlgSet<P> {

@@ -1,6 +1,6 @@
 use crate::{AlgSet, Algorithm, Inv, Mask, Puzzle, fast_hash::FxMap, puzzles::mask::SlotCondition};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct BFSMemo<P: Puzzle> {
     /// Every state is filtered through this, so memo keys match the forward search's masks.
     goal: Mask<P>,

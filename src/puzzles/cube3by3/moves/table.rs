@@ -21,7 +21,7 @@ use {
     },
 };
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct MoveInformation {
     cube_state: Cube3x3,
     part: MovablePart,
