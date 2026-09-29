@@ -19,7 +19,7 @@ use crate::{
 /// several with [`combined_with`](Self::combined_with).
 ///
 /// ```
-/// use rubiks_cube_lib::{Cube3x3, AlgSet};
+/// use rubiks_cube::{Cube3x3, AlgSet};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Two algorithms to search with, and the AUF to pass as the free sequences.
 /// let algorithms = AlgSet::<Cube3x3>::from_algorithms("R U R' U R U2 R'\nR U2 R' U' R U' R'")?;

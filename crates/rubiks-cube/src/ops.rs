@@ -5,7 +5,7 @@ pub trait Inv: Sized {
     /// # Examples
     ///
     /// ```
-    /// use rubiks_cube_lib::Inv;
+    /// use rubiks_cube::Inv;
     /// #[derive(Clone, Debug, PartialEq)]
     /// enum FieldZ2 {
     ///     Zero,
@@ -42,7 +42,7 @@ pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
     /// # Examples
     ///
     /// ```
-    /// use rubiks_cube_lib::Pow;
+    /// use rubiks_cube::Pow;
     ///
     /// #[derive(Clone, Debug, PartialEq)]
     /// struct TurnCount(u32);

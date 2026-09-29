@@ -9,7 +9,7 @@ use crate::Puzzle;
 /// ignores every piece it does not name.
 ///
 /// ```
-/// use rubiks_cube_lib::{Cube3x3, Edge, Mask, Pieces3x3};
+/// use rubiks_cube::{Cube3x3, Edge, Mask, Pieces3x3};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let uf_solved = Mask::<Cube3x3>::new_from_pieces([Pieces3x3::Edge(Edge::Uf)]);

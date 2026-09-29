@@ -174,7 +174,7 @@ impl<P: Puzzle> Display for Solution<P> {
 /// steps works too, and the steps can be of different types.
 ///
 /// ```rust
-/// use rubiks_cube_lib::{Cube3x3, Method, Puzzle, RouxOptions};
+/// use rubiks_cube::{Cube3x3, Method, Puzzle, RouxOptions};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut cube = Cube3x3::from_solved("R U R' F' L2 D B'")?;
@@ -230,7 +230,7 @@ impl<P: Puzzle> Method<P> {
     /// left as the last step that ran left it.
     ///
     /// ```rust
-    /// use rubiks_cube_lib::{Cube3x3, Method, RouxOptions};
+    /// use rubiks_cube::{Cube3x3, Method, RouxOptions};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let roux = Method::roux(RouxOptions::default());

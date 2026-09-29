@@ -3,7 +3,7 @@
     reason = "`?` reports setup failures; `assert!` reports the property under test failing"
 )]
 
-use rubiks_cube_lib::{zn::Zn, *};
+use rubiks_cube::{zn::Zn, *};
 use std::error::Error;
 
 const IMPLEMENTED_MOVES: [&str; 12] = ["R", "U", "D", "L", "F", "B", "E", "S", "M", "y", "z", "x"];
@@ -564,7 +564,7 @@ fn bad_move_error_names_its_line_and_position() {
     assert_eq!(e.position(), 1);
     assert_eq!(
         *e.cause(),
-        rubiks_cube_lib::ParseMoveError::BadModifier {
+        rubiks_cube::ParseMoveError::BadModifier {
             invalid_move: "Mw'".to_string(),
             modifier: "w'".to_string(),
         }

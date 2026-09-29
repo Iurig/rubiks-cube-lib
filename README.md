@@ -1,4 +1,4 @@
-# rubiks-cube-lib
+# rubiks-cube
 
 ![CI](https://github.com/Iurig/rubiks/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/github/license/Iurig/rubiks)
@@ -20,7 +20,7 @@ so the entire move table is built at compile time.
 ## Quick example
 
 ```rust
-use rubiks_cube_lib::{Cube3x3, Inv, Pow, Puzzle};
+use rubiks_cube::{Cube3x3, Inv, Pow, Puzzle};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Apply a sequence to the solved cube, example is Sebastiano Tronto's 16 move FMC WR
@@ -50,7 +50,7 @@ Move strings use standard cube notation. Whitespace and newlines separate moves,
 after `//` on a line is a comment, so you can paste annotated reconstructions directly:
 
 ```rust
-let solved = rubiks_cube_lib::Cube3x3::from_solved("
+let solved = rubiks_cube::Cube3x3::from_solved("
     U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D   // scramble
     y2 F' M F' R U' R U' Fw z'                                  // FB
     U R U r M' U' R U2' R'                                      // SS
@@ -79,7 +79,7 @@ return an `Err` naming that token.
 order and returns a `Solution`, with one segment per step:
 
 ```rust
-use rubiks_cube_lib::{Cube3x3, Method, Puzzle, RouxOptions};
+use rubiks_cube::{Cube3x3, Method, Puzzle, RouxOptions};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let scramble = "D2 F2 R2 U L2 D R2 U' B2 L2 B L2 F' L D2 U R' B D2";
@@ -103,7 +103,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```
 
 A printed solution has one line per step: the moves, then `//` and the step's name. One run of
-[examples/main.rs](examples/main.rs) printed this for the scramble above:
+[examples/main.rs](crates/rubiks-cube/examples/main.rs) printed this for the scramble above:
 
 ```text
 F' Uw2 Rw Fw M' E' F2	//FB
@@ -154,9 +154,9 @@ sticker belongs to when solved (`println!("{cube}")`); `cube.facelets()` gives t
 physical cube would look like, so a wrong twist or flip convention is visible at a glance.
 
 Only the nine base moves (six faces, three slices) are written by hand, as explicit cycles in
-[src/cube3by3/moves/table.rs](src/cube3by3/moves/table.rs). Rotations (`x = R M' L'`,
+[moves/table.rs](crates/rubiks-cube/src/puzzles/cube3by3/moves/table.rs). Rotations (`x = R M' L'`,
 `y = U E' D'`, `z = F S B'`), wide moves (a face turn followed by its parallel slice), and every
-inverse and double are derived from those nine at compile time into a single `ALL_MOVES` table
+inverse and double are derived from those nine, on first use, into a single `ALL_MOVES` table
 that string parsing looks up. A derived move therefore cannot drift from its base moves.
 
 ## API documentation
@@ -182,48 +182,62 @@ The main entry points:
 
 ## Project layout
 
+The repository is a Cargo workspace. Commands run from the root cover every crate.
+
 ```text
-src/
-  lib.rs                  public exports
-  ops.rs                  Inv and Pow traits
-  zn.rs                   Zn<N>
-  piece.rs                sealed Piece trait, PieceConfiguration with the piece_at / orientation_at
-                          queries and the permutation parity
-  puzzles/
-    mod.rs                the Puzzle trait
-    mask.rs               Mask: which pieces must be in place or oriented
-    cube3by3/
-      mod.rs              Cube3x3, Mul/Inv/Pow impls, accessors, rotation-aware is_solved,
-                          is_reachable
-      pieces.rs           piece enums, counts, and type aliases for the 3×3
-      facelets.rs         Facelets: the sticker net view, Display for Cube3x3, twist and flip
-                          conventions as face tables; its tests pin the net against face turns
-      moves.rs            Move type, MovablePart/MoveModifier enums, move-sequence parsing and
-                          printing
-      moves/
-        table.rs          compile-time ALL_MOVES table: 9 hand-written face and slice moves,
-                          rotations and wide moves derived from them, then inverses and doubles
-                          of everything; its tests pin the derivations only
-  methods/
-    mod.rs                the Step trait, Method and its solve loop, Solution, StepError,
-                          SolveError
-    search_step/
-      mod.rs              SearchStep: a forward search that meets the memo in the middle
-      memorization.rs     BFSMemo: the backward search from a step's goal, kept across solves
-    choose/
-      mod.rs              Choose: runs each alternative, keeps the one with the fewest moves
-    test_steps.rs         FixedStep, a hand-written step for tests (compiled only in tests)
-    cube3x3/roux/
-      mod.rs              RouxOptions, the Roux steps built once and shared, Method::roux
-      cmll/               the one-look CMLL, CO, and CP algorithms, one per line
-tests/
-  testing.rs              integration tests: handedness pins for each base move, group laws,
-                          move orders, reachability, real solve reconstructions, and every Roux
-                          option combination on seeded random scrambles
-benches/
-  solves.rs               two passes of 1000 seeded Roux solves, timed and heap-counted per step
-examples/
-  main.rs                 solves one scramble with two option sets and prints the solutions
+Cargo.toml                    the workspace: its members and the shared test profile
+crates/
+  rubiks-cube/                the library
+    src/
+      lib.rs                  public exports
+      ops.rs                  Inv and Pow traits
+      zn.rs                   Zn<N>
+      piece.rs                sealed Piece trait, PieceConfiguration with the piece_at /
+                              orientation_at queries and the permutation parity
+      fast_hash.rs            FxHasher, the fast hasher behind the search memo
+      puzzles/
+        mod.rs                the Puzzle trait
+        mask.rs               Mask: which pieces must be in place or oriented
+        algset.rs             AlgSet: move sequences a search applies as single units
+        cube3by3/
+          mod.rs              Cube3x3, Mul/Inv/Pow impls, accessors, rotation-aware
+                              is_solved, is_reachable
+          pieces.rs           piece enums, counts, and type aliases for the 3×3
+          facelets.rs         Facelets: the sticker net view, Display for Cube3x3, twist and
+                              flip conventions as face tables; its tests pin the net against
+                              face turns
+          moves.rs            Move type, MovablePart/MoveModifier enums, move-sequence parsing
+                              and printing
+          moves/
+            table.rs          ALL_MOVES table: 9 hand-written face and slice moves, rotations
+                              and wide moves derived from them, then inverses and doubles of
+                              everything; its tests pin the derivations only
+      methods/
+        mod.rs                the Step trait, Method and its solve loop, Solution, StepError,
+                              SolveError
+        search_step/
+          mod.rs              SearchStep: a forward search that meets the memo in the middle
+          memorization.rs     BFSMemo: the backward search from a step's goal, kept across
+                              solves
+        choose/
+          mod.rs              Choose: runs each alternative, keeps the one with the fewest
+                              moves
+        test_steps.rs         FixedStep, a hand-written step for tests (compiled only in tests)
+        cube3x3/roux/
+          mod.rs              RouxOptions, the Roux steps built once and shared, Method::roux
+          cmll/               the one-look CMLL, CO, and CP algorithms, one per line
+    tests/
+      testing.rs              integration tests: handedness pins for each base move, group
+                              laws, move orders, reachability, real solve reconstructions, and
+                              every Roux option combination on seeded random scrambles
+    benches/
+      solves.rs               two passes of 1000 seeded Roux solves, timed and heap-counted per
+                              step
+    examples/
+      main.rs                 solves one scramble with two option sets and prints the solutions
+  rubiks-cube-cli/            the command-line tool (a placeholder for now)
+    src/
+      main.rs
 ```
 
 ## Building and testing
@@ -237,7 +251,7 @@ never prints.
 cargo build
 cargo test
 cargo bench --bench solves
-RUST_LOG=rubiks_cube_lib=debug cargo run --example main
+RUST_LOG=rubiks_cube=debug cargo run --example main
 ```
 
 ## Current state

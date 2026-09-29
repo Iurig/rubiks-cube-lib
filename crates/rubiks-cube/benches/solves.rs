@@ -24,7 +24,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use rubiks_cube_lib::{Cube3x3, Method, Puzzle, RouxOptions, Solution};
+use rubiks_cube::{Cube3x3, Method, Puzzle, RouxOptions, Solution};
 
 const SOLVES: u32 = 1000;
 

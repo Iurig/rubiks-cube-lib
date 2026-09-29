@@ -5,7 +5,7 @@
 //! `b`, in the same order as notation reads:
 //!
 //! ```
-//! use rubiks_cube_lib::{Cube3x3, Inv, Pow, Puzzle};
+//! use rubiks_cube::{Cube3x3, Inv, Pow, Puzzle};
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let scramble = Cube3x3::from_solved("R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F")?;
@@ -31,7 +31,7 @@
 //! prints as notation with one line per step:
 //!
 //! ```rust
-//! use rubiks_cube_lib::{Cube3x3, Method, Puzzle, RouxOptions};
+//! use rubiks_cube::{Cube3x3, Method, Puzzle, RouxOptions};
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut cube = Cube3x3::from_solved("D2 F2 R2 U L2 D R2 U' B2 L2 B L2 F' L D2 U R' B D2")?;
@@ -88,5 +88,5 @@ pub use puzzles::{Algorithm, Puzzle, algset::AlgSet, mask::Mask};
 /// Runs the Rust examples in `README.md` as doc tests, so they cannot drift from the code.
 /// This item exists only while doc tests run and never appears in the docs.
 #[cfg(doctest)]
-#[doc = include_str!("../README.md")]
+#[doc = include_str!("../../../README.md")]
 struct ReadmeDoctests;

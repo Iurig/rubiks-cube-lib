@@ -1,0 +1,48 @@
+[package]
+name = "rubiks-cube"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[dependencies]
+fastrand = "2.5.0"
+log = "0.4.34"
+
+[dev-dependencies]
+env_logger = { version = "0.11.11", default-features = false }
+statrs = "0.19.1"
+
+[[bench]]
+name = "solves"
+harness = false
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+todo = "warn"
+indexing_slicing = "warn"
+string_slice = "warn"
+unreachable = "warn"
+get_unwrap = "warn"
+unimplemented = "warn"
+panic_in_result_fn = "warn"
+panic = "warn"
+print_stdout = "warn"
+print_stderr = "warn"
+dbg_macro = "warn"
+allow_attributes_without_reason = "warn"
+let_underscore_must_use = "warn"
+unused_result_ok = "warn"
+map_err_ignore = "warn"
+assertions_on_result_states = "warn"
+mem_forget = "warn"
+undocumented_unsafe_blocks = "warn"
+multiple_unsafe_ops_per_block = "warn"
+unnecessary_safety_doc = "warn"
+unnecessary_safety_comment = "warn"
+rc_mutex = "warn"
+
+[lints.rust]
+missing_debug_implementations = "warn"
+unnameable_types = "warn"

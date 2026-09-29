@@ -19,7 +19,7 @@ use crate::{Piece, piece::index};
 /// in [`Center::ALL`] order, each read row by row as in [`Display`].
 ///
 /// ```
-/// use rubiks_cube_lib::Cube3x3;
+/// use rubiks_cube::Cube3x3;
 ///
 /// let cube = Cube3x3::from_solved("R")?;
 /// let expected = [
@@ -35,7 +35,7 @@ use crate::{Piece, piece::index};
 /// ]
 /// .join("\n");
 /// assert_eq!(cube.to_string(), expected);
-/// # Ok::<(), rubiks_cube_lib::ParseSequenceError>(())
+/// # Ok::<(), rubiks_cube::ParseSequenceError>(())
 /// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct Facelets {
