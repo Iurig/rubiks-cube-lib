@@ -197,7 +197,7 @@ impl std::ops::Mul<Move3x3> for Cube3x3 {
 
 impl Pow for Cube3x3 {
     fn identity() -> Self {
-        Self::IDENTITY
+        Self::default()
     }
 }
 

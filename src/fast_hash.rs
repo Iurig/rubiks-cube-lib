@@ -1,4 +1,4 @@
-use std::hash::BuildHasherDefault;
+use std::hash::{BuildHasherDefault, Hasher};
 
 #[derive(Default)]
 pub struct FxHasher {
@@ -11,7 +11,7 @@ impl FxHasher {
     }
 }
 
-impl std::hash::Hasher for FxHasher {
+impl Hasher for FxHasher {
     fn write(&mut self, bytes: &[u8]) {
         for &b in bytes {
             self.step(u64::from(b));
@@ -55,6 +55,10 @@ mod tests {
     use crate::{
         Center, Corner, Cube3x3, Edge, Mask, Pieces3x3, methods::search_step::memorization::BFSMemo,
     };
+    use statrs::{
+        distribution::{Binomial, DiscreteCDF},
+        statistics::Distribution,
+    };
 
     const FIRST_BLOCK: [Pieces3x3; 6] = [
         Pieces3x3::Center(Center::L),
@@ -67,6 +71,88 @@ mod tests {
 
     fn hash(mask: &Mask<Cube3x3>) -> u64 {
         BuildHasherDefault::<FxHasher>::default().hash_one(mask)
+    }
+
+    const RUNS: u64 = 1_000_000;
+
+    macro_rules! test {
+        ($u_n:ident, $write_u_n:ident) => {
+            fastrand::seed(7);
+            let mut hasher = FxHasher { hash: 0 };
+            let runs = std::cmp::min(($u_n::MAX / 2) as u64, RUNS);
+            {
+                let mut key_set = FxSet::default();
+                for _ in 0..runs {
+                    hasher.$write_u_n(fastrand::$u_n(..));
+                    key_set.insert(hasher.finish());
+                    hasher.hash = 0;
+                }
+                let distr = Binomial::new(
+                    1.0 - (1.0 - 1.0 / ($u_n::MAX as f64)).powi(runs as i32),
+                    $u_n::MAX as u64,
+                )
+                .unwrap();
+                let rarity = distr.cdf(key_set.iter().len() as u64);
+                dbg!(
+                    1.0 - (1.0 - 1.0 / ($u_n::MAX as f64)).powi(runs as i32),
+                    runs,
+                    key_set.iter().len() as u64,
+                    rarity,
+                    distr.mean()
+                );
+                assert!(rarity > 0.005);
+                assert!(key_set.iter().len() > (runs / 3) as usize);
+            };
+        };
+    }
+
+    #[expect(
+        clippy::cast_lossless,
+        clippy::cast_precision_loss,
+        clippy::cast_possible_truncation,
+        reason = "tests multiple types"
+    )]
+    #[test]
+    fn colisions_match_pre_defined_p_value_on_specific_writes() {
+        test!(u8, write_u8);
+        test!(u16, write_u16);
+        test!(u32, write_u32);
+        test!(u64, write_u64);
+        test!(u128, write_u128);
+        test!(usize, write_usize);
+    }
+
+    #[expect(
+        clippy::cast_lossless,
+        clippy::cast_possible_truncation,
+        reason = "tests multiple types"
+    )]
+    #[test]
+    fn colisions_match_pre_defined_p_value_on_generic_write() {
+        fastrand::seed(7);
+        let mut hasher = FxHasher { hash: 0 };
+        let runs = RUNS;
+        {
+            let mut key_set = FxSet::default();
+            for _ in 0..runs {
+                hasher.write(&fastrand::u32(..).to_be_bytes());
+                key_set.insert(hasher.finish());
+                hasher.hash = 0;
+            }
+            let distr = Binomial::new(
+                1.0 - (1.0 - 1.0 / (u32::MAX as f64)).powi(runs as i32),
+                u32::MAX as u64,
+            )
+            .unwrap();
+            let rarity = distr.cdf(key_set.iter().len() as u64);
+            dbg!(
+                1.0 - (1.0 - 1.0 / (u32::MAX as f64)).powi(runs as i32),
+                key_set.iter().len() as u32,
+                rarity,
+                distr.mean()
+            );
+            assert!(rarity > 0.005);
+        };
     }
 
     #[test]

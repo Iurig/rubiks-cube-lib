@@ -46,6 +46,7 @@ unnameable_types = "warn"
 
 [dev-dependencies]
 env_logger = { version = "0.11.11", default-features = false }
+statrs = "0.19.1"
 
 [profile.test]
 inherits = "release"
