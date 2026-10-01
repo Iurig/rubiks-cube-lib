@@ -1,0 +1,2 @@
+exclude_globs = ["crates/rubiks_cube_cli/*"]
+exclude_re = ["impl Debug", "impl Display", "name", "::moves"]

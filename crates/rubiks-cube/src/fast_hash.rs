@@ -52,9 +52,7 @@ mod tests {
     use std::hash::BuildHasher;
 
     use super::*;
-    use crate::{
-        Center, Corner, Cube3x3, Edge, Mask, Pieces3x3, methods::search_step::memorization::BFSMemo,
-    };
+    use crate::{Center, Corner, Cube3x3, Edge, Labeled, Pieces3x3, Tracked};
     use statrs::{
         distribution::{Binomial, DiscreteCDF},
         statistics::Distribution,
@@ -69,7 +67,7 @@ mod tests {
         Pieces3x3::Edge(Edge::Bl),
     ];
 
-    fn hash(mask: &Mask<Cube3x3>) -> u64 {
+    fn hash(mask: &Labeled<Cube3x3, Tracked>) -> u64 {
         BuildHasherDefault::<FxHasher>::default().hash_one(mask)
     }
 
@@ -157,10 +155,10 @@ mod tests {
 
     #[test]
     fn masks_built_from_pieces_in_any_order_find_each_other() {
-        let forward = Mask::<Cube3x3>::new_from_pieces(FIRST_BLOCK);
+        let forward = Labeled::<Cube3x3, Tracked>::new_from_pieces(FIRST_BLOCK);
         let mut reversed_pieces = FIRST_BLOCK;
         reversed_pieces.reverse();
-        let reversed = Mask::<Cube3x3>::new_from_pieces(reversed_pieces);
+        let reversed = Labeled::<Cube3x3, Tracked>::new_from_pieces(reversed_pieces);
 
         assert_eq!(forward, reversed);
         assert_eq!(hash(&forward), hash(&reversed));
@@ -171,13 +169,13 @@ mod tests {
     /// `U` and `R M'` leave the first block alone, so two different cubes filter to one key.
     #[test]
     fn different_cubes_with_the_same_masked_pieces_find_each_other() {
-        let goal = Mask::<Cube3x3>::new_from_pieces(FIRST_BLOCK);
+        let goal = Labeled::<Cube3x3, Tracked>::new_from_pieces(FIRST_BLOCK);
         let after_u = Cube3x3::from_solved("U").unwrap();
         let after_r_m = Cube3x3::from_solved("R M'").unwrap();
         assert_ne!(after_u, after_r_m);
 
-        let from_u = BFSMemo::filter_through(&after_u, &goal);
-        let from_r_m = BFSMemo::filter_through(&after_r_m, &goal);
+        let from_u = Labeled::<Cube3x3, Tracked>::filter_by_piece(&after_u, &goal);
+        let from_r_m = Labeled::<Cube3x3, Tracked>::filter_by_piece(&after_r_m, &goal);
 
         assert_eq!(from_u, from_r_m);
         assert_eq!(hash(&from_u), hash(&from_r_m));

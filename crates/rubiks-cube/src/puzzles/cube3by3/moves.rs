@@ -414,6 +414,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::assert_is_empty,
+        reason = "is_empty reads better because of type conversion"
+    )]
     fn empty_and_comment_only_sequences_have_no_moves() -> Result<(), Box<dyn Error>> {
         assert!(moves_of("")?.is_empty());
         assert!(moves_of("// just a comment")?.is_empty());

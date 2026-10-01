@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/rubiks-cube", "crates/rubiks-cube-cli"]
+members = ["crates/rubiks-cube", "crates/rubiks-cube-cli", "crates/twisty-puzzles-py"]
 
 [profile.test]
 inherits = "release"

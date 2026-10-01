@@ -11,9 +11,9 @@ use std::fmt::{self, Display};
 
 use super::{
     Cube3x3,
-    pieces::{Center, Corner, Edge, Pieces3x3},
+    pieces::{Center, Corner, Edge, Orientation3x3, Pieces3x3},
 };
-use crate::{Piece, piece::index};
+use crate::{Mask, Piece, Puzzle, piece::index};
 
 /// The colour on each facelet of a [`Cube3x3`], one `[Center; 9]` per face
 /// in [`Center::ALL`] order, each read row by row as in [`Display`].
@@ -185,28 +185,70 @@ fn slot_faces(slot: Pieces3x3) -> Vec<Center> {
     }
 }
 
-/// The stickers now covering `slot`, in the same order as [`slot_faces`].
-fn stickers_at(cube: &Cube3x3, slot: Pieces3x3) -> Vec<Center> {
-    match slot {
-        Pieces3x3::Center(c) => vec![cube.centers().piece_at(&c)],
-        Pieces3x3::Edge(e) => {
-            let mut stickers = edge_faces(cube.edges().piece_at(&e));
-            stickers.rotate_left(cube.edges().orientation_at(&e).value());
-            stickers.to_vec()
+/// The stickers `piece` shows when it sits in a slot with `orientation`, in
+/// the same order as [`slot_faces`]. `None` when the orientation belongs to
+/// another kind of piece.
+fn stickers(piece: Pieces3x3, orientation: Orientation3x3) -> Option<Vec<Center>> {
+    match (piece, orientation) {
+        (Pieces3x3::Center(c), Orientation3x3::Fixed) => Some(vec![c]),
+        (Pieces3x3::Edge(e), Orientation3x3::Flip(flip)) => {
+            let mut stickers = edge_faces(e);
+            stickers.rotate_left(flip.value());
+            Some(stickers.to_vec())
         }
-        Pieces3x3::Corner(c) => {
-            let mut stickers = corner_faces(cube.corners().piece_at(&c));
-            stickers.rotate_right(cube.corners().orientation_at(&c).value());
-            stickers.to_vec()
+        (Pieces3x3::Corner(c), Orientation3x3::Twist(twist)) => {
+            let mut stickers = corner_faces(c);
+            stickers.rotate_right(twist.value());
+            Some(stickers.to_vec())
         }
+        _ => None,
     }
+}
+
+/// Where `facelet` falls in [`slot_faces`], or `None` when the slot has no
+/// face there.
+fn facelet_position(slot: Pieces3x3, facelet: Center) -> Option<usize> {
+    slot_faces(slot).iter().position(|&f| f == facelet)
 }
 
 /// The sticker showing on the `facelet` face of `slot`, or `None` when the
 /// slot has no face there.
 fn sticker(cube: &Cube3x3, slot: Pieces3x3, facelet: Center) -> Option<Center> {
-    let position = slot_faces(slot).iter().position(|&f| f == facelet)?;
-    stickers_at(cube, slot).get(position).copied()
+    let position = facelet_position(slot, facelet)?;
+    stickers(cube.piece_at(&slot), cube.orientation_at(&slot))?
+        .get(position)
+        .copied()
+}
+
+/// The facelet position, as in [`slot_faces`], that holds a piece's first
+/// sticker (its U or D sticker for corners, the flip-defining one for edges)
+/// under `orientation`. `None` for centers, which have no orientation.
+///
+/// Both [`stickers`] rotations move the first sticker to the position equal
+/// to the orientation's value.
+const fn orientation_position(orientation: Orientation3x3) -> Option<usize> {
+    match orientation {
+        Orientation3x3::Fixed => None,
+        Orientation3x3::Flip(flip) => Some(flip.value()),
+        Orientation3x3::Twist(twist) => Some(twist.value()),
+    }
+}
+
+/// The character a [`Mask`] shows on the `facelet` face of `slot`; see
+/// [`Display for Mask<Cube3x3>`](Mask#impl-Display-for-Mask<Cube3x3>).
+fn mask_char(mask: &Mask<Cube3x3>, slot: Pieces3x3, facelet: Center) -> char {
+    let position = facelet_position(slot, facelet)
+        .expect("the `const _` block below checks every entry of `NET`");
+    let condition = mask.condition(slot);
+    match (condition.label, condition.orient) {
+        (Some(piece), Some(orientation)) => stickers(piece, orientation)
+            .and_then(|stickers| stickers.get(position).copied())
+            .map_or('?', letter),
+        (Some(Pieces3x3::Center(c)), None) => letter(c),
+        (Some(_), None) => '?',
+        (None, Some(orientation)) if orientation_position(orientation) == Some(position) => 'o',
+        (None, _) => '.',
+    }
 }
 
 const fn letter(face: Center) -> char {
@@ -247,40 +289,49 @@ impl Cube3x3 {
     }
 }
 
+/// Writes one character per facelet as the unfolded net, `faces` in
+/// [`Center::ALL`] order like [`NET`].
+#[expect(
+    clippy::indexing_slicing,
+    reason = "`index` of a `Center` is below 6, the length of `faces`"
+)]
+fn write_net(f: &mut fmt::Formatter<'_>, faces: &[[char; 9]; 6]) -> fmt::Result {
+    let rows = |face: Center| faces[index(face)].chunks(3);
+    let write_row =
+        |f: &mut fmt::Formatter<'_>, row: &[char]| row.iter().try_for_each(|&c| write!(f, "{c}"));
+    for row in rows(Center::U) {
+        write!(f, "    ")?;
+        write_row(f, row)?;
+        writeln!(f)?;
+    }
+    for (l, fr, r, b) in rows(Center::L)
+        .zip(rows(Center::F))
+        .zip(rows(Center::R))
+        .zip(rows(Center::B))
+        .map(|(((l, fr), r), b)| (l, fr, r, b))
+    {
+        write_row(f, l)?;
+        write!(f, " ")?;
+        write_row(f, fr)?;
+        write!(f, " ")?;
+        write_row(f, r)?;
+        write!(f, " ")?;
+        write_row(f, b)?;
+        writeln!(f)?;
+    }
+    for (i, row) in rows(Center::D).enumerate() {
+        if i > 0 {
+            writeln!(f)?;
+        }
+        write!(f, "    ")?;
+        write_row(f, row)?;
+    }
+    Ok(())
+}
+
 impl Display for Facelets {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let rows = |face: Center| self.face(face).chunks(3);
-        let write_row = |f: &mut fmt::Formatter<'_>, row: &[Center]| {
-            row.iter().try_for_each(|&c| write!(f, "{}", letter(c)))
-        };
-        for row in rows(Center::U) {
-            write!(f, "    ")?;
-            write_row(f, row)?;
-            writeln!(f)?;
-        }
-        for (l, fr, r, b) in rows(Center::L)
-            .zip(rows(Center::F))
-            .zip(rows(Center::R))
-            .zip(rows(Center::B))
-            .map(|(((l, fr), r), b)| (l, fr, r, b))
-        {
-            write_row(f, l)?;
-            write!(f, " ")?;
-            write_row(f, fr)?;
-            write!(f, " ")?;
-            write_row(f, r)?;
-            write!(f, " ")?;
-            write_row(f, b)?;
-            writeln!(f)?;
-        }
-        for (i, row) in rows(Center::D).enumerate() {
-            if i > 0 {
-                writeln!(f)?;
-            }
-            write!(f, "    ")?;
-            write_row(f, row)?;
-        }
-        Ok(())
+        write_net(f, &self.faces.map(|face| face.map(letter)))
     }
 }
 
@@ -288,6 +339,42 @@ impl Display for Cube3x3 {
     /// The facelet net; see [`Facelets`].
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.facelets().fmt(f)
+    }
+}
+
+/// The net of what the mask asks for, one character per facelet:
+///
+/// - a face letter where the mask names both the piece and its orientation, so the sticker is known
+///   (and on every facelet of a named center);
+/// - `?` where the mask names the piece but not its orientation;
+/// - `o` where the mask names only an orientation, on the facelet that must show the piece's U or D
+///   sticker (for edges, its U/D sticker or else its F/B one); the slot's other facelets show `.`;
+/// - `.` where the mask asks nothing.
+///
+/// ```
+/// use rubiks_cube::{Cube3x3, Edge, Mask, Pieces3x3};
+///
+/// let uf_solved = Mask::<Cube3x3>::new_from_pieces([Pieces3x3::Edge(Edge::Uf)]);
+/// let expected = [
+///     "    ...",
+///     "    ...",
+///     "    .U.",
+///     "... .F. ... ...",
+///     "... ... ... ...",
+///     "... ... ... ...",
+///     "    ...",
+///     "    ...",
+///     "    ...",
+/// ]
+/// .join("\n");
+/// assert_eq!(uf_solved.to_string(), expected);
+/// ```
+impl Display for Mask<Cube3x3> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write_net(
+            f,
+            &NET.map(|face| face.map(|(slot, facelet)| mask_char(self, slot, facelet))),
+        )
     }
 }
 
@@ -507,6 +594,52 @@ mod tests {
                 assert_eq!(count, 9, "{colour:?} in\n{facelets}");
             }
         }
+    }
+
+    #[test]
+    fn empty_mask_shows_only_dots() {
+        let dots = "... ... ... ...";
+        assert_eq!(
+            Mask::<Cube3x3>::default().to_string(),
+            net(["...", "...", "...", dots, dots, dots, "...", "...", "...",])
+        );
+    }
+
+    #[test]
+    fn fully_solved_mask_shows_the_solved_net() {
+        let goal = Mask::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
+        assert_eq!(goal.to_string(), Cube3x3::default().to_string());
+    }
+
+    // Roux's CO asks only that the U corners be oriented: an `o` on the U
+    // facelet of each U corner, nothing anywhere else.
+    #[test]
+    fn orientation_only_mask_marks_the_u_facelet_of_each_corner() {
+        let u_corners = [Corner::Ubl, Corner::Ubr, Corner::Ufr, Corner::Ufl].map(Pieces3x3::Corner);
+        let dots = "... ... ... ...";
+        assert_eq!(
+            Mask::<Cube3x3>::from_iter([], u_corners).to_string(),
+            net(["o.o", "...", "o.o", dots, dots, dots, "...", "...", "...",])
+        );
+    }
+
+    #[test]
+    fn piece_without_orientation_shows_question_marks() {
+        let mask = Mask::<Cube3x3>::from_double_iter([Pieces3x3::Edge(Edge::Fr)], []);
+        assert_eq!(
+            mask.to_string(),
+            net([
+                "...",
+                "...",
+                "...",
+                "... ... ... ...",
+                "... ..? ?.. ...",
+                "... ... ... ...",
+                "...",
+                "...",
+                "...",
+            ])
+        );
     }
 
     #[test]
