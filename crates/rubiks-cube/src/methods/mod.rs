@@ -478,4 +478,45 @@ mod tests {
         assert!(steps.next().is_none());
         assert_eq!(later.runs(), 0, "no step runs after an error");
     }
+
+    fn segment(moves: &str, name: &str) -> Result<Segment<Cube3x3>, ParseSequenceError> {
+        Ok(Segment {
+            moves: Move3x3::sequence(moves).collect::<Result<_, _>>()?,
+            name: name.to_string(),
+        })
+    }
+
+    #[test]
+    fn borrowed_and_owned_iteration_yield_the_same_segments_in_order() -> Result<(), Box<dyn Error>>
+    {
+        let solution: Solution<Cube3x3> = [segment("R U", "First")?, segment("M'", "Second")?]
+            .into_iter()
+            .collect();
+
+        let mut borrowed = Vec::new();
+        for segment in &solution {
+            borrowed.push((segment.name.clone(), segment.moves.clone()));
+        }
+        let owned: Vec<(String, Algorithm<Cube3x3>)> = solution
+            .into_iter()
+            .map(|segment| (segment.name, segment.moves))
+            .collect();
+
+        let names: Vec<&str> = borrowed.iter().map(|(name, _)| name.as_str()).collect();
+        assert_eq!(names, ["First", "Second"]);
+        assert_eq!(borrowed, owned);
+        Ok(())
+    }
+
+    #[test]
+    fn extend_appends_segments_after_the_existing_ones() -> Result<(), Box<dyn Error>> {
+        let mut solution: Solution<Cube3x3> = Solution::from_iter([segment("R", "First")?]);
+
+        solution.extend([segment("U2", "Second")?, segment("F' L", "Third")?]);
+
+        let names: Vec<&str> = solution.iter().map(Segment::name).collect();
+        assert_eq!(names, ["First", "Second", "Third"]);
+        assert_eq!(solution.move_count(), 4);
+        Ok(())
+    }
 }
