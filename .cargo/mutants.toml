@@ -1,2 +1,12 @@
-exclude_globs = ["crates/rubiks_cube_cli/*"]
-exclude_re = ["impl Debug", "impl Display", "name", "::moves"]
+exclude_globs = ["crates/rubiks-cube-cli/**"]
+exclude_re = [
+    "impl Debug",
+    "impl Display",
+    "name",
+    "::moves",
+    # Equivalent mutants: the mutated code computes the same result.
+    # `cycle_size - 1` and `cycle_size + 1` are equal mod 2.
+    'replace - with \+ in PieceConfiguration<P, N, O>::parity',
+    # `identity` already returns `Self::default()`.
+    'replace <impl Pow for Cube3x3>::identity -> Self with Default::default\(\)',
+]
