@@ -202,4 +202,55 @@ mod tests {
         );
         assert_eq!(cube, Cube3x3::default());
     }
+
+    #[test]
+    fn the_shorter_alternative_wins_whichever_comes_first() -> Result<(), Box<dyn Error>> {
+        for short_first in [false, true] {
+            let short: Arc<dyn Step<Cube3x3>> = FixedStep::new("Short", "R", true);
+            let long: Arc<dyn Step<Cube3x3>> = FixedStep::new("Long", "R U", true);
+            let alternatives = if short_first {
+                vec![short, long]
+            } else {
+                vec![long, short]
+            };
+            let choose = Choose::named("Either", alternatives);
+            let mut cube = Cube3x3::default();
+
+            let solution = choose.solve(&mut cube)?;
+
+            let names: Vec<&str> = solution
+                .iter()
+                .map(|segment| segment.name.as_str())
+                .collect();
+            assert_eq!(names, ["Short"], "short first: {short_first}");
+            assert_eq!(
+                cube,
+                Cube3x3::from_solved("R")?,
+                "short first: {short_first}"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn on_a_tie_the_earlier_alternative_is_kept() -> Result<(), Box<dyn Error>> {
+        let choose = Choose::named(
+            "Either",
+            vec![
+                FixedStep::new("First", "R", true),
+                FixedStep::new("Second", "U", true),
+            ],
+        );
+        let mut cube = Cube3x3::default();
+
+        let solution = choose.solve(&mut cube)?;
+
+        let names: Vec<&str> = solution
+            .iter()
+            .map(|segment| segment.name.as_str())
+            .collect();
+        assert_eq!(names, ["First"]);
+        assert_eq!(cube, Cube3x3::from_solved("R")?);
+        Ok(())
+    }
 }
