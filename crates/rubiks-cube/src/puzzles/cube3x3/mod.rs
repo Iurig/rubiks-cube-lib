@@ -43,6 +43,7 @@ macro_rules! unify_pieces {
         ]
     };
 }
+
 impl Puzzle for Cube3x3 {
     type Piece = Pieces3x3;
     type Orientation = Orientation3x3;
