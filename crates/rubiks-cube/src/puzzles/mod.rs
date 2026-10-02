@@ -63,11 +63,11 @@ pub trait Puzzle:
     /// state's orientation at `slot`.
     fn orientation_at(&self, slot: &Self::Piece) -> Self::Orientation;
 
-    /// A random reachable state. The same seed always gives the same state.
+    /// A random scrambled state. The same seed always gives the same state.
     #[must_use]
     fn scramble_with_seed(seed: u64) -> Self;
 
-    /// A random reachable state from a random seed.
+    /// A random scrambled state from a random seed.
     #[must_use]
     fn scramble() -> Self {
         Self::scramble_with_seed(fastrand::u64(..))
