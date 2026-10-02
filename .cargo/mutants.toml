@@ -10,3 +10,5 @@ exclude_re = [
     # `identity` already returns `Self::default()`.
     'replace <impl Pow for Cube3x3>::identity -> Self with Default::default\(\)',
 ]
+test_tool = "nextest"
+additional_cargo_test_args = ["--max-fail=1:immediate"]
