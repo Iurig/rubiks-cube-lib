@@ -8,7 +8,9 @@ mod mask;
 mod moves;
 mod notation;
 mod reconstructions;
+mod scramble;
 mod solving;
 mod states;
+mod stats;
 
 const IMPLEMENTED_MOVES: [&str; 12] = ["R", "U", "D", "L", "F", "B", "E", "S", "M", "y", "z", "x"];
