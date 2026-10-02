@@ -133,6 +133,22 @@ fn u_and_d_commute() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+fn rotations_match_moves() -> Result<(), Box<dyn Error>> {
+    assert_eq!(Cube3x3::from_solved("y")?, Cube3x3::from_solved("U E' D'")?);
+    assert_eq!(Cube3x3::from_solved("z")?, Cube3x3::from_solved("F S B'")?);
+    assert_eq!(Cube3x3::from_solved("x")?, Cube3x3::from_solved("R M' L'")?);
+    Ok(())
+}
+
+#[test]
+fn r_2_is_equal_to_r_prime_2() -> Result<(), Box<dyn Error>> {
+    let r2 = Cube3x3::from_solved("R2")?;
+    let r_prime_2 = Cube3x3::from_solved("R' R'")?;
+    assert_eq!(r2, r_prime_2);
+    Ok(())
+}
+
+#[test]
 fn sexy_move_has_correct_period_on_all_face_pairs() -> Result<(), Box<dyn Error>> {
     let adjacent_face_pairs = [
         ("R", "U"),

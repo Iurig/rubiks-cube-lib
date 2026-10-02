@@ -33,3 +33,59 @@ fn bad_move_error_names_its_line_and_position() {
         }
     );
 }
+
+#[test]
+fn incorrect_strings_return_error() {
+    let cases = [
+        (
+            "Q",
+            ParseMoveError::BadPart {
+                invalid_move: "Q".to_string(),
+                part: "Q".to_string(),
+            },
+            1,
+        ),
+        (
+            "R Q U",
+            ParseMoveError::BadPart {
+                invalid_move: "Q".to_string(),
+                part: "Q".to_string(),
+            },
+            2,
+        ),
+        (
+            "R3",
+            ParseMoveError::BadModifier {
+                invalid_move: "R3".to_string(),
+                modifier: "3".to_string(),
+            },
+            1,
+        ),
+    ];
+    for (text, cause, position) in cases {
+        let e = Cube3x3::from_solved(text).unwrap_err();
+        assert_eq!(*e.cause(), cause, "{text}");
+        assert_eq!(e.line(), 1, "{text}");
+        assert_eq!(e.position(), position, "{text}");
+    }
+}
+
+#[test]
+fn r_prime_is_inverse_of_r() -> Result<(), Box<dyn Error>> {
+    let r = Cube3x3::from_solved("R")?;
+    let r_prime = Cube3x3::from_solved("R'")?;
+    assert_eq!(r.inverse(), r_prime);
+    Ok(())
+}
+
+#[test]
+fn sequences_without_moves_leave_the_cube_unchanged() -> Result<(), Box<dyn Error>> {
+    let cube = Cube3x3::from_solved("R U")?;
+    assert_eq!(cube.move_sequence("")?, cube);
+    assert_eq!(cube.move_sequence("// nothing here")?, cube);
+    assert_eq!(
+        Cube3x3::from_solved("\n  // only comments\n")?,
+        Cube3x3::default()
+    );
+    Ok(())
+}

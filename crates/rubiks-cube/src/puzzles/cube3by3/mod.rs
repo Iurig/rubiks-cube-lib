@@ -340,35 +340,6 @@ mod tests {
     use std::error::Error;
 
     #[test]
-    fn hundred_random_states_are_reachable() {
-        for seed in 0..100 {
-            assert!(
-                Cube3x3::random_state_with_seed(seed).is_reachable(),
-                "the state from seed {seed} is not reachable"
-            );
-        }
-    }
-
-    #[test]
-    fn default_is_solved() {
-        assert!(Cube3x3::default().is_solved());
-    }
-
-    #[test]
-    fn y_rotated_solved_is_solved() -> Result<(), Box<dyn Error>> {
-        let rotated_def = Cube3x3::from_solved("y")?;
-        assert!(rotated_def.is_solved());
-        Ok(())
-    }
-
-    #[test]
-    fn rotated_solved_is_solved() -> Result<(), Box<dyn Error>> {
-        let rotated_def = Cube3x3::from_solved("y z y z x2 z2")?;
-        assert!(rotated_def.is_solved());
-        Ok(())
-    }
-
-    #[test]
     fn center_3_cyle_isnt_reachable_even_if_respects_parity() {
         assert!(
             !Cube3x3 {
@@ -430,125 +401,6 @@ mod tests {
     }
 
     #[test]
-    fn incorrect_strings_return_error() {
-        assert_eq!(
-            Cube3x3::from_solved("Q"),
-            Err(ParseSequenceError {
-                cause: ParseMoveError::BadPart {
-                    invalid_move: "Q".to_string(),
-                    part: "Q".to_string()
-                },
-                line: 1,
-                position: 1
-            })
-        );
-        assert_eq!(
-            Cube3x3::from_solved("R Q U"),
-            Err(ParseSequenceError {
-                cause: ParseMoveError::BadPart {
-                    invalid_move: "Q".to_string(),
-                    part: "Q".to_string()
-                },
-                line: 1,
-                position: 2
-            })
-        );
-        assert_eq!(
-            Cube3x3::from_solved("R3"),
-            Err(ParseSequenceError {
-                cause: ParseMoveError::BadModifier {
-                    invalid_move: "R3".to_string(),
-                    modifier: "3".to_string()
-                },
-                line: 1,
-                position: 1
-            })
-        );
-    }
-
-    #[test]
-    fn rotations_match_moves() -> Result<(), Box<dyn Error>> {
-        assert_eq!(Cube3x3::from_solved("y")?, Cube3x3::from_solved("U E' D'")?);
-        assert_eq!(Cube3x3::from_solved("z")?, Cube3x3::from_solved("F S B'")?);
-        assert_eq!(Cube3x3::from_solved("x")?, Cube3x3::from_solved("R M' L'")?);
-        Ok(())
-    }
-
-    #[test]
-    fn all_axes_rotated_solved_is_solved_but_not_after_a_face_turn() -> Result<(), Box<dyn Error>> {
-        assert!(Cube3x3::from_solved("x y2 z'")?.is_solved());
-        assert!(!Cube3x3::from_solved("x y2 z' R")?.is_solved());
-        Ok(())
-    }
-
-    #[test]
-    fn r_4_times_is_solved() -> Result<(), Box<dyn Error>> {
-        let cube = Cube3x3::from_solved("R R R R")?;
-        assert!(cube.is_solved());
-        Ok(())
-    }
-
-    #[test]
-    fn r_2_is_equal_to_r_prime_2() -> Result<(), Box<dyn Error>> {
-        let r2 = Cube3x3::from_solved("R2")?;
-        let r_prime_2 = Cube3x3::from_solved("R' R'")?;
-        assert_eq!(r2, r_prime_2);
-        Ok(())
-    }
-
-    #[test]
-    fn r_r_prime_is_solved() -> Result<(), Box<dyn Error>> {
-        let mut cube = Cube3x3::from_solved("R")?;
-        assert!(!cube.is_solved());
-        cube = cube.move_sequence("R'")?;
-        assert!(cube.is_solved());
-        Ok(())
-    }
-
-    #[test]
-    fn r_prime_is_inverse_of_r() -> Result<(), Box<dyn Error>> {
-        let r = Cube3x3::from_solved("R")?;
-        let r_prime = Cube3x3::from_solved("R'")?;
-        assert_eq!(r.inverse(), r_prime);
-        Ok(())
-    }
-
-    #[test]
-    fn composing_u_and_r_works() -> Result<(), Box<dyn Error>> {
-        let u = Cube3x3::from_solved("U")?;
-        let ur = Cube3x3::from_solved("U R")?;
-        assert_eq!(u.move_sequence("R")?, ur);
-        Ok(())
-    }
-
-    #[test]
-    fn composition_works() -> Result<(), Box<dyn Error>> {
-        let scramble_string = "R' ";
-        let solution_string = "D2";
-        let scramble = Cube3x3::from_solved(scramble_string)?;
-        assert_eq!(
-            Cube3x3::from_solved(&format!("{scramble_string} {solution_string}"))?,
-            scramble.move_sequence(solution_string)?,
-            "composing {scramble_string} and {solution_string} doesn't result in applying {scramble_string} {solution_string}"
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn composition_works_on_fmc_wr() -> Result<(), Box<dyn Error>> {
-        let scramble_string =
-            "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F";
-        let solution_string = "D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'";
-        let scramble = Cube3x3::from_solved(scramble_string)?;
-        assert_eq!(
-            Cube3x3::from_solved(&format!("{scramble_string} {solution_string}"))?,
-            scramble.move_sequence(solution_string)?,
-            "composing {scramble_string} and {solution_string} doesn't result in applying {scramble_string} {solution_string}"
-        );
-        Ok(())
-    }
-
-    #[test]
     fn mul_carries_orientation_along_with_the_piece() -> Result<(), Box<dyn Error>> {
         // Pre-twist the piece at UFR, then apply R: that piece lands at UBR and
         // its twist is added to the twist R gives the UBR slot.
@@ -570,17 +422,5 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(u_perm.pow(3), Cube3x3::default());
-    }
-
-    #[test]
-    fn sequences_without_moves_leave_the_cube_unchanged() -> Result<(), Box<dyn Error>> {
-        let cube = Cube3x3::from_solved("R U")?;
-        assert_eq!(cube.move_sequence("")?, cube);
-        assert_eq!(cube.move_sequence("// nothing here")?, cube);
-        assert_eq!(
-            Cube3x3::from_solved("\n  // only comments\n")?,
-            Cube3x3::default()
-        );
-        Ok(())
     }
 }
