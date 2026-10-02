@@ -118,7 +118,7 @@ mod tests {
     fn algorithm_then_its_inverse_returns_to_the_start() -> Result<(), Box<dyn Error>> {
         let alg = algorithm("R U R' U' R' F R2 U' R' U' R U R' F'")?;
         for seed in 0..20 {
-            let start = Cube3x3::random_state_with_seed(seed);
+            let start = Cube3x3::scramble_with_seed(seed);
             let end = alg
                 .iter()
                 .chain(&alg.inverse())

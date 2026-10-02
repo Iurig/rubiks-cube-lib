@@ -12,7 +12,7 @@ fn main() {
     let args = Args::parse();
     match args.method {
         m if &m == "roux" => {
-            let mut cube = Cube3x3::random_state();
+            let mut cube = Cube3x3::scramble();
             println!(
                 "{:?}\n{}",
                 Method::kociemba()

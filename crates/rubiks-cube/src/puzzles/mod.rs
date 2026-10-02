@@ -65,12 +65,12 @@ pub trait Puzzle:
 
     /// A random reachable state. The same seed always gives the same state.
     #[must_use]
-    fn random_state_with_seed(seed: u64) -> Self;
+    fn scramble_with_seed(seed: u64) -> Self;
 
     /// A random reachable state from a random seed.
     #[must_use]
-    fn random_state() -> Self {
-        Self::random_state_with_seed(fastrand::u64(..))
+    fn scramble() -> Self {
+        Self::scramble_with_seed(fastrand::u64(..))
     }
 
     #[expect(

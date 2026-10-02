@@ -20,7 +20,7 @@ fn full_solve_and_checking_bfs() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn every_option_combination_solves() -> Result<(), Box<dyn Error>> {
-    let scrambles: Vec<Cube3x3> = (2026..2030).map(Cube3x3::random_state_with_seed).collect();
+    let scrambles: Vec<Cube3x3> = (2026..2030).map(Cube3x3::scramble_with_seed).collect();
     for fb_as_one_step in [false, true] {
         for sb_square_as_one_step in [false, true] {
             for one_look_cmll in [false, true] {

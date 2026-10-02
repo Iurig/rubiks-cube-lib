@@ -584,7 +584,7 @@ mod tests {
     #[test]
     fn every_state_shows_nine_stickers_of_each_colour() {
         for seed in 0..50 {
-            let facelets = Cube3x3::random_state_with_seed(seed).facelets();
+            let facelets = Cube3x3::scramble_with_seed(seed).facelets();
             for colour in Center::ALL {
                 let count = Center::ALL
                     .iter()

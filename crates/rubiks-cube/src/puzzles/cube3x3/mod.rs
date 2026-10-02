@@ -145,7 +145,7 @@ impl Puzzle for Cube3x3 {
         }
     }
 
-    fn random_state_with_seed(seed: u64) -> Self {
+    fn scramble_with_seed(seed: u64) -> Self {
         let mut rng = fastrand::Rng::with_seed(seed);
         let mut attempt = Self {
             corner_configuration: CornerConfiguration::random_state(&mut rng),

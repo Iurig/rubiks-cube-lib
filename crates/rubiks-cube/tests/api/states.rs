@@ -28,7 +28,7 @@ fn y_is_reachable() -> Result<(), Box<dyn Error>> {
 fn hundred_random_states_are_reachable() {
     for seed in 0..100 {
         assert!(
-            Cube3x3::random_state_with_seed(seed).is_reachable(),
+            Cube3x3::scramble_with_seed(seed).is_reachable(),
             "the state from seed {seed} is not reachable"
         );
     }

@@ -90,6 +90,6 @@ fn masked_with_correct_orientation_but_wrong_permutation_parses_correctly() {
 #[test]
 fn empty_mask_always_applies() {
     for seed in 0..100 {
-        assert!(Mask::from_iter([], []).applies_to(&Cube3x3::random_state_with_seed(seed)));
+        assert!(Mask::from_iter([], []).applies_to(&Cube3x3::scramble_with_seed(seed)));
     }
 }
