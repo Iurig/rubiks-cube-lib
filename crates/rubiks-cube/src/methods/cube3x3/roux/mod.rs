@@ -2,7 +2,7 @@ use std::sync::{Arc, LazyLock};
 
 use crate::{
     AlgSet, Choose, Cube3x3, Labeled, Method, SearchStep, Step, Tracked,
-    puzzles::cube3by3::pieces::Pieces3x3,
+    puzzles::cube3x3::pieces::Pieces3x3,
 };
 
 const FB_FRONT_SQUARE_PIECES: [Pieces3x3; 4] = [

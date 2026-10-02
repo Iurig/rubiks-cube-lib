@@ -154,7 +154,7 @@ sticker belongs to when solved (`println!("{cube}")`); `cube.facelets()` gives t
 physical cube would look like, so a wrong twist or flip convention is visible at a glance.
 
 Only the nine base moves (six faces, three slices) are written by hand, as explicit cycles in
-[moves/table.rs](crates/rubiks-cube/src/puzzles/cube3by3/moves/table.rs). Rotations (`x = R M' L'`,
+[moves/table.rs](crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs). Rotations (`x = R M' L'`,
 `y = U E' D'`, `z = F S B'`), wide moves (a face turn followed by its parallel slice), and every
 inverse and double are derived from those nine, on first use, into a single `ALL_MOVES` table
 that string parsing looks up. A derived move therefore cannot drift from its base moves.
@@ -199,7 +199,7 @@ crates/
         mod.rs                the Puzzle trait
         mask.rs               Mask: which pieces must be in place or oriented
         algset.rs             AlgSet: move sequences a search applies as single units
-        cube3by3/
+        cube3x3/
           mod.rs              Cube3x3, Mul/Inv/Pow impls, accessors, rotation-aware
                               is_solved, is_reachable
           pieces.rs           piece enums, counts, and type aliases for the 3×3

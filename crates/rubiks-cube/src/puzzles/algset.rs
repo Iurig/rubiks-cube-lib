@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{
     Algorithm, Cube3x3, ParseSequenceError, Puzzle,
     fast_hash::FxSet,
-    puzzles::cube3by3::moves::{MovablePart, Move3x3, MoveModifier},
+    puzzles::cube3x3::moves::{MovablePart, Move3x3, MoveModifier},
 };
 
 /// A collection of move sequences, each applied as one unit: a single move, or a whole algorithm.

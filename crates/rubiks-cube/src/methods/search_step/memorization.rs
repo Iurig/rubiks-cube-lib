@@ -110,7 +110,7 @@ mod tests {
     use super::*;
     use crate::*;
     use fastrand::Rng;
-    use puzzles::cube3by3::moves::Move3x3;
+    use puzzles::cube3x3::moves::Move3x3;
 
     #[test]
     fn applying_mask_matches_filtering_through() {
@@ -255,29 +255,29 @@ mod tests {
             Pieces3x3::Edge(crate::Edge::Bl),
         ];
         let sb_moves = [
-            puzzles::cube3by3::moves::Move3x3 {
-                part: puzzles::cube3by3::moves::MovablePart::Face(
-                    puzzles::cube3by3::pieces::Faces::U,
+            puzzles::cube3x3::moves::Move3x3 {
+                part: puzzles::cube3x3::moves::MovablePart::Face(
+                    puzzles::cube3x3::pieces::Faces::U,
                 ),
-                modifier: puzzles::cube3by3::moves::MoveModifier::Clockwise,
+                modifier: puzzles::cube3x3::moves::MoveModifier::Clockwise,
             },
-            puzzles::cube3by3::moves::Move3x3 {
-                part: puzzles::cube3by3::moves::MovablePart::Face(
-                    puzzles::cube3by3::pieces::Faces::R,
+            puzzles::cube3x3::moves::Move3x3 {
+                part: puzzles::cube3x3::moves::MovablePart::Face(
+                    puzzles::cube3x3::pieces::Faces::R,
                 ),
-                modifier: puzzles::cube3by3::moves::MoveModifier::Clockwise,
+                modifier: puzzles::cube3x3::moves::MoveModifier::Clockwise,
             },
-            puzzles::cube3by3::moves::Move3x3 {
-                part: puzzles::cube3by3::moves::MovablePart::Slice(
-                    puzzles::cube3by3::pieces::Slices::M,
+            puzzles::cube3x3::moves::Move3x3 {
+                part: puzzles::cube3x3::moves::MovablePart::Slice(
+                    puzzles::cube3x3::pieces::Slices::M,
                 ),
-                modifier: puzzles::cube3by3::moves::MoveModifier::Clockwise,
+                modifier: puzzles::cube3x3::moves::MoveModifier::Clockwise,
             },
-            puzzles::cube3by3::moves::Move3x3 {
-                part: puzzles::cube3by3::moves::MovablePart::Wide(
-                    puzzles::cube3by3::pieces::Faces::R,
+            puzzles::cube3x3::moves::Move3x3 {
+                part: puzzles::cube3x3::moves::MovablePart::Wide(
+                    puzzles::cube3x3::pieces::Faces::R,
                 ),
-                modifier: puzzles::cube3by3::moves::MoveModifier::Clockwise,
+                modifier: puzzles::cube3x3::moves::MoveModifier::Clockwise,
             },
         ];
 

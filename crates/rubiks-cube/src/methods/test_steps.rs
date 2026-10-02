@@ -6,7 +6,7 @@ use std::sync::{
 };
 
 use crate::{
-    Cube3x3, Solution, Step, StepError, methods::Segment, puzzles::cube3by3::moves::Move3x3,
+    Cube3x3, Solution, Step, StepError, methods::Segment, puzzles::cube3x3::moves::Move3x3,
 };
 
 /// A step whose result is fixed in advance. `solve` either returns the error from `error`,

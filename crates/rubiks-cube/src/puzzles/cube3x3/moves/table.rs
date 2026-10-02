@@ -16,7 +16,7 @@ use crate::{Inv, Piece};
 use {
     super::{MovablePart, MovablePart::*, MoveModifier, MoveModifier::*},
     crate::{
-        puzzles::cube3by3::{Cube3x3, pieces::*},
+        puzzles::cube3x3::{Cube3x3, pieces::*},
         zn::Zn,
     },
 };

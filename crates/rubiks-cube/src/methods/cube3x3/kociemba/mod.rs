@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     AlgSet, Cube3x3, Edge, Labeled, Mask, Method, Orientation3x3, Pieces3x3, Puzzle, Step,
-    StepError, Tracked, methods::combine_pruned::PruneTable, puzzles::cube3by3::moves::Move3x3,
+    StepError, Tracked, methods::combine_pruned::PruneTable, puzzles::cube3x3::moves::Move3x3,
     zn::Zn,
 };
 

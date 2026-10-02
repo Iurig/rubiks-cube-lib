@@ -1,7 +1,7 @@
 use crate::{
     Piece,
     piece::PieceConfiguration,
-    puzzles::cube3by3::pieces::Orientation3x3::{Fixed, Flip, Twist},
+    puzzles::cube3x3::pieces::Orientation3x3::{Fixed, Flip, Twist},
     zn::Zn,
 };
 

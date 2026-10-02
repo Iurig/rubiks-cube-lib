@@ -89,9 +89,7 @@ pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
 )]
 mod tests {
     use super::*;
-    use crate::{
-        Algorithm, Cube3x3, ParseSequenceError, Puzzle, puzzles::cube3by3::moves::Move3x3,
-    };
+    use crate::{Algorithm, Cube3x3, ParseSequenceError, Puzzle, puzzles::cube3x3::moves::Move3x3};
     use std::error::Error;
 
     fn algorithm(text: &str) -> Result<Algorithm<Cube3x3>, ParseSequenceError> {

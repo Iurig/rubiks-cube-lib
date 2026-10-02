@@ -354,7 +354,7 @@ mod tests {
 
     use crate::{
         Cube3x3, Edge, Labeled, ParseSequenceError, Pieces3x3, SearchStep, Tracked,
-        puzzles::cube3by3::moves::Move3x3,
+        puzzles::cube3x3::moves::Move3x3,
     };
 
     use super::{test_steps::FixedStep, *};

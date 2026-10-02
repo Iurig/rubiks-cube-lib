@@ -6,7 +6,7 @@ mod table;
 )]
 use crate::{
     ops,
-    puzzles::cube3by3::{Cube3x3, pieces::*},
+    puzzles::cube3x3::{Cube3x3, pieces::*},
 };
 
 use table::cube_state;

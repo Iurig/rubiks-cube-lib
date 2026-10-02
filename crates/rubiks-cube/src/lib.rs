@@ -77,7 +77,7 @@ pub use methods::{
 };
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};
-pub use puzzles::cube3by3::{
+pub use puzzles::cube3x3::{
     Cube3x3,
     facelets::Facelets,
     moves::{ParseMoveError, ParseSequenceError},

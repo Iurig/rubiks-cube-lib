@@ -17,7 +17,7 @@ use self::{moves::*, pieces::*};
 )]
 use crate::{
     ops::{Inv, Pow},
-    puzzles::{Puzzle, cube3by3::moves::MoveModifier::*},
+    puzzles::{Puzzle, cube3x3::moves::MoveModifier::*},
     zn::Zn,
 };
 
@@ -60,7 +60,7 @@ impl Puzzle for Cube3x3 {
             clippy::enum_glob_use,
             reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
         )]
-        use crate::{Center::*, puzzles::cube3by3::moves::MovablePart::*};
+        use crate::{Center::*, puzzles::cube3x3::moves::MovablePart::*};
         use moves::Move3x3;
         [
             Move3x3::new(Face(F), Clockwise),
