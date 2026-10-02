@@ -31,6 +31,14 @@ pub trait Inv: Sized {
     fn inverse(&self) -> Self;
 }
 
+/// The inverse of a move sequence, such as an [`Algorithm`](crate::Algorithm): the moves in
+/// reverse order, each one inverted. `R U` gives `U' R'`.
+impl<M: Inv> Inv for Vec<M> {
+    fn inverse(&self) -> Self {
+        self.iter().rev().map(Inv::inverse).collect()
+    }
+}
+
 /// Repeated multiplication by fast exponentiation.
 pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
     /// The result of an empty product.
@@ -71,5 +79,54 @@ pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
             2 => self.clone() * self.clone(),
             _ => self.pow(exponent % 2) * self.pow(exponent / 2).pow(2),
         }
+    }
+}
+
+#[cfg(test)]
+#[expect(
+    clippy::panic_in_result_fn,
+    reason = "tests should panic if failed, and return result for `?` convenience"
+)]
+mod tests {
+    use super::*;
+    use crate::{
+        Algorithm, Cube3x3, ParseSequenceError, Puzzle, puzzles::cube3by3::moves::Move3x3,
+    };
+    use std::error::Error;
+
+    fn algorithm(text: &str) -> Result<Algorithm<Cube3x3>, ParseSequenceError> {
+        Move3x3::sequence(text).collect()
+    }
+
+    #[test]
+    fn algorithm_inverse_reverses_and_inverts_each_move() -> Result<(), Box<dyn Error>> {
+        assert_eq!(algorithm("R U R' F2")?.inverse(), algorithm("F2' R U' R'")?);
+        Ok(())
+    }
+
+    #[test]
+    fn empty_algorithm_is_its_own_inverse() {
+        assert_eq!(Algorithm::<Cube3x3>::new().inverse(), Vec::new());
+    }
+
+    #[test]
+    fn inverting_an_algorithm_twice_gives_it_back() -> Result<(), Box<dyn Error>> {
+        let alg = algorithm("r U' M2 x E' Fw2 D")?;
+        assert_eq!(alg.inverse().inverse(), alg);
+        Ok(())
+    }
+
+    #[test]
+    fn algorithm_then_its_inverse_returns_to_the_start() -> Result<(), Box<dyn Error>> {
+        let alg = algorithm("R U R' U' R' F R2 U' R' U' R U R' F'")?;
+        for seed in 0..20 {
+            let start = Cube3x3::random_state_with_seed(seed);
+            let end = alg
+                .iter()
+                .chain(&alg.inverse())
+                .fold(start, |cube, &m| cube * m);
+            assert_eq!(end, start, "seed {seed}");
+        }
+        Ok(())
     }
 }
