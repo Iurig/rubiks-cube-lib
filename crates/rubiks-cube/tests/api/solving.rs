@@ -1,0 +1,59 @@
+use rubiks_cube::*;
+use std::error::Error;
+
+#[test]
+fn full_solve_and_checking_bfs() -> Result<(), Box<dyn Error>> {
+    let scr = "U B' D L2 U B2 R2 D2 L2 D' U2 B2 R2 L U2 F' R' B L D'\n";
+    let mut scrambled = Cube3x3::from_solved(scr).expect("deu ruim");
+
+    let recon: String = Method::roux(RouxOptions::default())
+        .solve(&mut scrambled)?
+        .to_string();
+
+    assert_eq!(
+        Cube3x3::from_solved(&(scr.to_string() + recon.as_str())).expect("deu OUTRO ruim"),
+        Cube3x3::default()
+    );
+    println!("{recon}");
+    Ok(())
+}
+
+#[test]
+fn every_option_combination_solves() -> Result<(), Box<dyn Error>> {
+    let scrambles: Vec<Cube3x3> = (2026..2030).map(Cube3x3::random_state_with_seed).collect();
+    for fb_as_one_step in [false, true] {
+        for sb_square_as_one_step in [false, true] {
+            for one_look_cmll in [false, true] {
+                let options = RouxOptions {
+                    sb_as_one_step: sb_square_as_one_step,
+                    fb_as_one_step,
+                    one_look_cmll,
+                };
+                let described = format!("{options:?}");
+                let roux = Method::roux(options);
+                for (i, scrambled) in scrambles.iter().enumerate() {
+                    let recon = roux
+                        .solve(&mut scrambled.clone())
+                        .map_err(|e| format!("{described}, scramble {i}: {e}"))?
+                        .to_string();
+                    assert!(
+                        scrambled.move_sequence(&recon)?.is_solved(),
+                        "{described} did not solve scramble {i}:\n{scrambled}\n{recon}"
+                    );
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn skips_work() -> Result<(), Box<dyn Error>> {
+    let scrambled = Cube3x3::from_solved("U2")?;
+    let recon = Method::roux(RouxOptions::default())
+        .solve(&mut scrambled.clone())?
+        .to_string();
+    println!("{recon}");
+    assert!(scrambled.move_sequence(&recon)?.is_solved());
+    Ok(())
+}
