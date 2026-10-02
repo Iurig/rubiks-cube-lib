@@ -89,7 +89,7 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     }
 
     /// A mask where each piece in `pieces` must be solved: home and oriented. Same as
-    /// <code>[new](Self::new)(pieces.clone(), pieces)</code>.
+    /// <code>[from_double_iter](Self::from_double_iter)(pieces.clone(), pieces)</code>.
     pub fn new_from_pieces<I>(pieces: I) -> Self
     where
         I: IntoIterator<Item = P::Piece> + Clone,
