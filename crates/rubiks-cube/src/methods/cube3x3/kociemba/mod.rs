@@ -1,26 +1,15 @@
-use std::{
-    collections::VecDeque,
-    hash::Hash,
-    ops::Mul,
-    sync::{Arc, LazyLock},
-};
+use std::sync::{Arc, LazyLock};
 
 use crate::{
-    AlgSet, Cube3x3, Edge, Labeled, Mask, Method, Orientation3x3, Pieces3x3, Puzzle, Step,
-    StepError, Tracked, methods::combine_pruned::PruneTable, puzzles::cube3x3::moves::Move3x3,
-    zn::Zn,
+    AlgSet, Algorithm, ByPiece, Cube3x3, Edge, Labeled, Method, Pieces3x3, Puzzle, Tracked,
+    methods::combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
+    puzzles::cube3x3::{
+        moves::{MovablePart, MoveModifier},
+        pieces::Faces,
+    },
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct DominoEdges(Labeled<Cube3x3, Tracked>);
-
-impl Mul<Move3x3> for DominoEdges {
-    type Output = Self;
-    fn mul(self, rhs: Move3x3) -> Self::Output {
-        Self(self.0 * rhs)
-    }
-}
-
+/// The four E-slice edges. Phase 1 brings them into the E slice; phase 2 puts them in place.
 const RIM: [Pieces3x3; 4] = [
     Pieces3x3::Edge(Edge::Fl),
     Pieces3x3::Edge(Edge::Fr),
@@ -28,61 +17,169 @@ const RIM: [Pieces3x3; 4] = [
     Pieces3x3::Edge(Edge::Br),
 ];
 
-static CORNERS_PHASE_1_GOAL: LazyLock<Labeled<Cube3x3, Tracked>> = LazyLock::new(|| {
-    Labeled::<Cube3x3, Tracked>::from_double_iter(
-        [],
-        Cube3x3::ALL_PIECES
-            .iter()
-            .filter(|&p| matches!(p, Pieces3x3::Corner(_)))
-            .copied(),
-    )
-});
+/// Every face turn, one per sequence: phase 1's moveset. `2'` is left out, since on a face it
+/// reaches the same state as `2` and would only double the branching.
+fn face_turns() -> AlgSet<Cube3x3> {
+    Cube3x3::ALL_MOVES
+        .iter()
+        .filter(|m| {
+            matches!(m.part, MovablePart::Face(_)) && m.modifier != MoveModifier::CounterDouble
+        })
+        .map(|&m| Algorithm::from_iter([m]))
+        .collect()
+}
 
-static CORNERS_PHASE_1_TABLE: LazyLock<PruneTable<Mask<Cube3x3>>> = LazyLock::new(|| {
-    let mut prune_table = PruneTable::from_iter([(
-        Mask::<Cube3x3>::filter_by_piece(&Cube3x3::default(), &CORNERS_PHASE_1_GOAL),
-        0,
-    )]);
-    prune_table.populate(&AlgSet::<Cube3x3>::from_iter(
-        Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]),
-    ));
-    prune_table
-});
+/// Phase 2's moveset, the moves that keep a cube in the domino subgroup: any turn of U or D,
+/// and half turns of the other faces.
+fn domino_turns() -> AlgSet<Cube3x3> {
+    Cube3x3::ALL_MOVES
+        .iter()
+        .filter(|m| match m.part {
+            MovablePart::Face(Faces::U | Faces::D) => m.modifier != MoveModifier::CounterDouble,
+            MovablePart::Face(_) => m.modifier == MoveModifier::Double,
+            _ => false,
+        })
+        .map(|&m| Algorithm::from_iter([m]))
+        .collect()
+}
 
-static EDGES_PHASE_1_GOAL: LazyLock<DominoEdges> = LazyLock::new(|| {
-    DominoEdges(Labeled::<Cube3x3, Tracked>::from_iter(
-        Cube3x3::ALL_PIECES.iter().filter_map(|&p| {
-            [
-                Pieces3x3::Edge(Edge::Fl),
-                Pieces3x3::Edge(Edge::Fr),
-                Pieces3x3::Edge(Edge::Bl),
-                Pieces3x3::Edge(Edge::Br),
-            ]
-            .contains(&p)
-            .then_some((p, ()))
-        }),
-        Cube3x3::ALL_PIECES
-            .iter()
-            .filter(|&p| matches!(p, Pieces3x3::Edge(_)))
-            .copied(),
-    ))
-});
+fn corners() -> impl Iterator<Item = Pieces3x3> + Clone {
+    Cube3x3::ALL_PIECES
+        .iter()
+        .filter(|&p| matches!(p, Pieces3x3::Corner(_)))
+        .copied()
+}
 
-static EDGES_PHASE_1_TABLE: LazyLock<PruneTable<DominoEdges>> = LazyLock::new(|| {
-    let mut prune_table = PruneTable::from_iter([(EDGES_PHASE_1_GOAL.clone(), 0)]);
-    prune_table.populate(&AlgSet::<Cube3x3>::from_iter(
-        Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]),
-    ));
-    prune_table
-});
+fn edges() -> impl Iterator<Item = Pieces3x3> + Clone {
+    Cube3x3::ALL_PIECES
+        .iter()
+        .filter(|&p| matches!(p, Pieces3x3::Edge(_)))
+        .copied()
+}
+
+static CORNERS_PHASE_1_GOAL: LazyLock<Labeled<Cube3x3, Tracked>> =
+    LazyLock::new(|| Labeled::<Cube3x3, Tracked>::from_double_iter([], corners()));
+
+static CORNERS_PHASE_1_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, Tracked>>> =
+    LazyLock::new(|| PruneTable::from_goal(&CORNERS_PHASE_1_GOAL, &face_turns()));
+
+static EDGES_PHASE_1_GOAL: LazyLock<Labeled<Cube3x3, Tracked>> =
+    LazyLock::new(|| Labeled::<Cube3x3, Tracked>::from_double_iter(RIM, edges()));
+
+static EDGES_PHASE_1_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, Tracked>>> =
+    LazyLock::new(|| PruneTable::from_goal(&EDGES_PHASE_1_GOAL, &face_turns()));
 
 #[derive(Debug)]
-pub struct Phase1;
-impl Step<Cube3x3> for Phase1 {
-    fn name(&self) -> &'static str {
-        "Phase 1"
+struct Phase1Corners;
+impl PrunedGoal<Cube3x3> for Phase1Corners {
+    type Marker = Tracked;
+    fn goal(&self) -> &Labeled<Cube3x3, Tracked> {
+        &CORNERS_PHASE_1_GOAL
     }
-    fn is_done(&self, puzzle: &Cube3x3) -> bool {
+    fn table(&self) -> &PruneTable<Labeled<Cube3x3, Tracked>> {
+        &CORNERS_PHASE_1_TABLE
+    }
+}
+
+#[derive(Debug)]
+struct Phase1Edges;
+impl PrunedGoal<Cube3x3> for Phase1Edges {
+    type Marker = Tracked;
+    fn goal(&self) -> &Labeled<Cube3x3, Tracked> {
+        &EDGES_PHASE_1_GOAL
+    }
+    fn table(&self) -> &PruneTable<Labeled<Cube3x3, Tracked>> {
+        &EDGES_PHASE_1_TABLE
+    }
+}
+
+/// Phase 1: orient every piece and bring the E-slice edges into the E slice, with face turns.
+fn phase_1() -> PrunedCombine<'static, Cube3x3> {
+    PrunedCombine::<Cube3x3>::new(
+        "Phase 1",
+        [
+            Box::new(Phase1Corners) as Box<dyn DistanceStep<Cube3x3>>,
+            Box::new(Phase1Edges) as Box<dyn DistanceStep<Cube3x3>>,
+        ],
+        face_turns(),
+    )
+}
+
+// Phase 2's goals use `ByPiece`, because they must tell the pieces of a group apart: `Tracked`
+// would only say which slots hold them. As in Kociemba's own solver, each goal pairs a group of
+// pieces with the E-slice edges, so one table knows how both interact: 8! * 4! = 967680 entries
+// each. Separate tables for the three groups give a lower bound only as good as the worst-placed
+// group, which leaves the search to explore far more states.
+
+static CORNERS_AND_E_PHASE_2_GOAL: LazyLock<Labeled<Cube3x3, ByPiece>> =
+    LazyLock::new(|| Labeled::<Cube3x3, ByPiece>::new_from_pieces(corners().chain(RIM)));
+
+static CORNERS_AND_E_PHASE_2_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, ByPiece>>> =
+    LazyLock::new(|| PruneTable::from_goal(&CORNERS_AND_E_PHASE_2_GOAL, &domino_turns()));
+
+static EDGES_PHASE_2_GOAL: LazyLock<Labeled<Cube3x3, ByPiece>> =
+    LazyLock::new(|| Labeled::<Cube3x3, ByPiece>::new_from_pieces(edges()));
+
+static EDGES_PHASE_2_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, ByPiece>>> =
+    LazyLock::new(|| PruneTable::from_goal(&EDGES_PHASE_2_GOAL, &domino_turns()));
+
+#[derive(Debug)]
+struct Phase2CornersAndE;
+impl PrunedGoal<Cube3x3> for Phase2CornersAndE {
+    type Marker = ByPiece;
+    fn goal(&self) -> &Labeled<Cube3x3, ByPiece> {
+        &CORNERS_AND_E_PHASE_2_GOAL
+    }
+    fn table(&self) -> &PruneTable<Labeled<Cube3x3, ByPiece>> {
+        &CORNERS_AND_E_PHASE_2_TABLE
+    }
+}
+
+/// The U/D-layer edges with the E-slice edges, which is every edge.
+#[derive(Debug)]
+struct Phase2Edges;
+impl PrunedGoal<Cube3x3> for Phase2Edges {
+    type Marker = ByPiece;
+    fn goal(&self) -> &Labeled<Cube3x3, ByPiece> {
+        &EDGES_PHASE_2_GOAL
+    }
+    fn table(&self) -> &PruneTable<Labeled<Cube3x3, ByPiece>> {
+        &EDGES_PHASE_2_TABLE
+    }
+}
+
+/// Phase 2: solve a cube in the domino subgroup, with only the moves that keep it there. A cube
+/// outside the subgroup gets [`StepError::UnreachableGoal`](crate::StepError::UnreachableGoal),
+/// since every goal asks for oriented pieces and these moves never change orientation.
+fn phase_2() -> PrunedCombine<'static, Cube3x3> {
+    PrunedCombine::<Cube3x3>::new(
+        "Phase 2",
+        [
+            Box::new(Phase2CornersAndE) as Box<dyn DistanceStep<Cube3x3>>,
+            Box::new(Phase2Edges) as Box<dyn DistanceStep<Cube3x3>>,
+        ],
+        domino_turns(),
+    )
+}
+
+impl Method<Cube3x3> {
+    /// Kociemba's two-phase method: phase 1 orients every piece and brings the E-slice edges
+    /// into the E slice using face turns, then phase 2 solves using only `U`, `D`, and half
+    /// turns. The first call builds the pruning tables, which takes a few seconds.
+    #[must_use]
+    pub fn kociemba() -> Self {
+        Self::new("kociemba", vec![Arc::new(phase_1()), Arc::new(phase_2())])
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Orientation3x3, Segment, Solution, Step, StepError, zn::Zn};
+
+    /// Phase 1's goal written from the definition, independent of the prune tables: every
+    /// corner twist and edge flip is zero, and the four E-slice edges sit in E-slice slots.
+    fn in_domino_subgroup(puzzle: &Cube3x3) -> bool {
         Cube3x3::ALL_PIECES
             .iter()
             .filter(|&p| matches!(p, Pieces3x3::Corner(_)))
@@ -93,47 +190,118 @@ impl Step<Cube3x3> for Phase1 {
                 .all(|&slot| puzzle.orientation_at(&slot) == Orientation3x3::Flip(Zn::ZERO))
             && RIM.iter().all(|p| RIM.contains(&puzzle.piece_location(p)))
     }
-    fn solve(&self, puzzle: &mut Cube3x3) -> Result<crate::Solution<Cube3x3>, crate::StepError> {
-        for depth in 0..20 {
-            let puzzle_corners =
-                Labeled::<Cube3x3, Tracked>::filter_by_piece(&puzzle, &CORNERS_PHASE_1_GOAL);
-            let puzzle_edges =
-                Labeled::<Cube3x3, Tracked>::filter_by_piece(&puzzle, &EDGES_PHASE_1_GOAL.0);
-            let mut to_investigate = VecDeque::from([puzzle.clone()]);
-
-            while let Some(state) = to_investigate.pop_front() {}
-        }
-        Err(StepError::UnreachableGoal)
-    }
-}
-
-#[derive(Debug)]
-pub struct Phase2;
-impl Step<Cube3x3> for Phase2 {
-    fn name(&self) -> &'static str {
-        "Phase 2"
-    }
-    fn is_done(&self, puzzle: &Cube3x3) -> bool {
-        Cube3x3::is_solved(puzzle)
-    }
-    fn solve(&self, puzzle: &mut Cube3x3) -> Result<crate::Solution<Cube3x3>, crate::StepError> {
-        todo!()
-    }
-}
-
-impl Method<Cube3x3> {
-    #[must_use]
-    pub fn kociemba() -> Self {
-        Self::new("kociemba", vec![Arc::from(Phase1), Arc::from(Phase2)])
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 
     #[test]
-    fn corners_phase_1_prune_table_builds() {
-        let table = CORNERS_PHASE_1_TABLE.clone();
+    #[expect(clippy::let_underscore_must_use, reason = "this is a test")]
+    fn phase_1_solves() {
+        let _ = env_logger::builder().is_test(true).try_init();
+        let mut cube = Cube3x3::scramble();
+        let solution = phase_1().solve(&mut cube);
+        dbg!(&solution);
+        match solution {
+            Ok(s) => println!("{s}"),
+            Err(e) => print!("{e}"),
+        }
+        println!("{cube}");
+        assert!(in_domino_subgroup(&cube));
+    }
+
+    /// The moves of `solution`, all segments in order, applied to `start`.
+    fn replay(start: &Cube3x3, solution: &Solution<Cube3x3>) -> Cube3x3 {
+        solution
+            .iter()
+            .flat_map(Segment::moves)
+            .fold(*start, |cube, &m| cube * m)
+    }
+
+    #[test]
+    fn domino_turns_are_u_and_d_turns_and_other_half_turns() {
+        let names: Vec<String> = domino_turns()
+            .algs()
+            .iter()
+            .map(|alg| alg.iter().map(ToString::to_string).collect())
+            .collect();
+        let mut sorted = names.clone();
+        sorted.sort();
+        assert_eq!(
+            sorted,
+            ["B2", "D", "D'", "D2", "F2", "L2", "R2", "U", "U'", "U2"],
+            "{names:?}"
+        );
+    }
+
+    #[test]
+    fn domino_turns_keep_a_cube_in_the_domino_subgroup() {
+        let mut cube = Cube3x3::default();
+        for alg in domino_turns().algs() {
+            cube = alg.iter().fold(cube, |c, &m| c * m);
+            assert!(
+                in_domino_subgroup(&cube),
+                "after {alg:?}
+{cube}"
+            );
+        }
+    }
+
+    #[test]
+    fn phase_2_leaves_a_solved_cube_alone() {
+        let mut cube = Cube3x3::default();
+        let solution = phase_2().solve(&mut cube).unwrap();
+        assert_eq!(solution.move_count(), 0);
+        assert_eq!(cube, Cube3x3::default());
+    }
+
+    /// The search is iterative deepening with lower bounds, so it never returns more moves than
+    /// the sequence that made the state.
+    #[test]
+    fn phase_2_solves_a_domino_state_in_at_most_its_length() {
+        let start = Cube3x3::from_solved("R2 U F2 D' L2 U2 B2 D R2 U'").unwrap();
+        let mut cube = start;
+        let solution = phase_2().solve(&mut cube).unwrap();
+        assert!(
+            cube.is_solved(),
+            "{solution}
+{cube}"
+        );
+        assert!(solution.move_count() <= 10, "{solution}");
+        assert!(replay(&start, &solution).is_solved(), "{solution}");
+    }
+
+    #[test]
+    fn phase_2_rejects_a_cube_outside_the_domino_subgroup() {
+        let mut cube = Cube3x3::from_solved("R").unwrap();
+        let result = phase_2().solve(&mut cube);
+        assert!(
+            matches!(result, Err(StepError::UnreachableGoal)),
+            "{result:?}"
+        );
+        assert_eq!(cube, Cube3x3::from_solved("R").unwrap());
+    }
+
+    #[test]
+    fn phase_2_solves_what_phase_1_leaves() {
+        let mut cube = Cube3x3::scramble();
+        phase_1().solve(&mut cube).unwrap();
+        let solution = phase_2().solve(&mut cube).unwrap();
+        assert!(
+            cube.is_solved(),
+            "{solution}
+{cube}"
+        );
+    }
+
+    #[test]
+    fn kociemba_solves_a_scramble() {
+        let start = Cube3x3::scramble();
+        let mut cube = start;
+        let solution = Method::kociemba().solve(&mut cube).unwrap();
+        let names: Vec<&str> = solution.iter().map(Segment::name).collect();
+        assert_eq!(names, ["Phase 1", "Phase 2"]);
+        assert!(
+            cube.is_solved(),
+            "{solution}
+{cube}"
+        );
+        assert!(replay(&start, &solution).is_solved(), "{solution}");
     }
 }

@@ -84,7 +84,8 @@ pub use puzzles::cube3x3::{
     pieces::{Center, Corner, Edge, Orientation3x3, Pieces3x3},
 };
 pub use puzzles::{
-    Algorithm, Puzzle,
+    Puzzle,
+    algorithm::Algorithm,
     algset::AlgSet,
     mask::{ByPiece, Labeled, Marker, Mask, Tracked},
 };

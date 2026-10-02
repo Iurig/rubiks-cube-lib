@@ -128,7 +128,7 @@ impl<P: Puzzle> SearchStep<P> {
     fn next_level<'a>(
         &'a self,
         level: &[P],
-        investigated: &mut FxMap<Mask<P>, Option<&'a [P::Moves]>>,
+        investigated: &mut FxMap<Mask<P>, Option<&'a Algorithm<P>>>,
     ) -> Vec<P> {
         let mut next = Vec::new();
         for cube in level {
@@ -148,7 +148,7 @@ impl<P: Puzzle> SearchStep<P> {
     fn close_under_free_sequences<'a>(
         &'a self,
         level: &mut Vec<P>,
-        investigated: &mut FxMap<Mask<P>, Option<&'a [P::Moves]>>,
+        investigated: &mut FxMap<Mask<P>, Option<&'a Algorithm<P>>>,
     ) {
         let mut i = 0;
         while let Some(cube) = level.get(i).cloned() {
@@ -167,7 +167,7 @@ impl<P: Puzzle> SearchStep<P> {
     fn path_to(
         &self,
         cube: &P,
-        investigated: &FxMap<Mask<P>, Option<&[P::Moves]>>,
+        investigated: &FxMap<Mask<P>, Option<&Algorithm<P>>>,
     ) -> Algorithm<P> {
         let mut path = VecDeque::new();
         let mut cube = cube.clone();

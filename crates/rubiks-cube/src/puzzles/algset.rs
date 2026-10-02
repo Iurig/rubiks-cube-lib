@@ -54,8 +54,8 @@ impl<P: Puzzle> AlgSet<P> {
     }
 }
 
-impl<P: Puzzle> FromIterator<Vec<P::Moves>> for AlgSet<P> {
-    fn from_iter<T: IntoIterator<Item = Vec<P::Moves>>>(iter: T) -> Self {
+impl<P: Puzzle> FromIterator<Algorithm<P>> for AlgSet<P> {
+    fn from_iter<T: IntoIterator<Item = Algorithm<P>>>(iter: T) -> Self {
         let inner = iter.into_iter().collect();
         Self(inner)
     }
@@ -85,7 +85,7 @@ impl AlgSet<Cube3x3> {
                         MoveModifier::CounterClockwise,
                         MoveModifier::Double,
                     ]
-                    .map(|modifier| vec![Move3x3::new(part, modifier)])
+                    .map(|modifier| Algorithm::from_iter([Move3x3::new(part, modifier)]))
                 })
                 .collect(),
         ))
@@ -102,7 +102,7 @@ impl AlgSet<Cube3x3> {
                 .enumerate()
                 .filter_map(|(line_number, line)| {
                     Move3x3::sequence(line)
-                        .collect::<Result<Vec<_>, _>>()
+                        .collect::<Result<Algorithm<Cube3x3>, _>>()
                         .map(|moves| (!moves.is_empty()).then_some(moves))
                         .map_err(|e| e.on_line(line_number + 1))
                         .transpose()
@@ -120,7 +120,7 @@ impl AlgSet<Cube3x3> {
     pub fn from_moves(text: &str) -> Result<Self, ParseSequenceError> {
         Ok(Self(
             Move3x3::sequence(text)
-                .map(|m| m.map(|m| vec![m]))
+                .map(|m| m.map(|m| Algorithm::from_iter([m])))
                 .try_fold(FxSet::default(), |mut s, m| {
                     s.insert(m?);
                     Ok(s)
@@ -155,20 +155,20 @@ mod tests {
     fn from_algorithms_gives_one_sequence_per_line() -> Result<(), Box<dyn Error>> {
         let algset = AlgSet::<Cube3x3>::from_algorithms("R U R' U'\n\nF R U R' U' F'\nM2 U2")?;
 
-        let lengths: Vec<usize> = algset.algs().iter().map(Vec::len).collect();
+        let lengths: Vec<usize> = algset.algs().iter().map(Algorithm::len).collect();
         assert_eq!(lengths, [4, 6, 2]);
         Ok(())
     }
 
     #[test]
     fn from_moves_removes_duplicates() -> Result<(), Box<dyn Error>> {
-        let expected: FxSet<Vec<Move3x3>> = Move3x3::sequence("U U2 U'")
-            .map(|m| m.map(|m| vec![m]))
+        let expected: FxSet<Algorithm<Cube3x3>> = Move3x3::sequence("U U2 U'")
+            .map(|m| m.map(|m| Algorithm::from_iter([m])))
             .collect::<Result<_, _>>()?;
 
         let algset = AlgSet::<Cube3x3>::from_moves("U U2 U' U")?;
 
-        let actual: FxSet<Vec<Move3x3>> = algset.algs().iter().cloned().collect();
+        let actual: FxSet<Algorithm<Cube3x3>> = algset.algs().iter().cloned().collect();
         assert_eq!(actual, expected);
 
         Ok(())

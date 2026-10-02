@@ -6,7 +6,8 @@ use std::sync::{
 };
 
 use crate::{
-    Cube3x3, Solution, Step, StepError, methods::Segment, puzzles::cube3x3::moves::Move3x3,
+    Algorithm, Cube3x3, Solution, Step, StepError, methods::Segment,
+    puzzles::cube3x3::moves::Move3x3,
 };
 
 /// A step whose result is fixed in advance. `solve` either returns the error from `error`,
@@ -65,7 +66,7 @@ impl Step<Cube3x3> for FixedStep {
             return Err(error());
         }
         let moves = Move3x3::sequence(self.moves)
-            .collect::<Result<Vec<_>, _>>()
+            .collect::<Result<Algorithm<Cube3x3>, _>>()
             .map_err(|e| StepError::Custom(Box::new(e)))?;
         *puzzle = moves.iter().fold(*puzzle, |cube, m| cube * *m);
         Ok(Solution::from_iter([Segment {

@@ -1,19 +1,56 @@
-use crate::{AlgSet, Puzzle, Step, fast_hash::FxMap};
-use std::{collections::VecDeque, fmt::Debug, hash::Hash, ops::Mul};
+use crate::{
+    AlgSet, Algorithm, Labeled, Marker, Puzzle, Segment, Solution, Step, StepError,
+    fast_hash::{FxMap, FxSet},
+};
+
+use std::{fmt::Debug, hash::Hash, ops::ControlFlow, ops::Mul};
+
+use rayon::prelude::*;
 
 #[derive(Debug)]
-struct PrunedCombine<'a, P: Puzzle> {
+pub struct PrunedCombine<'a, P: Puzzle> {
     name: &'a str,
     steps: Vec<Box<dyn DistanceStep<P>>>,
     moveset: AlgSet<P>,
+    /// `may_follow[a][b]`: whether the search tries sequence `b` of the moveset right after
+    /// sequence `a`. See [`may_follow`].
+    may_follow: Vec<Vec<bool>>,
 }
 
-trait DistanceStep<P: Puzzle>: Debug + Send + Sync {
+/// One goal of a [`PrunedCombine`]: how many moveset sequences a puzzle is from it.
+pub trait DistanceStep<P: Puzzle>: Debug + Send + Sync {
+    /// How many moveset sequences `puzzle` is from the goal, or `None` if no sequence reaches
+    /// it.
     fn distance_from_solved(&self, puzzle: &P) -> Option<u8>;
 }
 
+/// A goal with a table of how far each state is from it. Every `PrunedGoal` is a
+/// [`DistanceStep`] through the impl below, which is the only code that reads the table, so the
+/// table is always read with the same key it was filled with.
+pub trait PrunedGoal<P: Puzzle>: Debug + Send + Sync {
+    /// The labels the goal uses: [`ByPiece`](crate::ByPiece) when the table must tell pieces
+    /// apart, [`Tracked`](crate::Tracked) when it only needs to know which slots hold them.
+    type Marker: Marker<P, Label: Send + Sync> + Clone + Eq + Hash + Debug + Send + Sync;
+
+    /// The goal the table was built from.
+    fn goal(&self) -> &Labeled<P, Self::Marker>;
+
+    /// The table [`PruneTable::from_goal`] built from [`goal`](Self::goal).
+    fn table(&self) -> &PruneTable<Labeled<P, Self::Marker>>;
+}
+
+impl<P: Puzzle, T: PrunedGoal<P>> DistanceStep<P> for T {
+    fn distance_from_solved(&self, puzzle: &P) -> Option<u8> {
+        // The table holds the goal carried along by sequences of moves, so the key is the goal
+        // carried along by the whole puzzle. `filter_by_piece` would not do: it keeps some
+        // orientation requirements on fixed slots, which builds keys the table never stored.
+        self.table()
+            .get_distance(&self.goal().composed_with(puzzle))
+    }
+}
+
 #[derive(Debug, Clone)]
-pub(crate) struct PruneTable<K> {
+pub struct PruneTable<K> {
     table: FxMap<K, u8>,
 }
 
@@ -26,7 +63,7 @@ impl<K: Eq + Hash> FromIterator<(K, u8)> for PruneTable<K> {
 }
 
 impl<'a, P: Puzzle> PrunedCombine<'a, P> {
-    fn new<T: IntoIterator<Item = Box<dyn DistanceStep<P>>>>(
+    pub fn new<T: IntoIterator<Item = Box<dyn DistanceStep<P>>>>(
         name: &'a str,
         iter: T,
         moveset: AlgSet<P>,
@@ -34,32 +71,100 @@ impl<'a, P: Puzzle> PrunedCombine<'a, P> {
         Self {
             name,
             steps: Vec::<Box<dyn DistanceStep<P>>>::from_iter(iter),
+            may_follow: may_follow(&moveset),
             moveset,
         }
     }
 }
 
+/// For each pair of sequences `(a, b)` of `moveset`, whether a search should try `b` right after
+/// `a`. It should not when `a b` does no more than something shorter, or than the same pair in
+/// the other order:
+///
+/// - `a b` leaves the puzzle as it was (`U U'`), or as one sequence of the moveset does (`U U` is
+///   `U2`): the shorter path reaches the same state, at a smaller depth.
+/// - `a` and `b` commute (`U D` is `D U`) and `b` comes before `a` in the moveset: only the order
+///   with the earlier sequence first is tried.
+///
+/// Neither rule loses a state. Among the shortest paths to a state, the one that comes first in
+/// moveset order has no pair either rule rejects: the first rule would give a shorter path, and
+/// the second the same path with an earlier sequence first.
+fn may_follow<P: Puzzle>(moveset: &AlgSet<P>) -> Vec<Vec<bool>> {
+    let apply = |puzzle: P, alg: &Algorithm<P>| alg.iter().fold(puzzle, |state, &m| state * m);
+    let algs = moveset.algs();
+    let alone: Vec<P> = algs.iter().map(|alg| apply(P::default(), alg)).collect();
+    (0..algs.len())
+        .zip(alone.iter().zip(algs))
+        .map(|(a_index, (after_a, a))| {
+            (0..algs.len())
+                .zip(alone.iter().zip(algs))
+                .map(|(b_index, (after_b, b))| {
+                    let a_then_b = apply(after_a.clone(), b);
+                    let shortens = a_then_b == P::default() || alone.contains(&a_then_b);
+                    let commutes_out_of_order =
+                        b_index < a_index && a_then_b == apply(after_b.clone(), a);
+                    !shortens && !commutes_out_of_order
+                })
+                .collect()
+        })
+        .collect()
+}
+
+impl<P: Puzzle, L: Marker<P, Label: Send + Sync> + Clone + Eq + Hash + Send + Sync>
+    PruneTable<Labeled<P, L>>
+{
+    /// The distance from `goal` of every state `moveset` can reach, with `goal` at 0.
+    pub(crate) fn from_goal(goal: &Labeled<P, L>, moveset: &AlgSet<P>) -> Self {
+        let mut table = Self::from_iter([(goal.clone(), 0)]);
+        table.populate(moveset);
+        table
+    }
+}
+
 impl<K: Clone + Eq + Hash> PruneTable<K> {
+    pub(crate) fn get_distance(&self, state: &K) -> Option<u8> {
+        self.table.get(state).copied()
+    }
+
     /// Fills the table outward from the keys already in it. Each sequence of `moveset` is one
     /// step of distance, the same unit [`PrunedCombine`] searches in.
-    pub(crate) fn populate<P: Puzzle>(&mut self, moveset: &AlgSet<P>)
+    pub(crate) fn populate<P: Puzzle>(&mut self, algset: &AlgSet<P>)
     where
-        K: Mul<P::Moves, Output = K>,
+        K: Mul<P::Moves, Output = K> + Send + Sync,
     {
-        let mut to_investigate: VecDeque<(K, u8)> = self.table.clone().into_iter().collect();
-        while let Some((mask, depth)) = to_investigate.pop_front() {
-            for alg in moveset.algs() {
-                let next = alg.iter().fold(mask.clone(), |k, &m| k * m);
-                self.table.entry(next.clone()).or_insert_with(|| {
-                    to_investigate.push_back((next, depth + 1));
-                    depth + 1
-                });
-            }
+        // Every key in the frontier is at `depth`, so the depth lives once, outside the loop.
+        let Some(&first_depth) = self.table.values().next() else {
+            return;
+        };
+        debug_assert!(
+            self.table.values().all(|&d| d == first_depth),
+            "the keys already in the table must all be at the same distance"
+        );
+        let mut depth = first_depth;
+        let mut frontier: Vec<K> = self.table.keys().cloned().collect();
+
+        while !frontier.is_empty() {
+            log::debug!("depth = {depth}, frontier = {}", frontier.len());
+            depth += 1;
+
+            let next: FxSet<K> = frontier
+                .par_iter()
+                .flat_map_iter(|representation| {
+                    algset
+                        .algs()
+                        .iter()
+                        .map(|alg| alg.iter().fold(representation.clone(), |rep, m| rep * *m))
+                        .filter(|state| !self.table.contains_key(state))
+                })
+                .collect();
+            self.table
+                .par_extend(next.par_iter().map(|state| (state.clone(), depth)));
+            frontier = next.into_iter().collect();
         }
     }
 }
 
-impl<'a, P: Puzzle> Step<P> for PrunedCombine<'a, P> {
+impl<P: Puzzle> Step<P> for PrunedCombine<'_, P> {
     fn name(&self) -> &str {
         self.name
     }
@@ -69,10 +174,6 @@ impl<'a, P: Puzzle> Step<P> for PrunedCombine<'a, P> {
             .all(|s| s.distance_from_solved(puzzle) == Some(0))
     }
     fn solve(&self, puzzle: &mut P) -> Result<super::Solution<P>, super::StepError> {
-        use super::{Segment, Solution, StepError};
-        use crate::{Algorithm, Inv};
-        use std::ops::ControlFlow;
-
         /// The largest distance any step reports: a lower bound on the moves left, because
         /// every step must be done at the end. `None` when some step cannot reach its goal.
         fn estimate<P: Puzzle>(steps: &[Box<dyn DistanceStep<P>>], puzzle: &P) -> Option<u8> {
@@ -82,20 +183,20 @@ impl<'a, P: Puzzle> Step<P> for PrunedCombine<'a, P> {
         }
 
         /// One depth-first pass that never goes past `bound`, counting the sequences already
-        /// applied (`depth`) plus the estimate. `last` is the sequence applied just before, and
-        /// `path` holds every move applied so far. `Break` means `path` now solves every step.
-        /// `Continue(Some(f))` is the smallest total over `bound` it saw, the next bound to
-        /// try; `Continue(None)` means no branch can lead to the goal.
-        fn search<'m, P: Puzzle>(
-            steps: &[Box<dyn DistanceStep<P>>],
-            moveset: &'m AlgSet<P>,
-            last: Option<&'m Algorithm<P>>,
+        /// applied (`depth`) plus the estimate. `last` is the index of the sequence applied just
+        /// before, and `path` holds every move applied so far. `Break` means `path` now
+        /// solves every step. `Continue(Some(f))` is the smallest total over `bound` it
+        /// saw, the next bound to try; `Continue(None)` means no branch can lead to the
+        /// goal.
+        fn search<P: Puzzle>(
+            combine: &PrunedCombine<'_, P>,
+            last: Option<usize>,
             puzzle: &P,
-            path: &mut Vec<P::Moves>,
+            path: &mut Algorithm<P>,
             depth: u8,
             bound: u8,
         ) -> ControlFlow<(), Option<u8>> {
-            let Some(estimate) = estimate(steps, puzzle) else {
+            let Some(estimate) = estimate(&combine.steps, puzzle) else {
                 return ControlFlow::Continue(None);
             };
             let Some(total) = depth.checked_add(estimate) else {
@@ -111,19 +212,18 @@ impl<'a, P: Puzzle> Step<P> for PrunedCombine<'a, P> {
                 return ControlFlow::Continue(None);
             };
             let mut next_bound: Option<u8> = None;
-            // Undoing the previous sequence only returns to a state already searched. Inverted
-            // once here, not once per candidate, because `inverse` allocates.
-            let undo = last.map(Inv::inverse);
-            for alg in moveset.algs() {
-                if undo.as_ref() == Some(alg) {
+            // The sequences `may_follow` rejects after `last` only reach states that a shorter
+            // or earlier-ordered path also reaches. No row on the first sequence: all are tried.
+            let allowed = last.and_then(|l| combine.may_follow.get(l));
+            for (index, alg) in combine.moveset.algs().iter().enumerate() {
+                if allowed.is_some_and(|row| row.get(index) == Some(&false)) {
                     continue;
                 }
                 let path_len = path.len();
-                path.extend_from_slice(alg);
+                path.extend_from(alg);
                 match search(
-                    steps,
-                    moveset,
-                    Some(alg),
+                    combine,
+                    Some(index),
                     &alg.iter().fold(puzzle.clone(), |state, &m| state * m),
                     path,
                     next_depth,
@@ -141,17 +241,9 @@ impl<'a, P: Puzzle> Step<P> for PrunedCombine<'a, P> {
         }
 
         let mut bound = estimate(&self.steps, puzzle).ok_or(StepError::UnreachableGoal)?;
-        let mut path = Vec::new();
+        let mut path = Algorithm::new();
         loop {
-            match search(
-                &self.steps,
-                &self.moveset,
-                None,
-                puzzle,
-                &mut path,
-                0,
-                bound,
-            ) {
+            match search(self, None, puzzle, &mut path, 0, bound) {
                 ControlFlow::Break(()) => break,
                 ControlFlow::Continue(Some(next)) => bound = next,
                 ControlFlow::Continue(None) => return Err(StepError::UnreachableGoal),
@@ -162,5 +254,93 @@ impl<'a, P: Puzzle> Step<P> for PrunedCombine<'a, P> {
             moves: path,
             name: self.name.to_string(),
         }]))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Cube3x3;
+
+    /// Every face, clockwise, counterclockwise, and double: 18 single moves.
+    fn face_turns() -> AlgSet<Cube3x3> {
+        AlgSet::from_parts("U D F B L R").unwrap()
+    }
+
+    /// Whether `second` may follow `first` in the `may_follow` table of `moveset`, both written
+    /// as one move.
+    fn follows(moveset: &AlgSet<Cube3x3>, first: &str, second: &str) -> bool {
+        let index = |name: &str| {
+            moveset
+                .algs()
+                .iter()
+                .position(|alg| alg.iter().map(ToString::to_string).collect::<String>() == name)
+                .unwrap()
+        };
+        may_follow(moveset)[index(first)][index(second)]
+    }
+
+    #[test]
+    fn a_face_never_follows_itself() {
+        let moveset = face_turns();
+        for first in ["U", "U'", "U2"] {
+            for second in ["U", "U'", "U2"] {
+                assert!(!follows(&moveset, first, second), "{first} {second}");
+            }
+        }
+    }
+
+    #[test]
+    fn opposite_faces_follow_each_other_in_one_order_only() {
+        let moveset = face_turns();
+        for (first, second) in [("U", "D"), ("U'", "D2"), ("R", "L'"), ("F2", "B")] {
+            assert!(
+                follows(&moveset, first, second) != follows(&moveset, second, first),
+                "{first} {second}"
+            );
+        }
+    }
+
+    #[test]
+    fn faces_that_do_not_commute_follow_each_other_both_ways() {
+        let moveset = face_turns();
+        for (first, second) in [("U", "R"), ("R'", "F2"), ("D2", "L")] {
+            assert!(follows(&moveset, first, second), "{first} {second}");
+            assert!(follows(&moveset, second, first), "{second} {first}");
+        }
+    }
+
+    /// The pruning must not lose a state: up to three moves, the paths `may_follow` allows reach
+    /// every state that unpruned paths reach.
+    #[test]
+    fn pruned_paths_reach_every_state_within_three_moves() {
+        let moveset = face_turns();
+        let table = may_follow(&moveset);
+        let algs = moveset.algs();
+        let mut all: FxSet<Cube3x3> = FxSet::from_iter([Cube3x3::default()]);
+        let mut pruned = all.clone();
+        let mut all_frontier = vec![Cube3x3::default()];
+        let mut pruned_frontier = vec![(Cube3x3::default(), None::<usize>)];
+        for _ in 0..3 {
+            all_frontier = all_frontier
+                .iter()
+                .flat_map(|cube| algs.iter().map(|alg| alg.iter().fold(*cube, |c, &m| c * m)))
+                .collect();
+            all.extend(all_frontier.iter().copied());
+            pruned_frontier = pruned_frontier
+                .iter()
+                .flat_map(|&(cube, last)| {
+                    let table = &table;
+                    algs.iter()
+                        .enumerate()
+                        .filter(move |&(index, _)| last.is_none_or(|l| table[l][index]))
+                        .map(move |(index, alg)| {
+                            (alg.iter().fold(cube, |c, &m| c * m), Some(index))
+                        })
+                })
+                .collect();
+            pruned.extend(pruned_frontier.iter().map(|&(cube, _)| cube));
+        }
+        assert_eq!(pruned.len(), all.len());
     }
 }

@@ -104,7 +104,7 @@ mod tests {
 
     #[test]
     fn empty_algorithm_is_its_own_inverse() {
-        assert_eq!(Algorithm::<Cube3x3>::new().inverse(), Vec::new());
+        assert_eq!(Algorithm::<Cube3x3>::new().inverse(), Algorithm::new());
     }
 
     #[test]

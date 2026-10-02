@@ -146,7 +146,10 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
         &self.0[P::index(slot)]
     }
 
-    fn composed_with(&self, puzzle: &P) -> Self {
+    /// This mask carried along by `puzzle`: each slot takes the condition of the slot its piece
+    /// came from, so labels and orientation requirements travel with the pieces. Applying moves
+    /// one at a time with `*` gives the same result as composing once with their product.
+    pub(crate) fn composed_with(&self, puzzle: &P) -> Self {
         Self::from_fn(|slot| {
             let source = self.condition(puzzle.piece_at(&slot));
             SlotCondition {

@@ -73,7 +73,7 @@ impl<P: Puzzle> Segment<P> {
     }
     /// Getter for the moves that make the segment up.
     #[must_use]
-    pub fn moves(&self) -> &[P::Moves] {
+    pub const fn moves(&self) -> &Algorithm<P> {
         &self.moves
     }
 }
@@ -368,7 +368,7 @@ mod tests {
     fn move_count_counts_correctly() -> Result<(), Box<dyn Error>> {
         let s: Solution<Cube3x3> = Solution::from_iter([Segment {
             moves: Move3x3::sequence("y U2 r M'")
-                .collect::<Result<Vec<Move3x3>, ParseSequenceError>>()?,
+                .collect::<Result<Algorithm<Cube3x3>, ParseSequenceError>>()?,
             name: "Step 1".to_string(),
         }]);
         assert_eq!(s.move_count(), 4);

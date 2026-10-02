@@ -4,6 +4,7 @@ use std::{
     ops::{Add, Mul},
 };
 
+pub mod algorithm;
 pub mod algset;
 pub mod cube3x3;
 pub mod mask;
@@ -91,6 +92,3 @@ pub trait Puzzle:
         panic!("ALL_PIECES doesn't contain all values of type Pieces");
     }
 }
-
-/// A sequence of moves applied in order, such as an algorithm or a step's solution.
-pub type Algorithm<P> = Vec<<P as Puzzle>::Moves>;

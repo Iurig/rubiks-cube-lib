@@ -13,7 +13,10 @@ impl<P: Puzzle> BFSMemo<P> {
     pub fn new(goal: &Labeled<P, Tracked>) -> Self {
         Self {
             goal: goal.clone(),
-            memorization: FxMap::from_iter([(Mask::filter_by_piece(&P::default(), goal), vec![])]),
+            memorization: FxMap::from_iter([(
+                Mask::filter_by_piece(&P::default(), goal),
+                Algorithm::new(),
+            )]),
             to_deepen: vec![(Mask::filter_by_piece(&P::default(), goal), P::default())],
             depth: 0,
         }
@@ -79,7 +82,7 @@ impl<P: Puzzle> BFSMemo<P> {
         &mut self,
         parent_mask: &Mask<P>,
         parent: &P,
-        sequence: &[P::Moves],
+        sequence: &Algorithm<P>,
     ) -> Option<(Mask<P>, P)> {
         // Walk away from the goal by undoing `sequence`, so the way back applies `sequence` as
         // written, then the parent's path.
@@ -132,7 +135,7 @@ mod tests {
         }
     }
 
-    fn moves(text: &str) -> Vec<Move3x3> {
+    fn moves(text: &str) -> Algorithm<Cube3x3> {
         Move3x3::sequence(text).map(Result::unwrap).collect()
     }
 
