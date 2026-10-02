@@ -227,9 +227,12 @@ crates/
           mod.rs              RouxOptions, the Roux steps built once and shared, Method::roux
           cmll/               the one-look CMLL, CO, and CP algorithms, one per line
     tests/
-      testing.rs              integration tests: handedness pins for each base move, group
-                              laws, move orders, reachability, real solve reconstructions, and
-                              every Roux option combination on seeded random scrambles
+      api/                    integration tests, one binary with a module per concern:
+                              mask, states (reachability, rotation-aware is_solved), algebra
+                              (group laws), moves (handedness pins for each base move, move
+                              orders), notation (parsing and its errors), reconstructions
+                              (real solves), and solving (every Roux option combination on
+                              seeded random scrambles)
     benches/
       solves.rs               two passes of 1000 seeded Roux solves, timed and heap-counted per
                               step
