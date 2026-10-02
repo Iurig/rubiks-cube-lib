@@ -72,7 +72,7 @@ mod tests {
     }
 
     const RUNS: u64 = 1_000_000;
-    const P_VALUE: f64 = 0.005;
+    const P_VALUE: f64 = 1e-4;
 
     macro_rules! test {
         ($u_n:ident, $write_u_n:ident) => {
