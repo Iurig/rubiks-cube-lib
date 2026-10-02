@@ -1,4 +1,5 @@
 pub mod choose;
+pub mod combine_pruned;
 pub mod cube3x3;
 pub mod search_step;
 #[cfg(test)]

@@ -6,46 +6,18 @@ use std::{
 };
 
 use crate::{
-    Cube3x3, Edge, Labeled, Method, Orientation3x3, Pieces3x3, Puzzle, Step, StepError, Tracked,
-    fast_hash::FxMap, zn::Zn,
+    AlgSet, Cube3x3, Edge, Labeled, Mask, Method, Orientation3x3, Pieces3x3, Puzzle, Step,
+    StepError, Tracked, methods::combine_pruned::PruneTable, puzzles::cube3by3::moves::Move3x3,
+    zn::Zn,
 };
-/*
-#[derive(Debug)]
-pub struct PrunedStep<P: Puzzle> {
-    name: &'static str,
-    before: Mask<P>,
-    after: Mask<P>,
-    search_algs: AlgSet<P>,
-    memo: Vec<PruneTable<Mask<P>>>,
-}
-*/
-#[derive(Debug, Clone)]
-struct PruneTable<K> {
-    table: FxMap<K, u8>,
-}
 
-type DominoEdges = Labeled<Cube3x3, Tracked>;
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct DominoEdges(Labeled<Cube3x3, Tracked>);
 
-impl<K: Clone + Eq + Hash> PruneTable<K> {
-    fn new() -> Self {
-        Self {
-            table: FxMap::default(),
-        }
-    }
-
-    fn populate<'a, M: Copy + 'a>(&mut self, moveset: impl IntoIterator<Item = &'a M> + Clone)
-    where
-        K: Mul<M, Output = K>,
-    {
-        let mut to_investigate: VecDeque<(K, u8)> = self.table.clone().into_iter().collect();
-        while let Some((mask, depth)) = to_investigate.pop_front() {
-            for m in moveset.clone() {
-                self.table.entry(mask.clone() * *m).or_insert_with(|| {
-                    to_investigate.push_back((mask.clone() * *m, depth + 1));
-                    depth + 1
-                });
-            }
-        }
+impl Mul<Move3x3> for DominoEdges {
+    type Output = Self;
+    fn mul(self, rhs: Move3x3) -> Self::Output {
+        Self(self.0 * rhs)
     }
 }
 
@@ -66,17 +38,19 @@ static CORNERS_PHASE_1_GOAL: LazyLock<Labeled<Cube3x3, Tracked>> = LazyLock::new
     )
 });
 
-static CORNERS_PHASE_1_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, Tracked>>> =
-    LazyLock::new(|| {
-        let mut prune_table = PruneTable {
-            table: FxMap::from_iter([(CORNERS_PHASE_1_GOAL.clone(), 0)]),
-        };
-        prune_table.populate(Cube3x3::ALL_MOVES);
-        prune_table
-    });
+static CORNERS_PHASE_1_TABLE: LazyLock<PruneTable<Mask<Cube3x3>>> = LazyLock::new(|| {
+    let mut prune_table = PruneTable::from_iter([(
+        Mask::<Cube3x3>::filter_by_piece(&Cube3x3::default(), &CORNERS_PHASE_1_GOAL),
+        0,
+    )]);
+    prune_table.populate(&AlgSet::<Cube3x3>::from_iter(
+        Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]),
+    ));
+    prune_table
+});
 
-static EDGES_PHASE_1_GOAL: LazyLock<Labeled<Cube3x3, Tracked>> = LazyLock::new(|| {
-    Labeled::<Cube3x3, Tracked>::from_iter(
+static EDGES_PHASE_1_GOAL: LazyLock<DominoEdges> = LazyLock::new(|| {
+    DominoEdges(Labeled::<Cube3x3, Tracked>::from_iter(
         Cube3x3::ALL_PIECES.iter().filter_map(|&p| {
             [
                 Pieces3x3::Edge(Edge::Fl),
@@ -91,14 +65,14 @@ static EDGES_PHASE_1_GOAL: LazyLock<Labeled<Cube3x3, Tracked>> = LazyLock::new(|
             .iter()
             .filter(|&p| matches!(p, Pieces3x3::Edge(_)))
             .copied(),
-    )
+    ))
 });
 
-static EDGES_PHASE_1_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, Tracked>>> = LazyLock::new(|| {
-    let mut prune_table = PruneTable {
-        table: FxMap::from_iter([(EDGES_PHASE_1_GOAL.clone(), 0)]),
-    };
-    prune_table.populate(Cube3x3::ALL_MOVES);
+static EDGES_PHASE_1_TABLE: LazyLock<PruneTable<DominoEdges>> = LazyLock::new(|| {
+    let mut prune_table = PruneTable::from_iter([(EDGES_PHASE_1_GOAL.clone(), 0)]);
+    prune_table.populate(&AlgSet::<Cube3x3>::from_iter(
+        Cube3x3::ALL_MOVES.iter().map(|&m| vec![m]),
+    ));
     prune_table
 });
 
@@ -123,8 +97,8 @@ impl Step<Cube3x3> for Phase1 {
         for depth in 0..20 {
             let puzzle_corners =
                 Labeled::<Cube3x3, Tracked>::filter_by_piece(&puzzle, &CORNERS_PHASE_1_GOAL);
-            //let puzzle_edges =
-            //    Labeled::<Cube3x3, Tracked>::filter_by_piece(&puzzle, &EDGES_PHASE_1_GOAL);
+            let puzzle_edges =
+                Labeled::<Cube3x3, Tracked>::filter_by_piece(&puzzle, &EDGES_PHASE_1_GOAL.0);
             let mut to_investigate = VecDeque::from([puzzle.clone()]);
 
             while let Some(state) = to_investigate.pop_front() {}
