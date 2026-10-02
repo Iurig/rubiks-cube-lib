@@ -419,4 +419,73 @@ mod test {
         );
         Ok(())
     }
+
+    /// Every combination of the three switches.
+    fn every_options() -> impl Iterator<Item = RouxOptions> {
+        [false, true].into_iter().flat_map(|fb_as_one_step| {
+            [false, true].into_iter().flat_map(move |sb_as_one_step| {
+                [false, true]
+                    .into_iter()
+                    .map(move |one_look_cmll| RouxOptions {
+                        sb_as_one_step,
+                        fb_as_one_step,
+                        one_look_cmll,
+                    })
+            })
+        })
+    }
+
+    /// `Method` relies on `is_done` to catch a step that returns without meeting its goal, so
+    /// every step must tell its goal apart from a cube that misses it.
+    #[test]
+    fn every_roux_step_is_done_on_a_solved_cube_and_not_on_a_scrambled_one()
+    -> Result<(), Box<dyn Error>> {
+        let scrambled = Cube3x3::from_solved("R U' F2 L D' B R2 U F' L2 D B' U2 R'")?;
+
+        for step in ALL_ROUX_STEPS.iter() {
+            assert!(
+                step.is_done(&Cube3x3::default()),
+                "{} is not done on a solved cube",
+                step.name()
+            );
+            assert!(
+                !step.is_done(&scrambled),
+                "{} is done on a scrambled cube:\n{scrambled}",
+                step.name()
+            );
+        }
+        Ok(())
+    }
+
+    /// Each switch picks its own steps, independently of the others, and the steps stay in
+    /// solving order.
+    #[test]
+    fn options_pick_the_steps_in_solving_order() {
+        for options in every_options() {
+            let names: Vec<String> = Method::roux(options)
+                .steps()
+                .map(|step| step.name().to_string())
+                .collect();
+
+            let mut expected: Vec<&str> = Vec::new();
+            expected.extend_from_slice(if options.fb_as_one_step {
+                &["FB"]
+            } else {
+                &["FB Square", "FB Pair"]
+            });
+            expected.extend_from_slice(if options.sb_as_one_step {
+                &["SB"]
+            } else {
+                &["SB Square", "SB Pair"]
+            });
+            expected.extend_from_slice(if options.one_look_cmll {
+                &["CMLL"]
+            } else {
+                &["CO", "CP"]
+            });
+            expected.push("LSE");
+
+            assert_eq!(names, expected, "{options:?}");
+        }
+    }
 }
