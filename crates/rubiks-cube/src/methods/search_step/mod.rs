@@ -4,8 +4,7 @@ use std::{collections::hash_map::Entry, sync::Mutex};
 use rayon::prelude::*;
 
 use crate::{
-    AlgSet, Algorithm, Labeled, Mask, Tracked, fast_hash::FxMap,
-    methods::search_step::memorization::BFSMemo,
+    AlgSet, Algorithm, Marked, Mask, fast_hash::FxMap, methods::search_step::memorization::BFSMemo,
 };
 #[allow(
     clippy::wildcard_imports,
@@ -27,8 +26,8 @@ use crate::{Puzzle, methods::*};
 #[derive(Debug)]
 pub struct SearchStep<P: Puzzle> {
     name: &'static str,
-    before: Labeled<P, Tracked>,
-    after: Labeled<P, Tracked>,
+    before: Marked<P>,
+    after: Marked<P>,
     search_algs: AlgSet<P>,
     free_search_algs: AlgSet<P>,
     memo: Mutex<BFSMemo<P>>,
@@ -41,8 +40,8 @@ impl<P: Puzzle> SearchStep<P> {
     #[must_use]
     pub fn new(
         name: &'static str,
-        before: Labeled<P, Tracked>,
-        after: Labeled<P, Tracked>,
+        before: Marked<P>,
+        after: Marked<P>,
         search_algs: AlgSet<P>,
     ) -> Self {
         Self {
@@ -61,8 +60,8 @@ impl<P: Puzzle> SearchStep<P> {
     #[must_use]
     pub fn new_with_free_algs(
         name: &'static str,
-        before: Labeled<P, Tracked>,
-        after: Labeled<P, Tracked>,
+        before: Marked<P>,
+        after: Marked<P>,
         search_algs: AlgSet<P>,
         free_search_algs: AlgSet<P>,
     ) -> Self {
@@ -187,7 +186,7 @@ impl<P: Puzzle> SearchStep<P> {
         self.before.applies_to(cube)
     }
 
-    pub(crate) fn after(&self) -> Labeled<P, Tracked> {
+    pub(crate) fn after(&self) -> Marked<P> {
         self.after.clone()
     }
     fn mask(&self, puzzle: &P) -> Mask<P> {

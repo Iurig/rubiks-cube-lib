@@ -1,7 +1,7 @@
 use std::sync::{Arc, LazyLock};
 
 use crate::{
-    AlgSet, Algorithm, ByPiece, Cube3x3, Edge, Labeled, Method, Pieces3x3, Puzzle, Tracked,
+    AlgSet, Algorithm, ByMark, ByPiece, Cube3x3, Edge, Marked, Mask, Method, Pieces3x3, Puzzle,
     methods::combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
     puzzles::cube3x3::{
         moves::{MovablePart, MoveModifier},
@@ -57,26 +57,26 @@ fn edges() -> impl Iterator<Item = Pieces3x3> + Clone {
         .copied()
 }
 
-static CORNERS_PHASE_1_GOAL: LazyLock<Labeled<Cube3x3, Tracked>> =
-    LazyLock::new(|| Labeled::<Cube3x3, Tracked>::from_double_iter([], corners()));
+static CORNERS_PHASE_1_GOAL: LazyLock<Marked<Cube3x3>> =
+    LazyLock::new(|| Marked::<Cube3x3>::from_double_iter([], corners()));
 
-static CORNERS_PHASE_1_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, Tracked>>> =
+static CORNERS_PHASE_1_TABLE: LazyLock<PruneTable<Marked<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&CORNERS_PHASE_1_GOAL, &face_turns()));
 
-static EDGES_PHASE_1_GOAL: LazyLock<Labeled<Cube3x3, Tracked>> =
-    LazyLock::new(|| Labeled::<Cube3x3, Tracked>::from_double_iter(RIM, edges()));
+static EDGES_PHASE_1_GOAL: LazyLock<Marked<Cube3x3>> =
+    LazyLock::new(|| Marked::<Cube3x3>::from_double_iter(RIM, edges()));
 
-static EDGES_PHASE_1_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, Tracked>>> =
+static EDGES_PHASE_1_TABLE: LazyLock<PruneTable<Marked<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&EDGES_PHASE_1_GOAL, &face_turns()));
 
 #[derive(Debug)]
 struct Phase1Corners;
 impl PrunedGoal<Cube3x3> for Phase1Corners {
-    type Marker = Tracked;
-    fn goal(&self) -> &Labeled<Cube3x3, Tracked> {
+    type Marker = ByMark;
+    fn goal(&self) -> &Marked<Cube3x3> {
         &CORNERS_PHASE_1_GOAL
     }
-    fn table(&self) -> &PruneTable<Labeled<Cube3x3, Tracked>> {
+    fn table(&self) -> &PruneTable<Marked<Cube3x3>> {
         &CORNERS_PHASE_1_TABLE
     }
 }
@@ -84,11 +84,11 @@ impl PrunedGoal<Cube3x3> for Phase1Corners {
 #[derive(Debug)]
 struct Phase1Edges;
 impl PrunedGoal<Cube3x3> for Phase1Edges {
-    type Marker = Tracked;
-    fn goal(&self) -> &Labeled<Cube3x3, Tracked> {
+    type Marker = ByMark;
+    fn goal(&self) -> &Marked<Cube3x3> {
         &EDGES_PHASE_1_GOAL
     }
-    fn table(&self) -> &PruneTable<Labeled<Cube3x3, Tracked>> {
+    fn table(&self) -> &PruneTable<Marked<Cube3x3>> {
         &EDGES_PHASE_1_TABLE
     }
 }
@@ -111,26 +111,26 @@ fn phase_1() -> PrunedCombine<'static, Cube3x3> {
 // each. Separate tables for the three groups give a lower bound only as good as the worst-placed
 // group, which leaves the search to explore far more states.
 
-static CORNERS_AND_E_PHASE_2_GOAL: LazyLock<Labeled<Cube3x3, ByPiece>> =
-    LazyLock::new(|| Labeled::<Cube3x3, ByPiece>::new_from_pieces(corners().chain(RIM)));
+static CORNERS_AND_E_PHASE_2_GOAL: LazyLock<Mask<Cube3x3>> =
+    LazyLock::new(|| Mask::<Cube3x3>::new_from_pieces(corners().chain(RIM)));
 
-static CORNERS_AND_E_PHASE_2_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, ByPiece>>> =
+static CORNERS_AND_E_PHASE_2_TABLE: LazyLock<PruneTable<Mask<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&CORNERS_AND_E_PHASE_2_GOAL, &domino_turns()));
 
-static EDGES_PHASE_2_GOAL: LazyLock<Labeled<Cube3x3, ByPiece>> =
-    LazyLock::new(|| Labeled::<Cube3x3, ByPiece>::new_from_pieces(edges()));
+static EDGES_PHASE_2_GOAL: LazyLock<Mask<Cube3x3>> =
+    LazyLock::new(|| Mask::<Cube3x3>::new_from_pieces(edges()));
 
-static EDGES_PHASE_2_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, ByPiece>>> =
+static EDGES_PHASE_2_TABLE: LazyLock<PruneTable<Mask<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&EDGES_PHASE_2_GOAL, &domino_turns()));
 
 #[derive(Debug)]
 struct Phase2CornersAndE;
 impl PrunedGoal<Cube3x3> for Phase2CornersAndE {
     type Marker = ByPiece;
-    fn goal(&self) -> &Labeled<Cube3x3, ByPiece> {
+    fn goal(&self) -> &Mask<Cube3x3> {
         &CORNERS_AND_E_PHASE_2_GOAL
     }
-    fn table(&self) -> &PruneTable<Labeled<Cube3x3, ByPiece>> {
+    fn table(&self) -> &PruneTable<Mask<Cube3x3>> {
         &CORNERS_AND_E_PHASE_2_TABLE
     }
 }
@@ -140,10 +140,10 @@ impl PrunedGoal<Cube3x3> for Phase2CornersAndE {
 struct Phase2Edges;
 impl PrunedGoal<Cube3x3> for Phase2Edges {
     type Marker = ByPiece;
-    fn goal(&self) -> &Labeled<Cube3x3, ByPiece> {
+    fn goal(&self) -> &Mask<Cube3x3> {
         &EDGES_PHASE_2_GOAL
     }
-    fn table(&self) -> &PruneTable<Labeled<Cube3x3, ByPiece>> {
+    fn table(&self) -> &PruneTable<Mask<Cube3x3>> {
         &EDGES_PHASE_2_TABLE
     }
 }

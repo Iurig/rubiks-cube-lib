@@ -87,7 +87,7 @@ pub use puzzles::{
     Puzzle,
     algorithm::Algorithm,
     algset::AlgSet,
-    mask::{ByPiece, Labeled, Marker, Mask, Tracked},
+    mask::{ByMark, ByPiece, Labeled, Marked, Marker, Mask},
 };
 
 /// Runs the Rust examples in `README.md` as doc tests, so they cannot drift from the code.

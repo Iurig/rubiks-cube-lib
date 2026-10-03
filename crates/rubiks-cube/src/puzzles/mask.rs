@@ -2,6 +2,14 @@ use std::{collections::HashSet, fmt::Debug, hash::Hash, iter::IntoIterator, ops:
 
 use crate::Puzzle;
 
+/// A puzzle with optional labels attatched to its pieces, as well as optional orientations.
+///
+/// Generalizes the concept of a partial puzzle - in which the labels are the name of the pieces
+/// themselves, and a puzzle that a set of pieces is tracked without regard for their identities -
+/// where the labels are anything of unit type, and everything inbetween.
+///
+/// For partial puzzles, use [`Mask`](crate::Mask), for pieces tracked with a generic mark, use
+/// [`Marked`](crate::Marked)
 #[derive(Clone, Eq, Debug, Hash, PartialEq)]
 pub struct Labeled<P: Puzzle, L: Marker<P>>(Box<[SlotCondition<P, L>]>);
 
@@ -22,6 +30,12 @@ pub struct Labeled<P: Puzzle, L: Marker<P>>(Box<[SlotCondition<P, L>]>);
 /// # }
 /// ```
 pub type Mask<P> = Labeled<P, ByPiece>;
+
+/// A puzzle state with optional orientations, and optional tracking of specific pieces.
+///
+/// Used for defining steps by marking positions to be solved, as well as to track cubes throughout
+/// moves without distinction for it's marked pieces.
+pub type Marked<P> = Labeled<P, ByMark>;
 
 /// What a [`Mask`] asks of one slot: which piece must sit there, and which orientation the piece
 /// there must have. `None` asks nothing.
@@ -47,7 +61,7 @@ pub struct ByPiece;
 
 /// Labels are `()`: a labeled slot's own piece must end up home. Goals use it.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct Tracked;
+pub struct ByMark;
 
 impl<P: Puzzle> Marker<P> for ByPiece {
     type Label = P::Piece;
@@ -56,7 +70,7 @@ impl<P: Puzzle> Marker<P> for ByPiece {
     }
 }
 
-impl<P: Puzzle> Marker<P> for Tracked {
+impl<P: Puzzle> Marker<P> for ByMark {
     type Label = ();
     fn home(_slot: P::Piece) -> Self::Label {}
 }
@@ -121,7 +135,7 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     }
 
     #[must_use]
-    pub(crate) fn filter_by_piece(puzzle: &P, goal: &Labeled<P, Tracked>) -> Self {
+    pub(crate) fn filter_by_piece(puzzle: &P, goal: &Marked<P>) -> Self {
         Self::from_fn(|slot| {
             let label = L::home(puzzle.piece_at(&slot));
             let tracked = goal.condition(puzzle.piece_at(&slot)).label.is_some();
@@ -199,7 +213,7 @@ impl<P: Puzzle> Mask<P> {
     }
 }
 
-impl<P: Puzzle> Labeled<P, Tracked> {
+impl<P: Puzzle> Marked<P> {
     /// Whether `puzzle` has the slots marked by tracked solved.
     #[must_use]
     pub fn applies_to(&self, puzzle: &P) -> bool {
@@ -223,8 +237,7 @@ mod test {
     #[test]
     fn applies_to_composes_correctly_on_full_cube() {
         let cube = Cube3x3::apply_scramble();
-        let mask =
-            Labeled::<Cube3x3, ByPiece>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
+        let mask = Mask::<Cube3x3>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
 
         assert!(
             (mask.composed_with(&cube)).applies_to(&cube),

@@ -1,8 +1,7 @@
 use std::sync::{Arc, LazyLock};
 
 use crate::{
-    AlgSet, Choose, Cube3x3, Labeled, Method, SearchStep, Step, Tracked,
-    puzzles::cube3x3::pieces::Pieces3x3,
+    AlgSet, Choose, Cube3x3, Marked, Method, SearchStep, Step, puzzles::cube3x3::pieces::Pieces3x3,
 };
 
 const FB_FRONT_SQUARE_PIECES: [Pieces3x3; 4] = [
@@ -85,52 +84,51 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
 
     let fb_front_square = Arc::new(SearchStep::new(
         "FB Front Square",
-        Labeled::<Cube3x3, Tracked>::default(),
-        Labeled::<Cube3x3, Tracked>::new_from_pieces(FB_FRONT_SQUARE_PIECES),
+        Marked::<Cube3x3>::default(),
+        Marked::<Cube3x3>::new_from_pieces(FB_FRONT_SQUARE_PIECES),
         fb_moves.clone(),
     ));
 
     let fb_back_square = Arc::new(SearchStep::new(
         "FB Back Square",
-        Labeled::<Cube3x3, Tracked>::default(),
-        Labeled::<Cube3x3, Tracked>::new_from_pieces(FB_BACK_SQUARE_PIECES),
+        Marked::<Cube3x3>::default(),
+        Marked::<Cube3x3>::new_from_pieces(FB_BACK_SQUARE_PIECES),
         fb_moves.clone(),
     ));
 
     // Finishes the block from the back square, so the pair it builds is the front one.
     let fb_front_pair = Arc::new(SearchStep::new(
         "FB Front Pair",
-        Labeled::<Cube3x3, Tracked>::new_from_pieces(FB_BACK_SQUARE_PIECES),
-        Labeled::<Cube3x3, Tracked>::new_from_pieces(FB_PIECES),
+        Marked::<Cube3x3>::new_from_pieces(FB_BACK_SQUARE_PIECES),
+        Marked::<Cube3x3>::new_from_pieces(FB_PIECES),
         fb_moves.clone(),
     ));
 
     // Finishes the block from the front square, so the pair it builds is the back one.
     let fb_back_pair = Arc::new(SearchStep::new(
         "FB Back Pair",
-        Labeled::<Cube3x3, Tracked>::new_from_pieces(FB_FRONT_SQUARE_PIECES),
-        Labeled::<Cube3x3, Tracked>::new_from_pieces(FB_PIECES),
+        Marked::<Cube3x3>::new_from_pieces(FB_FRONT_SQUARE_PIECES),
+        Marked::<Cube3x3>::new_from_pieces(FB_PIECES),
         fb_moves.clone(),
     ));
 
     let fb = Arc::new(SearchStep::new(
         "FB",
-        Labeled::<Cube3x3, Tracked>::new_from_pieces([]),
-        Labeled::<Cube3x3, Tracked>::new_from_pieces(FB_PIECES),
+        Marked::<Cube3x3>::new_from_pieces([]),
+        Marked::<Cube3x3>::new_from_pieces(FB_PIECES),
         fb_moves,
     ));
 
     let sb_moves =
         AlgSet::from_parts("U R M r").expect("hand-written part lists should always parse");
 
-    let sb_after = Labeled::<Cube3x3, Tracked>::new_from_pieces(
-        FB_PIECES.iter().chain(SB_PIECES.iter()).copied(),
-    );
+    let sb_after =
+        Marked::<Cube3x3>::new_from_pieces(FB_PIECES.iter().chain(SB_PIECES.iter()).copied());
 
     let sb_front_square = Arc::new(SearchStep::new(
         "SB Front Square",
         fb.after(),
-        Labeled::<Cube3x3, Tracked>::new_from_pieces(
+        Marked::<Cube3x3>::new_from_pieces(
             FB_PIECES
                 .iter()
                 .chain(SB_FRONT_SQUARE_PIECES.iter())
@@ -142,7 +140,7 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
     let sb_back_square = Arc::new(SearchStep::new(
         "SB Back Square",
         fb.after(),
-        Labeled::<Cube3x3, Tracked>::new_from_pieces(
+        Marked::<Cube3x3>::new_from_pieces(
             FB_PIECES
                 .iter()
                 .chain(SB_BACK_SQUARE_PIECES.iter())
@@ -169,7 +167,7 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
 
     let sb = Arc::new(SearchStep::new("SB", fb.after(), sb_after, sb_moves));
 
-    let cmll_after = Labeled::<Cube3x3, Tracked>::new_from_pieces(
+    let cmll_after = Marked::<Cube3x3>::new_from_pieces(
         FB_PIECES
             .iter()
             .chain(SB_PIECES.iter())
@@ -186,7 +184,7 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
         free_auf.clone(),
     ));
 
-    let cmll_orientation_after = Labeled::<Cube3x3, Tracked>::from_double_iter(
+    let cmll_orientation_after = Marked::<Cube3x3>::from_double_iter(
         FB_PIECES.iter().chain(SB_PIECES.iter()).copied(),
         FB_PIECES
             .iter()
@@ -215,7 +213,7 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
     let lse = Arc::new(SearchStep::new(
         "LSE",
         cmll.after(),
-        Labeled::<Cube3x3, Tracked>::new_from_pieces(
+        Marked::<Cube3x3>::new_from_pieces(
             FB_PIECES
                 .iter()
                 .chain(SB_PIECES.iter())
