@@ -1,4 +1,3 @@
-exclude_globs = ["crates/rubiks-cube-cli/**"]
 exclude_re = [
     "impl Debug",
     "impl Display",
