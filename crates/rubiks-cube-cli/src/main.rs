@@ -11,28 +11,30 @@ struct Args {
     number: u32,
 }
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     for solve in 1..=args.number {
         match args.method {
             ref m if m == "roux" => {
                 let mut cube = Cube3x3::scramble();
-                // The inverse of a solution is a scramble that leads to the same state.
-                let kociemba: Algorithm<Cube3x3> = Method::kociemba()
+
+                let scramble = Method::kociemba()
                     .solve(&mut cube.clone())
                     .unwrap()
                     .iter()
                     .flat_map(|s| s.moves().iter().copied())
-                    .collect();
-                println!(
-                    "{solve}. {}\n{}",
-                    kociemba.inverse(),
-                    Method::roux(RouxOptions::default())
-                        .solve(&mut cube)
-                        .unwrap()
-                );
+                    .collect::<Algorithm<Cube3x3>>()
+                    .inverse();
+
+                let roux = Method::roux(RouxOptions::default())
+                    .solve(&mut cube)
+                    .unwrap();
+
+                assert!(Cube3x3::from_solved(&format!("{scramble} {roux}"))?.is_solved());
+                println!("{solve}. {scramble}\n{roux}");
             }
             _ => println!("invalid method"),
         }
     }
+    Ok(())
 }

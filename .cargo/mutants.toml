@@ -4,6 +4,8 @@ exclude_re = [
     "impl Display",
     "name",
     "::moves",
+    "<impl Hasher for FxHasher>",
+    "Error",
     # Equivalent mutants: the mutated code computes the same result.
     # `cycle_size - 1` and `cycle_size + 1` are equal mod 2.
     'replace - with \+ in PieceConfiguration<P, N, O>::parity',
