@@ -1,3 +1,4 @@
+use anyhow::Context;
 use clap::Parser;
 use rubiks_cube::{Algorithm, Cube3x3, Inv, Method, Puzzle, RouxOptions};
 
@@ -30,8 +31,12 @@ fn main() -> anyhow::Result<()> {
                     .solve(&mut cube)
                     .unwrap();
 
-                assert!(Cube3x3::from_solved(&format!("{scramble} {roux}"))?.is_solved());
                 println!("{solve}. {scramble}\n{roux}");
+                assert!(
+                    Cube3x3::from_solved(&format!("{scramble} {roux}"))
+                        .context("The previous scramble didn't result in a solved cube.")?
+                        .is_solved()
+                );
             }
             _ => println!("invalid method"),
         }
