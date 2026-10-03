@@ -1,74 +1,6 @@
 use std::sync::{Arc, LazyLock};
 
-use crate::{
-    AlgSet, Choose, Cube3x3, Marked, Method, SearchStep, Step, puzzles::cube3x3::pieces::Pieces3x3,
-};
-
-const FB_FRONT_SQUARE_PIECES: [Pieces3x3; 4] = [
-    Pieces3x3::Center(crate::Center::L),
-    Pieces3x3::Corner(crate::Corner::Dfl),
-    Pieces3x3::Edge(crate::Edge::Fl),
-    Pieces3x3::Edge(crate::Edge::Dl),
-];
-
-const FB_BACK_SQUARE_PIECES: [Pieces3x3; 4] = [
-    Pieces3x3::Center(crate::Center::L),
-    Pieces3x3::Corner(crate::Corner::Dbl),
-    Pieces3x3::Edge(crate::Edge::Bl),
-    Pieces3x3::Edge(crate::Edge::Dl),
-];
-
-const FB_PIECES: [Pieces3x3; 6] = [
-    Pieces3x3::Center(crate::Center::L),
-    Pieces3x3::Corner(crate::Corner::Dfl),
-    Pieces3x3::Corner(crate::Corner::Dbl),
-    Pieces3x3::Edge(crate::Edge::Fl),
-    Pieces3x3::Edge(crate::Edge::Dl),
-    Pieces3x3::Edge(crate::Edge::Bl),
-];
-
-const SB_FRONT_SQUARE_PIECES: [Pieces3x3; 4] = [
-    Pieces3x3::Center(crate::Center::R),
-    Pieces3x3::Edge(crate::Edge::Dr),
-    Pieces3x3::Corner(crate::Corner::Dfr),
-    Pieces3x3::Edge(crate::Edge::Fr),
-];
-
-const SB_BACK_SQUARE_PIECES: [Pieces3x3; 4] = [
-    Pieces3x3::Center(crate::Center::R),
-    Pieces3x3::Edge(crate::Edge::Dr),
-    Pieces3x3::Corner(crate::Corner::Dbr),
-    Pieces3x3::Edge(crate::Edge::Br),
-];
-
-const SB_PIECES: [Pieces3x3; 6] = [
-    Pieces3x3::Center(crate::Center::R),
-    Pieces3x3::Edge(crate::Edge::Dr),
-    Pieces3x3::Corner(crate::Corner::Dbr),
-    Pieces3x3::Edge(crate::Edge::Br),
-    Pieces3x3::Edge(crate::Edge::Fr),
-    Pieces3x3::Corner(crate::Corner::Dfr),
-];
-
-const CMLL_PIECES: [Pieces3x3; 4] = [
-    Pieces3x3::Corner(crate::Corner::Ufr),
-    Pieces3x3::Corner(crate::Corner::Ufl),
-    Pieces3x3::Corner(crate::Corner::Ubr),
-    Pieces3x3::Corner(crate::Corner::Ubl),
-];
-
-const LSE_PIECES: [Pieces3x3; 10] = [
-    Pieces3x3::Edge(crate::Edge::Ub),
-    Pieces3x3::Edge(crate::Edge::Ur),
-    Pieces3x3::Edge(crate::Edge::Ul),
-    Pieces3x3::Edge(crate::Edge::Uf),
-    Pieces3x3::Edge(crate::Edge::Df),
-    Pieces3x3::Edge(crate::Edge::Db),
-    Pieces3x3::Center(crate::Center::U),
-    Pieces3x3::Center(crate::Center::F),
-    Pieces3x3::Center(crate::Center::D),
-    Pieces3x3::Center(crate::Center::B),
-];
+use crate::{AlgSet, Choose, Cube3x3, Marked, Method, Puzzle, SearchStep, Step};
 
 /// One-look CMLL algorithms, one per line.
 const CMLL_ONE_LOOK_ALGS: &str = include_str!("cmll/one_look.txt");
@@ -78,73 +10,103 @@ const CMLL_ORIENTATION_ALGS: &str = include_str!("cmll/co.txt");
 const CMLL_PERMUTATION_ALGS: &str = include_str!("cmll/cp.txt");
 
 /// The Roux steps in solving order, built once on first use.
+///
+/// Each step's goal is the pieces that every move and algorithm of the later steps leaves
+/// solved, so the goals are read from the movesets instead of listed piece by piece.
 static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| {
     let fb_moves =
         AlgSet::from_parts("F U R L D B M r").expect("hand-written part lists should always parse");
 
+    let sb_moves =
+        AlgSet::from_parts("U R M r").expect("hand-written part lists should always parse");
+
+    let free_auf = AlgSet::from_moves("U U2 U'").expect("the AUF always parses");
+
+    let cmll_algs = AlgSet::from_algs_in_str(CMLL_ONE_LOOK_ALGS)
+        .expect("manually curated algorithm sets should always parse");
+
+    let cmll_orientation_algs = AlgSet::from_algs_in_str(CMLL_ORIENTATION_ALGS)
+        .expect("manually curated algorithm sets should always parse");
+
+    let cmll_permutation_algs = AlgSet::from_algs_in_str(CMLL_PERMUTATION_ALGS)
+        .expect("manually curated algorithm sets should always parse");
+
+    let lse_moves = AlgSet::from_parts("U M").expect("hand-written part lists should always parse");
+
+    // `U` moves the corners, so the LSE moveset alone would leave them out of the CMLL goal.
+    // These sequences move the same edges and centers as `U M` and bring every corner home.
+    let lse_keeping_corners = AlgSet::from_algs_in_str("M\nU M U'")
+        .expect("hand-written algorithm sets should always parse");
+
     let fb_front_square = Arc::new(SearchStep::new(
         "FB Front Square",
         Marked::<Cube3x3>::default(),
-        Marked::<Cube3x3>::new_from_pieces(FB_FRONT_SQUARE_PIECES),
+        Marked::<Cube3x3>::from_algset(&sb_moves.combined_with(
+            &AlgSet::from_moves("B").expect("manually typed pieces should parse correctly"),
+        )),
         fb_moves.clone(),
     ));
 
     let fb_back_square = Arc::new(SearchStep::new(
         "FB Back Square",
         Marked::<Cube3x3>::default(),
-        Marked::<Cube3x3>::new_from_pieces(FB_BACK_SQUARE_PIECES),
+        Marked::<Cube3x3>::from_algset(&sb_moves.combined_with(
+            &AlgSet::from_moves("F").expect("manually typed pieces should parse correctly"),
+        )),
         fb_moves.clone(),
     ));
+
+    let fb_after = Marked::<Cube3x3>::from_algset(&sb_moves);
 
     // Finishes the block from the back square, so the pair it builds is the front one.
     let fb_front_pair = Arc::new(SearchStep::new(
         "FB Front Pair",
-        Marked::<Cube3x3>::new_from_pieces(FB_BACK_SQUARE_PIECES),
-        Marked::<Cube3x3>::new_from_pieces(FB_PIECES),
+        fb_back_square.after(),
+        fb_after.clone(),
         fb_moves.clone(),
     ));
 
     // Finishes the block from the front square, so the pair it builds is the back one.
     let fb_back_pair = Arc::new(SearchStep::new(
         "FB Back Pair",
-        Marked::<Cube3x3>::new_from_pieces(FB_FRONT_SQUARE_PIECES),
-        Marked::<Cube3x3>::new_from_pieces(FB_PIECES),
+        fb_front_square.after(),
+        fb_after.clone(),
         fb_moves.clone(),
     ));
 
     let fb = Arc::new(SearchStep::new(
         "FB",
         Marked::<Cube3x3>::new_from_pieces([]),
-        Marked::<Cube3x3>::new_from_pieces(FB_PIECES),
+        fb_after,
         fb_moves,
     ));
 
-    let sb_moves =
-        AlgSet::from_parts("U R M r").expect("hand-written part lists should always parse");
+    let after_sb_moves = cmll_algs.combined_with(&lse_moves);
 
-    let sb_after =
-        Marked::<Cube3x3>::new_from_pieces(FB_PIECES.iter().chain(SB_PIECES.iter()).copied());
+    let sb_after = Marked::<Cube3x3>::from_algset(&after_sb_moves);
 
+    // `R' U R` displaces the back pair and returns the front square home.
     let sb_front_square = Arc::new(SearchStep::new(
         "SB Front Square",
         fb.after(),
-        Marked::<Cube3x3>::new_from_pieces(
-            FB_PIECES
-                .iter()
-                .chain(SB_FRONT_SQUARE_PIECES.iter())
-                .copied(),
+        Marked::<Cube3x3>::from_algset(
+            &after_sb_moves.combined_with(
+                &AlgSet::from_algs_in_str("R' U R")
+                    .expect("hand-written algorithm sets should always parse"),
+            ),
         ),
         sb_moves.clone(),
     ));
 
+    // `R U R'` displaces the front pair and returns the back square home.
     let sb_back_square = Arc::new(SearchStep::new(
         "SB Back Square",
         fb.after(),
-        Marked::<Cube3x3>::new_from_pieces(
-            FB_PIECES
-                .iter()
-                .chain(SB_BACK_SQUARE_PIECES.iter())
-                .copied(),
+        Marked::<Cube3x3>::from_algset(
+            &after_sb_moves.combined_with(
+                &AlgSet::from_algs_in_str("R U R'")
+                    .expect("hand-written algorithm sets should always parse"),
+            ),
         ),
         sb_moves.clone(),
     ));
@@ -167,37 +129,27 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
 
     let sb = Arc::new(SearchStep::new("SB", fb.after(), sb_after, sb_moves));
 
-    let cmll_after = Marked::<Cube3x3>::new_from_pieces(
-        FB_PIECES
-            .iter()
-            .chain(SB_PIECES.iter())
-            .chain(CMLL_PIECES.iter())
-            .copied(),
-    );
-    let free_auf = AlgSet::from_moves("U U2 U'").expect("the AUF always parses");
+    let cmll_after = Marked::<Cube3x3>::from_algset(&lse_keeping_corners);
     let cmll = Arc::new(SearchStep::new_with_free_algs(
         "CMLL",
         sb.after(),
         cmll_after.clone(),
-        AlgSet::from_algs_in_str(CMLL_ONE_LOOK_ALGS)
-            .expect("manually curated algorithm sets should always parse"),
+        cmll_algs,
         free_auf.clone(),
     ));
 
-    let cmll_orientation_after = Marked::<Cube3x3>::from_double_iter(
-        FB_PIECES.iter().chain(SB_PIECES.iter()).copied(),
-        FB_PIECES
-            .iter()
-            .chain(SB_PIECES.iter())
-            .chain(CMLL_PIECES.iter())
-            .copied(),
+    // Neither the permutation algorithms nor the AUF twist a corner, so the corners stay in
+    // the goal through their orientation only.
+    let cmll_orientation_after = Marked::<Cube3x3>::from_algset(
+        &cmll_permutation_algs
+            .combined_with(&free_auf)
+            .combined_with(&lse_keeping_corners),
     );
     let cmll_orientation = Arc::new(SearchStep::new_with_free_algs(
         "CO",
         sb.after(),
         cmll_orientation_after.clone(),
-        AlgSet::from_algs_in_str(CMLL_ORIENTATION_ALGS)
-            .expect("manually curated algorithm sets should always parse"),
+        cmll_orientation_algs,
         free_auf.clone(),
     ));
 
@@ -205,23 +157,15 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
         "CP",
         cmll_orientation_after,
         cmll_after,
-        AlgSet::from_algs_in_str(CMLL_PERMUTATION_ALGS)
-            .expect("manually curated algorithm sets should always parse"),
+        cmll_permutation_algs,
         free_auf,
     ));
 
     let lse = Arc::new(SearchStep::new(
         "LSE",
         cmll.after(),
-        Marked::<Cube3x3>::new_from_pieces(
-            FB_PIECES
-                .iter()
-                .chain(SB_PIECES.iter())
-                .chain(CMLL_PIECES.iter())
-                .chain(LSE_PIECES.iter())
-                .copied(),
-        ),
-        AlgSet::from_parts("U M").expect("hand-written part lists should always parse"),
+        Marked::<Cube3x3>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied()),
+        lse_moves,
     ));
 
     let steps: Vec<Arc<dyn Step<Cube3x3>>> = vec![
@@ -311,26 +255,10 @@ mod test {
         reason = "`?` reports setup failures; `assert!` reports the property under test failing"
     )]
 
-    use std::{collections::HashSet, error::Error};
+    use std::error::Error;
 
     use super::*;
-    use crate::{Cube3x3, Inv, Puzzle};
-
-    #[test]
-    fn all_step_pieces_are_all_cube_pieces() {
-        assert_eq!(
-            FB_PIECES
-                .iter()
-                .chain(SB_FRONT_SQUARE_PIECES.iter())
-                .chain(SB_BACK_SQUARE_PIECES.iter())
-                .chain(SB_PIECES.iter())
-                .chain(CMLL_PIECES.iter())
-                .chain(LSE_PIECES.iter())
-                .copied()
-                .collect::<HashSet<Pieces3x3>>(),
-            HashSet::from_iter(Cube3x3::ALL_PIECES.iter().copied())
-        );
-    }
+    use crate::{Cube3x3, Inv};
 
     #[test]
     fn cmll_step_leaves_the_cube_with_cmll_solved() {
