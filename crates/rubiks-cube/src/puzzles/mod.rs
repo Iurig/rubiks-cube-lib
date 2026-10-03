@@ -9,7 +9,7 @@ use crate::{Algorithm, SolveError};
 pub mod algorithm;
 pub mod algset;
 pub mod cube3x3;
-pub mod mask;
+pub mod label;
 
 /// A twisty puzzle the solver can work on. [`Cube3x3`](crate::Cube3x3) is the only one so far.
 ///
