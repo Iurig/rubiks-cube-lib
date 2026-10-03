@@ -90,19 +90,17 @@ impl<'a, P: Puzzle> PrunedCombine<'a, P> {
 /// moveset order has no pair either rule rejects: the first rule would give a shorter path, and
 /// the second the same path with an earlier sequence first.
 fn may_follow<P: Puzzle>(moveset: &AlgSet<P>) -> Vec<Vec<bool>> {
-    let apply = |puzzle: P, alg: &Algorithm<P>| alg.iter().fold(puzzle, |state, &m| state * m);
     let algs = moveset.algs();
-    let alone: Vec<P> = algs.iter().map(|alg| apply(P::default(), alg)).collect();
+    let alone: Vec<P> = algs.iter().map(|alg| P::default().apply(alg)).collect();
     (0..algs.len())
         .zip(alone.iter().zip(algs))
         .map(|(a_index, (after_a, a))| {
             (0..algs.len())
                 .zip(alone.iter().zip(algs))
                 .map(|(b_index, (after_b, b))| {
-                    let a_then_b = apply(after_a.clone(), b);
+                    let a_then_b = after_a.apply(b);
                     let shortens = a_then_b == P::default() || alone.contains(&a_then_b);
-                    let commutes_out_of_order =
-                        b_index < a_index && a_then_b == apply(after_b.clone(), a);
+                    let commutes_out_of_order = b_index < a_index && a_then_b == after_b.apply(a);
                     !shortens && !commutes_out_of_order
                 })
                 .collect()
@@ -224,7 +222,7 @@ impl<P: Puzzle> Step<P> for PrunedCombine<'_, P> {
                 match search(
                     combine,
                     Some(index),
-                    &alg.iter().fold(puzzle.clone(), |state, &m| state * m),
+                    &puzzle.apply(alg),
                     path,
                     next_depth,
                     bound,
@@ -252,7 +250,7 @@ impl<P: Puzzle> Step<P> for PrunedCombine<'_, P> {
                 ControlFlow::Continue(None) => return Err(StepError::UnreachableGoal),
             }
         }
-        *puzzle = path.iter().fold(puzzle.clone(), |state, &m| state * m);
+        *puzzle = puzzle.apply(&path);
         Ok(Solution::from_iter([Segment {
             moves: path,
             name: self.name.to_string(),
@@ -327,7 +325,7 @@ mod tests {
         for _ in 0..3 {
             all_frontier = all_frontier
                 .iter()
-                .flat_map(|cube| algs.iter().map(|alg| alg.iter().fold(*cube, |c, &m| c * m)))
+                .flat_map(|cube| algs.iter().map(|alg| cube.apply(alg)))
                 .collect();
             all.extend(all_frontier.iter().copied());
             pruned_frontier = pruned_frontier
@@ -337,9 +335,7 @@ mod tests {
                     algs.iter()
                         .enumerate()
                         .filter(move |&(index, _)| last.is_none_or(|l| table[l][index]))
-                        .map(move |(index, alg)| {
-                            (alg.iter().fold(cube, |c, &m| c * m), Some(index))
-                        })
+                        .map(move |(index, alg)| (cube.apply(alg), Some(index)))
                 })
                 .collect();
             pruned.extend(pruned_frontier.iter().map(|&(cube, _)| cube));

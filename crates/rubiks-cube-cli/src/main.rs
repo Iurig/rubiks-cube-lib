@@ -16,7 +16,7 @@ fn reconstruct_n<P: Puzzle>(n: u32, technique: &Method<P>) -> anyhow::Result<()>
     for count in 1..=n {
         let scramble = P::scramble()?;
 
-        let mut puzzle = scramble.iter().fold(P::default(), |p, m| p * *m);
+        let mut puzzle = P::default().apply(&scramble);
 
         let solution = technique.solve(&mut puzzle)?;
 

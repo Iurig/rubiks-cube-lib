@@ -103,7 +103,7 @@ impl<P: Puzzle> SearchStep<P> {
                 })
                 .min_by_key(|(path, _, _)| path.len());
             if let Some((path, tail, cube)) = best {
-                *p = tail.iter().fold(cube.clone(), |c, m| c * *m);
+                *p = cube.apply(&tail);
                 return Ok(path);
             }
 
@@ -135,7 +135,7 @@ impl<P: Puzzle> SearchStep<P> {
         let mut next = Vec::new();
         for cube in level {
             for sequence in self.search_algs.algs() {
-                let moved = sequence.iter().fold(cube.clone(), |c, m| c * *m);
+                let moved = cube.apply(sequence);
                 if let Entry::Vacant(e) = investigated.entry(self.mask(&moved)) {
                     e.insert(Some(sequence));
                     next.push(moved);
@@ -156,7 +156,7 @@ impl<P: Puzzle> SearchStep<P> {
         while let Some(cube) = level.get(i).cloned() {
             i += 1;
             for sequence in self.free_search_algs.algs() {
-                let moved = sequence.iter().fold(cube.clone(), |c, m| c * *m);
+                let moved = cube.apply(sequence);
                 if let Entry::Vacant(e) = investigated.entry(self.mask(&moved)) {
                     e.insert(Some(sequence));
                     level.push(moved);

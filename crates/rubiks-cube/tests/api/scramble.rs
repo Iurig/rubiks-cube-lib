@@ -71,7 +71,7 @@ fn scramble_never_clashes_and_is_never_solved() {
 fn scramble_and_solve_with_parsing_round_trip() -> Result<(), Box<dyn Error>> {
     let scramble = Cube3x3::scramble()?;
     let solution = Method::roux(RouxOptions::default())
-        .solve(&mut scramble.iter().fold(Cube3x3::default(), |p, m| p * *m))?
+        .solve(&mut Cube3x3::default().apply(&scramble))?
         .to_string();
 
     assert!(Cube3x3::from_solved(&format!("{scramble}\n {solution}"))?.is_solved());

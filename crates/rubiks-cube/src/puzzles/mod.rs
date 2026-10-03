@@ -90,6 +90,12 @@ pub trait Puzzle:
         Self::scramble_with_seed(fastrand::u64(..))
     }
 
+    /// The state after applying the moves of `alg` to this one, in order.
+    #[must_use]
+    fn apply(&self, alg: &Algorithm<Self>) -> Self {
+        alg.iter().fold(self.clone(), |p, &m| p * m)
+    }
+
     #[expect(
         clippy::panic,
         reason = "`ALL_PIECES` lists every piece, so the loop always returns"

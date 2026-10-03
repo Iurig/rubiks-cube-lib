@@ -211,7 +211,7 @@ mod tests {
     fn domino_turns_keep_a_cube_in_the_domino_subgroup() {
         let mut cube = Cube3x3::default();
         for alg in domino_turns().algs() {
-            cube = alg.iter().fold(cube, |c, &m| c * m);
+            cube = cube.apply(alg);
             assert!(
                 in_domino_subgroup(&cube),
                 "after {alg:?}
