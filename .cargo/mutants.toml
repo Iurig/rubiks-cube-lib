@@ -1,15 +1,24 @@
+exclude_globs = ["crates/twisty-puzzles-py/**"]
 exclude_re = [
     "impl Debug",
     "impl Display",
     "name",
     "::moves",
-    "<impl Hasher for FxHasher>",
-    "Error",
+    # Error messages are for people to read; their wording isn't pinned.
+    'replace <impl std::fmt::Display for ParseMoveError>::fmt',
+    'replace <impl std::fmt::Display for ParseSequenceError>::fmt',
+    # Hash quality, not correctness: a weaker hash is slower, never wrong.
+    'replace >> with << in <impl Hasher for FxHasher>::write_u128',
+    'replace <impl Hasher for FxHasher>::write_u64 with \(\)',
     # Equivalent mutants: the mutated code computes the same result.
     # `cycle_size - 1` and `cycle_size + 1` are equal mod 2.
     'replace - with \+ in PieceConfiguration<P, N, O>::parity',
+    # Flipping which order of a commuting pair is kept still loses no state.
+    'replace < with > in may_follow',
+    # `Default for Labeled` calls `new_empty`, which calls `from_fn`: replacing either body
+    # with `Default::default()` recurses forever.
+    'replace Labeled<P, L>::from_fn -> Self with Default::default\(\)',
+    'replace Labeled<P, L>::new_empty -> Self with Default::default\(\)',
     # `identity` already returns `Self::default()`.
     'replace <impl Pow for Cube3x3>::identity -> Self with Default::default\(\)',
 ]
-test_tool = "nextest"
-additional_cargo_test_args = ["--max-fail=1:immediate"]

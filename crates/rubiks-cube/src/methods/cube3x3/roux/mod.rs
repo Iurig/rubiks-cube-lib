@@ -181,7 +181,7 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
         "CMLL",
         sb.after(),
         cmll_after.clone(),
-        AlgSet::from_algorithms(CMLL_ONE_LOOK_ALGS)
+        AlgSet::from_algs_in_str(CMLL_ONE_LOOK_ALGS)
             .expect("manually curated algorithm sets should always parse"),
         free_auf.clone(),
     ));
@@ -198,7 +198,7 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
         "CO",
         sb.after(),
         cmll_orientation_after.clone(),
-        AlgSet::from_algorithms(CMLL_ORIENTATION_ALGS)
+        AlgSet::from_algs_in_str(CMLL_ORIENTATION_ALGS)
             .expect("manually curated algorithm sets should always parse"),
         free_auf.clone(),
     ));
@@ -207,7 +207,7 @@ static ALL_ROUX_STEPS: LazyLock<Vec<Arc<dyn Step<Cube3x3>>>> = LazyLock::new(|| 
         "CP",
         cmll_orientation_after,
         cmll_after,
-        AlgSet::from_algorithms(CMLL_PERMUTATION_ALGS)
+        AlgSet::from_algs_in_str(CMLL_PERMUTATION_ALGS)
             .expect("manually curated algorithm sets should always parse"),
         free_auf,
     ));

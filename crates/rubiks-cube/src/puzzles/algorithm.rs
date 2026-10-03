@@ -111,3 +111,25 @@ impl<'a, P: Puzzle> IntoIterator for &'a Algorithm<P> {
         self.0.iter()
     }
 }
+
+#[cfg(test)]
+#[expect(clippy::panic_in_result_fn, reason = "Standardized across tests")]
+mod test {
+    use std::error::Error;
+
+    use crate::{Cube3x3, puzzles::cube3x3::moves::Move3x3};
+
+    use super::*;
+
+    #[test]
+    fn algorithm_into_iter_and_iter_agree() -> Result<(), Box<dyn Error>> {
+        let alg = Move3x3::sequence("R U R' U' R' F R2 U' R' U' R U R' F'")
+            .collect::<Result<Algorithm<Cube3x3>, _>>()?;
+        let alg_clone = alg.clone();
+        let mut alg_iter = alg.into_iter();
+        for m in alg_clone {
+            assert_eq!(alg_iter.next(), Some(m));
+        }
+        Ok(())
+    }
+}

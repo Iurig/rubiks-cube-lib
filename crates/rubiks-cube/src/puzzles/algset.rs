@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{collections::HashSet, sync::Arc};
 
 use crate::{
     Algorithm, Cube3x3, ParseSequenceError, Puzzle,
@@ -15,20 +15,34 @@ use crate::{
 /// search only minimizes once the number of costly sequences is already minimal.
 ///
 /// For the cube, build one from notation text with [`from_parts`](Self::from_parts),
-/// [`from_algorithms`](Self::from_algorithms), or [`from_moves`](Self::from_moves), and join
+/// [`from_algs_in_str`](Self::from_algs_in_str), or [`from_moves`](Self::from_moves), and join
 /// several with [`combined_with`](Self::combined_with).
 ///
 /// ```
 /// use rubiks_cube::{Cube3x3, AlgSet};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Two algorithms to search with, and the AUF to pass as the free sequences.
-/// let algorithms = AlgSet::<Cube3x3>::from_algorithms("R U R' U R U2 R'\nR U2 R' U' R U' R'")?;
+/// let algorithms = AlgSet::<Cube3x3>::from_algs_in_str("R U R' U R U2 R'\nR U2 R' U' R U' R'")?;
 /// let auf = AlgSet::<Cube3x3>::from_moves("U U2 U'")?;
 /// # Ok(())
 /// # }
 /// ```
 #[derive(Clone, Debug, Default)]
 pub struct AlgSet<P: Puzzle>(Arc<[Algorithm<P>]>);
+
+impl<P: Puzzle> PartialEq for AlgSet<P> {
+    fn eq(&self, other: &Self) -> bool {
+        self.algs()
+            .iter()
+            .cloned()
+            .collect::<HashSet<Algorithm<P>>>()
+            == other
+                .algs()
+                .iter()
+                .cloned()
+                .collect::<HashSet<Algorithm<P>>>()
+    }
+}
 
 impl<P: Puzzle> AlgSet<P> {
     /// Every sequence of either collection, each listed once.
@@ -96,7 +110,7 @@ impl AlgSet<Cube3x3> {
     ///
     /// # Errors
     /// If `text` contains an invalid move. The error's line counts lines of the whole `text`.
-    pub fn from_algorithms(text: &str) -> Result<Self, ParseSequenceError> {
+    pub fn from_algs_in_str(text: &str) -> Result<Self, ParseSequenceError> {
         Ok(Self(
             text.lines()
                 .enumerate()
@@ -142,6 +156,42 @@ mod tests {
     use super::*;
 
     #[test]
+    fn combined_with_reconstructs_an_algset() -> Result<(), Box<dyn Error>> {
+        let algset = AlgSet::from_parts("R U L F B D")?
+            .combined_with(&AlgSet::from_algs_in_str("R U R' U' \n R' F R F'")?);
+        for (splitpoint, _) in algset.algs().iter().enumerate() {
+            let first_section = algset.algs()[..splitpoint].to_vec();
+            let second_section = algset.algs()[splitpoint..].to_vec();
+            assert_eq!(
+                algset,
+                AlgSet::from_iter(first_section).combined_with(&AlgSet::from_iter(second_section))
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn algsets_are_equal_when_they_hold_the_same_sequences() -> Result<(), Box<dyn Error>> {
+        let algset = AlgSet::<Cube3x3>::from_algs_in_str("R U\nF")?;
+
+        // Order and repeats don't matter.
+        for same in ["R U\nF", "F\nR U", "R U\nF\nR U"] {
+            let same = AlgSet::from_algs_in_str(same)?;
+            assert_eq!(algset, same);
+            assert_eq!(same, algset);
+        }
+
+        // A missing, extra, or different sequence does.
+        for different in ["", "R U", "R U\nF\nF'", "U R\nF"] {
+            let different = AlgSet::from_algs_in_str(different)?;
+            assert_ne!(algset, different);
+            assert_ne!(different, algset);
+        }
+
+        Ok(())
+    }
+
+    #[test]
     fn from_parts_gives_every_modifier() -> Result<(), Box<dyn Error>> {
         let algset = AlgSet::<Cube3x3>::from_parts("U R M r")?;
 
@@ -152,8 +202,8 @@ mod tests {
     }
 
     #[test]
-    fn from_algorithms_gives_one_sequence_per_line() -> Result<(), Box<dyn Error>> {
-        let algset = AlgSet::<Cube3x3>::from_algorithms("R U R' U'\n\nF R U R' U' F'\nM2 U2")?;
+    fn from_algs_in_str_gives_one_sequence_per_line() -> Result<(), Box<dyn Error>> {
+        let algset = AlgSet::<Cube3x3>::from_algs_in_str("R U R' U'\n\nF R U R' U' F'\nM2 U2")?;
 
         let lengths: Vec<usize> = algset.algs().iter().map(Algorithm::len).collect();
         assert_eq!(lengths, [4, 6, 2]);
@@ -178,7 +228,7 @@ mod tests {
     fn an_invalid_move_names_its_line_and_position() {
         for result in [
             AlgSet::<Cube3x3>::from_parts("U R\nM Q2"),
-            AlgSet::<Cube3x3>::from_algorithms("R U R'\nM Q2"),
+            AlgSet::<Cube3x3>::from_algs_in_str("R U R'\nM Q2"),
             AlgSet::<Cube3x3>::from_moves("U\nU2 Q2"),
         ] {
             let Err(error) = result else {

@@ -245,7 +245,10 @@ impl<P: Puzzle> Step<P> for PrunedCombine<'_, P> {
         loop {
             match search(self, None, puzzle, &mut path, 0, bound) {
                 ControlFlow::Break(()) => break,
-                ControlFlow::Continue(Some(next)) => bound = next,
+                ControlFlow::Continue(Some(next)) => {
+                    debug_assert!(next > bound);
+                    bound = next;
+                }
                 ControlFlow::Continue(None) => return Err(StepError::UnreachableGoal),
             }
         }
