@@ -1,6 +1,6 @@
 use std::{collections::HashSet, fmt::Debug, hash::Hash, iter::IntoIterator, ops::Mul};
 
-use crate::Puzzle;
+use crate::{AlgSet, Puzzle};
 
 /// A puzzle with optional labels attatched to its pieces, as well as optional orientations.
 ///
@@ -225,6 +225,42 @@ impl<P: Puzzle> Marked<P> {
                     .orient
                     .is_none_or(|orient| puzzle.orientation_at(slot) == orient)
         })
+    }
+
+    /// Constructs a [`Marked Puzzle`](Marked<P>) by checking which pieces cannot be moved using
+    /// only an algset.
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "Out of bounds slice is an unrecoverable state"
+    )]
+    pub fn from_algset(algset: &AlgSet<P>) -> Self {
+        let mut mask = Mask::<P>::new_from_pieces(P::ALL_PIECES.to_vec());
+        let mut changed = true;
+        while changed {
+            changed = false;
+            for alg in algset.algs() {
+                let moved = alg.iter().fold(mask.clone(), |p, m| p * *m);
+                for &p in P::ALL_PIECES {
+                    if mask.condition(p).label != moved.condition(p).label {
+                        mask.0[P::index(p)].label = None;
+                        changed = true;
+                    }
+                    if mask.condition(p).orient != moved.condition(p).orient {
+                        mask.0[P::index(p)].orient = None;
+                        changed = true;
+                    }
+                }
+            }
+        }
+        let marked = mask
+            .0
+            .iter()
+            .map(|s| SlotCondition {
+                label: s.label.is_some().then_some(()),
+                orient: s.orient,
+            })
+            .collect();
+        Self(marked)
     }
 }
 
