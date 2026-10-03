@@ -11,6 +11,7 @@ use std::ops::Neg;
 )]
 use self::{moves::*, pieces::*};
 
+use crate::{Algorithm, Method, SolveError};
 #[allow(
     clippy::enum_glob_use,
     reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
@@ -146,7 +147,7 @@ impl Puzzle for Cube3x3 {
         }
     }
 
-    fn scramble_with_seed(seed: u64) -> Self {
+    fn apply_scramble_with_seed(seed: u64) -> Self {
         let mut rng = fastrand::Rng::with_seed(seed);
         let mut attempt = Self {
             corner_configuration: CornerConfiguration::random_state(&mut rng),
@@ -171,6 +172,16 @@ impl Puzzle for Cube3x3 {
             attempt.edge_configuration.permutation.swap(0, 1);
         }
         attempt
+    }
+
+    fn scramble_with_seed(seed: u64) -> Result<Algorithm<Self>, SolveError> {
+        let mut cube = Self::apply_scramble_with_seed(seed);
+        Ok(Method::kociemba()
+            .solve(&mut cube)?
+            .iter()
+            .flat_map(|s| s.moves().iter().copied())
+            .collect::<Algorithm<Self>>()
+            .inverse())
     }
 }
 
@@ -423,5 +434,64 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(u_perm.pow(3), Cube3x3::default());
+    }
+
+    #[test]
+    fn default_is_reachable() {
+        assert!(Cube3x3::default().is_reachable());
+    }
+
+    #[test]
+    fn r_is_reachable() -> Result<(), Box<dyn Error>> {
+        assert!(Cube3x3::from_solved("R")?.is_reachable());
+        Ok(())
+    }
+
+    #[test]
+    fn m_is_reachable() -> Result<(), Box<dyn Error>> {
+        assert!(Cube3x3::from_solved("M")?.is_reachable());
+        Ok(())
+    }
+
+    #[test]
+    fn y_is_reachable() -> Result<(), Box<dyn Error>> {
+        assert!(Cube3x3::from_solved("y")?.is_reachable());
+        Ok(())
+    }
+
+    #[test]
+    fn hundred_random_states_are_reachable() {
+        for seed in 0..100 {
+            assert!(
+                Cube3x3::apply_scramble_with_seed(seed).is_reachable(),
+                "the state from seed {seed} is not reachable"
+            );
+        }
+    }
+
+    #[test]
+    fn default_is_solved() {
+        assert!(Cube3x3::default().is_solved());
+    }
+
+    #[test]
+    fn y_rotated_solved_is_solved() -> Result<(), Box<dyn Error>> {
+        let rotated_def = Cube3x3::from_solved("y")?;
+        assert!(rotated_def.is_solved());
+        Ok(())
+    }
+
+    #[test]
+    fn rotated_solved_is_solved() -> Result<(), Box<dyn Error>> {
+        let rotated_def = Cube3x3::from_solved("y z y z x2 z2")?;
+        assert!(rotated_def.is_solved());
+        Ok(())
+    }
+
+    #[test]
+    fn all_axes_rotated_solved_is_solved_but_not_after_a_face_turn() -> Result<(), Box<dyn Error>> {
+        assert!(Cube3x3::from_solved("x y2 z'")?.is_solved());
+        assert!(!Cube3x3::from_solved("x y2 z' R")?.is_solved());
+        Ok(())
     }
 }

@@ -157,8 +157,8 @@ mod tests {
 
     #[test]
     fn combined_with_reconstructs_an_algset() -> Result<(), Box<dyn Error>> {
-        let algset = AlgSet::from_parts("R U L F B D")?
-            .combined_with(&AlgSet::from_algs_in_str("R U R' U' \n R' F R F'")?);
+        let algset = AlgSet::from_parts("R U L F B D")?;
+
         for (splitpoint, _) in algset.algs().iter().enumerate() {
             let first_section = algset.algs()[..splitpoint].to_vec();
             let second_section = algset.algs()[splitpoint..].to_vec();

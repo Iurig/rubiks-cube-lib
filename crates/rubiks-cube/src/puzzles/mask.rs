@@ -222,7 +222,7 @@ mod test {
 
     #[test]
     fn applies_to_composes_correctly_on_full_cube() {
-        let cube = Cube3x3::scramble();
+        let cube = Cube3x3::apply_scramble();
         let mask =
             Labeled::<Cube3x3, ByPiece>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
 

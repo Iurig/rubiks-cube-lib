@@ -1,4 +1,3 @@
-use crate::IMPLEMENTED_MOVES;
 use rubiks_cube::{zn::Zn, *};
 use std::error::Error;
 
@@ -105,18 +104,6 @@ fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), Box<dyn Error
         assert_eq!(r.edges().orientation_at(&e), Zn::ZERO);
     }
     assert!(r.is_reachable());
-    Ok(())
-}
-
-#[test]
-fn clockwise_moves_have_order_exactly_4() -> Result<(), Box<dyn Error>> {
-    for m in &IMPLEMENTED_MOVES[..9] {
-        let cube = Cube3x3::from_solved(m)?;
-        for k in 1..4 {
-            assert!(!cube.pow(k).is_solved(), "{m}^{k} should not be solved");
-        }
-        assert!(cube.pow(4).is_solved(), "{m}^4 should be solved");
-    }
     Ok(())
 }
 

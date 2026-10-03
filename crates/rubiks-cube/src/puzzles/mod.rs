@@ -4,6 +4,8 @@ use std::{
     ops::{Add, Mul},
 };
 
+use crate::{Algorithm, SolveError};
+
 pub mod algorithm;
 pub mod algset;
 pub mod cube3x3;
@@ -66,11 +68,25 @@ pub trait Puzzle:
 
     /// A random scrambled state. The same seed always gives the same state.
     #[must_use]
-    fn scramble_with_seed(seed: u64) -> Self;
+    fn apply_scramble_with_seed(seed: u64) -> Self;
 
     /// A random scrambled state from a random seed.
     #[must_use]
-    fn scramble() -> Self {
+    fn apply_scramble() -> Self {
+        Self::apply_scramble_with_seed(fastrand::u64(..))
+    }
+
+    /// The scramble itself in algorithm form. The same seed always returns the same scramble.
+    ///
+    /// # Errors
+    /// Errors if the method for finding a scramble from a random state fails.
+    fn scramble_with_seed(seed: u64) -> Result<Algorithm<Self>, SolveError>;
+
+    /// The scramble itself in algorithm form from a random seed.
+    ///
+    /// # Errors
+    /// Errors if the method for finding a scramble from a random state fails.
+    fn scramble() -> Result<Algorithm<Self>, SolveError> {
         Self::scramble_with_seed(fastrand::u64(..))
     }
 

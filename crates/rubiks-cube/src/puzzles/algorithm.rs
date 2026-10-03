@@ -46,11 +46,6 @@ impl<P: Puzzle> Algorithm<P> {
         self.0.is_empty()
     }
 
-    /// Adds `m` as the last move.
-    pub fn push(&mut self, m: P::Moves) {
-        self.0.push(m);
-    }
-
     /// Adds the moves of `other` after the last move.
     pub fn extend_from(&mut self, other: &Self) {
         self.0.extend_from_slice(&other.0);
@@ -125,11 +120,9 @@ mod test {
     fn algorithm_into_iter_and_iter_agree() -> Result<(), Box<dyn Error>> {
         let alg = Move3x3::sequence("R U R' U' R' F R2 U' R' U' R U R' F'")
             .collect::<Result<Algorithm<Cube3x3>, _>>()?;
-        let alg_clone = alg.clone();
-        let mut alg_iter = alg.into_iter();
-        for m in alg_clone {
-            assert_eq!(alg_iter.next(), Some(m));
-        }
+        let alg_vec_2 = alg.iter().copied().collect::<Vec<_>>();
+        let alg_vec_1 = alg.into_iter().collect::<Vec<_>>();
+        assert_eq!(alg_vec_1, alg_vec_2);
         Ok(())
     }
 }

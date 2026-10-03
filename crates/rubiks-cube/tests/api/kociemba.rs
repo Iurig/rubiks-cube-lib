@@ -50,7 +50,7 @@ fn replay(start: &Cube3x3, solution: &Solution<Cube3x3>) -> Cube3x3 {
 #[expect(clippy::let_underscore_must_use, reason = "this is a test")]
 fn phase_1_solves() {
     let _ = env_logger::builder().is_test(true).try_init();
-    let mut cube = Cube3x3::scramble();
+    let mut cube = Cube3x3::apply_scramble();
     let solution = phase("Phase 1").solve(&mut cube);
     dbg!(&solution);
     match solution {
@@ -98,7 +98,7 @@ fn phase_2_rejects_a_cube_outside_the_domino_subgroup() {
 
 #[test]
 fn phase_2_solves_what_phase_1_leaves() {
-    let mut cube = Cube3x3::scramble();
+    let mut cube = Cube3x3::apply_scramble();
     phase("Phase 1").solve(&mut cube).unwrap();
     let solution = phase("Phase 2").solve(&mut cube).unwrap();
     assert!(
@@ -110,7 +110,7 @@ fn phase_2_solves_what_phase_1_leaves() {
 
 #[test]
 fn kociemba_solves_a_scramble() {
-    let start = Cube3x3::scramble();
+    let start = Cube3x3::apply_scramble();
     let mut cube = start;
     let solution = Method::kociemba().solve(&mut cube).unwrap();
     let names: Vec<&str> = solution.iter().map(Segment::name).collect();

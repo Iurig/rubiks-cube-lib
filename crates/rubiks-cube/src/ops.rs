@@ -118,12 +118,24 @@ mod tests {
     fn algorithm_then_its_inverse_returns_to_the_start() -> Result<(), Box<dyn Error>> {
         let alg = algorithm("R U R' U' R' F R2 U' R' U' R U R' F'")?;
         for seed in 0..20 {
-            let start = Cube3x3::scramble_with_seed(seed);
+            let start = Cube3x3::apply_scramble_with_seed(seed);
             let end = alg
                 .iter()
                 .chain(&alg.inverse())
                 .fold(start, |cube, &m| cube * m);
             assert_eq!(end, start, "seed {seed}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn clockwise_moves_have_order_exactly_4() -> Result<(), Box<dyn Error>> {
+        for m in &["R", "U", "D", "L", "F", "B", "E", "S", "M"] {
+            let cube = Cube3x3::from_solved(m)?;
+            for k in 1..4 {
+                assert!(!cube.pow(k).is_solved(), "{m}^{k} should not be solved");
+            }
+            assert!(cube.pow(4).is_solved(), "{m}^4 should be solved");
         }
         Ok(())
     }

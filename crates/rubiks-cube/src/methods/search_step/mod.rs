@@ -1,6 +1,8 @@
 pub mod memorization;
 use std::{collections::hash_map::Entry, sync::Mutex};
 
+use rayon::prelude::*;
+
 use crate::{
     AlgSet, Algorithm, Labeled, Mask, Tracked, fast_hash::FxMap,
     methods::search_step::memorization::BFSMemo,
@@ -92,7 +94,7 @@ impl<P: Puzzle> SearchStep<P> {
 
         loop {
             let best = level
-                .iter()
+                .par_iter()
                 .filter_map(|cube| {
                     let tail = memo.solution(&self.mask(cube))?;
                     let mut path = self.path_to(cube, &investigated);

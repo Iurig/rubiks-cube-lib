@@ -21,4 +21,38 @@ exclude_re = [
     'replace Labeled<P, L>::new_empty -> Self with Default::default\(\)',
     # `identity` already returns `Self::default()`.
     'replace <impl Pow for Cube3x3>::identity -> Self with Default::default\(\)',
+    # Goal masks store orientation 0, so the output is unchanged.
+    'replace orientation_position -> Option<usize> with Some\(0\)',
+    # Log only: `forward_depth` is read by a `trace!` line and nothing else.
+    'replace \+= with (-=|\*=) in SearchStep<P>::solve_bfs',
+    # Weakened checks in `facelets.rs`'s `const _` block can't fail while `NET` is correct.
+    'replace same_slot -> bool with false',
+    'delete match arm .* in same_slot',
+    'replace slot_has -> bool with true',
+    'facelets\.rs:\d+:\d+: replace < with (==|>)$',
+    # The CLI's interface is not settled (plan topic 15). Remove these once it is.
+    'rubiks-cube-cli/src/main\.rs:.*replace main -> anyhow::Result<\(\)> with Ok\(\(\)\)',
+    'rubiks-cube-cli/src/main\.rs:.*replace match guard m == "roux" with (true|false) in main',
+    'rubiks-cube-cli/src/main\.rs:.*replace == with != in main',
+    # Hang-only: the IDA* estimate never reaches 0, so every `PrunedCombine::solve` runs
+    # forever. Non-termination is the only way these can show.
+    'replace <impl DistanceStep<P> for T>::distance_from_solved -> Option<u8> with Some\(1\)',
+    'replace PruneTable<K>::get_distance -> Option<u8> with Some\(1\)',
+    'replace <impl Step<P> for PrunedCombine<.*>>::solve::estimate -> Option<u8> with Some\(1\)',
+    'replace Labeled<P, L>::composed_with -> Self with Default::default\(\)',
+    # Hang-only: a loop counter starting at 0 never advances. In `deepen` this also covers
+    # `self.depth += 1`, which only the test helper `search_to` reads.
+    'replace \+= with \*= in SearchStep<P>::close_under_free_sequences',
+    'replace \+= with \*= in BFSMemo<P>::deepen',
+    # Hang-only: a memo that never grows can give no answer, never a wrong one.
+    'replace BFSMemo<P>::deepen with \(\)',
+    # Performance only: the two-ended search still finds a shortest answer, growing the wrong
+    # side. The solve benches are where a regression here shows.
+    'replace != with == in SearchStep<P>::solve_bfs',
+    'replace <= with > in SearchStep<P>::solve_bfs',
+    'replace BFSMemo<P>::frontier_len -> usize with 0',
+    # Hang-only, mostly: phase 1 takes every slice and rotation move too, and the kociemba solves
+    # crawl past the timeout. When a random scramble finishes, `phase_2_solves_what_phase_1_leaves`
+    # catches it.
+    'replace && with \|\| in face_turns',
 ]

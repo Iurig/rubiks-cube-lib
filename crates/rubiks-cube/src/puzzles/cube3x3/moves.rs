@@ -111,13 +111,6 @@ impl std::fmt::Display for Move3x3 {
     }
 }
 
-impl std::ops::Mul for Move3x3 {
-    type Output = Cube3x3;
-    fn mul(self, rhs: Self) -> Self::Output {
-        Cube3x3::from(self) * Cube3x3::from(rhs)
-    }
-}
-
 impl ops::Inv for Move3x3 {
     fn inverse(&self) -> Self {
         Self {
