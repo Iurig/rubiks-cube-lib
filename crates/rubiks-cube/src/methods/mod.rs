@@ -254,6 +254,11 @@ impl<P: Puzzle> Method<P> {
             if failed {
                 return None;
             }
+            if !step.can_solve(puzzle) {
+                return Some(Err(SolveError::Requirements {
+                    step: step.name().to_string(),
+                }));
+            }
             let result = match step.solve(puzzle) {
                 Err(error) => Err(SolveError::Step {
                     step: step.name().to_string(),
@@ -287,6 +292,11 @@ pub enum StepError {
 /// Why a method's solve stopped, naming the step it stopped at.
 #[derive(Debug)]
 pub enum SolveError {
+    /// A step's requirement isn't met when it should be solved.
+    Requirements {
+        /// The step's name.
+        step: String,
+    },
     /// The step reported an error.
     Step {
         /// The step's name.
@@ -306,7 +316,9 @@ impl SolveError {
     #[must_use]
     pub const fn step(&self) -> &str {
         match self {
-            Self::Step { step, .. } | Self::NotDone { step } => step.as_str(),
+            Self::Step { step, .. } | Self::NotDone { step } | Self::Requirements { step } => {
+                step.as_str()
+            }
         }
     }
 }
@@ -338,6 +350,9 @@ impl Display for SolveError {
             f,
             "{}",
             match self {
+                Self::Requirements { step } => format!(
+                    "step {step} couldn't start solving because its requirements was not met"
+                ),
                 Self::NotDone { step } =>
                     format!("step {step} returned a solution, but its goal is not met"),
                 Self::Step { step, error } => format!("step {step} could not finish: {error}"),

@@ -50,7 +50,7 @@ impl<P: Puzzle> Step<P> for Choose<P> {
     }
 
     fn can_solve(&self, puzzle: &P) -> bool {
-        self.steps.iter().all(|s| s.can_solve(puzzle))
+        self.steps.iter().any(|s| s.can_solve(puzzle))
     }
 
     fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, StepError> {
