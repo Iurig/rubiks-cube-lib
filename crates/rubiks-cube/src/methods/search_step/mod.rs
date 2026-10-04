@@ -186,7 +186,7 @@ impl<P: Puzzle> SearchStep<P> {
         self.after.clone()
     }
     fn mask(&self, puzzle: &P) -> Mask<P> {
-        Mask::<P>::filter_by_piece(puzzle, &self.after)
+        Mask::<P>::filter_by_piece(puzzle, &self.after.or(&self.before))
     }
 }
 
@@ -200,7 +200,7 @@ impl<P: Puzzle> Step<P> for SearchStep<P> {
     }
 
     fn is_done(&self, puzzle: &P) -> bool {
-        self.after.applies_to(puzzle)
+        self.before.applies_to(puzzle) && self.after.applies_to(puzzle)
     }
 
     fn solve(&self, p: &mut P) -> Result<Solution<P>, StepError> {

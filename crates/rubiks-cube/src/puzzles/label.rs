@@ -214,6 +214,29 @@ impl<P: Puzzle> Mask<P> {
 }
 
 impl<P: Puzzle> Marked<P> {
+    /// Composes two instances of [`Marked<P>`], marking pieces if they are tracked by either one.
+    ///
+    /// Zeroes the orientations that are tracked - is meant to be used in goal-type values.
+    #[must_use]
+    pub fn or(&self, other: &Self) -> Self {
+        Self::from_double_iter(
+            P::ALL_PIECES
+                .iter()
+                .zip(self.0.iter().zip(other.0.clone()))
+                .filter(|&(_, (con_self, ref con_other))| {
+                    con_self.label.is_some() || con_other.label.is_some()
+                })
+                .map(|(&slot, _)| slot),
+            P::ALL_PIECES
+                .iter()
+                .zip(self.0.iter().zip(other.0.clone()))
+                .filter(|&(_, (con_self, ref con_other))| {
+                    con_self.orient.is_some() || con_other.orient.is_some()
+                })
+                .map(|(&slot, _)| slot),
+        )
+    }
+
     /// Whether `puzzle` has the slots marked by tracked solved.
     #[must_use]
     pub fn applies_to(&self, puzzle: &P) -> bool {
