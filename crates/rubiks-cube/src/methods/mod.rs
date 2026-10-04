@@ -27,6 +27,9 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
     /// The step's name, as it appears in errors and in the [`Solution`] it returns.
     fn name(&self) -> &str;
 
+    /// Whether `puzzle` meets this step's pre-requisites
+    fn can_solve(&self, puzzle: &P) -> bool;
+
     /// Whether `puzzle` meets this step's goal.
     fn is_done(&self, puzzle: &P) -> bool;
 
@@ -404,7 +407,8 @@ mod tests {
 
     #[test]
     fn a_step_that_returns_but_is_not_done_fails_the_solve_naming_it() {
-        let method = Method::<Cube3x3>::new("test", vec![FixedStep::new("Never done", "", false)]);
+        let method =
+            Method::<Cube3x3>::new("test", vec![FixedStep::new("Never done", "", true, false)]);
 
         let result = method.solve(&mut Cube3x3::default());
 
@@ -447,7 +451,7 @@ mod tests {
             uf_solved.clone(),
             u_turns,
         ));
-        let later = FixedStep::new("Later", "", true);
+        let later = FixedStep::new("Later", "", true, true);
         let method = Method::<Cube3x3>::new("test", vec![solve_uf, later.clone()]);
         let mut cube = Cube3x3::from_solved("U")?;
 
@@ -469,7 +473,7 @@ mod tests {
     #[test]
     fn after_an_error_the_iterator_yields_nothing_more() {
         let failing = FixedStep::failing("Fails", fixed_failure);
-        let later = FixedStep::new("Later", "", true);
+        let later = FixedStep::new("Later", "", true, true);
         let method = Method::<Cube3x3>::new("test", vec![failing, later.clone()]);
         let mut cube = Cube3x3::default();
         let mut steps = method.solve_steps(&mut cube);

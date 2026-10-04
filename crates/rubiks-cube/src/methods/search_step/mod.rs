@@ -182,10 +182,6 @@ impl<P: Puzzle> SearchStep<P> {
         path.into_iter().flatten().copied().collect()
     }
 
-    fn can_apply(&self, cube: &P) -> bool {
-        self.before.applies_to(cube)
-    }
-
     pub(crate) fn after(&self) -> Marked<P> {
         self.after.clone()
     }
@@ -199,12 +195,16 @@ impl<P: Puzzle> Step<P> for SearchStep<P> {
         self.name
     }
 
+    fn can_solve(&self, puzzle: &P) -> bool {
+        self.before.applies_to(puzzle)
+    }
+
     fn is_done(&self, puzzle: &P) -> bool {
         self.after.applies_to(puzzle)
     }
 
     fn solve(&self, p: &mut P) -> Result<Solution<P>, StepError> {
-        if !self.can_apply(p) {
+        if !self.can_solve(p) {
             return Err(StepError::InvalidStartingState);
         }
         Ok(Solution::from_iter([Segment {

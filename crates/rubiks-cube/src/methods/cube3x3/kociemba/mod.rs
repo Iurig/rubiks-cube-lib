@@ -2,6 +2,7 @@ use std::sync::{Arc, LazyLock};
 
 use crate::{
     AlgSet, Algorithm, ByMark, ByPiece, Cube3x3, Edge, Marked, Mask, Method, Pieces3x3, Puzzle,
+    Step,
     methods::combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
     puzzles::cube3x3::{
         moves::{MovablePart, MoveModifier},
@@ -97,6 +98,7 @@ impl PrunedGoal<Cube3x3> for Phase1Edges {
 fn phase_1() -> PrunedCombine<'static, Cube3x3> {
     PrunedCombine::<Cube3x3>::new(
         "Phase 1",
+        &(|_| true),
         [
             Box::new(Phase1Corners) as Box<dyn DistanceStep<Cube3x3>>,
             Box::new(Phase1Edges) as Box<dyn DistanceStep<Cube3x3>>,
@@ -154,6 +156,7 @@ impl PrunedGoal<Cube3x3> for Phase2Edges {
 fn phase_2() -> PrunedCombine<'static, Cube3x3> {
     PrunedCombine::<Cube3x3>::new(
         "Phase 2",
+        &(|puzzle| phase_1().is_done(puzzle)),
         [
             Box::new(Phase2CornersAndE) as Box<dyn DistanceStep<Cube3x3>>,
             Box::new(Phase2Edges) as Box<dyn DistanceStep<Cube3x3>>,
