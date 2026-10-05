@@ -1,18 +1,18 @@
 pub mod choose;
 pub mod combine_pruned;
 pub mod cube3x3;
+mod error;
 pub mod search_step;
+mod solution;
 #[cfg(test)]
 mod test_steps;
 
-use std::{
-    collections::VecDeque,
-    error::Error,
-    fmt::{Debug, Display},
-    sync::Arc,
-};
+pub use error::{SolveError, StepError};
+pub use solution::{Segment, Solution};
 
-use crate::{Algorithm, ops::Inv, puzzles::Puzzle};
+use std::{fmt::Debug, sync::Arc};
+
+use crate::puzzles::Puzzle;
 
 /// One stage of a solving method, such as building the first block in Roux.
 ///
@@ -42,133 +42,6 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
     /// A [`StepError`] when the step cannot start on `puzzle` or cannot reach its goal. The
     /// step may leave `puzzle` changed when it fails.
     fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, StepError>;
-}
-
-/// The moves a method found, as one segment per step, in solving order.
-///
-/// Each segment is the moves a step applied and the name of the step. `Display` prints one line
-/// per segment: the moves in notation, then a tab, `//`, and the step name. That text is valid
-/// notation, so a scramble followed by its printed solution replays to the solved state:
-///
-/// ```text
-/// F' Uw2 Rw Fw M' E' F2    //FB
-/// U Rw2 U M' U2 Rw' U Rw2 U R    //SB
-/// ```
-///
-/// Collect `(moves, name)` pairs to build one, or collect solutions to join them.
-#[derive(Debug, Eq, PartialEq)]
-pub struct Solution<P: Puzzle> {
-    step_solutions: Vec<Segment<P>>,
-}
-
-/// Segment of a solution: includes a name and the moves that make the solution up.
-#[derive(Debug, Eq, PartialEq)]
-pub struct Segment<P: Puzzle> {
-    moves: Algorithm<P>,
-    name: String,
-}
-
-impl<P: Puzzle> Segment<P> {
-    /// Getter for the name of the step that generated the segment.
-    #[must_use]
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-    /// Getter for the moves that make the segment up.
-    #[must_use]
-    pub const fn moves(&self) -> &Algorithm<P> {
-        &self.moves
-    }
-}
-
-impl<P: Puzzle> Solution<P> {
-    /// A solution with no segments.
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Each segment's moves and step name, in solving order.
-    pub fn iter(&self) -> std::slice::Iter<'_, Segment<P>> {
-        self.step_solutions.iter()
-    }
-
-    /// The number of moves in every segment, each move counting one whatever its part or
-    /// modifier (slice turn metric). `M`, `Rw`, `y`, and `U2` each count one.
-    #[must_use]
-    pub fn move_count(&self) -> usize {
-        self.step_solutions
-            .iter()
-            .map(|segment| segment.moves.len())
-            .sum()
-    }
-}
-
-/// Builds a solution from `(moves, step name)` segments, in order.
-impl<P: Puzzle> FromIterator<Segment<P>> for Solution<P> {
-    fn from_iter<I: IntoIterator<Item = Segment<P>>>(iter: I) -> Self {
-        Self {
-            step_solutions: iter.into_iter().collect(),
-        }
-    }
-}
-
-/// Joins solutions into one, keeping every segment in order.
-impl<P: Puzzle> FromIterator<Self> for Solution<P> {
-    fn from_iter<I: IntoIterator<Item = Self>>(iter: I) -> Self {
-        Self {
-            step_solutions: iter.into_iter().flatten().collect(),
-        }
-    }
-}
-
-impl<P: Puzzle> Default for Solution<P> {
-    fn default() -> Self {
-        Self {
-            step_solutions: Vec::<Segment<P>>::new(),
-        }
-    }
-}
-impl<'a, P: Puzzle> IntoIterator for &'a Solution<P> {
-    type Item = &'a Segment<P>;
-    type IntoIter = std::slice::Iter<'a, Segment<P>>;
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
-    }
-}
-impl<P: Puzzle> Extend<Segment<P>> for Solution<P> {
-    fn extend<T: IntoIterator<Item = Segment<P>>>(&mut self, iter: T) {
-        self.step_solutions.extend(iter);
-    }
-}
-impl<P: Puzzle> IntoIterator for Solution<P> {
-    type Item = Segment<P>;
-    type IntoIter = <Vec<Self::Item> as IntoIterator>::IntoIter;
-    fn into_iter(self) -> Self::IntoIter {
-        self.step_solutions.into_iter()
-    }
-}
-impl<P: Puzzle> Display for Solution<P> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            self.step_solutions
-                .iter()
-                .map(|segment| {
-                    segment
-                        .moves
-                        .iter()
-                        .map(P::Moves::to_string)
-                        .collect::<Vec<String>>()
-                        .join(" ")
-                        + "\t//"
-                        + &segment.name
-                        + "\n"
-                })
-                .collect::<String>()
-        )
-    }
 }
 
 /// The ordered list of [`Step`]s that a [`Method`] runs, built by
@@ -310,92 +183,6 @@ pub trait Method<P: Puzzle>: Default + Debug {
     }
 }
 
-/// Why a [`Step`] could not solve.
-#[derive(Debug)]
-pub enum StepError {
-    /// The step's moves cannot bring the puzzle to its goal.
-    UnreachableGoal,
-    /// The puzzle does not meet what the step needs before it starts, such as a
-    /// [`SearchStep`](crate::SearchStep)'s `before` mask. [`Choose`](crate::Choose) skips an
-    /// alternative that returns this.
-    InvalidStartingState,
-    /// Another thread panicked while deepening the step's memo, so the memo may be inconsistent.
-    MemoPoisoned,
-    /// Any other error, for steps written outside the crate.
-    Custom(Box<dyn Error + Send + Sync>),
-}
-/// Why a method's solve stopped, naming the step it stopped at.
-#[derive(Debug)]
-pub enum SolveError {
-    /// A step's requirement isn't met when it should be solved.
-    Requirements {
-        /// The step's name.
-        step: String,
-    },
-    /// The step reported an error.
-    Step {
-        /// The step's name.
-        step: String,
-        /// What the step reported.
-        error: StepError,
-    },
-    /// The step returned a solution, but its `is_done` check failed.
-    NotDone {
-        /// The step's name.
-        step: String,
-    },
-}
-
-impl SolveError {
-    /// The name of the step the solve stopped at.
-    #[must_use]
-    pub const fn step(&self) -> &str {
-        match self {
-            Self::Step { step, .. } | Self::NotDone { step } | Self::Requirements { step } => {
-                step.as_str()
-            }
-        }
-    }
-}
-
-impl std::error::Error for StepError {}
-impl std::error::Error for SolveError {}
-
-impl Display for StepError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::UnreachableGoal =>
-                    "goal could not be reached with the given algset".to_string(),
-                Self::InvalidStartingState =>
-                    "starting state doesn't fit expected properties".to_string(),
-                Self::MemoPoisoned =>
-                    "the step's memo is unusable: another solve panicked while deepening it"
-                        .to_string(),
-                Self::Custom(e) => e.to_string(),
-            }
-        )
-    }
-}
-impl Display for SolveError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::Requirements { step } => format!(
-                    "step {step} couldn't start solving because its requirements was not met"
-                ),
-                Self::NotDone { step } =>
-                    format!("step {step} returned a solution, but its goal is not met"),
-                Self::Step { step, error } => format!("step {step} could not finish: {error}"),
-            }
-        )
-    }
-}
-
 #[cfg(test)]
 mod tests {
     #![expect(
@@ -405,27 +192,13 @@ mod tests {
 
     use std::error::Error;
 
-    use crate::{
-        Cube3x3, Edge, Marked, ParseSequenceError, Pieces3x3, SearchStep,
-        puzzles::cube3x3::moves::Move3x3,
-    };
+    use crate::{Cube3x3, Edge, Marked, Pieces3x3, SearchStep};
 
     use super::{test_steps::FixedStep, *};
     use crate::AlgSet;
 
     fn fixed_failure() -> StepError {
         StepError::Custom("fixed failure".into())
-    }
-
-    #[test]
-    fn move_count_counts_correctly() -> Result<(), Box<dyn Error>> {
-        let s: Solution<Cube3x3> = Solution::from_iter([Segment {
-            moves: Move3x3::sequence("y U2 r M'")
-                .collect::<Result<Algorithm<Cube3x3>, ParseSequenceError>>()?,
-            name: "Step 1".to_string(),
-        }]);
-        assert_eq!(s.move_count(), 4);
-        Ok(())
     }
 
     #[test]
@@ -528,46 +301,5 @@ mod tests {
         assert!(steps.next().is_none());
         assert!(steps.next().is_none());
         assert_eq!(later.runs(), 0, "no step runs after an error");
-    }
-
-    fn segment(moves: &str, name: &str) -> Result<Segment<Cube3x3>, ParseSequenceError> {
-        Ok(Segment {
-            moves: Move3x3::sequence(moves).collect::<Result<_, _>>()?,
-            name: name.to_string(),
-        })
-    }
-
-    #[test]
-    fn borrowed_and_owned_iteration_yield_the_same_segments_in_order() -> Result<(), Box<dyn Error>>
-    {
-        let solution: Solution<Cube3x3> = [segment("R U", "First")?, segment("M'", "Second")?]
-            .into_iter()
-            .collect();
-
-        let mut borrowed = Vec::new();
-        for segment in &solution {
-            borrowed.push((segment.name.clone(), segment.moves.clone()));
-        }
-        let owned: Vec<(String, Algorithm<Cube3x3>)> = solution
-            .into_iter()
-            .map(|segment| (segment.name, segment.moves))
-            .collect();
-
-        let names: Vec<&str> = borrowed.iter().map(|(name, _)| name.as_str()).collect();
-        assert_eq!(names, ["First", "Second"]);
-        assert_eq!(borrowed, owned);
-        Ok(())
-    }
-
-    #[test]
-    fn extend_appends_segments_after_the_existing_ones() -> Result<(), Box<dyn Error>> {
-        let mut solution: Solution<Cube3x3> = Solution::from_iter([segment("R", "First")?]);
-
-        solution.extend([segment("U2", "Second")?, segment("F' L", "Third")?]);
-
-        let names: Vec<&str> = solution.iter().map(Segment::name).collect();
-        assert_eq!(names, ["First", "Second", "Third"]);
-        assert_eq!(solution.move_count(), 4);
-        Ok(())
     }
 }

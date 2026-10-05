@@ -1,16 +1,20 @@
 pub mod memorization;
-use std::{collections::hash_map::Entry, sync::Mutex};
+use std::{
+    collections::{VecDeque, hash_map::Entry},
+    sync::{Arc, Mutex},
+};
 
 use rayon::prelude::*;
 
-use crate::{
-    AlgSet, Algorithm, Marked, Mask, fast_hash::FxMap, methods::search_step::memorization::BFSMemo,
-};
 #[allow(
     clippy::wildcard_imports,
     reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
 )]
-use crate::{Puzzle, methods::*};
+use crate::Puzzle;
+use crate::{
+    AlgSet, Algorithm, Inv, Marked, Mask, Segment, Solution, Step, StepError, fast_hash::FxMap,
+    methods::search_step::memorization::BFSMemo,
+};
 
 /// The pieces a memo brings home, and the sequences it searches with: everything a memo's
 /// contents depend on.
