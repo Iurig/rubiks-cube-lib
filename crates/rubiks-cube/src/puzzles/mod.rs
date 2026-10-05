@@ -9,7 +9,7 @@ use crate::{Algorithm, SolveError};
 pub mod algorithm;
 pub mod algset;
 pub mod cube3x3;
-pub mod mask;
+pub mod label;
 
 /// A twisty puzzle the solver can work on. [`Cube3x3`](crate::Cube3x3) is the only one so far.
 ///
@@ -44,7 +44,7 @@ pub trait Puzzle:
         + Sync
         + Add<Output = Self::Orientation>;
     /// One move of the puzzle, such as `R'` on the cube.
-    type Moves: crate::Inv + Eq + Copy + 'static + Display + Debug + Send + Sync + Hash;
+    type Moves: crate::Inv + Eq + Ord + Copy + 'static + Display + Debug + Send + Sync + Hash;
 
     /// Every piece of the puzzle, each once.
     const ALL_PIECES: &'static [Self::Piece];

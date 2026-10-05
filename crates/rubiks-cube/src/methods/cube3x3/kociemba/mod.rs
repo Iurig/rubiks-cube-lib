@@ -1,8 +1,12 @@
 use std::sync::{Arc, LazyLock};
 
 use crate::{
-    AlgSet, Algorithm, ByPiece, Cube3x3, Edge, Labeled, Method, Pieces3x3, Puzzle, Tracked,
-    methods::combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
+    AlgSet, Algorithm, ByMark, ByPiece, Cube3x3, Edge, Marked, Mask, Method, Pieces3x3, Puzzle,
+    Step,
+    methods::{
+        Technique,
+        combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
+    },
     puzzles::cube3x3::{
         moves::{MovablePart, MoveModifier},
         pieces::Faces,
@@ -57,26 +61,26 @@ fn edges() -> impl Iterator<Item = Pieces3x3> + Clone {
         .copied()
 }
 
-static CORNERS_PHASE_1_GOAL: LazyLock<Labeled<Cube3x3, Tracked>> =
-    LazyLock::new(|| Labeled::<Cube3x3, Tracked>::from_double_iter([], corners()));
+static CORNERS_PHASE_1_GOAL: LazyLock<Marked<Cube3x3>> =
+    LazyLock::new(|| Marked::<Cube3x3>::from_double_iter([], corners()));
 
-static CORNERS_PHASE_1_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, Tracked>>> =
+static CORNERS_PHASE_1_TABLE: LazyLock<PruneTable<Marked<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&CORNERS_PHASE_1_GOAL, &face_turns()));
 
-static EDGES_PHASE_1_GOAL: LazyLock<Labeled<Cube3x3, Tracked>> =
-    LazyLock::new(|| Labeled::<Cube3x3, Tracked>::from_double_iter(RIM, edges()));
+static EDGES_PHASE_1_GOAL: LazyLock<Marked<Cube3x3>> =
+    LazyLock::new(|| Marked::<Cube3x3>::from_double_iter(RIM, edges()));
 
-static EDGES_PHASE_1_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, Tracked>>> =
+static EDGES_PHASE_1_TABLE: LazyLock<PruneTable<Marked<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&EDGES_PHASE_1_GOAL, &face_turns()));
 
 #[derive(Debug)]
 struct Phase1Corners;
 impl PrunedGoal<Cube3x3> for Phase1Corners {
-    type Marker = Tracked;
-    fn goal(&self) -> &Labeled<Cube3x3, Tracked> {
+    type Marker = ByMark;
+    fn goal(&self) -> &Marked<Cube3x3> {
         &CORNERS_PHASE_1_GOAL
     }
-    fn table(&self) -> &PruneTable<Labeled<Cube3x3, Tracked>> {
+    fn table(&self) -> &PruneTable<Marked<Cube3x3>> {
         &CORNERS_PHASE_1_TABLE
     }
 }
@@ -84,11 +88,11 @@ impl PrunedGoal<Cube3x3> for Phase1Corners {
 #[derive(Debug)]
 struct Phase1Edges;
 impl PrunedGoal<Cube3x3> for Phase1Edges {
-    type Marker = Tracked;
-    fn goal(&self) -> &Labeled<Cube3x3, Tracked> {
+    type Marker = ByMark;
+    fn goal(&self) -> &Marked<Cube3x3> {
         &EDGES_PHASE_1_GOAL
     }
-    fn table(&self) -> &PruneTable<Labeled<Cube3x3, Tracked>> {
+    fn table(&self) -> &PruneTable<Marked<Cube3x3>> {
         &EDGES_PHASE_1_TABLE
     }
 }
@@ -97,6 +101,7 @@ impl PrunedGoal<Cube3x3> for Phase1Edges {
 fn phase_1() -> PrunedCombine<'static, Cube3x3> {
     PrunedCombine::<Cube3x3>::new(
         "Phase 1",
+        &(|_| true),
         [
             Box::new(Phase1Corners) as Box<dyn DistanceStep<Cube3x3>>,
             Box::new(Phase1Edges) as Box<dyn DistanceStep<Cube3x3>>,
@@ -111,26 +116,26 @@ fn phase_1() -> PrunedCombine<'static, Cube3x3> {
 // each. Separate tables for the three groups give a lower bound only as good as the worst-placed
 // group, which leaves the search to explore far more states.
 
-static CORNERS_AND_E_PHASE_2_GOAL: LazyLock<Labeled<Cube3x3, ByPiece>> =
-    LazyLock::new(|| Labeled::<Cube3x3, ByPiece>::new_from_pieces(corners().chain(RIM)));
+static CORNERS_AND_E_PHASE_2_GOAL: LazyLock<Mask<Cube3x3>> =
+    LazyLock::new(|| Mask::<Cube3x3>::new_from_pieces(corners().chain(RIM)));
 
-static CORNERS_AND_E_PHASE_2_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, ByPiece>>> =
+static CORNERS_AND_E_PHASE_2_TABLE: LazyLock<PruneTable<Mask<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&CORNERS_AND_E_PHASE_2_GOAL, &domino_turns()));
 
-static EDGES_PHASE_2_GOAL: LazyLock<Labeled<Cube3x3, ByPiece>> =
-    LazyLock::new(|| Labeled::<Cube3x3, ByPiece>::new_from_pieces(edges()));
+static EDGES_PHASE_2_GOAL: LazyLock<Mask<Cube3x3>> =
+    LazyLock::new(|| Mask::<Cube3x3>::new_from_pieces(edges()));
 
-static EDGES_PHASE_2_TABLE: LazyLock<PruneTable<Labeled<Cube3x3, ByPiece>>> =
+static EDGES_PHASE_2_TABLE: LazyLock<PruneTable<Mask<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&EDGES_PHASE_2_GOAL, &domino_turns()));
 
 #[derive(Debug)]
 struct Phase2CornersAndE;
 impl PrunedGoal<Cube3x3> for Phase2CornersAndE {
     type Marker = ByPiece;
-    fn goal(&self) -> &Labeled<Cube3x3, ByPiece> {
+    fn goal(&self) -> &Mask<Cube3x3> {
         &CORNERS_AND_E_PHASE_2_GOAL
     }
-    fn table(&self) -> &PruneTable<Labeled<Cube3x3, ByPiece>> {
+    fn table(&self) -> &PruneTable<Mask<Cube3x3>> {
         &CORNERS_AND_E_PHASE_2_TABLE
     }
 }
@@ -140,10 +145,10 @@ impl PrunedGoal<Cube3x3> for Phase2CornersAndE {
 struct Phase2Edges;
 impl PrunedGoal<Cube3x3> for Phase2Edges {
     type Marker = ByPiece;
-    fn goal(&self) -> &Labeled<Cube3x3, ByPiece> {
+    fn goal(&self) -> &Mask<Cube3x3> {
         &EDGES_PHASE_2_GOAL
     }
-    fn table(&self) -> &PruneTable<Labeled<Cube3x3, ByPiece>> {
+    fn table(&self) -> &PruneTable<Mask<Cube3x3>> {
         &EDGES_PHASE_2_TABLE
     }
 }
@@ -154,6 +159,7 @@ impl PrunedGoal<Cube3x3> for Phase2Edges {
 fn phase_2() -> PrunedCombine<'static, Cube3x3> {
     PrunedCombine::<Cube3x3>::new(
         "Phase 2",
+        &(|puzzle| phase_1().is_done(puzzle)),
         [
             Box::new(Phase2CornersAndE) as Box<dyn DistanceStep<Cube3x3>>,
             Box::new(Phase2Edges) as Box<dyn DistanceStep<Cube3x3>>,
@@ -162,13 +168,14 @@ fn phase_2() -> PrunedCombine<'static, Cube3x3> {
     )
 }
 
-impl Method<Cube3x3> {
-    /// Kociemba's two-phase method: phase 1 orients every piece and brings the E-slice edges
-    /// into the E slice using face turns, then phase 2 solves using only `U`, `D`, and half
-    /// turns. The first call builds the pruning tables, which takes a few seconds.
-    #[must_use]
-    pub fn kociemba() -> Self {
-        Self::new("kociemba", vec![Arc::new(phase_1()), Arc::new(phase_2())])
+/// Kociemba's two-phase method.
+/// The first call builds the pruning tables, which takes a few seconds.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Kociemba;
+
+impl Method<Cube3x3> for Kociemba {
+    fn to_technique(&self) -> Technique<Cube3x3> {
+        Technique::new(vec![Arc::new(phase_1()), Arc::new(phase_2())])
     }
 }
 

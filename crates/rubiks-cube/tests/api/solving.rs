@@ -6,9 +6,7 @@ fn full_solve_and_checking_bfs() -> Result<(), Box<dyn Error>> {
     let scr = "U B' D L2 U B2 R2 D2 L2 D' U2 B2 R2 L U2 F' R' B L D'\n";
     let mut scrambled = Cube3x3::from_solved(scr).expect("deu ruim");
 
-    let recon: String = Method::roux(RouxOptions::default())
-        .solve(&mut scrambled)?
-        .to_string();
+    let recon: String = Roux::default().solve(&mut scrambled)?.to_string();
 
     assert_eq!(
         Cube3x3::from_solved(&(scr.to_string() + recon.as_str())).expect("deu OUTRO ruim"),
@@ -23,16 +21,19 @@ fn every_option_combination_solves() -> Result<(), Box<dyn Error>> {
     let scrambles: Vec<Cube3x3> = (2026..2030)
         .map(Cube3x3::apply_scramble_with_seed)
         .collect();
-    for fb_as_one_step in [false, true] {
-        for sb_square_as_one_step in [false, true] {
-            for one_look_cmll in [false, true] {
-                let options = RouxOptions {
-                    sb_as_one_step: sb_square_as_one_step,
-                    fb_as_one_step,
-                    one_look_cmll,
-                };
-                let described = format!("{options:?}");
-                let roux = Method::roux(options);
+    for fb in [
+        FirstBlockOptions::OneLook,
+        FirstBlockOptions::SquarePair,
+        FirstBlockOptions::EdgePairPair,
+    ] {
+        for sb in [
+            SecondBlockOptions::OneLook,
+            SecondBlockOptions::SquarePair,
+            SecondBlockOptions::EdgePairPair,
+        ] {
+            for cmll in [CMLLOptions::OneLook, CMLLOptions::TwoLook] {
+                let roux = Roux::default().first_block(fb).second_block(sb).cmll(cmll);
+                let described = format!("{roux:?}");
                 for (i, scrambled) in scrambles.iter().enumerate() {
                     let recon = roux
                         .solve(&mut scrambled.clone())
@@ -52,9 +53,7 @@ fn every_option_combination_solves() -> Result<(), Box<dyn Error>> {
 #[test]
 fn skips_work() -> Result<(), Box<dyn Error>> {
     let scrambled = Cube3x3::from_solved("U2")?;
-    let recon = Method::roux(RouxOptions::default())
-        .solve(&mut scrambled.clone())?
-        .to_string();
+    let recon = Roux::default().solve(&mut scrambled.clone())?.to_string();
     println!("{recon}");
     assert!(scrambled.move_sequence(&recon)?.is_solved());
     Ok(())

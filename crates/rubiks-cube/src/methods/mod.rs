@@ -27,6 +27,9 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
     /// The step's name, as it appears in errors and in the [`Solution`] it returns.
     fn name(&self) -> &str;
 
+    /// Whether `puzzle` meets this step's pre-requisites
+    fn can_solve(&self, puzzle: &P) -> bool;
+
     /// Whether `puzzle` meets this step's goal.
     fn is_done(&self, puzzle: &P) -> bool;
 
@@ -168,88 +171,61 @@ impl<P: Puzzle> Display for Solution<P> {
     }
 }
 
-/// A solving method: a name and an ordered list of [`Step`]s. Specific methods are constructors
-/// of this struct.
+/// The ordered list of [`Step`]s that a [`Method`] runs, built by
+/// [`to_technique`](Method::to_technique) from the method's options.
 ///
-/// [`Method::roux`] builds the Roux method for [`Cube3x3`](crate::Cube3x3). Any other list of
-/// steps works too, and the steps can be of different types.
+/// [`Roux`](crate::Roux) gives the Roux steps for [`Cube3x3`](crate::Cube3x3). Any other list
+/// of steps works too, and the steps can be of different types.
 ///
 /// ```rust
-/// use rubiks_cube::{Cube3x3, Method, Puzzle, RouxOptions};
+/// use rubiks_cube::{Cube3x3, Method, Puzzle, Roux};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut cube = Cube3x3::from_solved("R U R' F' L2 D B'")?;
-/// let solution = Method::roux(RouxOptions::default()).solve(&mut cube)?;
+/// let solution = Roux::default().solve(&mut cube)?;
 /// assert!(cube.is_solved());
 /// println!("{solution}");
 /// # Ok(())
 /// # }
 /// ```
 #[derive(Debug)]
-pub struct Method<P: Puzzle> {
-    steps: Vec<Arc<dyn Step<P>>>,
-    name: &'static str,
+pub struct Technique<P: Puzzle> {
+    pub steps: Vec<Arc<dyn Step<P>>>,
 }
 
-impl<P: Puzzle> Method<P> {
-    /// The method's name, such as `"Roux"`.
-    #[must_use]
-    pub const fn name(&self) -> &'static str {
-        self.name
+impl<P: Puzzle> FromIterator<Arc<dyn Step<P>>> for Technique<P> {
+    fn from_iter<T: IntoIterator<Item = Arc<dyn Step<P>>>>(iter: T) -> Self {
+        Self {
+            steps: iter.into_iter().collect(),
+        }
+    }
+}
+
+impl<P: Puzzle> Technique<P> {
+    fn new(steps: Vec<Arc<dyn Step<P>>>) -> Self {
+        Self { steps }
     }
 
-    /// The method's steps, in solving order. Each item is a shared handle to the step the method
-    /// holds, not a copy.
-    pub fn steps(&self) -> impl Iterator<Item = Arc<dyn Step<P>>> {
-        self.steps.iter().cloned()
-    }
-
-    /// A method that runs `steps` in the order given.
-    ///
-    /// A step that should keep its state across methods, such as a
-    /// [`SearchStep`](crate::SearchStep) and its memo, can be shared by cloning its `Arc`.
-    #[must_use]
-    pub fn new(name: &'static str, steps: Vec<Arc<dyn Step<P>>>) -> Self {
-        Self { steps, name }
-    }
-
-    /// Runs every step in order and joins their solutions: [`solve_steps`](Self::solve_steps),
-    /// collected.
-    ///
     /// # Errors
-    /// The first [`SolveError`]. No later step runs, and `puzzle` is left as the failing step
-    /// left it.
+    /// Errors if any step fails to start, to complete, or if it completes but isn't solved at the
+    /// end.
     pub fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, SolveError> {
         self.solve_steps(puzzle).collect()
     }
 
-    /// Solves `puzzle` one step at a time. Each call to `next()` runs the next step and yields
-    /// its solution, so a caller can time a step or report progress before the next one runs.
-    ///
-    /// After each step the iterator checks the step's [`is_done`](Step::is_done). The first
-    /// failure is yielded as an `Err`, and the iterator yields nothing after it. `puzzle` is
-    /// left as the last step that ran left it.
-    ///
-    /// ```rust
-    /// use rubiks_cube::{Cube3x3, Method, RouxOptions};
-    ///
-    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let roux = Method::roux(RouxOptions::default());
-    /// let mut cube = Cube3x3::from_solved("R U R' F' L2 D B'")?;
-    /// for segment in roux.solve_steps(&mut cube) {
-    ///     print!("{}", segment?);
-    /// }
-    /// # Ok(())
-    /// # }
-    /// ```
     pub fn solve_steps(
         &self,
         puzzle: &mut P,
     ) -> impl Iterator<Item = Result<Solution<P>, SolveError>> {
         let mut failed = false;
-        self.steps().map_while(move |step| {
+        self.steps.iter().map_while(move |step| {
             if failed {
                 return None;
+            }
+            if !step.can_solve(puzzle) {
+                return Some(Err(SolveError::Requirements {
+                    step: step.name().to_string(),
+                }));
             }
             let result = match step.solve(puzzle) {
                 Err(error) => Err(SolveError::Step {
@@ -263,6 +239,57 @@ impl<P: Puzzle> Method<P> {
             };
             failed = result.is_err();
             Some(result)
+        })
+    }
+}
+
+pub trait Method<P: Puzzle>: Default + Debug {
+    /// A method that runs `steps` in the order given.
+    ///
+    /// A step that should keep its state across methods, such as a
+    /// [`SearchStep`](crate::SearchStep) and its memo, can be shared by cloning its `Arc`.
+    #[must_use]
+    fn new() -> Self {
+        Self::default()
+    }
+
+    fn to_technique(&self) -> Technique<P>;
+
+    /// Runs every step in order and joins their solutions: [`solve_steps`](Self::solve_steps),
+    /// collected.
+    ///
+    /// # Errors
+    /// The first [`SolveError`]. No later step runs, and `puzzle` is left as the failing step
+    /// left it.
+    fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, SolveError> {
+        self.solve_steps(puzzle).collect()
+    }
+
+    /// Solves `puzzle` one step at a time. Each call to `next()` runs the next step and yields
+    /// its solution, so a caller can time a step or report progress before the next one runs.
+    ///
+    /// After each step the iterator checks the step's [`is_done`](Step::is_done). The first
+    /// failure is yielded as an `Err`, and the iterator yields nothing after it. `puzzle` is
+    /// left as the last step that ran left it.
+    ///
+    /// ```rust
+    /// use rubiks_cube::{Cube3x3, Method, Roux};
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let roux = Roux::default();
+    /// let mut cube = Cube3x3::from_solved("R U R' F' L2 D B'")?;
+    /// for segment in roux.solve_steps(&mut cube) {
+    ///     print!("{}", segment?);
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn solve_steps(&self, puzzle: &mut P) -> impl Iterator<Item = Result<Solution<P>, SolveError>> {
+        self.to_technique().steps.clone().into_iter().map(|s| {
+            s.solve(puzzle).map_err(|e| SolveError::Step {
+                step: s.name().to_string(),
+                error: e,
+            })
         })
     }
 }
@@ -284,6 +311,11 @@ pub enum StepError {
 /// Why a method's solve stopped, naming the step it stopped at.
 #[derive(Debug)]
 pub enum SolveError {
+    /// A step's requirement isn't met when it should be solved.
+    Requirements {
+        /// The step's name.
+        step: String,
+    },
     /// The step reported an error.
     Step {
         /// The step's name.
@@ -303,7 +335,9 @@ impl SolveError {
     #[must_use]
     pub const fn step(&self) -> &str {
         match self {
-            Self::Step { step, .. } | Self::NotDone { step } => step.as_str(),
+            Self::Step { step, .. } | Self::NotDone { step } | Self::Requirements { step } => {
+                step.as_str()
+            }
         }
     }
 }
@@ -335,6 +369,9 @@ impl Display for SolveError {
             f,
             "{}",
             match self {
+                Self::Requirements { step } => format!(
+                    "step {step} couldn't start solving because its requirements was not met"
+                ),
                 Self::NotDone { step } =>
                     format!("step {step} returned a solution, but its goal is not met"),
                 Self::Step { step, error } => format!("step {step} could not finish: {error}"),
@@ -353,7 +390,7 @@ mod tests {
     use std::error::Error;
 
     use crate::{
-        Cube3x3, Edge, Labeled, ParseSequenceError, Pieces3x3, SearchStep, Tracked,
+        Cube3x3, Edge, Marked, ParseSequenceError, Pieces3x3, SearchStep,
         puzzles::cube3x3::moves::Move3x3,
     };
 
@@ -378,12 +415,12 @@ mod tests {
     #[test]
     fn search_step_rejects_a_cube_that_misses_its_before_without_searching()
     -> Result<(), Box<dyn Error>> {
-        let uf_solved = Labeled::<Cube3x3, Tracked>::new_from_pieces([Pieces3x3::Edge(Edge::Uf)]);
+        let uf_solved = Marked::<Cube3x3>::new_from_pieces([Pieces3x3::Edge(Edge::Uf)]);
         // No moves: if the step searched, it could not move and would return `UnreachableGoal`.
-        let step = SearchStep::new(
+        let step = SearchStep::new_with_algs(
             "UF then DF",
             uf_solved,
-            Labeled::<Cube3x3, Tracked>::new_from_pieces([
+            Marked::<Cube3x3>::new_from_pieces([
                 Pieces3x3::Edge(Edge::Uf),
                 Pieces3x3::Edge(Edge::Df),
             ]),
@@ -404,7 +441,7 @@ mod tests {
 
     #[test]
     fn a_step_that_returns_but_is_not_done_fails_the_solve_naming_it() {
-        let method = Method::<Cube3x3>::new("test", vec![FixedStep::new("Never done", "", false)]);
+        let method = Technique::new(vec![FixedStep::new("Never done", "", true, false)]);
 
         let result = method.solve(&mut Cube3x3::default());
 
@@ -419,10 +456,7 @@ mod tests {
 
     #[test]
     fn a_custom_step_error_comes_back_wrapped_and_naming_the_step() {
-        let method = Method::<Cube3x3>::new(
-            "test",
-            vec![FixedStep::failing("Always fails", fixed_failure)],
-        );
+        let method = Technique::new(vec![FixedStep::failing("Always fails", fixed_failure)]);
 
         let result = method.solve(&mut Cube3x3::default());
 
@@ -439,16 +473,16 @@ mod tests {
 
     #[test]
     fn each_next_runs_one_step_and_leaves_the_cube_after_it() -> Result<(), Box<dyn Error>> {
-        let uf_solved = Labeled::<Cube3x3, Tracked>::new_from_pieces([Pieces3x3::Edge(Edge::Uf)]);
+        let uf_solved = Marked::<Cube3x3>::new_from_pieces([Pieces3x3::Edge(Edge::Uf)]);
         let u_turns = AlgSet::from_parts("U")?;
-        let solve_uf = Arc::new(SearchStep::new(
+        let solve_uf = Arc::new(SearchStep::new_with_algs(
             "UF",
-            Labeled::<Cube3x3, Tracked>::default(),
+            Marked::<Cube3x3>::default(),
             uf_solved.clone(),
             u_turns,
         ));
-        let later = FixedStep::new("Later", "", true);
-        let method = Method::<Cube3x3>::new("test", vec![solve_uf, later.clone()]);
+        let later = FixedStep::new("Later", "", true, true);
+        let method = Technique::new(vec![solve_uf, later.clone()]);
         let mut cube = Cube3x3::from_solved("U")?;
 
         let first = method.solve_steps(&mut cube).next();
@@ -469,8 +503,8 @@ mod tests {
     #[test]
     fn after_an_error_the_iterator_yields_nothing_more() {
         let failing = FixedStep::failing("Fails", fixed_failure);
-        let later = FixedStep::new("Later", "", true);
-        let method = Method::<Cube3x3>::new("test", vec![failing, later.clone()]);
+        let later = FixedStep::new("Later", "", true, true);
+        let method = Technique::new(vec![failing, later.clone()]);
         let mut cube = Cube3x3::default();
         let mut steps = method.solve_steps(&mut cube);
 

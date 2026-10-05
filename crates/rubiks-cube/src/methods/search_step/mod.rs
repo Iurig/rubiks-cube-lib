@@ -4,14 +4,62 @@ use std::{collections::hash_map::Entry, sync::Mutex};
 use rayon::prelude::*;
 
 use crate::{
-    AlgSet, Algorithm, Labeled, Mask, Tracked, fast_hash::FxMap,
-    methods::search_step::memorization::BFSMemo,
+    AlgSet, Algorithm, Marked, Mask, fast_hash::FxMap, methods::search_step::memorization::BFSMemo,
 };
 #[allow(
     clippy::wildcard_imports,
     reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
 )]
 use crate::{Puzzle, methods::*};
+
+/// The pieces a memo brings home, and the sequences it searches with: everything a memo's
+/// contents depend on.
+type MemoKey<P> = (Marked<P>, AlgSet<P>, AlgSet<P>);
+
+/// A memo that several steps can grow, one search at a time.
+type SharedMemo<P> = Arc<Mutex<BFSMemo<P>>>;
+
+/// One shared memo per [`MemoKey`], so steps that search for the same thing with the same
+/// sequences grow the same memo, even when built at different times by different methods.
+///
+/// Statics cannot be generic, so each puzzle type that has methods keeps its own cache in a
+/// static.
+#[derive(Debug)]
+pub struct MemoCache<P: Puzzle> {
+    memos: Mutex<FxMap<MemoKey<P>, SharedMemo<P>>>,
+}
+
+impl<P: Puzzle> MemoCache<P> {
+    pub fn new() -> Self {
+        Self {
+            memos: Mutex::new(FxMap::default()),
+        }
+    }
+
+    /// The memo that brings `solved` home with these sequences, created empty on first use.
+    fn memo(
+        &self,
+        solved: &Marked<P>,
+        search_algs: &AlgSet<P>,
+        free_search_algs: &AlgSet<P>,
+    ) -> SharedMemo<P> {
+        // Inserting cannot leave the map half-changed, so a panic elsewhere while it was locked
+        // leaves it usable.
+        let mut memos = self
+            .memos
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        Arc::clone(
+            memos
+                .entry((
+                    solved.clone(),
+                    search_algs.clone(),
+                    free_search_algs.clone(),
+                ))
+                .or_insert_with(|| Arc::new(Mutex::new(BFSMemo::new(solved)))),
+        )
+    }
+}
 
 /// A step that searches for the cheapest way to bring a set of pieces home, using only the
 /// move sequences it was given.
@@ -27,11 +75,11 @@ use crate::{Puzzle, methods::*};
 #[derive(Debug)]
 pub struct SearchStep<P: Puzzle> {
     name: &'static str,
-    before: Labeled<P, Tracked>,
-    after: Labeled<P, Tracked>,
+    before: Marked<P>,
+    after: Marked<P>,
     search_algs: AlgSet<P>,
     free_search_algs: AlgSet<P>,
-    memo: Mutex<BFSMemo<P>>,
+    memo: SharedMemo<P>,
 }
 
 impl<P: Puzzle> SearchStep<P> {
@@ -39,41 +87,63 @@ impl<P: Puzzle> SearchStep<P> {
     ///
     /// Each sequence of `search_algs` is applied as a unit: a single move, or a whole algorithm.
     #[must_use]
-    pub fn new(
+    pub fn new_with_algs(
         name: &'static str,
-        before: Labeled<P, Tracked>,
-        after: Labeled<P, Tracked>,
+        before: Marked<P>,
+        after: Marked<P>,
         search_algs: AlgSet<P>,
     ) -> Self {
-        Self {
-            memo: Mutex::new(BFSMemo::new(&after)),
-            name,
-            before,
-            after,
-            search_algs,
-            free_search_algs: AlgSet::<P>::default(),
-        }
+        Self::new_with_free_algs(name, before, after, search_algs, AlgSet::<P>::default())
     }
 
-    /// Like [`new`](Self::new), but the sequences of `free_search_algs` add no cost: the search
-    /// finds the fewest sequences of `search_algs`, with any number of free ones between them,
-    /// such as an AUF between algorithms.
+    /// Like [`new_with_algs`](Self::new_with_algs), but the sequences of `free_search_algs` add
+    /// no cost: the search finds the fewest sequences of `search_algs`, with any number of free
+    /// ones between them, such as an AUF between algorithms.
     #[must_use]
     pub fn new_with_free_algs(
         name: &'static str,
-        before: Labeled<P, Tracked>,
-        after: Labeled<P, Tracked>,
+        before: Marked<P>,
+        after: Marked<P>,
         search_algs: AlgSet<P>,
         free_search_algs: AlgSet<P>,
     ) -> Self {
+        let memo = Arc::new(Mutex::new(BFSMemo::new(&after.or(&before))));
         Self {
-            memo: Mutex::new(BFSMemo::new(&after)),
             name,
             before,
             after,
             search_algs,
             free_search_algs,
+            memo,
         }
+    }
+
+    /// Like [`new_with_free_algs`](Self::new_with_free_algs), but the memo comes from `cache`,
+    /// shared with every other step of `cache` that brings the same pieces home with the same
+    /// sequences.
+    pub(crate) fn sharing_memo(
+        cache: &MemoCache<P>,
+        name: &'static str,
+        before: Marked<P>,
+        after: Marked<P>,
+        search_algs: AlgSet<P>,
+        free_search_algs: AlgSet<P>,
+    ) -> Self {
+        let memo = cache.memo(&after.or(&before), &search_algs, &free_search_algs);
+        Self {
+            name,
+            before,
+            after,
+            search_algs,
+            free_search_algs,
+            memo,
+        }
+    }
+
+    /// Whether this step and `other` grow the same memo.
+    #[cfg(test)]
+    pub(crate) fn shares_memo_with(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.memo, &other.memo)
     }
 
     /// Meet in the middle: a forward search from `p`, one level at a time, against the memo's
@@ -183,15 +253,8 @@ impl<P: Puzzle> SearchStep<P> {
         path.into_iter().flatten().copied().collect()
     }
 
-    fn can_apply(&self, cube: &P) -> bool {
-        self.before.applies_to(cube)
-    }
-
-    pub(crate) fn after(&self) -> Labeled<P, Tracked> {
-        self.after.clone()
-    }
     fn mask(&self, puzzle: &P) -> Mask<P> {
-        Mask::<P>::filter_by_piece(puzzle, &self.after)
+        Mask::<P>::filter_by_piece(puzzle, &self.after.or(&self.before))
     }
 }
 
@@ -200,12 +263,16 @@ impl<P: Puzzle> Step<P> for SearchStep<P> {
         self.name
     }
 
+    fn can_solve(&self, puzzle: &P) -> bool {
+        self.before.applies_to(puzzle)
+    }
+
     fn is_done(&self, puzzle: &P) -> bool {
-        self.after.applies_to(puzzle)
+        self.before.applies_to(puzzle) && self.after.applies_to(puzzle)
     }
 
     fn solve(&self, p: &mut P) -> Result<Solution<P>, StepError> {
-        if !self.can_apply(p) {
+        if !self.can_solve(p) {
             return Err(StepError::InvalidStartingState);
         }
         Ok(Solution::from_iter([Segment {

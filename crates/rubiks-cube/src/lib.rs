@@ -26,16 +26,17 @@
 //!
 //! # Solving
 //!
-//! A [`Method`] is an ordered list of [`Step`]s. [`Method::roux`] builds the Roux method, and
-//! [`RouxOptions`] chooses between its step variants. Solving returns a [`Solution`], which
-//! prints as notation with one line per step:
+//! A [`Method`], such as [`Roux`] or [`Kociemba`], turns its options into a [`Technique`]: an
+//! ordered list of [`Step`]s. Roux's builder methods, such as [`Roux::first_block`], choose
+//! between its step variants. Solving returns a [`Solution`], which prints as notation with
+//! one line per step:
 //!
 //! ```rust
-//! use rubiks_cube::{Cube3x3, Method, Puzzle, RouxOptions};
+//! use rubiks_cube::{Cube3x3, Method, Puzzle, Roux};
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut cube = Cube3x3::from_solved("D2 F2 R2 U L2 D R2 U' B2 L2 B L2 F' L D2 U R' B D2")?;
-//! let solution = Method::roux(RouxOptions::default()).solve(&mut cube)?;
+//! let solution = Roux::default().solve(&mut cube)?;
 //! assert!(cube.is_solved());
 //! print!("{solution}");
 //! # Ok(())
@@ -43,10 +44,12 @@
 //! ```
 //!
 //! ```text
-//! F' Uw2 Rw Fw M' E' F2    //FB
-//! U Rw2 U M' U2 Rw' U Rw2 U R    //SB
-//! Rw' D' Rw U Rw' D Rw U' Rw U Rw' U'    //CMLL
-//! M U M2 U2 M U' M2 U' M U' M'    //LSE
+//! U' F' B2 D R2 B D2    //FB
+//! U2 R2    //DR
+//! R2 U' R U R' U R'    //SB Square
+//! U M' U2 Rw2 R U' Rw    //SB Pair
+//! U2 R U R' U' R' F R F' R U R' U R U2 R' U'    //CMLL
+//! U2 M' U M' U2 M U2 M' U' M' U2 M'    //LSE
 //! ```
 //!
 //! To build other methods, combine [`SearchStep`]s, which search for a goal given as a
@@ -72,8 +75,13 @@ mod puzzles;
 pub mod zn;
 
 pub use methods::{
-    Method, Segment, Solution, SolveError, Step, StepError, choose::Choose,
-    cube3x3::roux::RouxOptions, search_step::SearchStep,
+    Method, Segment, Solution, SolveError, Step, StepError, Technique,
+    choose::Choose,
+    cube3x3::{
+        kociemba::Kociemba,
+        roux::{CMLLOptions, FirstBlockOptions, LSEOptions, Roux, SecondBlockOptions},
+    },
+    search_step::SearchStep,
 };
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};
@@ -87,7 +95,7 @@ pub use puzzles::{
     Puzzle,
     algorithm::Algorithm,
     algset::AlgSet,
-    mask::{ByPiece, Labeled, Marker, Mask, Tracked},
+    label::{ByMark, ByPiece, Labeled, Marked, Marker, Mask},
 };
 
 /// Runs the Rust examples in `README.md` as doc tests, so they cannot drift from the code.

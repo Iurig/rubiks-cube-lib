@@ -92,7 +92,7 @@ pub enum Orientation3x3 {
     unnameable_types,
     reason = "reachable through `MovablePart::Slice`; exported together with `MovablePart`"
 )]
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Slices {
     M,
     S,
@@ -101,7 +101,7 @@ pub enum Slices {
 impl Slices {
     pub const ALL: [Self; 3] = [Self::M, Self::S, Self::E];
 }
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[expect(non_camel_case_types, reason = "rotations are inherently lower case")]
 #[expect(
     unnameable_types,

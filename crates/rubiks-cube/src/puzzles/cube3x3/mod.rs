@@ -11,7 +11,7 @@ use std::ops::Neg;
 )]
 use self::{moves::*, pieces::*};
 
-use crate::{Algorithm, Method, SolveError};
+use crate::{Algorithm, Method, SolveError, methods::cube3x3::kociemba::Kociemba};
 #[allow(
     clippy::enum_glob_use,
     reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
@@ -176,7 +176,7 @@ impl Puzzle for Cube3x3 {
 
     fn scramble_with_seed(seed: u64) -> Result<Algorithm<Self>, SolveError> {
         let mut cube = Self::apply_scramble_with_seed(seed);
-        Ok(Method::kociemba()
+        Ok(Kociemba
             .solve(&mut cube)?
             .iter()
             .flat_map(|s| s.moves().iter().copied())

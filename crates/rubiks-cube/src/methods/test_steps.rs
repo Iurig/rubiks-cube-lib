@@ -17,6 +17,7 @@ use crate::{
 pub struct FixedStep {
     name: &'static str,
     moves: &'static str,
+    can_solve: bool,
     done: bool,
     error: Option<fn() -> StepError>,
     runs: AtomicUsize,
@@ -24,10 +25,11 @@ pub struct FixedStep {
 
 impl FixedStep {
     /// A step that applies `moves` (notation text; `""` for none) and reports `done`.
-    pub fn new(name: &'static str, moves: &'static str, done: bool) -> Arc<Self> {
+    pub fn new(name: &'static str, moves: &'static str, can_solve: bool, done: bool) -> Arc<Self> {
         Arc::new(Self {
             name,
             moves,
+            can_solve,
             done,
             error: None,
             runs: AtomicUsize::new(0),
@@ -39,6 +41,7 @@ impl FixedStep {
         Arc::new(Self {
             name,
             moves: "",
+            can_solve: true,
             done: false,
             error: Some(error),
             runs: AtomicUsize::new(0),
@@ -54,6 +57,10 @@ impl FixedStep {
 impl Step<Cube3x3> for FixedStep {
     fn name(&self) -> &str {
         self.name
+    }
+
+    fn can_solve(&self, _: &Cube3x3) -> bool {
+        self.can_solve
     }
 
     fn is_done(&self, _: &Cube3x3) -> bool {

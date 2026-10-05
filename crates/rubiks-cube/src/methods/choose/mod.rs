@@ -49,6 +49,10 @@ impl<P: Puzzle> Step<P> for Choose<P> {
         self.name.as_str()
     }
 
+    fn can_solve(&self, puzzle: &P) -> bool {
+        self.steps.iter().any(|s| s.can_solve(puzzle))
+    }
+
     fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, StepError> {
         let best = self
             .steps
@@ -111,8 +115,8 @@ mod tests {
         let choose = Choose::named(
             "Either",
             vec![
-                FixedStep::new("Long", "R U", true),
-                FixedStep::new("Short", "R", true),
+                FixedStep::new("Long", "R U", true, true),
+                FixedStep::new("Short", "R", true, true),
             ],
         );
         let mut cube = Cube3x3::default();
@@ -143,7 +147,7 @@ mod tests {
             "Either",
             vec![
                 FixedStep::failing("Cannot start", cannot_start),
-                FixedStep::new("Runs", "U", true),
+                FixedStep::new("Runs", "U", true, true),
             ],
         );
         let mut cube = Cube3x3::default();
@@ -165,7 +169,7 @@ mod tests {
             "Either",
             vec![
                 FixedStep::failing("Broken", unreachable),
-                FixedStep::new("Would run", "U", true),
+                FixedStep::new("Would run", "U", true, true),
             ],
         );
         let mut cube = Cube3x3::default();
@@ -206,8 +210,8 @@ mod tests {
     #[test]
     fn the_shorter_alternative_wins_whichever_comes_first() -> Result<(), Box<dyn Error>> {
         for short_first in [false, true] {
-            let short: Arc<dyn Step<Cube3x3>> = FixedStep::new("Short", "R", true);
-            let long: Arc<dyn Step<Cube3x3>> = FixedStep::new("Long", "R U", true);
+            let short: Arc<dyn Step<Cube3x3>> = FixedStep::new("Short", "R", true, true);
+            let long: Arc<dyn Step<Cube3x3>> = FixedStep::new("Long", "R U", true, true);
             let alternatives = if short_first {
                 vec![short, long]
             } else {
@@ -237,8 +241,8 @@ mod tests {
         let choose = Choose::named(
             "Either",
             vec![
-                FixedStep::new("First", "R", true),
-                FixedStep::new("Second", "U", true),
+                FixedStep::new("First", "R", true, true),
+                FixedStep::new("Second", "U", true, true),
             ],
         );
         let mut cube = Cube3x3::default();

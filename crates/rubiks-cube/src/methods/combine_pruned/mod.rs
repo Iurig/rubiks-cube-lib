@@ -7,14 +7,24 @@ use std::{fmt::Debug, hash::Hash, ops::ControlFlow, ops::Mul};
 
 use rayon::prelude::*;
 
-#[derive(Debug)]
 pub struct PrunedCombine<'a, P: Puzzle> {
     name: &'a str,
     steps: Vec<Box<dyn DistanceStep<P>>>,
+    ready_to_solve: &'a (dyn Fn(&P) -> bool + Send + Sync),
     moveset: AlgSet<P>,
     /// `may_follow[a][b]`: whether the search tries sequence `b` of the moveset right after
     /// sequence `a`. See [`may_follow`].
     may_follow: Vec<Vec<bool>>,
+}
+
+impl<P: Puzzle> Debug for PrunedCombine<'_, P> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.name.fmt(f)?;
+        self.steps.fmt(f)?;
+        self.moveset.fmt(f)?;
+        self.may_follow.fmt(f)?;
+        Ok(())
+    }
 }
 
 /// One goal of a [`PrunedCombine`]: how many moveset sequences a puzzle is from it.
@@ -65,12 +75,14 @@ impl<K: Eq + Hash> FromIterator<(K, u8)> for PruneTable<K> {
 impl<'a, P: Puzzle> PrunedCombine<'a, P> {
     pub fn new<T: IntoIterator<Item = Box<dyn DistanceStep<P>>>>(
         name: &'a str,
+        ready_to_solve: &'a (dyn Fn(&P) -> bool + Send + Sync),
         iter: T,
         moveset: AlgSet<P>,
     ) -> Self {
         Self {
             name,
             steps: Vec::<Box<dyn DistanceStep<P>>>::from_iter(iter),
+            ready_to_solve,
             may_follow: may_follow(&moveset),
             moveset,
         }
@@ -166,11 +178,17 @@ impl<P: Puzzle> Step<P> for PrunedCombine<'_, P> {
     fn name(&self) -> &str {
         self.name
     }
+
+    fn can_solve(&self, puzzle: &P) -> bool {
+        (self.ready_to_solve)(puzzle)
+    }
+
     fn is_done(&self, puzzle: &P) -> bool {
         self.steps
             .iter()
             .all(|s| s.distance_from_solved(puzzle) == Some(0))
     }
+
     fn solve(&self, puzzle: &mut P) -> Result<super::Solution<P>, super::StepError> {
         /// The largest distance any step reports: a lower bound on the moves left, because
         /// every step must be done at the end. `None` when some step cannot reach its goal.

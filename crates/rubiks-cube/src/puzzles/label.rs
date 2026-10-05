@@ -1,7 +1,15 @@
 use std::{collections::HashSet, fmt::Debug, hash::Hash, iter::IntoIterator, ops::Mul};
 
-use crate::Puzzle;
+use crate::{AlgSet, Puzzle};
 
+/// A puzzle with optional labels attatched to its pieces, as well as optional orientations.
+///
+/// Generalizes the concept of a partial puzzle - in which the labels are the name of the pieces
+/// themselves, and a puzzle that a set of pieces is tracked without regard for their identities -
+/// where the labels are anything of unit type, and everything inbetween.
+///
+/// For partial puzzles, use [`Mask`](crate::Mask), for pieces tracked with a generic mark, use
+/// [`Marked`](crate::Marked)
 #[derive(Clone, Eq, Debug, Hash, PartialEq)]
 pub struct Labeled<P: Puzzle, L: Marker<P>>(Box<[SlotCondition<P, L>]>);
 
@@ -23,6 +31,12 @@ pub struct Labeled<P: Puzzle, L: Marker<P>>(Box<[SlotCondition<P, L>]>);
 /// ```
 pub type Mask<P> = Labeled<P, ByPiece>;
 
+/// A puzzle state with optional orientations, and optional tracking of specific pieces.
+///
+/// Used for defining steps by marking positions to be solved, as well as to track cubes throughout
+/// moves without distinction for it's marked pieces.
+pub type Marked<P> = Labeled<P, ByMark>;
+
 /// What a [`Mask`] asks of one slot: which piece must sit there, and which orientation the piece
 /// there must have. `None` asks nothing.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -32,7 +46,7 @@ pub struct SlotCondition<P: Puzzle, L: Marker<P>> {
 }
 
 /// What a [`Labeled`] writes in a slot. Implemented by marker types instead of by the label types
-/// themselves, so the impls for [`ByPiece`] and [`Tracked`] cannot overlap even if some puzzle's
+/// themselves, so the impls for [`ByPiece`] and [`ByMark`] cannot overlap even if some puzzle's
 /// piece type is `()`.
 pub trait Marker<P: Puzzle> {
     /// The label stored in each slot.
@@ -47,7 +61,7 @@ pub struct ByPiece;
 
 /// Labels are `()`: a labeled slot's own piece must end up home. Goals use it.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct Tracked;
+pub struct ByMark;
 
 impl<P: Puzzle> Marker<P> for ByPiece {
     type Label = P::Piece;
@@ -56,7 +70,7 @@ impl<P: Puzzle> Marker<P> for ByPiece {
     }
 }
 
-impl<P: Puzzle> Marker<P> for Tracked {
+impl<P: Puzzle> Marker<P> for ByMark {
     type Label = ();
     fn home(_slot: P::Piece) -> Self::Label {}
 }
@@ -121,7 +135,7 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     }
 
     #[must_use]
-    pub(crate) fn filter_by_piece(puzzle: &P, goal: &Labeled<P, Tracked>) -> Self {
+    pub(crate) fn filter_by_piece(puzzle: &P, goal: &Marked<P>) -> Self {
         Self::from_fn(|slot| {
             let label = L::home(puzzle.piece_at(&slot));
             let tracked = goal.condition(puzzle.piece_at(&slot)).label.is_some();
@@ -199,7 +213,30 @@ impl<P: Puzzle> Mask<P> {
     }
 }
 
-impl<P: Puzzle> Labeled<P, Tracked> {
+impl<P: Puzzle> Marked<P> {
+    /// Composes two instances of [`Marked<P>`], marking pieces if they are tracked by either one.
+    ///
+    /// Zeroes the orientations that are tracked - is meant to be used in goal-type values.
+    #[must_use]
+    pub fn or(&self, other: &Self) -> Self {
+        Self::from_double_iter(
+            P::ALL_PIECES
+                .iter()
+                .zip(self.0.iter().zip(other.0.clone()))
+                .filter(|&(_, (con_self, ref con_other))| {
+                    con_self.label.is_some() || con_other.label.is_some()
+                })
+                .map(|(&slot, _)| slot),
+            P::ALL_PIECES
+                .iter()
+                .zip(self.0.iter().zip(other.0.clone()))
+                .filter(|&(_, (con_self, ref con_other))| {
+                    con_self.orient.is_some() || con_other.orient.is_some()
+                })
+                .map(|(&slot, _)| slot),
+        )
+    }
+
     /// Whether `puzzle` has the slots marked by tracked solved.
     #[must_use]
     pub fn applies_to(&self, puzzle: &P) -> bool {
@@ -212,6 +249,42 @@ impl<P: Puzzle> Labeled<P, Tracked> {
                     .is_none_or(|orient| puzzle.orientation_at(slot) == orient)
         })
     }
+
+    /// Constructs a [`Marked Puzzle`](Marked<P>) by checking which pieces cannot be moved using
+    /// only an algset.
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "Out of bounds slice is an unrecoverable state"
+    )]
+    pub fn from_algset(algset: &AlgSet<P>) -> Self {
+        let mut mask = Mask::<P>::new_from_pieces(P::ALL_PIECES.to_vec());
+        let mut changed = true;
+        while changed {
+            changed = false;
+            for alg in algset.algs() {
+                let moved = alg.iter().fold(mask.clone(), |p, m| p * *m);
+                for &p in P::ALL_PIECES {
+                    if mask.condition(p).label != moved.condition(p).label {
+                        mask.0[P::index(p)].label = None;
+                        changed = true;
+                    }
+                    if mask.condition(p).orient != moved.condition(p).orient {
+                        mask.0[P::index(p)].orient = None;
+                        changed = true;
+                    }
+                }
+            }
+        }
+        let marked = mask
+            .0
+            .iter()
+            .map(|s| SlotCondition {
+                label: s.label.is_some().then_some(()),
+                orient: s.orient,
+            })
+            .collect();
+        Self(marked)
+    }
 }
 
 #[cfg(test)]
@@ -223,8 +296,7 @@ mod test {
     #[test]
     fn applies_to_composes_correctly_on_full_cube() {
         let cube = Cube3x3::apply_scramble();
-        let mask =
-            Labeled::<Cube3x3, ByPiece>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
+        let mask = Mask::<Cube3x3>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
 
         assert!(
             (mask.composed_with(&cube)).applies_to(&cube),

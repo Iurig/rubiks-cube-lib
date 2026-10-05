@@ -16,7 +16,7 @@ use table::cube_state;
     reason = "reachable through `Move3x3::part`; not exported until ticket 01 derives the parts' \
               `Display` and `TryFrom` from one list and ticket 04 settles the face role"
 )]
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum MovablePart {
     Face(Faces),
     Slice(Slices),
@@ -28,7 +28,7 @@ pub enum MovablePart {
     unnameable_types,
     reason = "reachable through `Move3x3::modifier`; exported together with `Move3x3`"
 )]
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum MoveModifier {
     Clockwise,
     CounterClockwise,
@@ -53,7 +53,7 @@ impl MoveModifier {
     reason = "reachable as `<Cube3x3 as Puzzle>::Moves`, and callers build moves from notation; \
               not exported until `MovablePart` is, since its fields are public"
 )]
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Move3x3 {
     pub part: MovablePart,
     pub modifier: MoveModifier,

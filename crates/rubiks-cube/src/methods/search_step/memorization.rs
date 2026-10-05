@@ -1,16 +1,16 @@
-use crate::{AlgSet, Algorithm, Inv, Labeled, Mask, Puzzle, Tracked, fast_hash::FxMap};
+use crate::{AlgSet, Algorithm, Inv, Marked, Mask, Puzzle, fast_hash::FxMap};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct BFSMemo<P: Puzzle> {
     /// Every state is filtered through this, so memo keys match the forward search's masks.
-    goal: Labeled<P, Tracked>,
+    goal: Marked<P>,
     memorization: FxMap<Mask<P>, Algorithm<P>>,
     to_deepen: Vec<(Mask<P>, P)>,
     depth: usize,
 }
 
 impl<P: Puzzle> BFSMemo<P> {
-    pub fn new(goal: &Labeled<P, Tracked>) -> Self {
+    pub fn new(goal: &Marked<P>) -> Self {
         Self {
             goal: goal.clone(),
             memorization: FxMap::from_iter([(
@@ -128,7 +128,7 @@ mod tests {
             assert_eq!(
                 Mask::<Cube3x3>::filter_by_piece(
                     &Cube3x3::default(),
-                    &Labeled::<Cube3x3, Tracked>::from_double_iter(pieces.clone(), pieces.clone())
+                    &Marked::<Cube3x3>::from_double_iter(pieces.clone(), pieces.clone())
                 ),
                 Mask::from_double_iter(pieces.clone(), pieces)
             );
@@ -140,9 +140,8 @@ mod tests {
     }
 
     /// A memo over the whole cube, searched with R and U moves only.
-    fn r_u_memo(depth: usize) -> (BFSMemo<Cube3x3>, Labeled<Cube3x3, Tracked>) {
-        let goal =
-            Labeled::<Cube3x3, Tracked>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
+    fn r_u_memo(depth: usize) -> (BFSMemo<Cube3x3>, Marked<Cube3x3>) {
+        let goal = Marked::<Cube3x3>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
         let allowed = vec!["R", "R'", "R2", "U", "U'", "U2"]
             .into_iter()
             .map(moves)
@@ -175,7 +174,7 @@ mod tests {
     /// The FR edge passes through UR on the way; the memo key must not keep UR's orientation.
     #[test]
     fn memo_keys_match_forward_masks_after_a_piece_leaves_home() {
-        let goal = Labeled::<Cube3x3, Tracked>::new_from_pieces([Pieces3x3::Edge(Edge::Fr)]);
+        let goal = Marked::<Cube3x3>::new_from_pieces([Pieces3x3::Edge(Edge::Fr)]);
         let allowed = [moves("R'"), moves("U'")].into_iter().collect();
         let mut memo = BFSMemo::new(&goal);
         memo.search_to(1, &allowed, &AlgSet::default());
@@ -189,8 +188,7 @@ mod tests {
     /// Sune's inverse is not an allowed sequence, so the memo must solve with Sune as written.
     #[test]
     fn memo_solutions_use_the_allowed_sequences_as_written() {
-        let goal =
-            Labeled::<Cube3x3, Tracked>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
+        let goal = Marked::<Cube3x3>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
         let sune = "R U R' U R U2 R'";
         let allowed = std::iter::once(moves(sune)).collect();
         let mut memo = BFSMemo::new(&goal);
@@ -207,8 +205,7 @@ mod tests {
     /// level 0 is expanded.
     #[test]
     fn free_sequences_are_closed_before_costly_ones_claim_their_states() {
-        let goal =
-            Labeled::<Cube3x3, Tracked>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
+        let goal = Marked::<Cube3x3>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
         let allowed = [moves("U"), moves("R")].into_iter().collect();
         let free = std::iter::once(moves("U")).collect();
         let mut memo = BFSMemo::new(&goal);
@@ -225,7 +222,7 @@ mod tests {
     #[test]
     fn mask_ignores_orientation_of_other_pieces_in_a_goal_pieces_home_slot() {
         let fr = Pieces3x3::Edge(Edge::Fr);
-        let goal = Labeled::<Cube3x3, Tracked>::new_from_pieces([fr]);
+        let goal = Marked::<Cube3x3>::new_from_pieces([fr]);
         let f = Cube3x3::from_solved("F").unwrap();
         assert_ne!(f.piece_at(&fr), fr);
         assert_eq!(Mask::filter_by_piece(&f, &goal).condition(fr).orient, None);
@@ -233,8 +230,7 @@ mod tests {
 
     #[test]
     fn free_sequences_are_memorized_at_depth_zero() {
-        let goal =
-            Labeled::<Cube3x3, Tracked>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
+        let goal = Marked::<Cube3x3>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
         let allowed = AlgSet::from_moves("R").unwrap();
         let free = AlgSet::from_moves("U'").unwrap();
         let mut memo = BFSMemo::new(&goal);
@@ -284,21 +280,21 @@ mod tests {
             },
         ];
 
-        let fb_filter = Labeled::<Cube3x3, Tracked>::from_double_iter(fb_pieces, fb_pieces);
+        let fb_filter = Marked::<Cube3x3>::from_double_iter(fb_pieces, fb_pieces);
         let mut rng = Rng::new();
 
         for _ in 0..100 {
             cube = cube * sb_moves[Rng::usize(&mut rng, 0..4)];
             assert_eq!(
                 fb_filter,
-                Labeled::<Cube3x3, Tracked>::filter_by_piece(&cube, &fb_filter)
+                Marked::<Cube3x3>::filter_by_piece(&cube, &fb_filter)
             );
         }
         cube = cube.move_sequence("L").unwrap();
 
         assert_ne!(
             fb_filter,
-            Labeled::<Cube3x3, Tracked>::filter_by_piece(&cube, &fb_filter)
+            Marked::<Cube3x3>::filter_by_piece(&cube, &fb_filter)
         );
     }
 }
