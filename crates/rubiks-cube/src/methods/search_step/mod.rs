@@ -12,6 +12,55 @@ use crate::{
 )]
 use crate::{Puzzle, methods::*};
 
+/// The pieces a memo brings home, and the sequences it searches with: everything a memo's
+/// contents depend on.
+type MemoKey<P> = (Marked<P>, AlgSet<P>, AlgSet<P>);
+
+/// A memo that several steps can grow, one search at a time.
+type SharedMemo<P> = Arc<Mutex<BFSMemo<P>>>;
+
+/// One shared memo per [`MemoKey`], so steps that search for the same thing with the same
+/// sequences grow the same memo, even when built at different times by different methods.
+///
+/// Statics cannot be generic, so each puzzle type that has methods keeps its own cache in a
+/// static.
+#[derive(Debug)]
+pub struct MemoCache<P: Puzzle> {
+    memos: Mutex<FxMap<MemoKey<P>, SharedMemo<P>>>,
+}
+
+impl<P: Puzzle> MemoCache<P> {
+    pub fn new() -> Self {
+        Self {
+            memos: Mutex::new(FxMap::default()),
+        }
+    }
+
+    /// The memo that brings `solved` home with these sequences, created empty on first use.
+    fn memo(
+        &self,
+        solved: &Marked<P>,
+        search_algs: &AlgSet<P>,
+        free_search_algs: &AlgSet<P>,
+    ) -> SharedMemo<P> {
+        // Inserting cannot leave the map half-changed, so a panic elsewhere while it was locked
+        // leaves it usable.
+        let mut memos = self
+            .memos
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        Arc::clone(
+            memos
+                .entry((
+                    solved.clone(),
+                    search_algs.clone(),
+                    free_search_algs.clone(),
+                ))
+                .or_insert_with(|| Arc::new(Mutex::new(BFSMemo::new(solved)))),
+        )
+    }
+}
+
 /// A step that searches for the cheapest way to bring a set of pieces home, using only the
 /// move sequences it was given.
 ///
