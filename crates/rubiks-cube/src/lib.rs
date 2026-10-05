@@ -76,13 +76,12 @@ pub mod zn;
 
 pub use methods::{
     Method, Segment, Solution, SolveError, Step, StepError, Technique,
-    choose::Choose,
     cube3x3::{
         kociemba::Kociemba,
         roux::{CMLLOptions, FirstBlockOptions, LSEOptions, Roux, SecondBlockOptions},
         zz::{EOLineOptions, F2LOptions, OLLOptions, PLLOptions, ZZ},
     },
-    search_step::SearchStep,
+    step::{choose::Choose, search_step::SearchStep},
 };
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};

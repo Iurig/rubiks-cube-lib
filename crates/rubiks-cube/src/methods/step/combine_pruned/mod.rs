@@ -121,7 +121,7 @@ impl<P: Puzzle> Step<P> for PrunedCombine<'_, P> {
             .all(|s| s.distance_from_solved(puzzle) == Some(0))
     }
 
-    fn solve(&self, puzzle: &mut P) -> Result<super::Solution<P>, super::StepError> {
+    fn solve(&self, puzzle: &mut P) -> Result<crate::Solution<P>, crate::StepError> {
         /// The largest distance any step reports: a lower bound on the moves left, because
         /// every step must be done at the end. `None` when some step cannot reach its goal.
         fn estimate<P: Puzzle>(steps: &[Box<dyn DistanceStep<P>>], puzzle: &P) -> Option<u8> {

@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use crate::{Cube3x3, methods::search_step::MemoCache};
+use crate::{Cube3x3, methods::step::search_step::MemoCache};
 
 #[macro_use]
 mod helpers;

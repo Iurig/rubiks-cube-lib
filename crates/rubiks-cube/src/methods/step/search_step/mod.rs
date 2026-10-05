@@ -13,7 +13,7 @@ use rayon::prelude::*;
 use crate::Puzzle;
 use crate::{
     AlgSet, Algorithm, Inv, Marked, Mask, Segment, Solution, Step, StepError, fast_hash::FxMap,
-    methods::search_step::memorization::BFSMemo,
+    methods::step::search_step::memorization::BFSMemo,
 };
 
 /// The pieces a memo brings home, and the sequences it searches with: everything a memo's

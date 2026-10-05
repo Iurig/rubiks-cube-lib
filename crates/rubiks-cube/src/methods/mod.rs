@@ -1,9 +1,7 @@
-pub mod choose;
-pub mod combine_pruned;
 pub mod cube3x3;
 mod error;
-pub mod search_step;
 mod solution;
+pub mod step;
 #[cfg(test)]
 mod test_steps;
 

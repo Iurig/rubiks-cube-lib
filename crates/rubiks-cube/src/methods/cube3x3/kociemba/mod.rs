@@ -5,7 +5,7 @@ use crate::{
     Step,
     methods::{
         Technique,
-        combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
+        step::combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
     },
     puzzles::cube3x3::{
         moves::{MovablePart, MoveModifier},
