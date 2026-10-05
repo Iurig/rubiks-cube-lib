@@ -4,9 +4,9 @@ use crate::{AlgSet, Choose, Cube3x3, Marked, Method, Puzzle, Step, methods::Tech
 
 use crate::methods::cube3x3::helpers::{algs, parts, search, search_with_free_algs};
 
-const CMLL_ONE_LOOK_ALGS_STR: &str = include_str!("cmll/one_look.txt");
-const CO_ALGS_TEXT: &str = include_str!("cmll/co.txt");
-const CP_ALGS_TEXT: &str = include_str!("cmll/cp.txt");
+const CMLL_ONE_LOOK_ALGS_STR: &str = include_str!("../algsets/cmll/one_look.txt");
+const CO_ALGS_TEXT: &str = include_str!("../algsets/cmll/co.txt");
+const CP_ALGS_TEXT: &str = include_str!("../algsets/cmll/cp.txt");
 
 /// The Roux method for the 3x3 Rubik's Cube: first block, second block, CMLL, then the last six
 /// edges.

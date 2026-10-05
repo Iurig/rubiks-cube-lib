@@ -110,15 +110,15 @@ impl Method<Cube3x3> for ZZ {
 static EO_LINE_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("F B U R L D "));
 static F2L_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("U R L "));
 static OCLL_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("oll/ocll.txt")).or_skip());
+    LazyLock::new(|| algs(include_str!("../algsets/oll/ocll.txt")).or_skip());
 static COLL_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("oll/coll.txt")).or_skip());
+    LazyLock::new(|| algs(include_str!("../algsets/oll/coll.txt")).or_skip());
 static PLL_CORNER_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("pll/corner.txt")).or_skip());
+    LazyLock::new(|| algs(include_str!("../algsets/pll/corner.txt")).or_skip());
 static PLL_EDGE_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("pll/edge.txt")).or_skip());
+    LazyLock::new(|| algs(include_str!("../algsets/pll/edge.txt")).or_skip());
 static PLL_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("pll/one_look.txt")).or_skip());
+    LazyLock::new(|| algs(include_str!("../algsets/pll/one_look.txt")).or_skip());
 static ZBLL_ALGS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| {
     algs(concat!(
         include_str!("../algsets/zbll/t.txt"),
