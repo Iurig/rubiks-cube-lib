@@ -79,7 +79,7 @@ pub struct SearchStep<P: Puzzle> {
     after: Marked<P>,
     search_algs: AlgSet<P>,
     free_search_algs: AlgSet<P>,
-    memo: Mutex<BFSMemo<P>>,
+    memo: SharedMemo<P>,
 }
 
 impl<P: Puzzle> SearchStep<P> {
@@ -87,20 +87,13 @@ impl<P: Puzzle> SearchStep<P> {
     ///
     /// Each sequence of `search_algs` is applied as a unit: a single move, or a whole algorithm.
     #[must_use]
-    pub fn new(
+    pub fn new_with_algs(
         name: &'static str,
         before: Marked<P>,
         after: Marked<P>,
         search_algs: AlgSet<P>,
     ) -> Self {
-        Self {
-            memo: Mutex::new(BFSMemo::new(&after)),
-            name,
-            before,
-            after,
-            search_algs,
-            free_search_algs: AlgSet::<P>::default(),
-        }
+        Self::new_with_free_algs(name, before, after, search_algs, AlgSet::<P>::default())
     }
 
     /// Like [`new`](Self::new), but the sequences of `free_search_algs` add no cost: the search
@@ -114,14 +107,43 @@ impl<P: Puzzle> SearchStep<P> {
         search_algs: AlgSet<P>,
         free_search_algs: AlgSet<P>,
     ) -> Self {
+        let memo = Arc::new(Mutex::new(BFSMemo::new(&after.or(&before))));
         Self {
-            memo: Mutex::new(BFSMemo::new(&after)),
             name,
             before,
             after,
             search_algs,
             free_search_algs,
+            memo,
         }
+    }
+
+    /// Like [`new_with_free_algs`](Self::new_with_free_algs), but the memo comes from `cache`,
+    /// shared with every other step of `cache` that brings the same pieces home with the same
+    /// sequences.
+    pub(crate) fn sharing_memo(
+        cache: &MemoCache<P>,
+        name: &'static str,
+        before: Marked<P>,
+        after: Marked<P>,
+        search_algs: AlgSet<P>,
+        free_search_algs: AlgSet<P>,
+    ) -> Self {
+        let memo = cache.memo(&after.or(&before), &search_algs, &free_search_algs);
+        Self {
+            name,
+            before,
+            after,
+            search_algs,
+            free_search_algs,
+            memo,
+        }
+    }
+
+    /// Whether this step and `other` grow the same memo.
+    #[cfg(test)]
+    pub(crate) fn shares_memo_with(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.memo, &other.memo)
     }
 
     /// Meet in the middle: a forward search from `p`, one level at a time, against the memo's
@@ -231,9 +253,6 @@ impl<P: Puzzle> SearchStep<P> {
         path.into_iter().flatten().copied().collect()
     }
 
-    pub(crate) fn after(&self) -> Marked<P> {
-        self.after.clone()
-    }
     fn mask(&self, puzzle: &P) -> Mask<P> {
         Mask::<P>::filter_by_piece(puzzle, &self.after.or(&self.before))
     }

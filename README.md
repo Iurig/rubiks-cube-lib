@@ -75,15 +75,15 @@ return an `Err` naming that token.
 
 ## Solving
 
-`Method::roux` builds the Roux method from a `RouxOptions`. `solve` runs the method's steps in
-order and returns a `Solution`, with one segment per step:
+`Roux` and `Kociemba` are the crate's methods, and both implement the `Method` trait. `solve`
+runs a method's steps in order and returns a `Solution`, with one segment per step:
 
 ```rust
-use rubiks_cube::{Cube3x3, Method, Puzzle, RouxOptions};
+use rubiks_cube::{Cube3x3, Method, Puzzle, Roux};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let scramble = "D2 F2 R2 U L2 D R2 U' B2 L2 B L2 F' L D2 U R' B D2";
-    let roux = Method::roux(RouxOptions::default());
+    let roux = Roux::default();
 
     let mut cube = Cube3x3::from_solved(scramble)?;
     let solution = roux.solve(&mut cube)?;
@@ -106,15 +106,26 @@ A printed solution has one line per step: the moves, then `//` and the step's na
 [examples/main.rs](crates/rubiks-cube/examples/main.rs) printed this for the scramble above:
 
 ```text
-F' Uw2 Rw Fw M' E' F2	//FB
-U Rw2 U M' U2 Rw' U Rw2 U R	//SB
-Rw' D' Rw U Rw' D Rw U' Rw U Rw' U'	//CMLL
-M U M2 U2 M U' M2 U' M U' M'	//LSE
+U' F' B2 D R2 B D2	//FB
+U2 R2	//DR
+R2 U' R U R' U R'	//SB Square
+U M' U2 Rw2 R U' Rw	//SB Pair
+U2 R U R' U' R' F R F' R U R' U R U2 R' U'	//CMLL
+U2 M' U M' U2 M U2 M' U' M' U2 M'	//LSE
 ```
 
-`RouxOptions` switches the first and second blocks between one search and a square plus a
-pair, and the last-layer corners between one algorithm and two. With a split block the solver
-tries both the front and the back square and keeps the shorter.
+`Roux`'s builder methods pick how each stage is split. `first_block` and `second_block` choose
+between one search, a square plus a pair, or an edge, then a square, then a pair. `cmll`
+chooses between one algorithm and two. With a split block the solver tries both the front and
+the back square and keeps the shorter:
+
+```rust
+use rubiks_cube::{CMLLOptions, FirstBlockOptions, Roux};
+
+let roux = Roux::default()
+    .first_block(FirstBlockOptions::SquarePair)
+    .cmll(CMLLOptions::TwoLook);
+```
 
 A method is a list of steps. The crate has two step types: `SearchStep`, which searches for a
 goal within a fixed set of moves or algorithms, and `Choose`, which keeps the shortest of
@@ -174,8 +185,8 @@ The main entry points:
   `piece_at`.
 - **`Puzzle`** is the trait the solver works through. Import it to call `is_solved` or
   `random_state_with_seed`.
-- **`Method`** runs a list of steps. `Method::roux` builds Roux, and `solve` or `solve_steps`
-  runs it.
+- **`Method`** is the trait of a solving method, such as **`Roux`** or **`Kociemba`**. It turns
+  the method's options into a list of steps, and `solve` or `solve_steps` runs them.
 - **`Step`**, **`SearchStep`**, and **`Choose`** are the steps a method is built from, and
   **`Mask`** says what a step needs and what it solves.
 - **`Solution`**, **`StepError`**, and **`SolveError`** are what a solve returns.
@@ -224,7 +235,7 @@ crates/
                               moves
         test_steps.rs         FixedStep, a hand-written step for tests (compiled only in tests)
         cube3x3/roux/
-          mod.rs              RouxOptions, the Roux steps built once and shared, Method::roux
+          mod.rs              Roux, its options, and the steps they choose
           cmll/               the one-look CMLL, CO, and CP algorithms, one per line
     tests/
       api/                    integration tests, one binary with a module per concern:

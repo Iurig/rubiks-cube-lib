@@ -15,11 +15,13 @@ const RIM: [Pieces3x3; 4] = [
     Pieces3x3::Edge(Edge::Br),
 ];
 
-/// The step of `Method::kociemba()` called `name`.
+/// The step of `Kociemba` called `name`.
 #[expect(clippy::panic, reason = "a test helper: a missing step fails the test")]
 fn phase(name: &str) -> Arc<dyn Step<Cube3x3>> {
-    Method::kociemba()
-        .steps()
+    Kociemba
+        .to_technique()
+        .steps
+        .into_iter()
         .find(|step| step.name() == name)
         .unwrap_or_else(|| panic!("kociemba has no step called {name}"))
 }
@@ -112,7 +114,7 @@ fn phase_2_solves_what_phase_1_leaves() {
 fn kociemba_solves_a_scramble() {
     let start = Cube3x3::apply_scramble();
     let mut cube = start;
-    let solution = Method::kociemba().solve(&mut cube).unwrap();
+    let solution = Kociemba.solve(&mut cube).unwrap();
     let names: Vec<&str> = solution.iter().map(Segment::name).collect();
     assert_eq!(names, ["Phase 1", "Phase 2"]);
     assert!(

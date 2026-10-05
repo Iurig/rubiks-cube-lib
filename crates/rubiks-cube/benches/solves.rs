@@ -24,7 +24,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use rubiks_cube::{Cube3x3, Method, Puzzle, RouxOptions, Solution};
+use rubiks_cube::{Cube3x3, Method, Puzzle, Roux, Solution};
 
 const SOLVES: u32 = 1000;
 
@@ -85,7 +85,7 @@ struct Measured {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let roux = Method::roux(RouxOptions::default());
+    let roux = Roux::default();
     // Pass 2 gets new scrambles but keeps the memos pass 1 grew, so what pass 2 no longer
     // pays for is memo growth.
     for (pass, seed) in [(1, 2026), (2, 2027)] {
@@ -96,7 +96,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn bench(roux: &Method<Cube3x3>, seed: u64) -> Result<(), Box<dyn Error>> {
+fn bench(roux: &Roux, seed: u64) -> Result<(), Box<dyn Error>> {
     let mut rng = fastrand::Rng::with_seed(seed);
     let mut whole = Stats::default();
     let mut per_step: BTreeMap<String, Stats> = BTreeMap::new();
@@ -154,7 +154,7 @@ fn bench(roux: &Method<Cube3x3>, seed: u64) -> Result<(), Box<dyn Error>> {
 /// Drives `Method::solve_steps`, timing each `next()` and recording its peak extra heap.
 /// Each `next()` runs exactly one step.
 fn solve_measured(
-    roux: &Method<Cube3x3>,
+    roux: &Roux,
     cube: &mut Cube3x3,
 ) -> Result<(Solution<Cube3x3>, Vec<Measured>), Box<dyn Error>> {
     let mut steps = roux.solve_steps(cube);

@@ -1,6 +1,6 @@
 use anyhow::ensure;
 use clap::Parser;
-use rubiks_cube::{Method, Puzzle, RouxOptions};
+use rubiks_cube::{Method, Puzzle, Roux};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -12,7 +12,7 @@ struct Args {
     number: u32,
 }
 
-fn reconstruct_n<P: Puzzle>(n: u32, technique: &Method<P>) -> anyhow::Result<()> {
+fn reconstruct_n<P: Puzzle, T: Method<P>>(n: u32, technique: &T) -> anyhow::Result<()> {
     for count in 1..=n {
         let scramble = P::scramble()?;
 
@@ -34,7 +34,7 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     match args.method {
         ref m if m == "roux" => {
-            reconstruct_n(args.number, &Method::roux(RouxOptions::default()))?;
+            reconstruct_n(args.number, &Roux::default())?;
         }
         _ => println!("invalid method"),
     }

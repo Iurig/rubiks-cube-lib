@@ -9,10 +9,10 @@ use crate::{Inv, Puzzle};
 ///
 /// ```no_run
 /// use rubiks_cube::{Algorithm, Cube3x3, Inv, Solution};
-/// use rubiks_cube::Method;
+/// use rubiks_cube::{Kociemba, Method};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut cube = Cube3x3::from_solved("R U R' F2")?;
-/// let solution: Solution<Cube3x3> = Method::kociemba().solve(&mut cube)?;
+/// let solution: Solution<Cube3x3> = Kociemba.solve(&mut cube)?;
 /// let moves: Algorithm<Cube3x3> = solution.iter().flat_map(|s| s.moves()).copied().collect();
 /// // The inverse of a solution is a scramble that gives back the state it solved.
 /// assert_eq!(Cube3x3::from_solved(&moves.inverse().to_string())?, Cube3x3::from_solved("R U R' F2")?);

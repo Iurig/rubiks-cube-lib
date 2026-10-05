@@ -1,4 +1,6 @@
-use rubiks_cube::{Cube3x3, Method, Puzzle, RouxOptions};
+use rubiks_cube::{
+    CMLLOptions, Cube3x3, FirstBlockOptions, Method, Puzzle, Roux, SecondBlockOptions,
+};
 
 #[expect(
     clippy::panic_in_result_fn,
@@ -15,25 +17,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut scrambled = Cube3x3::from_solved(scr)?;
 
     let recon_beginner_options: String = scr.to_string()
-        + Method::roux(RouxOptions {
-            fb_as_one_step: false,
-            sb_as_one_step: false,
-            one_look_cmll: false,
-        })
-        .solve(&mut scrambled)?
-        .to_string()
-        .as_str();
+        + Roux::default()
+            .first_block(FirstBlockOptions::SquarePair)
+            .second_block(SecondBlockOptions::SquarePair)
+            .cmll(CMLLOptions::TwoLook)
+            .solve(&mut scrambled)?
+            .to_string()
+            .as_str();
     assert!(Cube3x3::from_solved(&recon_beginner_options)?.is_solved());
 
     println!("{recon_beginner_options}");
 
     scrambled = Cube3x3::from_solved(scr)?;
 
-    let recon_default_options: String = scr.to_string()
-        + Method::roux(RouxOptions::default())
-            .solve(&mut scrambled)?
-            .to_string()
-            .as_str();
+    let recon_default_options: String =
+        scr.to_string() + Roux::default().solve(&mut scrambled)?.to_string().as_str();
 
     assert!(Cube3x3::from_solved(&recon_default_options)?.is_solved());
 
