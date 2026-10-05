@@ -96,9 +96,9 @@ impl<P: Puzzle> SearchStep<P> {
         Self::new_with_free_algs(name, before, after, search_algs, AlgSet::<P>::default())
     }
 
-    /// Like [`new`](Self::new), but the sequences of `free_search_algs` add no cost: the search
-    /// finds the fewest sequences of `search_algs`, with any number of free ones between them,
-    /// such as an AUF between algorithms.
+    /// Like [`new_with_algs`](Self::new_with_algs), but the sequences of `free_search_algs` add
+    /// no cost: the search finds the fewest sequences of `search_algs`, with any number of free
+    /// ones between them, such as an AUF between algorithms.
     #[must_use]
     pub fn new_with_free_algs(
         name: &'static str,

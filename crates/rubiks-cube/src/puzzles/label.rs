@@ -46,7 +46,7 @@ pub struct SlotCondition<P: Puzzle, L: Marker<P>> {
 }
 
 /// What a [`Labeled`] writes in a slot. Implemented by marker types instead of by the label types
-/// themselves, so the impls for [`ByPiece`] and [`Tracked`] cannot overlap even if some puzzle's
+/// themselves, so the impls for [`ByPiece`] and [`ByMark`] cannot overlap even if some puzzle's
 /// piece type is `()`.
 pub trait Marker<P: Puzzle> {
     /// The label stored in each slot.

@@ -9,10 +9,11 @@ use crate::{
 /// A collection of move sequences, each applied as one unit: a single move, or a whole algorithm.
 ///
 /// The collection carries no cost. Cost is decided by the [`SearchStep`](crate::SearchStep) that
-/// uses it: every sequence of the collection given to [`SearchStep::new`](crate::SearchStep::new)
-/// costs one, and [`SearchStep::new_with_free_algs`](crate::SearchStep::new_with_free_algs) also
-/// takes a second collection of free sequences, such as a `U` turn between algorithms, which the
-/// search only minimizes once the number of costly sequences is already minimal.
+/// uses it: every sequence of the collection given to
+/// [`SearchStep::new_with_algs`](crate::SearchStep::new_with_algs) costs one, and
+/// [`SearchStep::new_with_free_algs`](crate::SearchStep::new_with_free_algs) also takes a second
+/// collection of free sequences, such as a `U` turn between algorithms, which the search only
+/// minimizes once the number of costly sequences is already minimal.
 ///
 /// For the cube, build one from notation text with [`from_parts`](Self::from_parts),
 /// [`from_algs_in_str`](Self::from_algs_in_str), or [`from_moves`](Self::from_moves), and join
