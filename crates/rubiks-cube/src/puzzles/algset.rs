@@ -1,4 +1,4 @@
-use std::{collections::HashSet, sync::Arc};
+use std::sync::Arc;
 
 use crate::{
     Algorithm, Cube3x3, ParseSequenceError, Puzzle,
@@ -27,22 +27,13 @@ use crate::{
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Default)]
+///
+/// Two collections with the same sequences are equal and hash alike, whatever order the
+/// sequences were given in and however often each was repeated.
+// Every constructor goes through `FromIterator`, which sorts and dedups, so the derived
+// `PartialEq` and `Hash` compare the sequences as a set.
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct AlgSet<P: Puzzle>(Arc<[Algorithm<P>]>);
-
-impl<P: Puzzle> PartialEq for AlgSet<P> {
-    fn eq(&self, other: &Self) -> bool {
-        self.algs()
-            .iter()
-            .cloned()
-            .collect::<HashSet<Algorithm<P>>>()
-            == other
-                .algs()
-                .iter()
-                .cloned()
-                .collect::<HashSet<Algorithm<P>>>()
-    }
-}
 
 impl<P: Puzzle> AlgSet<P> {
     /// Every sequence of either collection, each listed once.
@@ -51,15 +42,7 @@ impl<P: Puzzle> AlgSet<P> {
     /// one, appears once.
     #[must_use]
     pub fn combined_with(&self, other: &Self) -> Self {
-        Self(
-            self.0
-                .iter()
-                .chain(other.0.iter())
-                .collect::<FxSet<&Algorithm<P>>>()
-                .into_iter()
-                .cloned()
-                .collect::<Arc<[Algorithm<P>]>>(),
-        )
+        self.0.iter().chain(other.0.iter()).cloned().collect()
     }
 
     /// The sequences.
@@ -70,8 +53,10 @@ impl<P: Puzzle> AlgSet<P> {
 
 impl<P: Puzzle> FromIterator<Algorithm<P>> for AlgSet<P> {
     fn from_iter<T: IntoIterator<Item = Algorithm<P>>>(iter: T) -> Self {
-        let inner = iter.into_iter().collect();
-        Self(inner)
+        let mut algs: Vec<Algorithm<P>> = iter.into_iter().collect();
+        algs.sort_unstable_by(|a, b| a.iter().cmp(b.iter()));
+        algs.dedup();
+        Self(algs.into())
     }
 }
 
@@ -85,44 +70,41 @@ impl AlgSet<Cube3x3> {
     /// # Errors
     /// If `text` contains an invalid move.
     pub fn from_parts(text: &str) -> Result<Self, ParseSequenceError> {
-        Ok(Self(
-            Move3x3::sequence(text)
-                .try_fold(FxSet::<MovablePart>::default(), |mut parts, m| {
-                    let part = m?.part;
-                    parts.insert(part);
-                    Ok(parts)
-                })?
-                .into_iter()
-                .flat_map(|part| {
-                    [
-                        MoveModifier::Clockwise,
-                        MoveModifier::CounterClockwise,
-                        MoveModifier::Double,
-                    ]
-                    .map(|modifier| Algorithm::from_iter([Move3x3::new(part, modifier)]))
-                })
-                .collect(),
-        ))
+        Ok(Move3x3::sequence(text)
+            .try_fold(FxSet::<MovablePart>::default(), |mut parts, m| {
+                let part = m?.part;
+                parts.insert(part);
+                Ok(parts)
+            })?
+            .into_iter()
+            .flat_map(|part| {
+                [
+                    MoveModifier::Clockwise,
+                    MoveModifier::CounterClockwise,
+                    MoveModifier::Double,
+                ]
+                .map(|modifier| Algorithm::from_iter([Move3x3::new(part, modifier)]))
+            })
+            .collect())
     }
 
     /// One sequence per line of `text`, such as an algorithm set. Lines with no moves, such as
-    /// blank or comment-only lines, are skipped.
+    /// blank or comment-only lines, are skipped. A line written twice is listed once, and the
+    /// order of the lines is not kept.
     ///
     /// # Errors
     /// If `text` contains an invalid move. The error's line counts lines of the whole `text`.
     pub fn from_algs_in_str(text: &str) -> Result<Self, ParseSequenceError> {
-        Ok(Self(
-            text.lines()
-                .enumerate()
-                .filter_map(|(line_number, line)| {
-                    Move3x3::sequence(line)
-                        .collect::<Result<Algorithm<Cube3x3>, _>>()
-                        .map(|moves| (!moves.is_empty()).then_some(moves))
-                        .map_err(|e| e.on_line(line_number + 1))
-                        .transpose()
-                })
-                .collect::<Result<_, _>>()?,
-        ))
+        text.lines()
+            .enumerate()
+            .filter_map(|(line_number, line)| {
+                Move3x3::sequence(line)
+                    .collect::<Result<Algorithm<Cube3x3>, _>>()
+                    .map(|moves| (!moves.is_empty()).then_some(moves))
+                    .map_err(|e| e.on_line(line_number + 1))
+                    .transpose()
+            })
+            .collect()
     }
 
     /// Each move of `text` as its own sequence, keeping its modifier.
@@ -132,16 +114,9 @@ impl AlgSet<Cube3x3> {
     /// # Errors
     /// If `text` contains an invalid move.
     pub fn from_moves(text: &str) -> Result<Self, ParseSequenceError> {
-        Ok(Self(
-            Move3x3::sequence(text)
-                .map(|m| m.map(|m| Algorithm::from_iter([m])))
-                .try_fold(FxSet::default(), |mut s, m| {
-                    s.insert(m?);
-                    Ok(s)
-                })?
-                .into_iter()
-                .collect(),
-        ))
+        Move3x3::sequence(text)
+            .map(|m| m.map(|m| Algorithm::from_iter([m])))
+            .collect()
     }
 }
 
@@ -205,8 +180,9 @@ mod tests {
     fn from_algs_in_str_gives_one_sequence_per_line() -> Result<(), Box<dyn Error>> {
         let algset = AlgSet::<Cube3x3>::from_algs_in_str("R U R' U'\n\nF R U R' U' F'\nM2 U2")?;
 
-        let lengths: Vec<usize> = algset.algs().iter().map(Algorithm::len).collect();
-        assert_eq!(lengths, [4, 6, 2]);
+        let mut lengths: Vec<usize> = algset.algs().iter().map(Algorithm::len).collect();
+        lengths.sort_unstable();
+        assert_eq!(lengths, [2, 4, 6]);
         Ok(())
     }
 
