@@ -6,6 +6,7 @@ license = "MIT"
 
 [dependencies]
 fastrand = "2.5.0"
+itertools = "0.15.0"
 log = "0.4.34"
 rayon = "1.12.0"
 

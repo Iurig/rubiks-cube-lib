@@ -55,3 +55,11 @@ impl Method for Roux {
     }
 }
 ```
+
+## Steps as hidden types
+
+Split solving a full cube in sub-tasks
+
+```rust
+ALL.split_at_with_name(goal, name)
+```

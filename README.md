@@ -5,12 +5,11 @@
 
 
 A Rust library that models the 3×3×3 Rubik's Cube and solves it the way a person would, one
-named step at a time. It has one solving method, Roux. More methods and other cube types are
-planned.
+named step at a time. Its solving methods are Roux, ZZ, and Kociemba. More methods and other
+cube types are planned.
 
 A cube state is a value of type `Cube3x3`. Moves are cube states too, and applying a move is just
-group multiplication. Everything is `Copy`, and most operations are `const fn`,
-so the entire move table is built at compile time.
+group multiplication. Everything is `Copy`, and the move table is built on first use.
 
 > **Status: early work in progress.** The core group structure and every move in standard
 > notation (faces, slices, rotations, wide moves) work and are tested against real
@@ -75,7 +74,7 @@ return an `Err` naming that token.
 
 ## Solving
 
-`Roux` and `Kociemba` are the crate's methods, and both implement the `Method` trait. `solve`
+`Roux`, `ZZ`, and `Kociemba` are the crate's methods, and all implement the `Method` trait. `solve`
 runs a method's steps in order and returns a `Solution`, with one segment per step:
 
 ```rust
@@ -208,7 +207,8 @@ crates/
       fast_hash.rs            FxHasher, the fast hasher behind the search memo
       puzzles/
         mod.rs                the Puzzle trait
-        mask.rs               Mask: which pieces must be in place or oriented
+        label.rs              Labeled, Mask, Marked: which pieces must be in place or oriented
+        algorithm.rs          Algorithm: a sequence of moves
         algset.rs             AlgSet: move sequences a search applies as single units
         cube3x3/
           mod.rs              Cube3x3, Mul/Inv/Pow impls, accessors, rotation-aware
@@ -224,26 +224,34 @@ crates/
                               and wide moves derived from them, then inverses and doubles of
                               everything; its tests pin the derivations only
       methods/
-        mod.rs                the Step trait, Method and its solve loop, Solution, StepError,
-                              SolveError
-        search_step/
-          mod.rs              SearchStep: a forward search that meets the memo in the middle
-          memorization.rs     BFSMemo: the backward search from a step's goal, kept across
+        mod.rs                the Step and Method traits, Technique and its solve loop
+        error.rs              StepError, SolveError
+        solution.rs           Solution, Segment
+        step/
+          search_step/
+            mod.rs            SearchStep: a forward search that meets the memo in the middle
+            memorization.rs   BFSMemo: the backward search from a step's goal, kept across
                               solves
-        choose/
-          mod.rs              Choose: runs each alternative, keeps the one with the fewest
+          choose/
+            mod.rs            Choose: runs each alternative, keeps the one with the fewest
                               moves
+          combine_pruned/
+            mod.rs            PrunedCombine: a search guided by prune tables
+            prune_table.rs    PruneTable
         test_steps.rs         FixedStep, a hand-written step for tests (compiled only in tests)
-        cube3x3/roux/
-          mod.rs              Roux, its options, and the steps they choose
-          cmll/               the one-look CMLL, CO, and CP algorithms, one per line
+        cube3x3.rs            the search memos shared by every Cube3x3 method
+        cube3x3/
+          roux/               Roux, its options, and its CMLL algorithm lists
+          zz/                 ZZ, its options, and its OLL and PLL algorithm lists
+          kociemba/           Kociemba's two-phase method
+          algsets/            algorithm lists shared between methods (ZBLL)
     tests/
       api/                    integration tests, one binary with a module per concern:
                               mask, states (reachability, rotation-aware is_solved), algebra
                               (group laws), moves (handedness pins for each base move, move
                               orders), notation (parsing and its errors), reconstructions
-                              (real solves), and solving (every Roux option combination on
-                              seeded random scrambles)
+                              (real solves), solving (every Roux option combination on
+                              seeded random scrambles), scramble, and kociemba
     benches/
       solves.rs               two passes of 1000 seeded Roux solves, timed and heap-counted per
                               step
@@ -259,7 +267,7 @@ crates/
 Requires a Rust toolchain with the 2024 edition (Rust 1.85 or newer). The library depends on
 `fastrand` for random cube states, and no public function takes or returns a `fastrand` type.
 It also depends on `log`, through which the solver reports each step at the `debug` level. It
-never prints.
+never prints. `rayon` runs the searches and the prune-table builds in parallel.
 
 ```sh
 cargo build
@@ -276,7 +284,7 @@ What works today:
 
 - All six face turns, the three slice moves `M`, `E`, `S`, the three rotations `x`, `y`, `z`,
   and the six wide moves `Rw` ... `Bw` (also as lowercase `r` ... `b`), each with the `'`, `2`,
-  and `2'` modifiers. Rotations and wide moves are derived at compile time from the face and
+  and `2'` modifiers. Rotations and wide moves are derived on first use from the face and
   slice moves, so they cannot drift out of sync with them. The base moves are pinned by
   handedness tests, and the whole notation is exercised by CFOP and Roux reconstructions.
 - Move strings return `Result`: an unknown token is an `Err` naming it, never a panic.
@@ -290,6 +298,11 @@ What works today:
 - The Roux solver works with every combination of its options. A test runs all eight
   combinations on four seeded random scrambles and replays each solution, and the benchmark
   solves 2000 more.
+- ZZ solves with an EO line, F2L, then the last layer as OCLL and PLL, or in one look with
+  ZBLL. A test runs every option combination on seeded random scrambles.
+- Kociemba's two-phase method solves scrambles: phase 1 brings the cube into the
+  domino subgroup with face turns, and phase 2 solves it with moves that stay there. Both
+  phases are searches guided by prune tables, which the first solve builds in a few seconds.
 - A solve fails with a typed error that names the step: the step's own `StepError`, or
   `NotDone` when the step returned without meeting its goal.
 - A method can mix step types, and `Choose` picks between alternatives by move count.
@@ -298,9 +311,7 @@ What works today:
 
 - Fingertrick-aware output. A solution already prints as notation; this is why `2'` is kept
   distinct from `2` in the `Move` label even though they share a cube state.
-- Build a step's moveset from notation text, so each step can use its own moves. Today the
-  first-block steps search with every move the cube has.
-- More methods (CFOP, ZZ, Petrus) and a command-line solver that prints a reconstruction.
+- More methods (CFOP, Petrus) and a command-line solver that prints a reconstruction.
 - Reuse `PieceConfiguration` / `Piece` for other puzzles.
 
 ## License

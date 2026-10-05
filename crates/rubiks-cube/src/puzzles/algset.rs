@@ -36,7 +36,7 @@ use crate::{
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct AlgSet<P: Puzzle>(Arc<[Algorithm<P>]>);
 
-impl<P: Puzzle> AlgSet<P> {
+impl<'a, P: Puzzle> AlgSet<P> {
     /// Every sequence of either collection, each listed once.
     ///
     /// The order of the sequences is not kept, and a sequence in both collections, or twice in
@@ -50,6 +50,10 @@ impl<P: Puzzle> AlgSet<P> {
     pub(crate) fn algs(&self) -> &[Algorithm<P>] {
         &self.0
     }
+
+    pub fn iter(&'a self) -> std::iter::Cloned<std::slice::Iter<'a, Algorithm<P>>> {
+        <&Self as IntoIterator>::into_iter(self)
+    }
 }
 
 impl<P: Puzzle> FromIterator<Algorithm<P>> for AlgSet<P> {
@@ -58,6 +62,14 @@ impl<P: Puzzle> FromIterator<Algorithm<P>> for AlgSet<P> {
         algs.sort_unstable_by(|a, b| a.iter().cmp(b.iter()));
         algs.dedup();
         Self(algs.into())
+    }
+}
+
+impl<'a, P: Puzzle> IntoIterator for &'a AlgSet<P> {
+    type Item = Algorithm<P>;
+    type IntoIter = std::iter::Cloned<std::slice::Iter<'a, Self::Item>>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter().cloned()
     }
 }
 
@@ -118,6 +130,10 @@ impl AlgSet<Cube3x3> {
         Move3x3::sequence(text)
             .map(|m| m.map(|m| Algorithm::from_iter([m])))
             .collect()
+    }
+
+    pub fn or_skip(&self) -> Self {
+        self.combined_with(&Self::from_iter([Algorithm::new()]))
     }
 }
 

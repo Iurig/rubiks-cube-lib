@@ -1,0 +1,4 @@
+M2 U M U2 M' U M2     // Ua
+M2 U' M U2 M' U' M2   // Ub
+M2 U M2 U2 M2 U M2       // H
+M' U' M2 U' M2 U' M' U2 M2       // Z

@@ -1,10 +1,16 @@
 mod prune_table;
 
 pub use prune_table::PruneTable;
+use rayon::prelude::*;
 
 use crate::{AlgSet, Algorithm, Labeled, Marker, Puzzle, Segment, Solution, Step, StepError};
 
-use std::{fmt::Debug, hash::Hash, ops::ControlFlow};
+use std::{
+    fmt::Debug,
+    hash::Hash,
+    ops::ControlFlow,
+    sync::atomic::{AtomicU16, Ordering},
+};
 
 pub struct PrunedCombine<'a, P: Puzzle> {
     name: &'a str,
@@ -140,10 +146,9 @@ impl<P: Puzzle> Step<P> for PrunedCombine<'_, P> {
             combine: &PrunedCombine<'_, P>,
             last: Option<usize>,
             puzzle: &P,
-            path: &mut Algorithm<P>,
             depth: u8,
             bound: u8,
-        ) -> ControlFlow<(), Option<u8>> {
+        ) -> ControlFlow<Algorithm<P>, Option<u8>> {
             let Some(estimate) = estimate(&combine.steps, puzzle) else {
                 return ControlFlow::Continue(None);
             };
@@ -154,52 +159,52 @@ impl<P: Puzzle> Step<P> for PrunedCombine<'_, P> {
                 return ControlFlow::Continue(Some(total));
             }
             if estimate == 0 {
-                return ControlFlow::Break(());
+                return ControlFlow::Break(Algorithm::new());
             }
             let Some(next_depth) = depth.checked_add(1) else {
                 return ControlFlow::Continue(None);
             };
-            let mut next_bound: Option<u8> = None;
-            // The sequences `may_follow` rejects after `last` only reach states that a shorter
-            // or earlier-ordered path also reaches. No row on the first sequence: all are tried.
+            let next_bound = AtomicU16::new(u16::MAX);
             let allowed = last.and_then(|l| combine.may_follow.get(l));
-            for (index, alg) in combine.moveset.algs().iter().enumerate() {
-                if allowed.is_some_and(|row| row.get(index) == Some(&false)) {
-                    continue;
-                }
-                let path_len = path.len();
-                path.extend_from(alg);
-                match search(
-                    combine,
-                    Some(index),
-                    &puzzle.apply(alg),
-                    path,
-                    next_depth,
-                    bound,
-                ) {
-                    ControlFlow::Break(()) => return ControlFlow::Break(()),
-                    ControlFlow::Continue(Some(f)) => {
-                        next_bound = Some(next_bound.map_or(f, |n| n.min(f)));
+            let path = combine
+                .moveset
+                .algs()
+                .par_iter()
+                .enumerate()
+                .filter(|(index, _)| allowed.is_none_or(|row| row.get(*index) != Some(&false)))
+                .find_map_first(|(index, alg)| {
+                    match search(combine, Some(index), &puzzle.apply(alg), next_depth, bound) {
+                        ControlFlow::Break(rest) => {
+                            let mut path = Algorithm::new();
+                            path.extend_from(alg);
+                            path.extend_from(&rest);
+                            Some(path)
+                        }
+                        ControlFlow::Continue(Some(f)) => {
+                            next_bound.fetch_min(u16::from(f), Ordering::Relaxed);
+                            None
+                        }
+                        ControlFlow::Continue(None) => None,
                     }
-                    ControlFlow::Continue(None) => {}
-                }
-                path.truncate(path_len);
-            }
-            ControlFlow::Continue(next_bound)
+                });
+            path.map_or_else(
+                || ControlFlow::Continue(u8::try_from(next_bound.into_inner()).ok()),
+                ControlFlow::Break,
+            )
         }
 
         let mut bound = estimate(&self.steps, puzzle).ok_or(StepError::UnreachableGoal)?;
-        let mut path = Algorithm::new();
-        loop {
-            match search(self, None, puzzle, &mut path, 0, bound) {
-                ControlFlow::Break(()) => break,
+        let path = loop {
+            let result = search(self, None, puzzle, 0, bound);
+            match result {
+                ControlFlow::Break(path) => break path,
                 ControlFlow::Continue(Some(next)) => {
                     debug_assert!(next > bound);
                     bound = next;
                 }
                 ControlFlow::Continue(None) => return Err(StepError::UnreachableGoal),
             }
-        }
+        };
         *puzzle = puzzle.apply(&path);
         Ok(Solution::from_iter([Segment {
             moves: path,

@@ -75,13 +75,13 @@ mod puzzles;
 pub mod zn;
 
 pub use methods::{
-    Method, Segment, Solution, SolveError, Step, StepError, Technique,
+    Method, Segment, Solution, SolveError, StepError, Technique,
     cube3x3::{
         kociemba::Kociemba,
         roux::{CMLLOptions, FirstBlockOptions, LSEOptions, Roux, SecondBlockOptions},
-        zz::{EOLineOptions, F2LOptions, OLLOptions, PLLOptions, ZZ},
+        zz::{EOLineOptions, F2LOptions, OrientationOptions, PermutationOptions, ZZ},
     },
-    step::{choose::Choose, search_step::SearchStep},
+    step::{Step, choose::Choose, search_step::SearchStep},
 };
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};

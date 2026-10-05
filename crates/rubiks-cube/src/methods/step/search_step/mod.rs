@@ -206,16 +206,26 @@ impl<P: Puzzle> SearchStep<P> {
         level: &[P],
         investigated: &mut FxMap<Mask<P>, Option<&'a Algorithm<P>>>,
     ) -> Vec<P> {
+        let candidates: Vec<_> = level
+            .par_iter()
+            .flat_map_iter(|p| {
+                self.search_algs.algs().iter().filter_map(|s| {
+                    let moved = p.apply(s);
+                    let mask = self.mask(&moved);
+                    (!investigated.contains_key(&mask)).then_some((mask, s, moved))
+                })
+            })
+            .collect();
+
         let mut next = Vec::new();
-        for cube in level {
-            for sequence in self.search_algs.algs() {
-                let moved = cube.apply(sequence);
-                if let Entry::Vacant(e) = investigated.entry(self.mask(&moved)) {
-                    e.insert(Some(sequence));
-                    next.push(moved);
-                }
+
+        for (mask, sequence, moved) in candidates {
+            if let Entry::Vacant(e) = investigated.entry(mask) {
+                e.insert(Some(sequence));
+                next.push(moved);
             }
         }
+
         self.close_under_free_sequences(&mut next, investigated);
         next
     }
