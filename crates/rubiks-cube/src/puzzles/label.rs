@@ -137,16 +137,17 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     #[must_use]
     pub(crate) fn filter_by_piece(puzzle: &P, goal: &Marked<P>) -> Self {
         Self::from_fn(|slot| {
-            let label = L::home(puzzle.piece_at(&slot));
-            let tracked = goal.condition(puzzle.piece_at(&slot)).label.is_some();
+            let piece = puzzle.piece_at(&slot);
+            let tracked = goal.condition(piece).label.is_some();
             SlotCondition {
-                label: tracked.then_some(label),
-                // A goal orientation belongs to the fixed slot only when the goal names no
-                // piece there; otherwise it belongs to that piece and moves with it.
-                orient: (tracked
-                    || (goal.condition(slot).orient.is_some()
-                        && goal.condition(slot).label.is_none()))
-                .then(|| puzzle.orientation_at(&slot)),
+                label: tracked.then_some(L::home(piece)),
+                // A goal built by `from_algset` asks for orientation at a slot exactly when every
+                // piece the moveset carries through it keeps its orientation, so the condition at
+                // a piece's home says whether that piece's orientation matters, wherever it sits.
+                // This holds as long as the search moveset never carries a piece whose
+                // orientation is free into a slot that asks for one.
+                orient: (tracked || goal.condition(piece).orient.is_some())
+                    .then(|| puzzle.orientation_at(&slot)),
             }
         })
     }
@@ -289,7 +290,7 @@ impl<P: Puzzle> Marked<P> {
 
 #[cfg(test)]
 mod test {
-    use crate::Cube3x3;
+    use crate::{Cube3x3, Pieces3x3};
 
     use super::*;
 
@@ -304,5 +305,47 @@ mod test {
             mask.composed_with(&cube),
             cube
         );
+    }
+
+    fn random_states() -> impl Iterator<Item = Cube3x3> {
+        (0..20).map(Cube3x3::apply_scramble_with_seed)
+    }
+
+    #[test]
+    fn the_key_keeps_every_orientation_the_goal_moveset_preserves_wherever_the_piece_sits() {
+        // `U R L` flips no edge, so every edge's flip decides whether the goal is met, including
+        // a stray edge parked in DF or DB, the two edge slots where the goal names a piece.
+        let goal = Marked::<Cube3x3>::from_algset(&AlgSet::from_parts("U R L").unwrap());
+        for cube in random_states() {
+            let key = Mask::filter_by_piece(&cube, &goal);
+            for &slot in Cube3x3::ALL_PIECES {
+                if matches!(slot, Pieces3x3::Edge(_)) {
+                    assert!(
+                        key.condition(slot).orient.is_some(),
+                        "{slot:?} left its flip out of the key:\n{cube}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn the_key_keeps_no_orientation_the_goal_moveset_changes() {
+        // `U R M r` twists or flips every corner and edge it moves, so only the pieces it leaves
+        // alone, which the key names, keep their orientation in it.
+        let goal = Marked::<Cube3x3>::from_algset(&AlgSet::from_parts("U R M r").unwrap());
+        for cube in random_states() {
+            let key = Mask::filter_by_piece(&cube, &goal);
+            for &slot in Cube3x3::ALL_PIECES {
+                if matches!(slot, Pieces3x3::Corner(_) | Pieces3x3::Edge(_)) {
+                    let condition = key.condition(slot);
+                    assert_eq!(
+                        condition.orient.is_some(),
+                        condition.label.is_some(),
+                        "{slot:?}:\n{cube}"
+                    );
+                }
+            }
+        }
     }
 }

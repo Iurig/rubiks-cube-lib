@@ -1,0 +1,72 @@
+R U' R' U' R U2 R' U' R' D' R U2 R' D R          // ZBLL U 1
+R U2 R D R' U2 R D' R' U2 R' U' R U' R'          // ZBLL U 2
+R2 D r' U2 r D' R' U2 R'         // ZBLL U 3
+R U R2 D' R U R' D R2 U2 R'      // ZBLL U 4
+R U2 R2 D' R U2 R' D R2 U' R' U2 R U2 R'         // ZBLL U 5
+R2 D R' U2 R D' R' U2 R'         // ZBLL U 6
+R' D' r U2 r' D R U2 R U' R' U' R U' R'          // ZBLL U 7
+R' U' R U R U R' U' R' U F R U R U' R' F'        // ZBLL U 8
+R U R' U R U' R' U F' R U2 R' U2 R' F R          // ZBLL U 9
+R2 D' R U' R' D R2 U R' U R U2 R' U R U2 R' U' R         // ZBLL U 10
+R U R' U R U' R' U R U' R' U' L' U R U' R' L     // ZBLL U 11
+R U' R' U R U R' U2 R' D' R U R' D R2 U R'       // ZBLL U 12
+R2 D' r U2 r' D R U2 R   // ZBLL U 13
+R2 D' R U' R' D R2 U' R' U2 R    // ZBLL U 14
+R' U R U R' U2 R U R D R' U2 R D' R'     // ZBLL U 15
+R' U2 R' D' R U2 R' D R U2 R U R' U R    // ZBLL U 16
+R2 D' R U2 R' D R U2 R   // ZBLL U 17
+R' U2 R2 D R' U2 R D' R2 U R U2 R' U2 R          // ZBLL U 18
+R' U R U R' U2 R y U2 R U' R' U2 R U' R'         // ZBLL U 19
+F R U R' U' R2 D R' U' R D' R2 U' R U R' F'      // ZBLL U 20
+R2 D' R U2 R' U' D R' U' R2 U R U R2     // ZBLL U 21
+R2 F' R U2 R U2 R' F U' R U R' U' R      // ZBLL U 22
+R' U R U' R' U' R U2 R D R' U' R D' R2 U' R      // ZBLL U 23
+F U R U' R D R' U' R D' R2 U R U R' F'   // ZBLL U 24
+R' F R U' R' U' R U R' F' R U R' U' R' F R F' R          // ZBLL U 25
+r2 F2 r U2 r U' L' U R' U R U' L         // ZBLL U 26
+F2 R U' R' U' R U R' F' R U R' U' R' F R F2      // ZBLL U 27
+R2 B2 R' B2 R' U R U' L U' L' U R'       // ZBLL U 28
+F U R2 D' R U' R' D R2 F' R' U R         // ZBLL U 29
+R' U' R F R2 D' R U R' D R2 U' F'        // ZBLL U 30
+R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R' U2 R   // ZBLL U 31
+R2 F' R U R' U' R' F R2 U' R' U2 R2 U R' U R     // ZBLL U 32
+F U R U2 R' U R U R2 F' r U R U' r'      // ZBLL U 33
+R U R' U R U2 R' U R U2 R D R' U2 R D' R2        // ZBLL U 34
+r U R' U' r' F R2 U' R' U' R U2 R' U' F'         // ZBLL U 35
+R2 F R U R U' R' F' R U' R2 D' R U R' D R2       // ZBLL U 36
+R U R' U R U R' U2 R U' R2 D' R U' R' D R        // ZBLL U 37
+R U R' U R U' R' U2 R' D' R U2 R' D R2 U' R'     // ZBLL U 38
+R' U' R U2 R' F' R U R' U' R' F R2 U2 R' U R     // ZBLL U 39
+R2 D' R U2 R' D R U2 R U R' U' R U' R' U2 R      // ZBLL U 40
+x' R2 D2 R' U2 R D2 R' U2 R' x   // ZBLL U 41
+x R2 D2 R U2 R' D2 R U2 R x'     // ZBLL U 42
+F R U' R' U R U R' U R U' R' F'          // ZBLL U 43
+R U' R2 F R U R U' R2 F' R U' F' U F     // ZBLL U 44
+R U R' U R' D' R U2 R' D R2 U' R' U2 R U2 R'     // ZBLL U 45
+R U' R' U' R U' R' U R' D' R U R' D R2 U R'      // ZBLL U 46
+R' U2 R U R' U R' D' R U' R' D R U R     // ZBLL U 47
+R U2 R' U' R U' R D R' U R D' R' U' R'   // ZBLL U 48
+R U' R' U' R U R D R' U R D' R2          // ZBLL U 49
+F R U R' U' R U R' U' F' U' R' F' U' F U R       // ZBLL U 50
+R U R' L' U2 R U' R' U' R U' R' L        // ZBLL U 51
+R2 D' R U R' D R U R U' R' U' R          // ZBLL U 52
+F U R U2 R' U R U R' U R U2 R' U R U R' F'       // ZBLL U 53
+r U R' U' M U R U' R' F R U R' U' F'     // ZBLL U 54
+r U2 R2 F R F' U2 r' R U R U' R'         // ZBLL U 55
+R' D R2 U' R' U R U2 R' U' R U R2 D' R   // ZBLL U 56
+R' D' R U' R' D R2 U2 R' U R U R'        // ZBLL U 57
+M' U R' U' F' U F R2 U R' U R U2 r'      // ZBLL U 58
+R' U R U R' U' R' D' R U' R' D R2        // ZBLL U 59
+L' R U R' U R U R' U2 R L U' R'          // ZBLL U 60
+R' U' R U R' U R U2 R' U R U2 R' U' R    // ZBLL U 61
+R U R' U' R U' R' U2 R U' R' U2 R U R'   // ZBLL U 62
+R U2 R' U' R U' R' U' R U R' U R U2 R'   // ZBLL U 63
+R' U2 R2 U R2 U R U' R U R' U' R U' R'   // ZBLL U 64
+R' U2 R U R' U R U R' U' R U' R' U2 R    // ZBLL U 65
+R U2 R2 U' R2 U' R' U R' U' R U R' U R   // ZBLL U 66
+R U R' U R' U2 R2 U R2 U R2 U' R'        // ZBLL U 67
+R' U' R U' R U2 R2 U' R2 U' R2 U R       // ZBLL U 68
+R' U' R U' R' U2 R2 U R' U R U2 R'       // ZBLL U 69
+R U R' U R U2 R2 U' R U' R' U2 R         // ZBLL U 70
+R U R' U' R U' R U2 R2 U' R U R' U' R2 U' R2     // ZBLL U 71
+R U2 R' U' R U' R' L' U2 L U L' U L      // ZBLL U 72

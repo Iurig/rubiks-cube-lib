@@ -1,0 +1,72 @@
+R U R' U R U2 R2 F' r U R U' r' F 	 // ZBLL Pi 1
+r' F' r U' r' F2 r2 U R' U' r' F R F' 	 // ZBLL Pi 2
+F R U' R' U R U R2 F' R U2 R U' R' U R U2 R' U' 	 // ZBLL Pi 3
+R U R D R' U' R D' R U' R U' R' U2 R 	 // ZBLL Pi 4
+F R' F' R U2 R U2 R' U' r U R' U R U2 r' 	 // ZBLL Pi 5
+F R U R' U' R' F' R U2 R' U' R2 U' R2 U2 R 	 // ZBLL Pi 6
+R2 F R U R U' R' F' R U' R' U' R U R' U R 	 // ZBLL Pi 7
+F U R U' R' U R U2 R' U' R U R' F' 	 // ZBLL Pi 8
+R U R' U R U' R' U' R' F' R U2 R U2 R' F 	 // ZBLL Pi 9
+F U' R U' R' U R U R' U2 R U2 R' U F' 	 // ZBLL Pi 10
+R F U R2 U2 R2 U R2 U R2 F' R' 	 // ZBLL Pi 11
+R' U' F' R U R' U' R' F R2 U2 R' U2 R 	 // ZBLL Pi 12
+R2 D' R U2 R' D R2 U R2 D' R U R' D R2 	 // ZBLL Pi 13
+R2 D R' U2 R D' R2 U' R2 D R' U' R D' R2 	 // ZBLL Pi 14
+R' U' R U' R2 D' R U R' D R2 U' R' U2 R 	 // ZBLL Pi 15
+R U R' U R2 D R' U' R D' R2 U R U2 R' 	 // ZBLL Pi 16
+R' U' R U R2 F' R U R U' R' F U' R U R' U R 	 // ZBLL Pi 17
+R U2 R' U' R U2 R' U2 R U' R2 D' R U' R' D R 	 // ZBLL Pi 18
+F U R U2 R' U R U R' F' R U2 R' U' R U' R' 	 // ZBLL Pi 19
+R U2 R' U' R U' R' U' F U R U2 R' U R U R' F' 	 // ZBLL Pi 20
+L' U R U' L U' R' U' R U' R' 	 // ZBLL Pi 21
+r' U r U r' U' r U R2 F R F' R 	 // ZBLL Pi 22
+r U' r' U' r U r' U' R2 B' R' B R' U 	 // ZBLL Pi 23
+R U R' U F' R U2 R' U2 R' F R 	 // ZBLL Pi 24
+R' U' R' D' R U' R' D R2 U R' U' R U R' U R 	 // ZBLL Pi 25
+R U' R' U' R U' R' U R U R' U R' F' R U R U' R' F 	 // ZBLL Pi 26
+R U R' U R U' R' U R2 D R' U' R D' R' U' R' 	 // ZBLL Pi 27
+R' U2 R U R' U' R U R2 F R U R U' R' F' R 	 // ZBLL Pi 28
+R U' L' U R' U' L U' R U' L' U R' U' L 	 // ZBLL Pi 29
+F U R U' R' U R U' R2 F' R U R U' R' 	 // ZBLL Pi 30
+F U R U' R2 F' R2 U R' F' U' F U2 R U' R' 	 // ZBLL Pi 31
+R U R' U R U' R2 F R F' R U' R' F' U F 	 // ZBLL Pi 32
+R' U' R U' B2 R' U2 R U2 l U2 l' 	 // ZBLL Pi 33
+R' U' R U' R' U R U' R' U R' D' R U R' D R2 	 // ZBLL Pi 34
+R2 D R' U R D' R' U R' U' R U R' U' R U' R' 	 // ZBLL Pi 35
+R' U' R U' R' U2 R U' L' U R U' L U R' 	 // ZBLL Pi 36
+R' F R U R' U' R' F' R2 U' R' U R U' R' U2 R 	 // ZBLL Pi 37
+R U R D R' U R D' R2 U' R U R' U' R U' R' 	 // ZBLL Pi 38
+R U2 R2 U' R2 U' R' U2 R' F R U R' U' R' F' R2 	 // ZBLL Pi 39
+R' U' R U' R' U R U' R2 D' R U R' D R U R 	 // ZBLL Pi 40
+R U R' U' R' F R2 U R' U' R U R' U' F' 	 // ZBLL Pi 41
+R U2 R' U2 R' F R2 U' R' U2 R U2 R' U' F' 	 // ZBLL Pi 42
+R U2 R' U' R U R' U' R' D' R U' R' D R2 U' R' U R U' R' 	 // ZBLL Pi 43
+r' F' r U r U2 r' F2 U' R U R' U' R U' R' 	 // ZBLL Pi 44
+R U R' U R U2 R' U' R U' L' U R' U' L 	 // ZBLL Pi 45
+R' U2 R U R' U R2 U' r' F R' F' r 	 // ZBLL Pi 46
+R U R' U R U' R' U R U' R D R' U' R D' R2 	 // ZBLL Pi 47
+R U R' U F2 R U2 R' U2 R' F2 R 	 // ZBLL Pi 48
+R U2 R' U2 R' U' F U R2 U' R' U R U' R' F' 	 // ZBLL Pi 49
+R U R' F' R U R' U R U2 R' F U R U2 R' 	 // ZBLL Pi 50
+R F U' R2 U2 R U R' U R2 U F' R' 	 // ZBLL Pi 51
+R U R' U' R U R2 D' R U' R' D R U' R U2 R' 	 // ZBLL Pi 52
+F U R' U' R2 U' R2 U2 R U2 R U R' F' 	 // ZBLL Pi 53
+R' U' R' D' R U R' D R U2 R' D' R U2 R' D R2 	 // ZBLL Pi 54
+R2 D R' U' R D' R' U' R' U R U' R' U' R U' R' 	 // ZBLL Pi 55
+R2 D' R U R' D R U R U' R' U R U R' U R 	 // ZBLL Pi 56
+R U2 R' U R' D' R U R' D R2 U' R' U R U' R' 	 // ZBLL Pi 57
+R2 D R' U2 R D' R2 U' R U R D R' U2 R D' R2 	 // ZBLL Pi 58
+r U R' U R' F R F' R U' R' U R U2 r' 	 // ZBLL Pi 59
+R U2 R' U' F' R U2 R' U' R U' R' F R U' R' 	 // ZBLL Pi 60
+R U2 R2 U' R2 U' R2 U2 R 	 // ZBLL Pi 61
+R' U2 R U R' U R2 U R' U R U2 R' 	 // ZBLL Pi 62
+R U2 R' U2 R U' R' U2 R U' R' U2 R U R' 	 // ZBLL Pi 63
+R' U2 R U2 R' U R U2 R' U R U2 R' U' R 	 // ZBLL Pi 64
+R' U R U' R2 U2 R U R' U R2 U' R' U R 	 // ZBLL Pi 65
+R U' R' U R2 U2 R' U' R U' R2 U R U' R' 	 // ZBLL Pi 66
+R U2 R' U' R U' R2 U' R U' R' U2 R 	 // ZBLL Pi 67
+R' U2 R2 U R2 U R2 U2 R' 	 // ZBLL Pi 68
+R U R' U R U2 R' U' R U R' U R U2 R' 	 // ZBLL Pi 69
+R' U' R U' R' U2 R U R' U' R U' R' U2 R 	 // ZBLL Pi 70
+R U R' U R U2 R' U R U R' U R U2 R' 	 // ZBLL Pi 71
+F R U R' U' R U R' U' F' R U R' U' M' U R U' r' 	 // ZBLL Pi 72

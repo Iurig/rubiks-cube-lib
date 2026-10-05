@@ -1,0 +1,21 @@
+x R' U R' D2 R U' R' D2 R2 x'    \\ Aa
+x R2 D2 R U R' D2 R U' R x'      \\ Ab
+x' R U' R' D R U R' D' R U R' D R U' R' D' x   \\ E
+R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R         \\ F
+R2 U R' U R' U' R U' R2 D U' R' U R D'   \\ Ga
+D R' U' R U D' R2 U R' U R U' R U' R2    \\ Gb
+R2 U' R U' R U R' U R2 D' U R U' R' D    \\ Gc
+R U R' U' D R2 U' R U' R' U R' U R2 D'   \\ Gd
+M2 U M2 U2 M2 U M2       \\ H
+x R2 F R F' R U2 r' U r U2 x'         \\ Ja
+R U R' F' R U R' U' R' F R2 U' R'        \\ Jb
+R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'    \\ Na
+R' U R U' R' F' U' F R U R' F R' F' R U' R       \\ Nb
+R U' R' U' R U R D R' U' R D' R' U2 R'         \\ Ra
+R' U2 R U2 R' F R U R' U' R' F' R2       \\ Rb
+R U R' U' R' F R2 U' R' U' R U R' F'     \\ T
+M2 U M U2 M' U M2     \\ Ua
+M2 U' M U2 M' U' M2   \\ Ub
+R' U R' U' R D' R' D R' U D' R2 U' R2 D R2       \\ V
+F R U' R' U' R U R' F' R U R' U' R' F R F'       \\ Y
+M' U' M2 U' M2 U' M' U2 M2       \\ Z

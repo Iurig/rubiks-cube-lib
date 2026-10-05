@@ -80,6 +80,7 @@ pub use methods::{
     cube3x3::{
         kociemba::Kociemba,
         roux::{CMLLOptions, FirstBlockOptions, LSEOptions, Roux, SecondBlockOptions},
+        zz::{EOLineOptions, F2LOptions, OLLOptions, PLLOptions, ZZ},
     },
     search_step::SearchStep,
 };

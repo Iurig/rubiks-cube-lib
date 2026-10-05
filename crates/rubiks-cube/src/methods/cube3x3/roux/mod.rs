@@ -1,17 +1,15 @@
 use std::sync::{Arc, LazyLock};
 
-use crate::{
-    AlgSet, Choose, Cube3x3, Marked, Method, Puzzle, SearchStep, Step, methods::Technique,
-};
+use crate::{AlgSet, Choose, Cube3x3, Marked, Method, Puzzle, Step, methods::Technique};
 
-/// One-look CMLL algorithms, one per line.
+use crate::methods::cube3x3::helpers::{algs, parts, search, search_with_free_algs};
+
 const CMLL_ONE_LOOK_ALGS_STR: &str = include_str!("cmll/one_look.txt");
-/// Algorithms that orient the U-layer corners, one per line.
 const CO_ALGS_TEXT: &str = include_str!("cmll/co.txt");
-/// Algorithms that permute oriented U-layer corners, one per line.
 const CP_ALGS_TEXT: &str = include_str!("cmll/cp.txt");
 
-/// The Roux method for the 3x3: first block, second block, CMLL, then the last six edges.
+/// The Roux method for the 3x3 Rubik's Cube: first block, second block, CMLL, then the last six
+/// edges.
 ///
 /// Each stage can be split into smaller steps. Start from `Roux::default()` and pick the
 /// split of a stage with its method:
@@ -33,28 +31,28 @@ pub struct Roux {
 }
 
 impl Roux {
-    /// This method, building the first block as `fb` says.
+    /// Changes the first block options of the current method to [`fb`](FirstBlockOptions).
     #[must_use]
     pub const fn first_block(mut self, fb: FirstBlockOptions) -> Self {
         self.fb = fb;
         self
     }
 
-    /// This method, building the second block as `sb` says.
+    /// Changes the second block options of the current method to [`sb`](SecondBlockOptions).
     #[must_use]
     pub const fn second_block(mut self, sb: SecondBlockOptions) -> Self {
         self.sb = sb;
         self
     }
 
-    /// This method, solving the U-layer corners as `cmll` says.
+    /// Changes the CMLL options of the current method to [`cmll`](CMLLOptions).
     #[must_use]
     pub const fn cmll(mut self, cmll: CMLLOptions) -> Self {
         self.cmll = cmll;
         self
     }
 
-    /// This method, solving the last six edges as `lse` says.
+    /// Changes the LSE options of the current method to [`lse`](LSEOptions).
     #[must_use]
     pub const fn lse(mut self, lse: LSEOptions) -> Self {
         self.lse = lse;
@@ -105,92 +103,16 @@ pub enum LSEOptions {
     //EO,
 }
 
-fn parts(text: &str) -> AlgSet<Cube3x3> {
-    AlgSet::from_parts(text).expect("hand-written part lists should always parse")
-}
-
-fn algs(text: &str) -> AlgSet<Cube3x3> {
-    AlgSet::from_algs_in_str(text).expect("hand-written algorithm sets should always parse")
-}
-
 static FB_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("F U R L D B M r"));
 static SB_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("U R M r"));
 static FREE_AUF: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("U"));
 static CMLL_ALGS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| algs(CMLL_ONE_LOOK_ALGS_STR));
 static LSE_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("U M"));
-// `U` moves the corners, so the LSE moveset alone would leave them out of the CMLL goal.
-// These sequences move the same edges and centers as `U M` and bring every corner home.
 static LSE_KEEPING_CORNERS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| algs("M\nU M U'"));
-
-fn search(
-    name: &'static str,
-    before: &Marked<Cube3x3>,
-    after: &Marked<Cube3x3>,
-    moves: &AlgSet<Cube3x3>,
-) -> Arc<SearchStep<Cube3x3>> {
-    search_with_free_algs(name, before, after, moves, &AlgSet::default())
-}
-
-fn search_with_free_algs(
-    name: &'static str,
-    before: &Marked<Cube3x3>,
-    after: &Marked<Cube3x3>,
-    moves: &AlgSet<Cube3x3>,
-    free_algs: &AlgSet<Cube3x3>,
-) -> Arc<SearchStep<Cube3x3>> {
-    Arc::new(SearchStep::sharing_memo(
-        &super::MEMOS,
-        name,
-        before.clone(),
-        after.clone(),
-        moves.clone(),
-        free_algs.clone(),
-    ))
-}
-
-macro_rules! chain_steps {
-    // The chain starts from the pieces `moves` cannot touch, which must already be solved.
-    (moves: $moves:expr, goal: $goal:expr, $($stages:tt)+) => {{
-        let moves: &AlgSet<Cube3x3> = $moves;
-        let goal: &AlgSet<Cube3x3> = $goal;
-        chain_steps!(@stages moves, goal, (Marked::from_algset(moves)), [], $($stages)+)
-    }};
-
-    (@stages $moves:ident, $goal:ident, $befores:tt, [$($steps:expr),*], $name:literal $(,)?) => {{
-        let steps: Vec<Arc<dyn Step<Cube3x3>>> = vec![
-            $($steps,)*
-            chain_steps!(@choose $moves, $name, $befores, (Marked::from_algset($goal))),
-        ];
-        steps
-    }};
-
-    (@stages $moves:ident, $goal:ident, $befores:tt, [$($steps:expr),*],
-     $name:literal => ($($divider:expr),+ $(,)?), $($rest:tt)+) => {
-        chain_steps!(
-            @stages $moves, $goal,
-            ($(Marked::from_algset(&$goal.combined_with(&$divider))),+),
-            [$($steps,)* chain_steps!(@choose $moves, $name, $befores,
-                ($(Marked::from_algset(&$goal.combined_with(&$divider))),+))],
-            $($rest)+
-        )
-    };
-    (@choose $moves:ident, $name:literal, ($($before:expr),+), $afters:tt) => {
-        Arc::new(Choose::named(
-            $name,
-            [$(chain_steps!(@row $moves, $name, $before, $afters)),+].concat(),
-        ))
-    };
-
-    (@row $moves:ident, $name:literal, $before:expr, ($($after:expr),+)) => {{
-        let row: Vec<Arc<dyn Step<Cube3x3>>> =
-            vec![$(search($name, &$before, &$after, $moves)),+];
-        row
-    }};
-}
 
 impl Method<Cube3x3> for Roux {
     fn to_technique(&self) -> Technique<Cube3x3> {
-        let fb_tech: Vec<Arc<dyn Step<Cube3x3>>> = match self.fb {
+        let fb_tech = match self.fb {
             FirstBlockOptions::OneLook => chain_steps!(
                 moves: &FB_MOVES, goal: &SB_MOVES,
                 "FB",
@@ -208,7 +130,7 @@ impl Method<Cube3x3> for Roux {
             ),
         };
 
-        let sb_tech: Vec<Arc<dyn Step<Cube3x3>>> = match self.sb {
+        let sb_tech = match self.sb {
             SecondBlockOptions::OneLook => chain_steps!(
                 moves: &SB_MOVES, goal: &CMLL_ALGS,
                 "SB"

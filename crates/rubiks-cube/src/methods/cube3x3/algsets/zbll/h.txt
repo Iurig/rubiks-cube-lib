@@ -1,0 +1,40 @@
+F' r U R' U' r' F R2 U2 R' U' R U' R' 	 // ZBLL H 1
+F R' F' r U R U' r2 F2 r U L' U L 	 // ZBLL H 2
+R U2 R' U' R U R' U2 R' F R2 U' R' U' R U R' F' 	 // ZBLL H 3
+F' R U2 R' U2 R' F U' R U R U' R' U' R' U R 	 // ZBLL H 4
+R' U2 R2 U R2 U R U2 R' F R U R U' R' F' 	 // ZBLL H 5
+R U2 R' U' R U R' U' F' R U R' U' R' F R2 U' R' 	 // ZBLL H 6
+R U R' U R U' R2 F' R U2 R U2 R' F R U' R' 	 // ZBLL H 7
+F R U' R' U R U2 R' U' R U R' U' F' 	 // ZBLL H 8
+R F R2 U' R2 U' R2 U2 R2 U' F' R' 	 // ZBLL H 9
+R' U2 R U2 R2 F' R U R U' R' F U R 	 // ZBLL H 10
+F' R U2 R' U2 R' F R U R U R' U' R U' R' 	 // ZBLL H 11
+F U' R U2 R' U2 R U' R' U' R U R' U F' 	 // ZBLL H 12
+R' U2 R U R' U' F' R U R' U' R' F R U2 R 	 // ZBLL H 13
+R U2 R' U' R2 D R' U R D' R2 U' R U' R' 	 // ZBLL H 14
+R2 D' R U' R' D R2 U' R2 D' R U2 R' D R2 	 // ZBLL H 15
+R' U2 R U R2 D' R U' R' D R2 U R' U R 	 // ZBLL H 16
+F R' F' R U2 R U2 R' U' R' F2 r U r' F R 	 // ZBLL H 17
+R' U' R U' R' U F' R U R' U' R' F R2 U' R' U R 	 // ZBLL H 18
+F R U' R' U' R U2 R' U' F' U R U R' U R U2 R' 	 // ZBLL H 19
+R U R' U R U2 R' F R U' R' U' R U2 R' U' F' 	 // ZBLL H 20
+R' F' R U2 R U2 R' F U' R U' R' 	 // ZBLL H 21
+R U R' U R U r' F R' F' r 	 // ZBLL H 22
+R' F R' F' R2 U' r' U r U' r' U' r 	 // ZBLL H 23
+R U R2 F R F' r U' r' U r U r' 	 // ZBLL H 24
+F U' R2 U R U2 R' U R2 U2 R' U' R F' 	 // ZBLL H 25
+R U' R2 U' F2 U' R2 U R2 U F2 R2 U R' 	 // ZBLL H 26
+F R U R' U' R U R' U' R U R' U' F' 	 // ZBLL H 27
+x' U' R U' R' U R' F2 R U' R U R' U x 	 // ZBLL H 28
+R' U2 R U R' U R U R' U' R U R' F' R U R' U' R' F R2 	 // ZBLL H 29
+R' U' R U' R' U2 R2 U2 L' U R' U' L U' R U' R' 	 // ZBLL H 30
+R' U' F' U F R U' F U R U' R' U R U' R' F' 	 // ZBLL H 31
+R U R' U y' R' U R U' R2 F R F' R 	 // ZBLL H 32
+R U R' U R U' R' U R U2 R' 	 // ZBLL H 33
+R' U' R U' R' U R U' R' U2 R 	 // ZBLL H 34
+R' U2 R U R' U' R U R' U R 	 // ZBLL H 35
+R U2 R' U' R U R' U' R U' R' 	 // ZBLL H 36
+R' U2 R U R' U R U R U R' U R U2 R' 	 // ZBLL H 37
+R U2 R' U' R U' R' U' R' U' R U' R' U2 R 	 // ZBLL H 38
+R U R' U R U2 R' U' R' U2 R U R' U R 	 // ZBLL H 39
+R U R' U R U' R' U R U' R' U R' U' R2 U' R' U R' U R 	 // ZBLL H 40

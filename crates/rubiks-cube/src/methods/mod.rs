@@ -97,30 +97,41 @@ impl<P: Puzzle> Technique<P> {
         &self,
         puzzle: &mut P,
     ) -> impl Iterator<Item = Result<Solution<P>, SolveError>> {
-        let mut failed = false;
-        self.steps.iter().map_while(move |step| {
-            if failed {
-                return None;
-            }
-            if !step.can_solve(puzzle) {
-                return Some(Err(SolveError::Requirements {
-                    step: step.name().to_string(),
-                }));
-            }
-            let result = match step.solve(puzzle) {
-                Err(error) => Err(SolveError::Step {
-                    step: step.name().to_string(),
-                    error,
-                }),
-                Ok(_) if !step.is_done(puzzle) => Err(SolveError::NotDone {
-                    step: step.name().to_string(),
-                }),
-                Ok(solution) => Ok(solution),
-            };
-            failed = result.is_err();
-            Some(result)
-        })
+        run_steps(self.steps.iter().cloned(), puzzle)
     }
+}
+
+/// Runs `steps` in order on `puzzle`, one per `next()`. Before each step it checks
+/// [`can_solve`](Step::can_solve), after it [`is_done`](Step::is_done), and it yields nothing
+/// after the first error.
+fn run_steps<P: Puzzle>(
+    steps: impl IntoIterator<Item = Arc<dyn Step<P>>>,
+    puzzle: &mut P,
+) -> impl Iterator<Item = Result<Solution<P>, SolveError>> {
+    let mut failed = false;
+    steps.into_iter().map_while(move |step| {
+        if failed {
+            return None;
+        }
+        if !step.can_solve(puzzle) {
+            failed = true;
+            return Some(Err(SolveError::Requirements {
+                step: step.name().to_string(),
+            }));
+        }
+        let result = match step.solve(puzzle) {
+            Err(error) => Err(SolveError::Step {
+                step: step.name().to_string(),
+                error,
+            }),
+            Ok(_) if !step.is_done(puzzle) => Err(SolveError::NotDone {
+                step: step.name().to_string(),
+            }),
+            Ok(solution) => Ok(solution),
+        };
+        failed = result.is_err();
+        Some(result)
+    })
 }
 
 /// The main Method trait, implemented by specifying a conversion to [`Technique`] (a sequence of
@@ -174,12 +185,7 @@ pub trait Method<P: Puzzle>: Default + Debug {
     /// # }
     /// ```
     fn solve_steps(&self, puzzle: &mut P) -> impl Iterator<Item = Result<Solution<P>, SolveError>> {
-        self.to_technique().steps.clone().into_iter().map(|s| {
-            s.solve(puzzle).map_err(|e| SolveError::Step {
-                step: s.name().to_string(),
-                error: e,
-            })
-        })
+        run_steps(self.to_technique().steps, puzzle)
     }
 }
 
@@ -199,6 +205,52 @@ mod tests {
 
     fn fixed_failure() -> StepError {
         StepError::Custom("fixed failure".into())
+    }
+
+    /// A method that runs the steps it holds, to test what every method gets from `Method`.
+    #[derive(Debug, Default)]
+    struct Steps(Vec<Arc<dyn Step<Cube3x3>>>);
+
+    impl Method<Cube3x3> for Steps {
+        fn to_technique(&self) -> Technique<Cube3x3> {
+            self.0.iter().cloned().collect()
+        }
+    }
+
+    #[test]
+    fn a_method_step_that_returns_but_is_not_done_fails_the_solve_naming_it() {
+        let method = Steps(vec![FixedStep::new("Never done", "", true, false)]);
+
+        let result = method.solve(&mut Cube3x3::default());
+
+        assert!(
+            matches!(
+                &result,
+                Err(SolveError::NotDone { step }) if step == "Never done"
+            ),
+            "{result:?}"
+        );
+    }
+
+    #[test]
+    fn after_a_step_that_cannot_start_the_iterator_yields_nothing_more() {
+        let later = FixedStep::new("Later", "", true, true);
+        let method = Steps(vec![
+            FixedStep::new("Cannot start", "", false, true),
+            later.clone(),
+        ]);
+        let mut cube = Cube3x3::default();
+        let mut steps = method.solve_steps(&mut cube);
+
+        assert!(
+            matches!(
+                steps.next(),
+                Some(Err(SolveError::Requirements { step })) if step == "Cannot start"
+            ),
+            "the step that cannot start is reported"
+        );
+        assert!(steps.next().is_none());
+        assert_eq!(later.runs(), 0, "no step runs after an error");
     }
 
     #[test]

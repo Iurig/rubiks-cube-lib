@@ -1,6 +1,6 @@
 use anyhow::ensure;
 use clap::Parser;
-use rubiks_cube::{Method, Puzzle, Roux};
+use rubiks_cube::{Method, Puzzle, Roux, ZZ};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -35,6 +35,9 @@ fn main() -> anyhow::Result<()> {
     match args.method {
         ref m if m == "roux" => {
             reconstruct_n(args.number, &Roux::default())?;
+        }
+        ref m if m == "zz" => {
+            reconstruct_n(args.number, &ZZ::default())?;
         }
         _ => println!("invalid method"),
     }

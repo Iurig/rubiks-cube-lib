@@ -285,3 +285,28 @@ impl<P: Puzzle> Step<P> for SearchStep<P> {
         }]))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Cube3x3;
+
+    /// ZZ's EO Line: the goal names a piece in two edge slots and asks only for orientation in
+    /// the other ten. When the search key left out the flip of a stray edge in a named slot, seed
+    /// 2 ended this step with two edges flipped.
+    #[test]
+    fn a_goal_mixing_named_and_orientation_only_slots_is_met() {
+        let eo_line_moves = AlgSet::from_parts("F B U R L D").unwrap();
+        let step = SearchStep::new_with_algs(
+            "EO Line",
+            Marked::from_algset(&eo_line_moves),
+            Marked::from_algset(&AlgSet::from_parts("U R L").unwrap()),
+            eo_line_moves,
+        );
+        for seed in 0..4 {
+            let mut cube = Cube3x3::apply_scramble_with_seed(seed);
+            step.solve(&mut cube).unwrap();
+            assert!(step.is_done(&cube), "seed {seed}:\n{cube}");
+        }
+    }
+}
