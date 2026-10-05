@@ -1,3 +1,4 @@
+//! Solves one scramble using the Roux method with a few different options.
 use rubiks_cube::{
     CMLLOptions, Cube3x3, FirstBlockOptions, Method, Puzzle, Roux, SecondBlockOptions,
 };

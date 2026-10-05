@@ -16,7 +16,7 @@ use crate::{Algorithm, ops::Inv, puzzles::Puzzle};
 
 /// One stage of a solving method, such as building the first block in Roux.
 ///
-/// A [`Method`] runs its steps in order. After each step it calls [`is_done`](Step::is_done),
+/// A [`Technique`] runs its steps in order. After each step it calls [`is_done`](Step::is_done),
 /// and stops with a [`SolveError`] if the step failed or its goal is not met.
 ///
 /// The crate has two step types: [`SearchStep`](crate::SearchStep) searches for its goal, and
@@ -190,7 +190,7 @@ impl<P: Puzzle> Display for Solution<P> {
 /// ```
 #[derive(Debug)]
 pub struct Technique<P: Puzzle> {
-    pub steps: Vec<Arc<dyn Step<P>>>,
+    steps: Vec<Arc<dyn Step<P>>>,
 }
 
 impl<P: Puzzle> FromIterator<Arc<dyn Step<P>>> for Technique<P> {
@@ -213,6 +213,13 @@ impl<P: Puzzle> Technique<P> {
         self.solve_steps(puzzle).collect()
     }
 
+    /// Returns the steps of the Technique as an [`Iterator`](core::iter::Iterator).
+    pub fn steps(&self) -> impl Iterator<Item = Arc<dyn Step<P>>> {
+        self.steps.iter().cloned()
+    }
+
+    /// Returns an [`Iterator`](core::iter::Iterator) over the solutions of every step which
+    /// iterating over solves the [`puzzle`](crate::Puzzle).
     pub fn solve_steps(
         &self,
         puzzle: &mut P,
@@ -243,6 +250,14 @@ impl<P: Puzzle> Technique<P> {
     }
 }
 
+/// The main Method trait, implemented by specifying a conversion to [`Technique`] (a sequence of
+/// steps) through [`to_technique`](Method::to_technique).
+///
+/// It can then be solved directly without conversion by using [`self.solve()`](Method::solve).
+/// Methods in real life aren't a simple sequence of steps, but something that, depending on
+/// parameters, colapses to a different [`Technique`]. Implementation of [`Method`] usually starts
+/// by defining a type to hold such parameters, then how to get a sequence of steps from such
+/// parameters.
 pub trait Method<P: Puzzle>: Default + Debug {
     /// A method that runs `steps` in the order given.
     ///
@@ -253,6 +268,7 @@ pub trait Method<P: Puzzle>: Default + Debug {
         Self::default()
     }
 
+    /// Converts a parametrized [`Method`] to a specific [`Technique`]
     fn to_technique(&self) -> Technique<P>;
 
     /// Runs every step in order and joins their solutions: [`solve_steps`](Self::solve_steps),

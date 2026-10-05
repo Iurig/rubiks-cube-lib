@@ -20,8 +20,7 @@ const RIM: [Pieces3x3; 4] = [
 fn phase(name: &str) -> Arc<dyn Step<Cube3x3>> {
     Kociemba
         .to_technique()
-        .steps
-        .into_iter()
+        .steps()
         .find(|step| step.name() == name)
         .unwrap_or_else(|| panic!("kociemba has no step called {name}"))
 }

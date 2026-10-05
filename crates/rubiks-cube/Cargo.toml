@@ -47,3 +47,4 @@ rc_mutex = "warn"
 [lints.rust]
 missing_debug_implementations = "warn"
 unnameable_types = "warn"
+missing_docs = "warn"

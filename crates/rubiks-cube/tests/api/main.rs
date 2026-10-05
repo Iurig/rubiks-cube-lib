@@ -1,3 +1,5 @@
+//! The integration testing suite for the library.
+
 #![expect(
     clippy::panic_in_result_fn,
     reason = "`?` reports setup failures; `assert!` reports the property under test failing"
