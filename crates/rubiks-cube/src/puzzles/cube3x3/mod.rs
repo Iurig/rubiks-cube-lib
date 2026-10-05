@@ -1,4 +1,3 @@
-pub mod algs;
 pub mod facelets;
 pub mod moves;
 pub mod pieces;
