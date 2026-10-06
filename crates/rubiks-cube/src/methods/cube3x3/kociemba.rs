@@ -101,7 +101,7 @@ impl PrunedGoal<Cube3x3> for Phase1Edges {
 fn phase_1() -> PrunedCombine<'static, Cube3x3> {
     PrunedCombine::<Cube3x3>::new(
         "Phase 1",
-        &(|_| true),
+        Box::new(|_| true),
         [
             Box::new(Phase1Corners) as Box<dyn DistanceStep<Cube3x3>>,
             Box::new(Phase1Edges) as Box<dyn DistanceStep<Cube3x3>>,
@@ -159,7 +159,7 @@ impl PrunedGoal<Cube3x3> for Phase2Edges {
 fn phase_2() -> PrunedCombine<'static, Cube3x3> {
     PrunedCombine::<Cube3x3>::new(
         "Phase 2",
-        &(|puzzle| phase_1().is_done(puzzle)),
+        Box::new(|puzzle| phase_1().is_done(puzzle)),
         [
             Box::new(Phase2CornersAndE) as Box<dyn DistanceStep<Cube3x3>>,
             Box::new(Phase2Edges) as Box<dyn DistanceStep<Cube3x3>>,

@@ -63,3 +63,38 @@ Split solving a full cube in sub-tasks
 ```rust
 ALL.split_at_with_name(goal, name)
 ```
+
+```rust
+{
+    let moves: &AlgSet<Cube3x3> = (&F2L_MOVES);
+    let goal: &AlgSet<Cube3x3> = (&OCLL_ALGS);
+    let free: &AlgSet<Cube3x3> = (&AlgSet::default());
+    {
+        let steps: Vec<Arc<dyn Step<Cube3x3>>> = 
+                vec![(Arc::new(Choose::named(
+                    "F2L",
+                    [{
+                        let row: Vec<Arc<dyn Step<Cube3x3>>> =
+                            alloc::boxed::box_assume_init_into_vec_unsafe(
+                                alloc::intrinsics::write_box_via_move(
+                                    alloc::boxed::Box::new_uninit(),
+                                    [(crate::methods::cube3x3::helpers::search_with_free_algs(
+                                        "F2L",
+                                        (Marked::from_algset(moves)),
+                                        (Marked::from_algset(goal)),
+                                        moves.clone(),
+                                        free.clone(),
+                                    ))],
+                                ),
+                            );
+                        row
+                    }]
+                    .concat(),
+                )))],
+
+        );
+        steps
+    }
+}
+
+```

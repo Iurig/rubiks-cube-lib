@@ -79,7 +79,7 @@ pub use methods::{
     cube3x3::{
         kociemba::Kociemba,
         roux::{CMLLOptions, FirstBlockOptions, LSEOptions, Roux, SecondBlockOptions},
-        zz::{EOLineOptions, F2LOptions, OrientationOptions, PermutationOptions, ZZ},
+        zz::{EOLineOptions, F2LOptions, OrientationOptions, PermutationOptions, ZZ, ZZA},
     },
     step::{Step, choose::Choose, search_step::SearchStep},
 };

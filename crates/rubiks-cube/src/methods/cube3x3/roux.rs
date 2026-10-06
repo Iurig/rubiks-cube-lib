@@ -2,11 +2,11 @@ use std::sync::{Arc, LazyLock};
 
 use crate::{AlgSet, Choose, Cube3x3, Marked, Method, Puzzle, Step, methods::Technique};
 
-use crate::methods::cube3x3::helpers::{algs, parts, search, search_with_free_algs};
+use crate::methods::cube3x3::helpers::{algs, parts, search};
 
-const CMLL_ONE_LOOK_ALGS_STR: &str = include_str!("../algsets/cmll/one_look.txt");
-const CO_ALGS_TEXT: &str = include_str!("../algsets/cmll/co.txt");
-const CP_ALGS_TEXT: &str = include_str!("../algsets/cmll/cp.txt");
+const CMLL_ONE_LOOK_ALGS_STR: &str = include_str!("algsets/cmll/one_look.txt");
+const CO_ALGS_TEXT: &str = include_str!("algsets/cmll/co.txt");
+const CP_ALGS_TEXT: &str = include_str!("algsets/cmll/cp.txt");
 
 /// The Roux method for the 3x3 Rubik's Cube: first block, second block, CMLL, then the last six
 /// edges.
@@ -148,45 +148,39 @@ impl Method<Cube3x3> for Roux {
             ),
         };
 
-        let after_sb = Marked::from_algset(&CMLL_ALGS.combined_with(&LSE_MOVES));
         let after_cmll = Marked::from_algset(&LSE_KEEPING_CORNERS);
 
         let cmll_tech: Vec<Arc<dyn Step<Cube3x3>>> = match self.cmll {
-            CMLLOptions::OneLook => vec![search_with_free_algs(
+            CMLLOptions::OneLook => chain_steps!(
+                moves: &CMLL_ALGS.combined_with(&LSE_MOVES),
+                goal: &LSE_KEEPING_CORNERS,
+                free: &FREE_AUF,
                 "CMLL",
-                &after_sb,
-                &after_cmll,
-                &CMLL_ALGS,
-                &FREE_AUF,
-            )],
-            CMLLOptions::TwoLook => {
-                let cp_algs = algs(CP_ALGS_TEXT);
-                // Neither the permutation algorithms nor the AUF twist a corner, so the corners
-                // stay in the goal through their orientation only.
-                let after_co = Marked::from_algset(
-                    &cp_algs
-                        .combined_with(&FREE_AUF)
-                        .combined_with(&LSE_KEEPING_CORNERS),
-                );
-                vec![
-                    search_with_free_algs(
-                        "CO",
-                        &after_sb,
-                        &after_co,
-                        &algs(CO_ALGS_TEXT),
-                        &FREE_AUF,
-                    ),
-                    search_with_free_algs("CP", &after_co, &after_cmll, &cp_algs, &FREE_AUF),
-                ]
-            }
+            ),
+            CMLLOptions::TwoLook => [
+                chain_steps!(
+                    moves: &algs(CO_ALGS_TEXT).combined_with(&LSE_KEEPING_CORNERS),
+                    goal: &LSE_MOVES,
+                    free: &FREE_AUF,
+                    "CO",
+                ),
+                chain_steps!(
+                    moves: &algs(CP_ALGS_TEXT).combined_with(&LSE_KEEPING_CORNERS),
+                    goal: &LSE_KEEPING_CORNERS,
+                    "CP",
+                ),
+            ]
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>(),
         };
 
         let lse_tech: Vec<Arc<dyn Step<Cube3x3>>> = match self.lse {
             LSEOptions::EOLR => vec![search(
                 "LSE",
-                &after_cmll,
-                &Marked::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied()),
-                &LSE_MOVES,
+                after_cmll,
+                Marked::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied()),
+                LSE_MOVES.clone(),
             )],
             //LSEOptions::EO => (),
         };
@@ -236,10 +230,10 @@ mod test {
         let fb_goal = Marked::from_algset(&SB_MOVES);
         let back_square = Marked::from_algset(&SB_MOVES.combined_with(&parts("F")));
 
-        let fb = search("FB", &fb_start, &fb_goal, &FB_MOVES);
-        let fb_again = search("FB", &fb_start, &fb_goal, &FB_MOVES);
-        let fb_pair = search("FB Pair", &back_square, &fb_goal, &FB_MOVES);
-        let fb_square = search("FB Square", &fb_start, &back_square, &FB_MOVES);
+        let fb = search("FB", fb_start.clone(), fb_goal.clone(), FB_MOVES.clone());
+        let fb_again = search("FB", fb_start.clone(), fb_goal.clone(), FB_MOVES.clone());
+        let fb_pair = search("FB Pair", back_square.clone(), fb_goal, FB_MOVES.clone());
+        let fb_square = search("FB Square", fb_start, back_square, FB_MOVES.clone());
 
         assert!(fb.shares_memo_with(&fb_again));
         assert!(fb.shares_memo_with(&fb_pair));

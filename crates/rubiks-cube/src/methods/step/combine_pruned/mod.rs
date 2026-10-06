@@ -15,7 +15,7 @@ use std::{
 pub struct PrunedCombine<'a, P: Puzzle> {
     name: &'a str,
     steps: Vec<Box<dyn DistanceStep<P>>>,
-    ready_to_solve: &'a (dyn Fn(&P) -> bool + Send + Sync),
+    ready_to_solve: Box<dyn Fn(&P) -> bool + Send + Sync>,
     moveset: AlgSet<P>,
     /// `may_follow[a][b]`: whether the search tries sequence `b` of the moveset right after
     /// sequence `a`. See [`may_follow`].
@@ -67,7 +67,7 @@ impl<P: Puzzle, T: PrunedGoal<P>> DistanceStep<P> for T {
 impl<'a, P: Puzzle> PrunedCombine<'a, P> {
     pub fn new<T: IntoIterator<Item = Box<dyn DistanceStep<P>>>>(
         name: &'a str,
-        ready_to_solve: &'a (dyn Fn(&P) -> bool + Send + Sync),
+        ready_to_solve: Box<dyn Fn(&P) -> bool + Send + Sync>,
         iter: T,
         moveset: AlgSet<P>,
     ) -> Self {

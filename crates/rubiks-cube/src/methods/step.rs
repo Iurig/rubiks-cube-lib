@@ -42,6 +42,8 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
         }
     }
 
+    /// Turns a single step into a [`Vec`] with one step - used for constructing
+    /// [`Technique`](crate::Technique).
     fn to_steps(self) -> Vec<Arc<dyn Step<P>>>
     where
         Self: Sized + 'static,

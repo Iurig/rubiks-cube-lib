@@ -51,6 +51,7 @@ impl<'a, P: Puzzle> AlgSet<P> {
         &self.0
     }
 
+    /// Returns an iterator over [`Algorithm`]s.
     pub fn iter(&'a self) -> std::iter::Cloned<std::slice::Iter<'a, Algorithm<P>>> {
         <&Self as IntoIterator>::into_iter(self)
     }
@@ -132,6 +133,8 @@ impl AlgSet<Cube3x3> {
             .collect()
     }
 
+    /// Adds an empty [`Algorithm`] to an [`AlgSet`].
+    #[must_use]
     pub fn or_skip(&self) -> Self {
         self.combined_with(&Self::from_iter([Algorithm::new()]))
     }

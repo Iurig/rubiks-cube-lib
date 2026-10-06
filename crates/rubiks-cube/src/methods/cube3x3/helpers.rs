@@ -3,8 +3,9 @@ use std::sync::{Arc, LazyLock};
 use itertools::iproduct;
 
 use crate::{
-    AlgSet, Algorithm, Cube3x3, Marked, Mask, Pieces3x3, Puzzle, SearchStep, Segment, Solution,
-    Step, StepError,
+    AlgSet, Algorithm, ByPiece, Cube3x3, Marked, Mask, Pieces3x3, Puzzle, SearchStep, Segment,
+    Solution, Step, StepError,
+    methods::step::combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
 };
 
 pub fn parts(text: &str) -> AlgSet<Cube3x3> {
@@ -17,28 +18,80 @@ pub fn algs(text: &str) -> AlgSet<Cube3x3> {
 
 pub fn search(
     name: &'static str,
-    before: &Marked<Cube3x3>,
-    after: &Marked<Cube3x3>,
-    moves: &AlgSet<Cube3x3>,
+    before: Marked<Cube3x3>,
+    after: Marked<Cube3x3>,
+    moves: AlgSet<Cube3x3>,
 ) -> Arc<SearchStep<Cube3x3>> {
-    search_with_free_algs(name, before, after, moves, &AlgSet::default())
+    search_with_free_algs(name, before, after, moves, AlgSet::default())
 }
 
 pub fn search_with_free_algs(
     name: &'static str,
-    before: &Marked<Cube3x3>,
-    after: &Marked<Cube3x3>,
-    moves: &AlgSet<Cube3x3>,
-    free_algs: &AlgSet<Cube3x3>,
+    before: Marked<Cube3x3>,
+    after: Marked<Cube3x3>,
+    moves: AlgSet<Cube3x3>,
+    free_algs: AlgSet<Cube3x3>,
 ) -> Arc<SearchStep<Cube3x3>> {
     Arc::new(SearchStep::sharing_memo(
         &super::MEMOS,
         name,
-        before.clone(),
-        after.clone(),
-        moves.clone(),
-        free_algs.clone(),
+        before,
+        after,
+        moves,
+        free_algs,
     ))
+}
+
+macro_rules! r#dyn {
+    ($goal: expr) => {
+        Box::new($goal) as Box<dyn DistanceStep<Cube3x3>>
+    };
+}
+
+macro_rules! mask {
+    ($mark: ident) => {
+        Mask::filter_by_piece(&Cube3x3::default(), &$mark)
+    };
+}
+
+#[derive(Debug)]
+pub struct BlockGoal {
+    goal: Mask<Cube3x3>,
+    table: PruneTable<Mask<Cube3x3>>,
+}
+
+impl BlockGoal {
+    pub fn new(after: &Marked<Cube3x3>, block: &Marked<Cube3x3>, moves: &AlgSet<Cube3x3>) -> Self {
+        let goal = mask!(after).and(&mask!(block));
+        let table = PruneTable::from_goal(&goal, moves);
+        Self { goal, table }
+    }
+}
+
+impl PrunedGoal<Cube3x3> for &'static BlockGoal {
+    type Marker = ByPiece;
+
+    fn goal(&self) -> &Mask<Cube3x3> {
+        &self.goal
+    }
+
+    fn table(&self) -> &PruneTable<Mask<Cube3x3>> {
+        &self.table
+    }
+}
+
+pub fn split_by_blocks(
+    name: &str,
+    before: Marked<Cube3x3>,
+    blocks: impl IntoIterator<Item = &'static BlockGoal>,
+    moves: AlgSet<Cube3x3>,
+) -> PrunedCombine<'_, Cube3x3> {
+    PrunedCombine::new(
+        name,
+        Box::new(move |cube| before.applies_to(cube)),
+        blocks.into_iter().map(|block| r#dyn!(block)),
+        moves,
+    )
 }
 
 macro_rules! chain_steps {
@@ -86,7 +139,7 @@ macro_rules! chain_steps {
     (@row $moves:ident, $free:ident, $name:literal, $before:expr, ($($after:expr),+)) => {{
         let row: Vec<Arc<dyn Step<Cube3x3>>> = vec![$(
             $crate::methods::cube3x3::helpers::search_with_free_algs(
-                $name, &$before, &$after, $moves, $free,
+                $name, $before, $after, $moves.clone(), $free.clone(),
             )
         ),+];
         row

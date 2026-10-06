@@ -4,6 +4,8 @@ exclude_re = [
     "impl Display",
     "name",
     "::moves",
+    "replace FxHasher::step with ()",
+    "FxHasher::step",
     # Error messages are for people to read; their wording isn't pinned.
     'replace <impl std::fmt::Display for ParseMoveError>::fmt',
     'replace <impl std::fmt::Display for ParseSequenceError>::fmt',

@@ -212,6 +212,28 @@ impl<P: Puzzle> Mask<P> {
                     .is_none_or(|orient| puzzle.orientation_at(slot) == orient)
         })
     }
+    /// Composes two instances of [`Mask<P>`], marking pieces if they are tracked by both one.
+    ///
+    /// Zeroes the orientations that are tracked - is meant to be used in goal-type values.
+    #[must_use]
+    pub fn and(&self, other: &Self) -> Self {
+        Self::from_double_iter(
+            P::ALL_PIECES
+                .iter()
+                .zip(self.0.iter().zip(other.0.clone()))
+                .filter(|&(_, (con_self, ref con_other))| {
+                    con_self.label.is_some() && con_other.label.is_some()
+                })
+                .map(|(&slot, _)| slot),
+            P::ALL_PIECES
+                .iter()
+                .zip(self.0.iter().zip(other.0.clone()))
+                .filter(|&(_, (con_self, ref con_other))| {
+                    con_self.orient.is_some() && con_other.orient.is_some()
+                })
+                .map(|(&slot, _)| slot),
+        )
+    }
 }
 
 impl<P: Puzzle> Marked<P> {

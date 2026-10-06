@@ -2,7 +2,8 @@
 use enum_iterator::{Sequence, all};
 use std::sync::{Arc, LazyLock};
 
-use crate::methods::cube3x3::helpers::{LastLayer, algs, parts};
+use crate::methods::cube3x3::helpers::{BlockGoal, LastLayer, algs, parts, split_by_blocks};
+
 use crate::{AlgSet, Choose, Cube3x3, Marked, Method, Step, Technique};
 
 /// The ZZ method for the 3x3 Rubik's Cube: EO line, first two layers, then last layer.
@@ -14,20 +15,23 @@ pub struct ZZ {
     ll: LLOptions,
 }
 
+/// The ZZA variant of the ZZ method. Uses ZBLL on the last layer.
+pub const ZZA: ZZ = ZZ {
+    eoline: EOLineOptions,
+    f2l: F2LOptions,
+    ll: LLOptions::OneLook,
+};
+
+/// How [`ZZ`] builds its first step, the `EOLine`.
+#[non_exhaustive]
+#[derive(Debug, Clone, Default)]
+#[cfg_attr(test, derive(Sequence))]
+pub struct EOLineOptions;
+/// How [`ZZ`] builds its F2L.
 #[non_exhaustive]
 #[derive(Debug, Default, Clone)]
 #[cfg_attr(test, derive(Sequence))]
-pub enum EOLineOptions {
-    #[default]
-    Full,
-}
-#[non_exhaustive]
-#[derive(Debug, Default, Clone)]
-#[cfg_attr(test, derive(Sequence))]
-pub enum F2LOptions {
-    #[default]
-    Full,
-}
+pub struct F2LOptions;
 #[non_exhaustive]
 #[derive(Debug, Clone)]
 #[cfg_attr(test, derive(Sequence))]
@@ -38,20 +42,26 @@ pub enum LLOptions {
     },
     OneLook,
 }
+/// The first step of a [`two-look`](LLOptions::TwoLook) ZZ last layer.
 #[non_exhaustive]
 #[derive(Debug, Default, Clone)]
 #[cfg_attr(test, derive(Sequence))]
 pub enum OrientationOptions {
+    /// Orientation of the Corners of the Last Layer.
     #[default]
     OCLL,
+    /// Orientation and permutation of the Corners of the Last Layer.
     COLL,
 }
+/// The second step of a [`two-look`](LLOptions::TwoLook) ZZ last layer.
 #[non_exhaustive]
 #[derive(Debug, Default, Clone)]
 #[cfg_attr(test, derive(Sequence))]
 pub enum PermutationOptions {
+    /// Standard PLL
     #[default]
     OneLook,
+    /// Two-look PLL
     TwoLook,
 }
 
@@ -67,15 +77,16 @@ impl Default for LLOptions {
 impl Method<Cube3x3> for ZZ {
     fn to_technique(&self) -> Technique<Cube3x3> {
         let eoline_tech = match self.eoline {
-            EOLineOptions::Full => {
-                chain_steps!(moves: &EO_LINE_MOVES, goal: &F2L_MOVES, "EO Line")
-            }
+            EOLineOptions => chain_steps!(moves: &EO_LINE_MOVES, goal: &F2L_MOVES, "EO Line"),
         };
 
         let f2l_tech = match self.f2l {
-            F2LOptions::Full => {
-                chain_steps!(moves: &F2L_MOVES, goal: &OCLL_ALGS, "F2L")
-            }
+            F2LOptions => vec![Arc::from(split_by_blocks(
+                "F2L",
+                Marked::from_algset(&F2L_MOVES),
+                F2L_BLOCKS.iter(),
+                F2L_MOVES.clone(),
+            )) as Arc<dyn Step<Cube3x3>>],
         };
 
         let ll_tech = match self.ll {
@@ -109,25 +120,31 @@ impl Method<Cube3x3> for ZZ {
 
 static EO_LINE_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("F B U R L D "));
 static F2L_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("U R L "));
+static F2L_BLOCKS: LazyLock<[BlockGoal; 2]> = LazyLock::new(|| {
+    let f2l = Marked::from_algset(&OCLL_ALGS);
+    ["R U", "L U"].map(|other_side| {
+        BlockGoal::new(&f2l, &Marked::from_algset(&parts(other_side)), &F2L_MOVES)
+    })
+});
 static OCLL_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("../algsets/oll/ocll.txt")).or_skip());
+    LazyLock::new(|| algs(include_str!("algsets/oll/ocll.txt")).or_skip());
 static COLL_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("../algsets/oll/coll.txt")).or_skip());
+    LazyLock::new(|| algs(include_str!("algsets/oll/coll.txt")).or_skip());
 static PLL_CORNER_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("../algsets/pll/corner.txt")).or_skip());
+    LazyLock::new(|| algs(include_str!("algsets/pll/corner.txt")).or_skip());
 static PLL_EDGE_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("../algsets/pll/edge.txt")).or_skip());
+    LazyLock::new(|| algs(include_str!("algsets/pll/edge.txt")).or_skip());
 static PLL_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("../algsets/pll/one_look.txt")).or_skip());
+    LazyLock::new(|| algs(include_str!("algsets/pll/one_look.txt")).or_skip());
 static ZBLL_ALGS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| {
     algs(concat!(
-        include_str!("../algsets/zbll/t.txt"),
-        include_str!("../algsets/zbll/u.txt"),
-        include_str!("../algsets/zbll/l.txt"),
-        include_str!("../algsets/zbll/pi.txt"),
-        include_str!("../algsets/zbll/h.txt"),
-        include_str!("../algsets/zbll/sune.txt"),
-        include_str!("../algsets/zbll/anti_sune.txt"),
+        include_str!("algsets/zbll/t.txt"),
+        include_str!("algsets/zbll/u.txt"),
+        include_str!("algsets/zbll/l.txt"),
+        include_str!("algsets/zbll/pi.txt"),
+        include_str!("algsets/zbll/h.txt"),
+        include_str!("algsets/zbll/sune.txt"),
+        include_str!("algsets/zbll/anti_sune.txt"),
     ))
     .or_skip()
 });
@@ -143,10 +160,8 @@ mod test {
 
     #[test]
     fn zz_solves_the_cube() -> Result<(), Box<dyn Error>> {
-        let scramble = Cube3x3::scramble_with_seed(2).unwrap();
-        let mut cube = Cube3x3::default().apply(&scramble);
+        let mut cube = Cube3x3::apply_scramble_with_seed(2);
 
-        println!("{scramble}");
         for partial_solution in ZZ::default().solve_steps(&mut cube) {
             println!("{}", partial_solution?);
         }
@@ -157,19 +172,17 @@ mod test {
     #[test]
     fn zz_works_with_all_options() -> Result<(), Box<dyn Error>> {
         let settings = all::<ZZ>().collect::<Vec<_>>();
-        let scrambles = (0..u64::try_from(settings.len())?)
-            .map(|seed| Cube3x3::scramble_with_seed(seed).unwrap())
+        let scrambled_cubes = (0..u64::try_from(settings.len())?)
+            .map(Cube3x3::apply_scramble_with_seed)
             .collect::<Vec<_>>();
-        for (scramble, setting) in scrambles.iter().zip(settings) {
-            let mut cube = Cube3x3::default().apply(scramble);
-
+        for (&cube, setting) in scrambled_cubes.iter().zip(settings) {
             dbg!(&setting);
-
-            println!("{scramble}\n");
-            for partial_solution in setting.solve_steps(&mut cube) {
+            let mut solving_cube = cube;
+            println!("{cube}\n");
+            for partial_solution in setting.solve_steps(&mut solving_cube) {
                 print!("{}", partial_solution?);
             }
-            assert!(cube.is_solved());
+            assert!(solving_cube.is_solved());
         }
         Ok(())
     }
