@@ -68,6 +68,7 @@
 //! permutation of [`Piece`]s with an orientation per piece in [`zn::Zn`]. The [`Puzzle`] trait
 //! is what the solver needs from a puzzle, and [`Facelets`] shows a cube as a sticker net.
 mod fast_hash;
+mod indexed;
 mod methods;
 mod ops;
 mod piece;
