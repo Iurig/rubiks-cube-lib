@@ -75,6 +75,6 @@ impl Step<Cube3x3> for FixedStep {
             .collect::<Result<Algorithm<Cube3x3>, _>>()
             .map_err(|e| StepError::Custom(Box::new(e)))?;
         *puzzle = puzzle.apply(&moves);
-        Ok(Solution::single_segment(self.name.to_string(), moves))
+        Ok(Solution::single_segment(self.name, moves))
     }
 }

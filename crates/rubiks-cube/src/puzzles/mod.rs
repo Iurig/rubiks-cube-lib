@@ -22,9 +22,9 @@ pub mod label;
 ///
 /// 1. `Self::default()` is the solved state, and the identity for moves.
 /// 2. A move acts the same way on every state. For any state `p`, move `m`, and slot `s`, let
-///    `action = Self::default() * m` and `src = action.piece_at(&s)`, the slot `m` moves into `s`.
-///    Then `(p * m).piece_at(&s) == p.piece_at(&src)`, and `(p * m).orientation_at(&s) ==
-///    p.orientation_at(&src) + action.orientation_at(&s)`.
+///    `action = Self::default() * m` and `src = action.piece_at(s)`, the slot `m` moves into `s`.
+///    Then `(p * m).piece_at(s) == p.piece_at(src)`, and `(p * m).orientation_at(s) ==
+///    p.orientation_at(src) + action.orientation_at(s)`.
 ///
 /// So reading `piece_at` and `orientation_at` at every slot of `Self::default() * m` gives
 /// everything `m` does to any state.

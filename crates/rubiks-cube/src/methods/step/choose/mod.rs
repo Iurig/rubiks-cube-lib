@@ -1,5 +1,7 @@
 use std::{borrow::Cow, sync::Arc};
 
+use itertools::Itertools;
+
 use crate::{Puzzle, Solution, Step, StepError};
 
 /// A step that tries several steps and keeps the shortest working solution.
@@ -21,16 +23,12 @@ pub struct Choose<P: Puzzle> {
 }
 
 impl<P: Puzzle> Choose<P> {
-    /// A choice between `steps`, its name is a simple direct refference to the steps it chooses,
+    /// A choice between `steps`, its name is a simple direct reference to the steps it chooses,
     /// e.g. `"step1 or step2 or step3"`. The name appears in errors about the choice itself.
     /// When an alternative runs, the solution names that alternative instead.
     #[must_use]
     pub fn new(steps: Vec<Arc<dyn Step<P>>>) -> Self {
-        let name = steps
-            .iter()
-            .map(|s| s.name())
-            .collect::<Vec<&str>>()
-            .join(" or ");
+        let name = steps.iter().map(|s| s.name()).join(" or ");
         Self {
             steps,
             name: Cow::Owned(name),

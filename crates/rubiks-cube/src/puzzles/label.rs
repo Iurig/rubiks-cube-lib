@@ -2,11 +2,11 @@ use std::{fmt::Debug, hash::Hash, iter::IntoIterator, ops::Mul};
 
 use crate::{AlgSet, Indexed, Puzzle, fast_hash::FxSet};
 
-/// A puzzle with optional labels attatched to its pieces, as well as optional orientations.
+/// A puzzle with optional labels attached to its pieces, as well as optional orientations.
 ///
 /// Generalizes the concept of a partial puzzle - in which the labels are the name of the pieces
 /// themselves, and a puzzle that a set of pieces is tracked without regard for their identities -
-/// where the labels are anything of unit type, and everything inbetween.
+/// where the labels are anything of unit type, and everything in between.
 ///
 /// For partial puzzles, use [`Mask`](crate::Mask), for pieces tracked with a generic mark, use
 /// [`Marked`](crate::Marked)
@@ -34,7 +34,7 @@ pub type Mask<P> = Labeled<P, ByPiece>;
 /// A puzzle state with optional orientations, and optional tracking of specific pieces.
 ///
 /// Used for defining steps by marking positions to be solved, as well as to track cubes throughout
-/// moves without distinction for it's marked pieces.
+/// moves without distinction for its marked pieces.
 pub type Marked<P> = Labeled<P, ByMark>;
 
 /// What a [`Mask`] asks of one slot: which piece must sit there, and which orientation the piece

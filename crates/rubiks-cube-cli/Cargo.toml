@@ -1,7 +1,13 @@
 [package]
 name = "rubiks-cube-cli"
 version = "0.1.0"
-edition = "2024"
+description = "A command line interface for scrambling and solving a rubiks cube using human methods"
+categories = ["command-line-utilities", "games"]
+keywords = ["rubiks", "cube", "twisty puzzle", "Roux", "CFOP"]
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
 
 [dependencies]
 anyhow = "1.0.104"
@@ -11,6 +17,8 @@ rubiks-cube = { path = "../rubiks-cube" }
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
 unwrap_used = "warn"
 todo = "warn"
 indexing_slicing = "warn"
@@ -32,3 +40,6 @@ multiple_unsafe_ops_per_block = "warn"
 unnecessary_safety_doc = "warn"
 unnecessary_safety_comment = "warn"
 rc_mutex = "warn"
+
+[lints.rust]
+unused_crate_dependencies = "warn"

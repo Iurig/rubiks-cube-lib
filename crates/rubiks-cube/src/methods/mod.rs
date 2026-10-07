@@ -1,16 +1,14 @@
 pub mod cube3x3;
-mod error;
 mod solution;
 pub mod step;
 #[cfg(test)]
 mod test_steps;
 
-pub use error::{SolveError, StepError};
 pub use solution::{Segment, Solution};
 
 use std::{fmt::Debug, sync::Arc};
 
-use crate::{methods::step::Step, puzzles::Puzzle};
+use crate::{SolveError, methods::step::Step, puzzles::Puzzle};
 
 /// The ordered list of [`Step`]s that a [`Method`] runs, built by
 /// [`to_technique`](Method::to_technique) from the method's options.
@@ -90,7 +88,7 @@ fn run_steps<P: Puzzle>(
         let result = match step.solve(puzzle) {
             Err(error) => Err(SolveError::Step {
                 step: step.name().to_string(),
-                error,
+                source: error,
             }),
             Ok(_) if !step.is_done(puzzle) => Err(SolveError::NotDone {
                 step: step.name().to_string(),
@@ -107,7 +105,7 @@ fn run_steps<P: Puzzle>(
 ///
 /// It can then be solved directly without conversion by using [`self.solve()`](Method::solve).
 /// Methods in real life aren't a simple sequence of steps, but something that, depending on
-/// parameters, colapses to a different [`Technique`]. Implementation of [`Method`] usually starts
+/// parameters, collapses to a different [`Technique`]. Implementation of [`Method`] usually starts
 /// by defining a type to hold such parameters, then how to get a sequence of steps from such
 /// parameters.
 pub trait Method<P: Puzzle>: Default + Debug {
@@ -157,7 +155,7 @@ mod tests {
 
     use std::error::Error;
 
-    use crate::{Cube3x3, Edge, Marked, Piece3x3, SearchStep};
+    use crate::{Cube3x3, Edge, Marked, Piece3x3, SearchStep, StepError};
 
     use super::{test_steps::FixedStep, *};
     use crate::AlgSet;
@@ -259,7 +257,7 @@ mod tests {
 
         let Err(SolveError::Step {
             step,
-            error: StepError::Custom(custom),
+            source: StepError::Custom(custom),
         }) = result
         else {
             panic!("expected a wrapped custom error, got {result:?}");

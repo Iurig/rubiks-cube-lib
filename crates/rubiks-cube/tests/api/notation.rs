@@ -23,15 +23,19 @@ fn bad_move_error_names_its_line_and_position() {
     )
     .unwrap_err();
 
+    let _expected = rubiks_cube::ParseMoveError::BadModifier {
+        invalid_move: "Mw'".to_string(),
+        modifier: "w'".to_string(),
+    };
+
     assert_eq!(e.line(), 3);
     assert_eq!(e.position(), 1);
-    assert_eq!(
-        *e.cause(),
-        rubiks_cube::ParseMoveError::BadModifier {
-            invalid_move: "Mw'".to_string(),
-            modifier: "w'".to_string(),
-        }
-    );
+    assert!(matches!(
+        e.source()
+            .expect("bad string should error with source")
+            .downcast_ref::<ParseMoveError>(),
+        Some(_expected)
+    ));
 }
 
 #[test]
@@ -62,9 +66,12 @@ fn incorrect_strings_return_error() {
             1,
         ),
     ];
-    for (text, cause, position) in cases {
+    for (text, _cause, position) in cases {
         let e = Cube3x3::from_solved(text).unwrap_err();
-        assert_eq!(*e.cause(), cause, "{text}");
+        assert!(matches!(
+            e.source().unwrap().downcast_ref::<ParseMoveError>(),
+            Some(_cause),
+        ));
         assert_eq!(e.line(), 1, "{text}");
         assert_eq!(e.position(), position, "{text}");
     }

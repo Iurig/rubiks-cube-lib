@@ -34,7 +34,7 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
     fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, StepError>;
 
     /// Whether `puzzle` meets this step's pre-requisites. Expensive for expensive-to-solve steps -
-    /// overload recommended for those.
+    /// override recommended for those.
     fn can_solve(&self, puzzle: &P) -> bool {
         let mut puzzle_copy = puzzle.clone();
         match self.solve(&mut puzzle_copy) {

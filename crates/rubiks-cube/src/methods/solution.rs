@@ -13,7 +13,7 @@ use crate::{Algorithm, puzzles::Puzzle};
 /// U Rw2 U M' U2 Rw' U Rw2 U R    //SB
 /// ```
 ///
-/// Collect `(moves, name)` pairs to build one, or collect solutions to join them.
+/// Build one with [`single_segment`](Self::single_segment), or collect solutions to join them.
 #[derive(Debug, Eq, PartialEq, Default)]
 pub struct Solution<P: Puzzle> {
     step_solutions: Vec<Segment<P>>,
@@ -48,8 +48,11 @@ impl<P: Puzzle> Solution<P> {
 
     /// Constructs a solution with only one segment.
     #[must_use]
-    pub fn single_segment(name: String, moves: Algorithm<P>) -> Self {
-        Self::from_iter([Segment { name, moves }])
+    pub fn single_segment(name: impl Into<String>, moves: Algorithm<P>) -> Self {
+        Self::from_iter([Segment {
+            name: name.into(),
+            moves,
+        }])
     }
 
     /// Each segment's moves and step name, in solving order.

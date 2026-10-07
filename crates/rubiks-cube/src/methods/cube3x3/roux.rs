@@ -201,6 +201,8 @@ mod test {
 
     use std::error::Error;
 
+    use itertools::iproduct;
+
     use super::*;
     use crate::{Cube3x3, Inv};
 
@@ -294,20 +296,17 @@ mod test {
         use CmllOptions as C;
         use FirstBlockOptions as F;
         use SecondBlockOptions as S;
-        [F::OneLook, F::SquarePair, F::EdgePairPair]
-            .into_iter()
-            .flat_map(|fb| {
-                [S::OneLook, S::SquarePair, S::EdgePairPair]
-                    .into_iter()
-                    .flat_map(move |sb| {
-                        [C::OneLook, C::TwoLook].into_iter().map(move |cmll| Roux {
-                            fb,
-                            sb,
-                            cmll,
-                            lse: LseOptions::Eolr,
-                        })
-                    })
-            })
+        iproduct!(
+            [F::OneLook, F::SquarePair, F::EdgePairPair],
+            [S::OneLook, S::SquarePair, S::EdgePairPair],
+            [C::OneLook, C::TwoLook]
+        )
+        .map(|(fb, sb, cmll)| Roux {
+            fb,
+            sb,
+            cmll,
+            lse: LseOptions::Eolr,
+        })
     }
 
     /// `Method` relies on `is_done` to catch a step that returns without meeting its goal, so

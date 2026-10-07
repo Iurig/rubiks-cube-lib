@@ -9,6 +9,8 @@
 
 use std::fmt::{self, Display};
 
+use itertools::izip;
+
 use super::{
     Cube3x3,
     pieces::{Center, Corner, Edge, Orientation3x3, Piece3x3},
@@ -304,12 +306,12 @@ fn write_net(f: &mut fmt::Formatter<'_>, faces: &[[char; 9]; 6]) -> fmt::Result 
         write_row(f, row)?;
         writeln!(f)?;
     }
-    for (l, fr, r, b) in rows(Center::L)
-        .zip(rows(Center::F))
-        .zip(rows(Center::R))
-        .zip(rows(Center::B))
-        .map(|(((l, fr), r), b)| (l, fr, r, b))
-    {
+    for (l, fr, r, b) in izip!(
+        rows(Center::L),
+        rows(Center::F),
+        rows(Center::R),
+        rows(Center::B)
+    ) {
         write_row(f, l)?;
         write!(f, " ")?;
         write_row(f, fr)?;

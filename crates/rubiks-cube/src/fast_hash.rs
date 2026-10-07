@@ -112,7 +112,7 @@ mod tests {
         reason = "tests multiple types"
     )]
     #[test]
-    fn colisions_match_pre_defined_p_value_on_specific_writes() {
+    fn collisions_match_pre_defined_p_value_on_specific_writes() {
         test!(u8, write_u8);
         test!(u16, write_u16);
         test!(u32, write_u32);
@@ -127,7 +127,7 @@ mod tests {
         reason = "tests multiple types"
     )]
     #[test]
-    fn colisions_match_pre_defined_p_value_on_generic_write() {
+    fn collisions_match_pre_defined_p_value_on_generic_write() {
         fastrand::seed(7);
         let mut hasher = FxHasher { hash: 0 };
         let runs = RUNS;

@@ -46,7 +46,7 @@ pub trait DistanceStep<P: Puzzle>: Debug + Send + Sync {
 /// table is always read with the same key it was filled with.
 pub trait PrunedGoal<P: Puzzle>: Debug + Send + Sync {
     /// The labels the goal uses: [`ByPiece`](crate::ByPiece) when the table must tell pieces
-    /// apart, [`Tracked`](crate::Tracked) when it only needs to know which slots hold them.
+    /// apart, [`ByMark`](crate::ByMark) when it only needs to know which slots hold them.
     type Marker: Marker<P, Label: Send + Sync> + Clone + Eq + Hash + Debug + Send + Sync;
 
     /// The goal the table was built from.
@@ -129,6 +129,10 @@ impl<P: Puzzle> Step<P> for PrunedCombine<P> {
             .all(|s| s.distance_from_solved(puzzle) == Some(0))
     }
 
+    #[expect(
+        clippy::panic_in_result_fn,
+        reason = "panics only on a broken invariant, errors only on unsolvable input"
+    )]
     fn solve(&self, puzzle: &mut P) -> Result<crate::Solution<P>, crate::StepError> {
         /// The largest distance any step reports: a lower bound on the moves left, because
         /// every step must be done at the end. `None` when some step cannot reach its goal.
@@ -201,14 +205,14 @@ impl<P: Puzzle> Step<P> for PrunedCombine<P> {
             match result {
                 ControlFlow::Break(path) => break path,
                 ControlFlow::Continue(Some(next)) => {
-                    debug_assert!(next > bound);
+                    assert!(next > bound);
                     bound = next;
                 }
                 ControlFlow::Continue(None) => return Err(StepError::UnreachableGoal),
             }
         };
         *puzzle = puzzle.apply(&path);
-        Ok(Solution::single_segment(self.name.to_string(), path))
+        Ok(Solution::single_segment(self.name(), path))
     }
 }
 

@@ -8,6 +8,7 @@ pub mod pieces;
 )]
 use self::{moves::*, pieces::*};
 
+use crate::ParseSequenceError;
 use crate::{Algorithm, Indexed, Method, Piece, SolveError, methods::cube3x3::kociemba::Kociemba};
 use crate::{
     ops::{Inv, Pow},
@@ -173,7 +174,7 @@ impl Cube3x3 {
     pub const fn edges(&self) -> &EdgeConfiguration {
         &self.edges
     }
-    /// The center permutation. For consistency, acompanied by a `Zn::ZERO` orientation
+    /// The center permutation. For consistency, accompanied by a `Zn::ZERO` orientation
     #[must_use]
     pub const fn centers(&self) -> &CenterConfiguration {
         &self.centers
@@ -231,7 +232,7 @@ impl Cube3x3 {
     /// Whether some move sequence produces this state from the solved cube.
     ///
     /// Checks for four invariants: that centers are solved with respect to each other, that edge
-    /// flips are even, that corner twists are divisable by 3, and that an even number of
+    /// flips are even, that corner twists are divisible by 3, and that an even number of
     /// 2-swaps reaches the permutation of the pieces.
     #[must_use]
     pub fn is_reachable(&self) -> bool {

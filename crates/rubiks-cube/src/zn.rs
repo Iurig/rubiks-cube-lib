@@ -2,7 +2,7 @@
 use std::{
     fmt::Debug,
     iter::Sum,
-    ops::{AddAssign, Neg, SubAssign},
+    ops::{Add, AddAssign, Neg, SubAssign},
 };
 
 /// Integers mod `N`, stored as the representative in `0..N`.
@@ -24,7 +24,7 @@ impl<const N: usize> From<usize> for Zn<N> {
         Self::new(integer)
     }
 }
-impl<const N: usize> std::ops::Add for Zn<N> {
+impl<const N: usize> Add for Zn<N> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self {
         Self::new(self.value() + rhs.value())

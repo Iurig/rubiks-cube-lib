@@ -18,8 +18,8 @@ pub struct ZZ {
 }
 
 impl ZZ {
-    /// The ZZA variant of the ZZ method. Uses ZBLL on the last layer.
-    pub const ZZA: Self = Self {
+    /// The ZZ-a variant of the ZZ method. Uses ZBLL on the last layer.
+    pub const ZZ_A: Self = Self {
         eoline: EoLineOptions,
         f2l: F2LOptions,
         ll: LLOptions::OneLook,
@@ -45,7 +45,7 @@ pub enum LLOptions {
     },
     OneLook,
 }
-/// The first step of a [`two-look`](LLOptions::TwoLook) ZZ last layer.
+/// The first step of a two-look ZZ last layer.
 #[non_exhaustive]
 #[derive(Debug, Default, Clone, Copy)]
 #[cfg_attr(test, derive(Sequence))]
@@ -56,7 +56,7 @@ pub enum OrientationOptions {
     /// Orientation and permutation of the Corners of the Last Layer.
     Coll,
 }
-/// The second step of a [`two-look`](LLOptions::TwoLook) ZZ last layer.
+/// The second step of a two-look ZZ last layer.
 #[non_exhaustive]
 #[derive(Debug, Default, Clone, Copy)]
 #[cfg_attr(test, derive(Sequence))]
@@ -106,10 +106,10 @@ impl Method<Cube3x3> for ZZ {
                     PermutationOptions::TwoLook => {
                         let corners = into_steps(LastLayer::cpll(PLL_CORNER_ALGS.clone()));
                         let edges = into_steps(LastLayer::epll(PLL_EDGE_ALGS.clone()));
-                        [corners, edges].into_iter().flatten().collect()
+                        [corners, edges].concat()
                     }
                 };
-                [oll_tech, pll_tech].into_iter().flatten().collect()
+                [oll_tech, pll_tech].concat()
             }
             LLOptions::OneLook => into_steps(LastLayer::zbll(ZBLL_ALGS.clone())),
         };

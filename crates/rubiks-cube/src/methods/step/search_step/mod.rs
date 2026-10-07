@@ -290,17 +290,14 @@ impl<P: Puzzle> Step<P> for SearchStep<P> {
         if !self.can_solve(p) {
             return Err(StepError::InvalidStartingState);
         }
-        Ok(Solution::single_segment(
-            self.name().to_string(),
-            self.solve_bfs(p)?,
-        ))
+        Ok(Solution::single_segment(self.name(), self.solve_bfs(p)?))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Cube3x3;
+    use crate::{Cube3x3, Edge, Piece3x3};
 
     /// ZZ's EO Line: the goal names a piece in two edge slots and asks only for orientation in
     /// the other ten. When the search key left out the flip of a stray edge in a named slot, seed
@@ -319,5 +316,29 @@ mod tests {
             step.solve(&mut cube).unwrap();
             assert!(step.is_done(&cube), "seed {seed}:\n{cube}");
         }
+    }
+
+    #[test]
+    fn a_poisoned_memo_is_reported_as_memo_poisoned() {
+        let u_turns = AlgSet::from_parts("U").unwrap();
+        let step = SearchStep::new(
+            "UF",
+            Marked::default(),
+            Marked::from_pieces([Piece3x3::Edge(Edge::Uf)]),
+            u_turns,
+        );
+
+        let memo = Arc::clone(&step.memo);
+        let panicked = std::thread::spawn(move || {
+            let _guard = memo.lock().unwrap();
+            panic!("poisoning the memo on purpose");
+        })
+        .join();
+        assert!(panicked.is_err(), "the helper thread should have panicked");
+        assert!(step.memo.is_poisoned());
+
+        let result = step.solve(&mut Cube3x3::default());
+
+        assert!(matches!(result, Err(StepError::MemoPoisoned)), "{result:?}");
     }
 }

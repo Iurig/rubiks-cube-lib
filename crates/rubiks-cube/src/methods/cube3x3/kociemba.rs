@@ -103,7 +103,7 @@ fn phase_1() -> PrunedCombine<Cube3x3> {
     )
 }
 
-// Phase 2's goals use `ByPiece`, because they must tell the pieces of a group apart: `Tracked`
+// Phase 2's goals use `ByPiece`, because they must tell the pieces of a group apart: `ByMark`
 // would only say which slots hold them. As in Kociemba's own solver, each goal pairs a group of
 // pieces with the E-slice edges, so one table knows how both interact: 8! * 4! = 967680 entries
 // each. Separate tables for the three groups give a lower bound only as good as the worst-placed

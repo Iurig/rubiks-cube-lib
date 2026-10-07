@@ -67,6 +67,7 @@
 //! [`Cube3x3`] is built from three [`PieceConfiguration`]s (centers, corners, and edges), each a
 //! permutation of [`Piece`]s with an orientation per piece in [`zn::Zn`]. The [`Puzzle`] trait
 //! is what the solver needs from a puzzle, and [`Facelets`] shows a cube as a sticker net.
+mod error;
 mod fast_hash;
 mod indexed;
 mod methods;
@@ -75,9 +76,10 @@ mod piece;
 mod puzzles;
 pub mod zn;
 
+pub use error::{ParseMoveError, ParseSequenceError, SolveError, StepError};
 pub use indexed::Indexed;
 pub use methods::{
-    Method, Segment, Solution, SolveError, StepError, Technique,
+    Method, Segment, Solution, Technique,
     cube3x3::{
         kociemba::Kociemba,
         roux::{CmllOptions, FirstBlockOptions, LseOptions, Roux, SecondBlockOptions},
@@ -90,7 +92,6 @@ pub use piece::{Piece, PieceConfiguration};
 pub use puzzles::cube3x3::{
     Cube3x3,
     facelets::Facelets,
-    moves::{ParseMoveError, ParseSequenceError},
     pieces::{Center, Corner, Edge, Orientation3x3, Piece3x3},
 };
 pub use puzzles::{

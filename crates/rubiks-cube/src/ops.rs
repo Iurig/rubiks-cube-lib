@@ -1,6 +1,6 @@
 /// A value with a multiplicative inverse.
 pub trait Inv: Sized {
-    /// Inverts a state multiplicatively, possibly fallibly
+    /// Inverts a state multiplicatively.
     ///
     /// # Examples
     ///

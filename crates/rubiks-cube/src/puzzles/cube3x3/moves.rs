@@ -8,6 +8,7 @@ use crate::{
     Indexed, Piece, ops,
     puzzles::cube3x3::{Cube3x3, pieces::*},
 };
+use crate::{ParseMoveError, ParseSequenceError};
 
 use table::cube_state;
 
@@ -208,91 +209,6 @@ impl ops::Inv for Move3x3 {
     }
 }
 
-/// Why one move failed to parse.
-#[non_exhaustive]
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseMoveError {
-    /// Reachable only through `Move::try_from("")`; a sequence never yields
-    /// an empty move, so it carries no offending text.
-    EmptyString,
-    /// The text after the part is not a modifier.
-    BadModifier {
-        /// The whole invalid move.
-        invalid_move: String,
-        /// The text that failed as a modifier.
-        modifier: String,
-    },
-    /// The text before the modifier is not a part.
-    BadPart {
-        /// The whole invalid move.
-        invalid_move: String,
-        /// The text that failed as a part.
-        part: String,
-    },
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-/// A move in a sequence failed to parse; `line` and `position` count from 1.
-pub struct ParseSequenceError {
-    pub(crate) cause: ParseMoveError,
-    pub(crate) line: usize,
-    pub(crate) position: usize,
-}
-
-impl ParseSequenceError {
-    /// Why the move failed.
-    #[must_use]
-    pub const fn cause(&self) -> &ParseMoveError {
-        &self.cause
-    }
-    /// The 1-based line of the invalid move.
-    #[must_use]
-    pub const fn line(&self) -> usize {
-        self.line
-    }
-    /// The 1-based position of the invalid move within its line.
-    #[must_use]
-    pub const fn position(&self) -> usize {
-        self.position
-    }
-    /// The same error on `line`, for text parsed one line at a time.
-    pub(crate) fn on_line(self, line: usize) -> Self {
-        Self { line, ..self }
-    }
-}
-
-impl std::error::Error for ParseMoveError {}
-impl std::error::Error for ParseSequenceError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.cause)
-    }
-}
-
-impl std::fmt::Display for ParseMoveError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::EmptyString => write!(f, "empty string cannot be parsed into moves"),
-            Self::BadModifier {
-                invalid_move,
-                modifier,
-            } => write!(f, "{modifier} is not a valid modifier in {invalid_move}"),
-            Self::BadPart { invalid_move, part } => {
-                write!(f, "{part} in {invalid_move} is not a valid part")
-            }
-        }
-    }
-}
-
-impl std::fmt::Display for ParseSequenceError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "at line {}, position {}: {}",
-            self.line, self.position, self.cause
-        )
-    }
-}
-
 impl TryFrom<&str> for Move3x3 {
     type Error = ParseMoveError;
     /// One move in notation: a part, then a modifier.
@@ -367,7 +283,7 @@ impl Move3x3 {
                 .enumerate()
                 .map(move |(move_number, m)| {
                     Self::try_from(m).map_err(|e| ParseSequenceError {
-                        cause: e,
+                        source: e,
                         line: line_number + 1,
                         position: move_number + 1,
                     })
@@ -549,7 +465,7 @@ mod tests {
         assert_eq!(
             moves_of("R Q U"),
             Err(ParseSequenceError {
-                cause: ParseMoveError::BadPart {
+                source: ParseMoveError::BadPart {
                     invalid_move: "Q".to_string(),
                     part: "Q".to_string()
                 },

@@ -2,6 +2,12 @@
 resolver = "3"
 members = ["crates/rubiks-cube", "crates/rubiks-cube-cli", "crates/twisty-puzzles-py"]
 
+[workspace.package]
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/Iurig/rubiks"
+readme = "README.md"
+
 [profile.test]
 inherits = "release"
 debug-assertions = true

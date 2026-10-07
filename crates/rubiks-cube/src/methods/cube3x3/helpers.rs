@@ -267,7 +267,7 @@ impl Step<Cube3x3> for LastLayer {
         *puzzle = solved.apply(&post);
 
         Ok(Solution::single_segment(
-            self.name.to_string(),
+            self.name(),
             pre.iter()
                 .chain(alg.iter())
                 .chain(post.iter())

@@ -375,7 +375,7 @@ fn all_moves() -> [MoveInformation; 3 * CLOCKWISE_MOVE_COUNT] {
 mod tests {
     //! Tests of the table's own construction: derivation identities and
     //! modifier consistency. Handedness pins, the facts from the physical cube
-    //! that catch a mirrored base move, live in `tests/testing.rs` and go
+    //! that catch a mirrored base move, live in `tests/api/moves.rs` and go
     //! through the public queries.
     use super::*;
 
