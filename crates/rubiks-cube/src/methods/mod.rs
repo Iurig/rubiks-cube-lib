@@ -166,7 +166,7 @@ mod tests {
 
     use std::error::Error;
 
-    use crate::{Cube3x3, Edge, Marked, Pieces3x3, SearchStep};
+    use crate::{Cube3x3, Edge, Marked, Piece3x3, SearchStep};
 
     use super::{test_steps::FixedStep, *};
     use crate::AlgSet;
@@ -224,15 +224,12 @@ mod tests {
     #[test]
     fn search_step_rejects_a_cube_that_misses_its_before_without_searching()
     -> Result<(), Box<dyn Error>> {
-        let uf_solved = Marked::<Cube3x3>::new_from_pieces([Pieces3x3::Edge(Edge::Uf)]);
+        let uf_solved = Marked::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Uf)]);
         // No moves: if the step searched, it could not move and would return `UnreachableGoal`.
-        let step = SearchStep::new_with_algs(
+        let step = SearchStep::new(
             "UF then DF",
             uf_solved,
-            Marked::<Cube3x3>::new_from_pieces([
-                Pieces3x3::Edge(Edge::Uf),
-                Pieces3x3::Edge(Edge::Df),
-            ]),
+            Marked::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Uf), Piece3x3::Edge(Edge::Df)]),
             AlgSet::from_parts("")?,
         );
         let scrambled = Cube3x3::from_solved("U")?;
@@ -282,9 +279,9 @@ mod tests {
 
     #[test]
     fn each_next_runs_one_step_and_leaves_the_cube_after_it() -> Result<(), Box<dyn Error>> {
-        let uf_solved = Marked::<Cube3x3>::new_from_pieces([Pieces3x3::Edge(Edge::Uf)]);
+        let uf_solved = Marked::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Uf)]);
         let u_turns = AlgSet::from_parts("U")?;
-        let solve_uf = Arc::new(SearchStep::new_with_algs(
+        let solve_uf = Arc::new(SearchStep::new(
             "UF",
             Marked::<Cube3x3>::default(),
             uf_solved.clone(),

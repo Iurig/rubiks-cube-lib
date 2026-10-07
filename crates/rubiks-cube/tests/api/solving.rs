@@ -31,7 +31,7 @@ fn every_option_combination_solves() -> Result<(), Box<dyn Error>> {
             SecondBlockOptions::SquarePair,
             SecondBlockOptions::EdgePairPair,
         ] {
-            for cmll in [CMLLOptions::OneLook, CMLLOptions::TwoLook] {
+            for cmll in [CmllOptions::OneLook, CmllOptions::TwoLook] {
                 let roux = Roux::default().first_block(fb).second_block(sb).cmll(cmll);
                 let described = format!("{roux:?}");
                 for (i, scrambled) in scrambles.iter().enumerate() {
@@ -52,9 +52,9 @@ fn every_option_combination_solves() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn skips_work() -> Result<(), Box<dyn Error>> {
-    let scrambled = Cube3x3::from_solved("U2")?;
-    let recon = Roux::default().solve(&mut scrambled.clone())?.to_string();
+    let mut scrambled = Cube3x3::from_solved("U2")?;
+    let recon = Roux::default().solve(&mut scrambled)?.to_string();
     println!("{recon}");
-    assert!(scrambled.move_sequence(&recon)?.is_solved());
+    assert!(scrambled.is_solved());
     Ok(())
 }

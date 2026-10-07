@@ -30,15 +30,15 @@ fn random_scramble_on_3x3_is_uniform_and_all_are_reachable() {
         let random_cube = Cube3x3::apply_scramble_with_seed(seed);
         assert!(random_cube.is_reachable());
         for c in Corner::ALL {
-            corner_perm_buckets.get_mut(&c).unwrap()
-                [random_cube.corners().piece_at(&c) as usize] += 1;
+            corner_perm_buckets.get_mut(&c).unwrap()[random_cube.corners().piece_at(c) as usize] +=
+                1;
             corner_orient_buckets.get_mut(&c).unwrap()
-                [random_cube.corners().orientation_at(&c).value()] += 1;
+                [random_cube.corners().orientation_at(c).value()] += 1;
         }
         for e in Edge::ALL {
-            edge_perm_buckets.get_mut(&e).unwrap()[random_cube.edges().piece_at(&e) as usize] += 1;
+            edge_perm_buckets.get_mut(&e).unwrap()[random_cube.edges().piece_at(e) as usize] += 1;
             edge_orient_buckets.get_mut(&e).unwrap()
-                [random_cube.edges().orientation_at(&e).value()] += 1;
+                [random_cube.edges().orientation_at(e).value()] += 1;
         }
     }
 

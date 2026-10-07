@@ -51,7 +51,7 @@ impl<const N: usize> Zn<N> {
 
     /// The representative in `0..N`.
     #[must_use]
-    pub const fn value(&self) -> usize {
+    pub const fn value(self) -> usize {
         self.0 as usize
     }
 

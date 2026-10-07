@@ -20,7 +20,7 @@ use crate::{Inv, Puzzle};
 /// # }
 /// ```
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
-pub struct Algorithm<P: Puzzle>(Vec<P::Moves>);
+pub struct Algorithm<P: Puzzle>(Vec<P::Move>);
 
 impl<P: Puzzle> Algorithm<P> {
     /// An algorithm with no moves.
@@ -30,7 +30,7 @@ impl<P: Puzzle> Algorithm<P> {
     }
 
     /// The moves, in the order they are applied.
-    pub fn iter(&self) -> std::slice::Iter<'_, P::Moves> {
+    pub fn iter(&self) -> std::slice::Iter<'_, P::Move> {
         self.0.iter()
     }
 
@@ -79,29 +79,29 @@ impl<P: Puzzle> Inv for Algorithm<P> {
     }
 }
 
-impl<P: Puzzle> FromIterator<P::Moves> for Algorithm<P> {
-    fn from_iter<I: IntoIterator<Item = P::Moves>>(iter: I) -> Self {
+impl<P: Puzzle> FromIterator<P::Move> for Algorithm<P> {
+    fn from_iter<I: IntoIterator<Item = P::Move>>(iter: I) -> Self {
         Self(iter.into_iter().collect())
     }
 }
 
-impl<P: Puzzle> Extend<P::Moves> for Algorithm<P> {
-    fn extend<I: IntoIterator<Item = P::Moves>>(&mut self, iter: I) {
+impl<P: Puzzle> Extend<P::Move> for Algorithm<P> {
+    fn extend<I: IntoIterator<Item = P::Move>>(&mut self, iter: I) {
         self.0.extend(iter);
     }
 }
 
 impl<P: Puzzle> IntoIterator for Algorithm<P> {
-    type Item = P::Moves;
-    type IntoIter = std::vec::IntoIter<P::Moves>;
+    type Item = P::Move;
+    type IntoIter = std::vec::IntoIter<P::Move>;
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
 }
 
 impl<'a, P: Puzzle> IntoIterator for &'a Algorithm<P> {
-    type Item = &'a P::Moves;
-    type IntoIter = std::slice::Iter<'a, P::Moves>;
+    type Item = &'a P::Move;
+    type IntoIter = std::slice::Iter<'a, P::Move>;
     fn into_iter(self) -> Self::IntoIter {
         self.0.iter()
     }

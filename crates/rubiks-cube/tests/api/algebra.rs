@@ -8,19 +8,19 @@ use std::error::Error;
 fn every_move_acts_on_any_state_as_it_acts_on_the_solved_state() {
     for seed in 0..20 {
         let p = Cube3x3::apply_scramble_with_seed(seed);
-        for &m in Cube3x3::ALL_MOVES {
+        for m in <Cube3x3 as Puzzle>::Move::all() {
             let action = Cube3x3::default() * m;
             let moved = p * m;
-            for s in Cube3x3::ALL_PIECES {
+            for &s in &Piece3x3::all().collect::<Vec<_>>() {
                 let src = action.piece_at(s);
                 assert_eq!(
                     moved.piece_at(s),
-                    p.piece_at(&src),
+                    p.piece_at(src),
                     "piece at {s:?} after {m}, seed {seed}"
                 );
                 assert_eq!(
                     moved.orientation_at(s),
-                    p.orientation_at(&src) + action.orientation_at(s),
+                    p.orientation_at(src) + action.orientation_at(s),
                     "orientation at {s:?} after {m}, seed {seed}"
                 );
             }

@@ -1,5 +1,6 @@
 pub mod memorization;
 use std::{
+    borrow::Cow,
     collections::{VecDeque, hash_map::Entry},
     sync::{Arc, Mutex},
 };
@@ -13,7 +14,7 @@ use rayon::prelude::*;
 use crate::Puzzle;
 use crate::{
     AlgSet, Algorithm, Inv, Marked, Mask, Segment, Solution, Step, StepError, fast_hash::FxMap,
-    methods::step::search_step::memorization::BFSMemo,
+    methods::step::search_step::memorization::BfsMemo,
 };
 
 /// The pieces a memo brings home, and the sequences it searches with: everything a memo's
@@ -21,7 +22,7 @@ use crate::{
 type MemoKey<P> = (Marked<P>, AlgSet<P>, AlgSet<P>);
 
 /// A memo that several steps can grow, one search at a time.
-type SharedMemo<P> = Arc<Mutex<BFSMemo<P>>>;
+type SharedMemo<P> = Arc<Mutex<BfsMemo<P>>>;
 
 /// One shared memo per [`MemoKey`], so steps that search for the same thing with the same
 /// sequences grow the same memo, even when built at different times by different methods.
@@ -43,7 +44,7 @@ impl<P: Puzzle> MemoCache<P> {
     /// The memo that brings `solved` home with these sequences, created empty on first use.
     fn memo(
         &self,
-        solved: &Marked<P>,
+        solved: Marked<P>,
         search_algs: &AlgSet<P>,
         free_search_algs: &AlgSet<P>,
     ) -> SharedMemo<P> {
@@ -60,7 +61,7 @@ impl<P: Puzzle> MemoCache<P> {
                     search_algs.clone(),
                     free_search_algs.clone(),
                 ))
-                .or_insert_with(|| Arc::new(Mutex::new(BFSMemo::new(solved)))),
+                .or_insert_with(|| Arc::new(Mutex::new(BfsMemo::new(solved)))),
         )
     }
 }
@@ -78,7 +79,7 @@ impl<P: Puzzle> MemoCache<P> {
 /// later solves are faster, and methods that share this step through an `Arc` share its memo.
 #[derive(Debug)]
 pub struct SearchStep<P: Puzzle> {
-    name: &'static str,
+    name: Cow<'static, str>,
     before: Marked<P>,
     after: Marked<P>,
     search_algs: AlgSet<P>,
@@ -91,29 +92,29 @@ impl<P: Puzzle> SearchStep<P> {
     ///
     /// Each sequence of `search_algs` is applied as a unit: a single move, or a whole algorithm.
     #[must_use]
-    pub fn new_with_algs(
-        name: &'static str,
+    pub fn new(
+        name: impl Into<Cow<'static, str>>,
         before: Marked<P>,
         after: Marked<P>,
         search_algs: AlgSet<P>,
     ) -> Self {
-        Self::new_with_free_algs(name, before, after, search_algs, AlgSet::<P>::default())
+        Self::with_free_algs(name, before, after, search_algs, AlgSet::<P>::default())
     }
 
-    /// Like [`new_with_algs`](Self::new_with_algs), but the sequences of `free_search_algs` add
+    /// Like [`new`](Self::new), but the sequences of `free_search_algs` add
     /// no cost: the search finds the fewest sequences of `search_algs`, with any number of free
     /// ones between them, such as an AUF between algorithms.
     #[must_use]
-    pub fn new_with_free_algs(
-        name: &'static str,
+    pub fn with_free_algs(
+        name: impl Into<Cow<'static, str>>,
         before: Marked<P>,
         after: Marked<P>,
         search_algs: AlgSet<P>,
         free_search_algs: AlgSet<P>,
     ) -> Self {
-        let memo = Arc::new(Mutex::new(BFSMemo::new(&after.or(&before))));
+        let memo = Arc::new(Mutex::new(BfsMemo::new(after.or(&before))));
         Self {
-            name,
+            name: name.into(),
             before,
             after,
             search_algs,
@@ -122,20 +123,20 @@ impl<P: Puzzle> SearchStep<P> {
         }
     }
 
-    /// Like [`new_with_free_algs`](Self::new_with_free_algs), but the memo comes from `cache`,
+    /// Like [`with_free_algs`](Self::with_free_algs), but the memo comes from `cache`,
     /// shared with every other step of `cache` that brings the same pieces home with the same
     /// sequences.
     pub(crate) fn sharing_memo(
         cache: &MemoCache<P>,
-        name: &'static str,
+        name: impl Into<Cow<'static, str>>,
         before: Marked<P>,
         after: Marked<P>,
         search_algs: AlgSet<P>,
         free_search_algs: AlgSet<P>,
     ) -> Self {
-        let memo = cache.memo(&after.or(&before), &search_algs, &free_search_algs);
+        let memo = cache.memo(after.or(&before), &search_algs, &free_search_algs);
         Self {
-            name,
+            name: name.into(),
             before,
             after,
             search_algs,
@@ -177,7 +178,7 @@ impl<P: Puzzle> SearchStep<P> {
                 })
                 .min_by_key(|(path, _, _)| path.len());
             if let Some((path, tail, cube)) = best {
-                *p = cube.apply(&tail);
+                *p = cube.apply(tail);
                 return Ok(path);
             }
 
@@ -268,13 +269,13 @@ impl<P: Puzzle> SearchStep<P> {
     }
 
     fn mask(&self, puzzle: &P) -> Mask<P> {
-        Mask::<P>::filter_by_piece(puzzle, &self.after.or(&self.before))
+        Mask::<P>::filter_by_piece(puzzle, &self.after)
     }
 }
 
 impl<P: Puzzle> Step<P> for SearchStep<P> {
-    fn name(&self) -> &'static str {
-        self.name
+    fn name(&self) -> &str {
+        &self.name
     }
 
     fn can_solve(&self, puzzle: &P) -> bool {
@@ -307,7 +308,7 @@ mod tests {
     #[test]
     fn a_goal_mixing_named_and_orientation_only_slots_is_met() {
         let eo_line_moves = AlgSet::from_parts("F B U R L D").unwrap();
-        let step = SearchStep::new_with_algs(
+        let step = SearchStep::new(
             "EO Line",
             Marked::from_algset(&eo_line_moves),
             Marked::from_algset(&AlgSet::from_parts("U R L").unwrap()),

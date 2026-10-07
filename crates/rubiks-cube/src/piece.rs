@@ -99,8 +99,8 @@ where
     /// the returned piece can be fed back in as the next slot when tracing a
     /// cycle, the way blind memorization does.
     #[must_use]
-    pub const fn piece_at(&self, slot: &P) -> P {
-        self.permutation[index(*slot)]
+    pub const fn piece_at(&self, slot: P) -> P {
+        self.permutation[index(slot)]
     }
 
     /// The orientation held at `slot`: the twist or flip of the piece sitting
@@ -109,8 +109,8 @@ where
     /// Centers have no orientation, so on a center configuration this always
     /// returns zero.
     #[must_use]
-    pub const fn orientation_at(&self, slot: &P) -> Zn<O> {
-        self.orientation[index(*slot)]
+    pub const fn orientation_at(&self, slot: P) -> Zn<O> {
+        self.orientation[index(slot)]
     }
 
     /// # Panics

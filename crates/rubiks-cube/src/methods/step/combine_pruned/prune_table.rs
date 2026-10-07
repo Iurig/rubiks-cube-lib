@@ -40,7 +40,7 @@ impl<K: Clone + Eq + Hash> PruneTable<K> {
     /// step of distance, the same unit [`PrunedCombine`](super::PrunedCombine) searches in.
     pub(crate) fn populate<P: Puzzle>(&mut self, algset: &AlgSet<P>)
     where
-        K: Mul<P::Moves, Output = K> + Send + Sync,
+        K: Mul<P::Move, Output = K> + Send + Sync,
     {
         // Every key in the frontier is at `depth`, so the depth lives once, outside the loop.
         let Some(&first_depth) = self.table.values().next() else {

@@ -1,9 +1,12 @@
-use std::sync::{Arc, LazyLock};
+use std::{
+    borrow::Cow,
+    sync::{Arc, LazyLock},
+};
 
 use itertools::iproduct;
 
 use crate::{
-    AlgSet, Algorithm, ByPiece, Cube3x3, Marked, Mask, Pieces3x3, Puzzle, SearchStep, Segment,
+    AlgSet, Algorithm, ByPiece, Cube3x3, Marked, Mask, Piece3x3, Puzzle, SearchStep, Segment,
     Solution, Step, StepError,
     methods::step::combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
 };
@@ -17,7 +20,7 @@ pub fn algs(text: &str) -> AlgSet<Cube3x3> {
 }
 
 pub fn search(
-    name: &'static str,
+    name: impl Into<Cow<'static, str>>,
     before: Marked<Cube3x3>,
     after: Marked<Cube3x3>,
     moves: AlgSet<Cube3x3>,
@@ -26,7 +29,7 @@ pub fn search(
 }
 
 pub fn search_with_free_algs(
-    name: &'static str,
+    name: impl Into<Cow<'static, str>>,
     before: Marked<Cube3x3>,
     after: Marked<Cube3x3>,
     moves: AlgSet<Cube3x3>,
@@ -81,11 +84,11 @@ impl PrunedGoal<Cube3x3> for &'static BlockGoal {
 }
 
 pub fn split_by_blocks(
-    name: &str,
+    name: impl Into<Cow<'static, str>>,
     before: Marked<Cube3x3>,
     blocks: impl IntoIterator<Item = &'static BlockGoal>,
     moves: AlgSet<Cube3x3>,
-) -> PrunedCombine<'_, Cube3x3> {
+) -> PrunedCombine<Cube3x3> {
     PrunedCombine::new(
         name,
         Box::new(move |cube| before.applies_to(cube)),
@@ -146,64 +149,72 @@ macro_rules! chain_steps {
     }};
 }
 
-macro_rules! apply {
-    ($cube: expr, $moves: literal) => {
-        $cube
-            .move_sequence($moves)
-            .expect("manually typed move sequences should always parse")
-    };
-}
-
 macro_rules! parse {
     ($moves: literal) => {
-        <Cube3x3 as Puzzle>::Moves::sequence($moves)
+        <Cube3x3 as Puzzle>::Move::sequence($moves)
             .map(|m| m.expect("manually typed move sequences should always parse"))
             .collect::<Algorithm<Cube3x3>>()
     };
 }
 
 #[derive(Debug, Default)]
-pub struct LastLayer<'a> {
-    pub name: &'a str,
+pub struct LastLayer {
+    pub name: Cow<'static, str>,
     pub algs: AlgSet<Cube3x3>,
     oriented: Mask<Cube3x3>,
     permuted: Mask<Cube3x3>,
 }
 
-static LL_CORNERS: LazyLock<[Pieces3x3; 4]> = LazyLock::new(|| {
+const LL_CORNERS: [Piece3x3; 4] = {
     [
-        Pieces3x3::Corner(crate::Corner::Ufr),
-        Pieces3x3::Corner(crate::Corner::Ufl),
-        Pieces3x3::Corner(crate::Corner::Ubl),
-        Pieces3x3::Corner(crate::Corner::Ubr),
+        Piece3x3::Corner(crate::Corner::Ufr),
+        Piece3x3::Corner(crate::Corner::Ufl),
+        Piece3x3::Corner(crate::Corner::Ubl),
+        Piece3x3::Corner(crate::Corner::Ubr),
     ]
-});
-static LL_EDGES: LazyLock<[Pieces3x3; 4]> = LazyLock::new(|| {
+};
+const LL_EDGES: [Piece3x3; 4] = {
     [
-        Pieces3x3::Edge(crate::Edge::Uf),
-        Pieces3x3::Edge(crate::Edge::Ur),
-        Pieces3x3::Edge(crate::Edge::Ul),
-        Pieces3x3::Edge(crate::Edge::Ub),
+        Piece3x3::Edge(crate::Edge::Uf),
+        Piece3x3::Edge(crate::Edge::Ur),
+        Piece3x3::Edge(crate::Edge::Ul),
+        Piece3x3::Edge(crate::Edge::Ub),
     ]
-});
+};
+
+static AUF: LazyLock<[Algorithm<Cube3x3>; 4]> =
+    LazyLock::new(|| [parse!(""), parse!("U"), parse!("U2"), parse!("U'")]);
 
 fn aufs() -> [Algorithm<Cube3x3>; 4] {
-    [parse!(""), parse!("U"), parse!("U2"), parse!("U'")]
+    AUF.clone()
 }
 
-impl<'a> LastLayer<'a> {
+impl LastLayer {
     #[expect(
         clippy::fn_params_excessive_bools,
         reason = "Private function to helper file - only used here."
     )]
-    fn new(name: &'a str, algs: AlgSet<Cube3x3>, co: bool, cp: bool, eo: bool, ep: bool) -> Self {
+    fn new(
+        name: impl Into<Cow<'static, str>>,
+        algs: AlgSet<Cube3x3>,
+        co: bool,
+        cp: bool,
+        eo: bool,
+        ep: bool,
+    ) -> Self {
         let pick =
-            |wanted: bool, pieces: &[Pieces3x3; 4]| wanted.then_some(*pieces).into_iter().flatten();
+            |wanted: bool, pieces: &[Piece3x3; 4]| wanted.then_some(*pieces).into_iter().flatten();
         Self {
-            name,
+            name: name.into(),
             algs,
-            oriented: Mask::from_double_iter([], pick(co, &LL_CORNERS).chain(pick(eo, &LL_EDGES))),
-            permuted: Mask::from_double_iter(pick(cp, &LL_CORNERS).chain(pick(ep, &LL_EDGES)), []),
+            oriented: Mask::from_pieces_and_orientations(
+                [],
+                pick(co, &LL_CORNERS).chain(pick(eo, &LL_EDGES)),
+            ),
+            permuted: Mask::from_pieces_and_orientations(
+                pick(cp, &LL_CORNERS).chain(pick(ep, &LL_EDGES)),
+                [],
+            ),
         }
     }
     fn post_auf(&self, cube: &Cube3x3) -> Option<Algorithm<Cube3x3>> {
@@ -232,9 +243,9 @@ impl<'a> LastLayer<'a> {
     }
 }
 
-impl Step<Cube3x3> for LastLayer<'_> {
+impl Step<Cube3x3> for LastLayer {
     fn name(&self) -> &str {
-        self.name
+        &self.name
     }
 
     fn is_done(&self, puzzle: &Cube3x3) -> bool {
@@ -247,7 +258,7 @@ impl Step<Cube3x3> for LastLayer<'_> {
         let (pre, alg) = iproduct!(aufs(), self.algs.iter())
             .find(|(pre, alg)| self.is_done(&puzzle.apply(pre).apply(alg)))
             .ok_or(StepError::UnreachableGoal)?;
-        let solved = puzzle.apply(&pre).apply(&alg);
+        let solved = puzzle.apply(&pre).apply(alg);
         let post = self.post_auf(&solved).ok_or(StepError::UnreachableGoal)?;
         *puzzle = solved.apply(&post);
 

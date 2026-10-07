@@ -32,11 +32,11 @@ fn reconstruct_n<P: Puzzle, T: Method<P>>(n: u32, technique: &T) -> anyhow::Resu
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    match args.method {
-        ref m if m == "roux" => {
+    match args.method.as_str() {
+        "roux" => {
             reconstruct_n(args.number, &Roux::default())?;
         }
-        ref m if m == "zz" => {
+        "zz" => {
             reconstruct_n(args.number, &ZZ::default())?;
         }
         _ => println!("invalid method"),

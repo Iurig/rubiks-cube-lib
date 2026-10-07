@@ -1,6 +1,6 @@
 //! Solves one scramble using the Roux method with a few different options.
 use rubiks_cube::{
-    CMLLOptions, Cube3x3, FirstBlockOptions, Method, Puzzle, Roux, SecondBlockOptions,
+    CmllOptions, Cube3x3, FirstBlockOptions, Method, Puzzle, Roux, SecondBlockOptions,
 };
 
 #[expect(
@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         + Roux::default()
             .first_block(FirstBlockOptions::SquarePair)
             .second_block(SecondBlockOptions::SquarePair)
-            .cmll(CMLLOptions::TwoLook)
+            .cmll(CmllOptions::TwoLook)
             .solve(&mut scrambled)?
             .to_string()
             .as_str();

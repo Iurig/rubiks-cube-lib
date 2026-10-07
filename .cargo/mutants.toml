@@ -17,10 +17,10 @@ exclude_re = [
     'replace - with \+ in PieceConfiguration<P, N, O>::parity',
     # Flipping which order of a commuting pair is kept still loses no state.
     'replace < with > in may_follow',
-    # `Default for Labeled` calls `new_empty`, which calls `from_fn`: replacing either body
+    # `Default for Labeled` calls `empty`, which calls `from_fn`: replacing either body
     # with `Default::default()` recurses forever.
     'replace Labeled<P, L>::from_fn -> Self with Default::default\(\)',
-    'replace Labeled<P, L>::new_empty -> Self with Default::default\(\)',
+    'replace Labeled<P, L>::empty -> Self with Default::default\(\)',
     # `identity` already returns `Self::default()`.
     'replace <impl Pow for Cube3x3>::identity -> Self with Default::default\(\)',
     # Goal masks store orientation 0, so the output is unchanged.
@@ -45,14 +45,14 @@ exclude_re = [
     # Hang-only: a loop counter starting at 0 never advances. In `deepen` this also covers
     # `self.depth += 1`, which only the test helper `search_to` reads.
     'replace \+= with \*= in SearchStep<P>::close_under_free_sequences',
-    'replace \+= with \*= in BFSMemo<P>::deepen',
+    'replace \+= with \*= in BfsMemo<P>::deepen',
     # Hang-only: a memo that never grows can give no answer, never a wrong one.
-    'replace BFSMemo<P>::deepen with \(\)',
+    'replace BfsMemo<P>::deepen with \(\)',
     # Performance only: the two-ended search still finds a shortest answer, growing the wrong
     # side. The solve benches are where a regression here shows.
     'replace != with == in SearchStep<P>::solve_bfs',
     'replace <= with > in SearchStep<P>::solve_bfs',
-    'replace BFSMemo<P>::frontier_len -> usize with 0',
+    'replace BfsMemo<P>::frontier_len -> usize with 0',
     # Hang-only, mostly: phase 1 takes every slice and rotation move too, and the kociemba solves
     # crawl past the timeout. When a random scramble finishes, `phase_2_solves_what_phase_1_leaves`
     # catches it.

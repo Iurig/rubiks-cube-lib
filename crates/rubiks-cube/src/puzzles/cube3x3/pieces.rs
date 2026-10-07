@@ -63,12 +63,12 @@ new_piece!(
 pub type CenterConfiguration = PieceConfiguration<Center, CENTERS_COUNT, CENTER_ORIENTATION_COUNT>;
 pub type CornerConfiguration = PieceConfiguration<Corner, CORNERS_COUNT, CO_COUNT>;
 pub type EdgeConfiguration = PieceConfiguration<Edge, EDGES_COUNT, EO_COUNT>;
-pub type Faces = Center;
+pub type Face = Center;
 
 /// Any piece of the 3×3 cube: the cube's [`Puzzle::Piece`](crate::Puzzle::Piece) type. Masks and
 /// piece queries on a [`Cube3x3`](crate::Cube3x3) take this type.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum Pieces3x3 {
+pub enum Piece3x3 {
     /// A center piece.
     Center(Center),
     /// An edge piece.
@@ -93,12 +93,12 @@ pub enum Orientation3x3 {
     reason = "reachable through `MovablePart::Slice`; exported together with `MovablePart`"
 )]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum Slices {
+pub enum Slice {
     M,
     S,
     E,
 }
-impl Slices {
+impl Slice {
     pub const ALL: [Self; 3] = [Self::M, Self::S, Self::E];
 }
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -107,12 +107,12 @@ impl Slices {
     unnameable_types,
     reason = "reachable through `MovablePart::Rotation`; exported together with `MovablePart`"
 )]
-pub enum Rotations {
+pub enum Rotation {
     x,
     y,
     z,
 }
-impl Rotations {
+impl Rotation {
     pub const ALL: [Self; 3] = [Self::x, Self::y, Self::z];
 }
 

@@ -8,11 +8,11 @@ use rubiks_cube::zn::Zn;
 use rubiks_cube::*;
 
 /// The four E-slice edges. Phase 1 brings them into the E slice; phase 2 puts them in place.
-const RIM: [Pieces3x3; 4] = [
-    Pieces3x3::Edge(Edge::Fl),
-    Pieces3x3::Edge(Edge::Fr),
-    Pieces3x3::Edge(Edge::Bl),
-    Pieces3x3::Edge(Edge::Br),
+const RIM: [Piece3x3; 4] = [
+    Piece3x3::Edge(Edge::Fl),
+    Piece3x3::Edge(Edge::Fr),
+    Piece3x3::Edge(Edge::Bl),
+    Piece3x3::Edge(Edge::Br),
 ];
 
 /// The step of `Kociemba` called `name`.
@@ -28,15 +28,13 @@ fn phase(name: &str) -> Arc<dyn Step<Cube3x3>> {
 /// Phase 1's goal written from the definition, independent of the prune tables: every
 /// corner twist and edge flip is zero, and the four E-slice edges sit in E-slice slots.
 fn in_domino_subgroup(puzzle: &Cube3x3) -> bool {
-    Cube3x3::ALL_PIECES
-        .iter()
-        .filter(|&p| matches!(p, Pieces3x3::Corner(_)))
-        .all(|&slot| puzzle.orientation_at(&slot) == Orientation3x3::Twist(Zn::ZERO))
-        && Cube3x3::ALL_PIECES
-            .iter()
-            .filter(|&p| matches!(p, Pieces3x3::Edge(_)))
-            .all(|&slot| puzzle.orientation_at(&slot) == Orientation3x3::Flip(Zn::ZERO))
-        && RIM.iter().all(|p| RIM.contains(&puzzle.piece_location(p)))
+    Piece3x3::all()
+        .filter(|p| matches!(p, Piece3x3::Corner(_)))
+        .all(|slot| puzzle.orientation_at(slot) == Orientation3x3::Twist(Zn::ZERO))
+        && Piece3x3::all()
+            .filter(|p| matches!(p, Piece3x3::Edge(_)))
+            .all(|slot| puzzle.orientation_at(slot) == Orientation3x3::Flip(Zn::ZERO))
+        && RIM.iter().all(|&p| RIM.contains(&puzzle.piece_location(p)))
 }
 
 /// The moves of `solution`, all segments in order, applied to `start`.

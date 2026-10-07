@@ -10,8 +10,8 @@ use crate::{
 ///
 /// The collection carries no cost. Cost is decided by the [`SearchStep`](crate::SearchStep) that
 /// uses it: every sequence of the collection given to
-/// [`SearchStep::new_with_algs`](crate::SearchStep::new_with_algs) costs one, and
-/// [`SearchStep::new_with_free_algs`](crate::SearchStep::new_with_free_algs) also takes a second
+/// [`SearchStep::new`](crate::SearchStep::new) costs one, and
+/// [`SearchStep::with_free_algs`](crate::SearchStep::with_free_algs) also takes a second
 /// collection of free sequences, such as a `U` turn between algorithms, which the search only
 /// minimizes once the number of costly sequences is already minimal.
 ///
@@ -52,7 +52,7 @@ impl<'a, P: Puzzle> AlgSet<P> {
     }
 
     /// Returns an iterator over [`Algorithm`]s.
-    pub fn iter(&'a self) -> std::iter::Cloned<std::slice::Iter<'a, Algorithm<P>>> {
+    pub fn iter(&'a self) -> std::slice::Iter<'a, Algorithm<P>> {
         <&Self as IntoIterator>::into_iter(self)
     }
 }
@@ -67,10 +67,10 @@ impl<P: Puzzle> FromIterator<Algorithm<P>> for AlgSet<P> {
 }
 
 impl<'a, P: Puzzle> IntoIterator for &'a AlgSet<P> {
-    type Item = Algorithm<P>;
-    type IntoIter = std::iter::Cloned<std::slice::Iter<'a, Self::Item>>;
+    type Item = &'a Algorithm<P>;
+    type IntoIter = std::slice::Iter<'a, Algorithm<P>>;
     fn into_iter(self) -> Self::IntoIter {
-        self.0.iter().cloned()
+        self.0.iter()
     }
 }
 

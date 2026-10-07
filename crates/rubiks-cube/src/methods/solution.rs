@@ -108,24 +108,10 @@ impl<P: Puzzle> IntoIterator for Solution<P> {
 }
 impl<P: Puzzle> Display for Solution<P> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            self.step_solutions
-                .iter()
-                .map(|segment| {
-                    segment
-                        .moves
-                        .iter()
-                        .map(P::Moves::to_string)
-                        .collect::<Vec<String>>()
-                        .join(" ")
-                        + "\t//"
-                        + &segment.name
-                        + "\n"
-                })
-                .collect::<String>()
-        )
+        for alg in self {
+            writeln!(f, "{}\t//{}", alg.moves, alg.name)?;
+        }
+        Ok(())
     }
 }
 

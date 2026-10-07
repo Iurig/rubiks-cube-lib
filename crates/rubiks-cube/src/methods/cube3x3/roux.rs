@@ -1,6 +1,6 @@
 use std::sync::{Arc, LazyLock};
 
-use crate::{AlgSet, Choose, Cube3x3, Marked, Method, Puzzle, Step, methods::Technique};
+use crate::{AlgSet, Choose, Cube3x3, Indexed, Marked, Method, Piece3x3, Step, methods::Technique};
 
 use crate::methods::cube3x3::helpers::{algs, parts, search};
 
@@ -15,19 +15,19 @@ const CP_ALGS_TEXT: &str = include_str!("algsets/cmll/cp.txt");
 /// split of a stage with its method:
 ///
 /// ```rust
-/// use rubiks_cube::{CMLLOptions, FirstBlockOptions, Roux};
+/// use rubiks_cube::{CmllOptions, FirstBlockOptions, Roux};
 ///
 /// let roux = Roux::default()
 ///     .first_block(FirstBlockOptions::SquarePair)
-///     .cmll(CMLLOptions::TwoLook);
+///     .cmll(CmllOptions::TwoLook);
 /// ```
 #[non_exhaustive]
 #[derive(Default, Debug)]
 pub struct Roux {
     fb: FirstBlockOptions,
     sb: SecondBlockOptions,
-    cmll: CMLLOptions,
-    lse: LSEOptions,
+    cmll: CmllOptions,
+    lse: LseOptions,
 }
 
 impl Roux {
@@ -45,16 +45,16 @@ impl Roux {
         self
     }
 
-    /// Changes the CMLL options of the current method to [`cmll`](CMLLOptions).
+    /// Changes the CMLL options of the current method to [`cmll`](CmllOptions).
     #[must_use]
-    pub const fn cmll(mut self, cmll: CMLLOptions) -> Self {
+    pub const fn cmll(mut self, cmll: CmllOptions) -> Self {
         self.cmll = cmll;
         self
     }
 
-    /// Changes the LSE options of the current method to [`lse`](LSEOptions).
+    /// Changes the LSE options of the current method to [`lse`](LseOptions).
     #[must_use]
-    pub const fn lse(mut self, lse: LSEOptions) -> Self {
+    pub const fn lse(mut self, lse: LseOptions) -> Self {
         self.lse = lse;
         self
     }
@@ -86,7 +86,7 @@ pub enum SecondBlockOptions {
 
 /// How [`Roux`] solves the U-layer corners.
 #[derive(Clone, Copy, Default, Debug)]
-pub enum CMLLOptions {
+pub enum CmllOptions {
     /// One algorithm from the full CMLL set.
     #[default]
     OneLook,
@@ -96,10 +96,10 @@ pub enum CMLLOptions {
 
 /// How [`Roux`] solves the last six edges.
 #[derive(Clone, Copy, Default, Debug)]
-pub enum LSEOptions {
+pub enum LseOptions {
     /// One search for all six edges with `U` and `M`.
     #[default]
-    EOLR,
+    Eolr,
     //EO,
 }
 
@@ -151,13 +151,13 @@ impl Method<Cube3x3> for Roux {
         let after_cmll = Marked::from_algset(&LSE_KEEPING_CORNERS);
 
         let cmll_tech: Vec<Arc<dyn Step<Cube3x3>>> = match self.cmll {
-            CMLLOptions::OneLook => chain_steps!(
+            CmllOptions::OneLook => chain_steps!(
                 moves: &CMLL_ALGS.combined_with(&LSE_MOVES),
                 goal: &LSE_KEEPING_CORNERS,
                 free: &FREE_AUF,
                 "CMLL",
             ),
-            CMLLOptions::TwoLook => [
+            CmllOptions::TwoLook => [
                 chain_steps!(
                     moves: &algs(CO_ALGS_TEXT).combined_with(&LSE_KEEPING_CORNERS),
                     goal: &LSE_MOVES,
@@ -176,13 +176,13 @@ impl Method<Cube3x3> for Roux {
         };
 
         let lse_tech: Vec<Arc<dyn Step<Cube3x3>>> = match self.lse {
-            LSEOptions::EOLR => vec![search(
+            LseOptions::Eolr => vec![search(
                 "LSE",
                 after_cmll,
-                Marked::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied()),
+                Marked::from_pieces(Piece3x3::all()),
                 LSE_MOVES.clone(),
             )],
-            //LSEOptions::EO => (),
+            //LseOptions::EO => (),
         };
 
         [fb_tech, sb_tech, cmll_tech, lse_tech]
@@ -291,7 +291,7 @@ mod test {
 
     /// Every combination of the options.
     fn every_options() -> impl Iterator<Item = Roux> {
-        use CMLLOptions as C;
+        use CmllOptions as C;
         use FirstBlockOptions as F;
         use SecondBlockOptions as S;
         [F::OneLook, F::SquarePair, F::EdgePairPair]
@@ -304,7 +304,7 @@ mod test {
                             fb,
                             sb,
                             cmll,
-                            lse: LSEOptions::EOLR,
+                            lse: LseOptions::Eolr,
                         })
                     })
             })
@@ -356,8 +356,8 @@ mod test {
                 SecondBlockOptions::EdgePairPair => &["DR", "SB Square", "SB Pair"],
             });
             expected.extend_from_slice(match options.cmll {
-                CMLLOptions::OneLook => &["CMLL"][..],
-                CMLLOptions::TwoLook => &["CO", "CP"],
+                CmllOptions::OneLook => &["CMLL"][..],
+                CmllOptions::TwoLook => &["CO", "CP"],
             });
             expected.push("LSE");
 

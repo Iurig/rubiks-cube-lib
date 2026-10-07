@@ -5,3 +5,4 @@ allow-indexing-slicing-in-tests = true
 suppress-restriction-lint-in-const = true
 allow-print-in-tests = true
 allow-dbg-in-tests = true
+avoid-breaking-exported-api = false

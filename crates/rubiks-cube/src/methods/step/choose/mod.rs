@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use crate::{Puzzle, Solution, Step, StepError};
 
@@ -17,7 +17,7 @@ use crate::{Puzzle, Solution, Step, StepError};
 #[derive(Debug)]
 pub struct Choose<P: Puzzle> {
     steps: Vec<Arc<dyn Step<P>>>,
-    name: String,
+    name: Cow<'static, str>,
 }
 
 impl<P: Puzzle> Choose<P> {
@@ -31,12 +31,15 @@ impl<P: Puzzle> Choose<P> {
             .map(|s| s.name())
             .collect::<Vec<&str>>()
             .join(" or ");
-        Self { steps, name }
+        Self {
+            steps,
+            name: Cow::Owned(name),
+        }
     }
 
     /// A choice between `steps`, explicitly named `name`.
     #[must_use]
-    pub fn named(name: impl Into<String>, steps: Vec<Arc<dyn Step<P>>>) -> Self {
+    pub fn named(name: impl Into<Cow<'static, str>>, steps: Vec<Arc<dyn Step<P>>>) -> Self {
         Self {
             steps,
             name: name.into(),
@@ -46,7 +49,7 @@ impl<P: Puzzle> Choose<P> {
 
 impl<P: Puzzle> Step<P> for Choose<P> {
     fn name(&self) -> &str {
-        self.name.as_str()
+        &self.name
     }
 
     fn can_solve(&self, puzzle: &P) -> bool {

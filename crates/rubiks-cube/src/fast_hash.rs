@@ -52,19 +52,19 @@ mod tests {
     use std::hash::BuildHasher;
 
     use super::*;
-    use crate::{Center, Corner, Cube3x3, Edge, Marked, Pieces3x3};
+    use crate::{Center, Corner, Cube3x3, Edge, Marked, Piece3x3};
     use statrs::{
         distribution::{Binomial, DiscreteCDF},
         statistics::Distribution,
     };
 
-    const FIRST_BLOCK: [Pieces3x3; 6] = [
-        Pieces3x3::Center(Center::L),
-        Pieces3x3::Corner(Corner::Dfl),
-        Pieces3x3::Corner(Corner::Dbl),
-        Pieces3x3::Edge(Edge::Fl),
-        Pieces3x3::Edge(Edge::Dl),
-        Pieces3x3::Edge(Edge::Bl),
+    const FIRST_BLOCK: [Piece3x3; 6] = [
+        Piece3x3::Center(Center::L),
+        Piece3x3::Corner(Corner::Dfl),
+        Piece3x3::Corner(Corner::Dbl),
+        Piece3x3::Edge(Edge::Fl),
+        Piece3x3::Edge(Edge::Dl),
+        Piece3x3::Edge(Edge::Bl),
     ];
 
     fn hash(mask: &Marked<Cube3x3>) -> u64 {
@@ -156,10 +156,10 @@ mod tests {
 
     #[test]
     fn masks_built_from_pieces_in_any_order_find_each_other() {
-        let forward = Marked::<Cube3x3>::new_from_pieces(FIRST_BLOCK);
+        let forward = Marked::<Cube3x3>::from_pieces(FIRST_BLOCK);
         let mut reversed_pieces = FIRST_BLOCK;
         reversed_pieces.reverse();
-        let reversed = Marked::<Cube3x3>::new_from_pieces(reversed_pieces);
+        let reversed = Marked::<Cube3x3>::from_pieces(reversed_pieces);
 
         assert_eq!(forward, reversed);
         assert_eq!(hash(&forward), hash(&reversed));
@@ -170,7 +170,7 @@ mod tests {
     /// `U` and `R M'` leave the first block alone, so two different cubes filter to one key.
     #[test]
     fn different_cubes_with_the_same_masked_pieces_find_each_other() {
-        let goal = Marked::<Cube3x3>::new_from_pieces(FIRST_BLOCK);
+        let goal = Marked::<Cube3x3>::from_pieces(FIRST_BLOCK);
         let after_u = Cube3x3::from_solved("U").unwrap();
         let after_r_m = Cube3x3::from_solved("R M'").unwrap();
         assert_ne!(after_u, after_r_m);

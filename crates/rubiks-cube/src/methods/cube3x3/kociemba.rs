@@ -1,74 +1,67 @@
 use std::sync::{Arc, LazyLock};
 
 use crate::{
-    AlgSet, Algorithm, ByMark, ByPiece, Cube3x3, Edge, Marked, Mask, Method, Pieces3x3, Puzzle,
-    Step,
+    AlgSet, Algorithm, ByMark, ByPiece, Cube3x3, Edge, Indexed, Marked, Mask, Method,
+    Orientation3x3, Piece3x3, Puzzle,
     methods::{
         Technique,
         step::combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
     },
     puzzles::cube3x3::{
-        moves::{MovablePart, MoveModifier},
-        pieces::Faces,
+        moves::{MovablePart, Move3x3, MoveModifier},
+        pieces::Face,
     },
+    zn::Zn,
 };
 
 /// The four E-slice edges. Phase 1 brings them into the E slice; phase 2 puts them in place.
-const RIM: [Pieces3x3; 4] = [
-    Pieces3x3::Edge(Edge::Fl),
-    Pieces3x3::Edge(Edge::Fr),
-    Pieces3x3::Edge(Edge::Bl),
-    Pieces3x3::Edge(Edge::Br),
+const RIM: [Piece3x3; 4] = [
+    Piece3x3::Edge(Edge::Fl),
+    Piece3x3::Edge(Edge::Fr),
+    Piece3x3::Edge(Edge::Bl),
+    Piece3x3::Edge(Edge::Br),
 ];
 
 /// Every face turn, one per sequence: phase 1's moveset. `2'` is left out, since on a face it
 /// reaches the same state as `2` and would only double the branching.
 fn face_turns() -> AlgSet<Cube3x3> {
-    Cube3x3::ALL_MOVES
-        .iter()
+    Move3x3::all()
         .filter(|m| {
             matches!(m.part, MovablePart::Face(_)) && m.modifier != MoveModifier::CounterDouble
         })
-        .map(|&m| Algorithm::from_iter([m]))
+        .map(|m| Algorithm::from_iter([m]))
         .collect()
 }
 
 /// Phase 2's moveset, the moves that keep a cube in the domino subgroup: any turn of U or D,
 /// and half turns of the other faces.
 fn domino_turns() -> AlgSet<Cube3x3> {
-    Cube3x3::ALL_MOVES
-        .iter()
+    Move3x3::all()
         .filter(|m| match m.part {
-            MovablePart::Face(Faces::U | Faces::D) => m.modifier != MoveModifier::CounterDouble,
+            MovablePart::Face(Face::U | Face::D) => m.modifier != MoveModifier::CounterDouble,
             MovablePart::Face(_) => m.modifier == MoveModifier::Double,
             _ => false,
         })
-        .map(|&m| Algorithm::from_iter([m]))
+        .map(|m| Algorithm::from_iter([m]))
         .collect()
 }
 
-fn corners() -> impl Iterator<Item = Pieces3x3> + Clone {
-    Cube3x3::ALL_PIECES
-        .iter()
-        .filter(|&p| matches!(p, Pieces3x3::Corner(_)))
-        .copied()
+fn corners() -> impl Iterator<Item = Piece3x3> + Clone {
+    Piece3x3::all().filter(|p| matches!(p, Piece3x3::Corner(_)))
 }
 
-fn edges() -> impl Iterator<Item = Pieces3x3> + Clone {
-    Cube3x3::ALL_PIECES
-        .iter()
-        .filter(|&p| matches!(p, Pieces3x3::Edge(_)))
-        .copied()
+fn edges() -> impl Iterator<Item = Piece3x3> + Clone {
+    Piece3x3::all().filter(|p| matches!(p, Piece3x3::Edge(_)))
 }
 
 static CORNERS_PHASE_1_GOAL: LazyLock<Marked<Cube3x3>> =
-    LazyLock::new(|| Marked::<Cube3x3>::from_double_iter([], corners()));
+    LazyLock::new(|| Marked::<Cube3x3>::from_pieces_and_orientations([], corners()));
 
 static CORNERS_PHASE_1_TABLE: LazyLock<PruneTable<Marked<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&CORNERS_PHASE_1_GOAL, &face_turns()));
 
 static EDGES_PHASE_1_GOAL: LazyLock<Marked<Cube3x3>> =
-    LazyLock::new(|| Marked::<Cube3x3>::from_double_iter(RIM, edges()));
+    LazyLock::new(|| Marked::<Cube3x3>::from_pieces_and_orientations(RIM, edges()));
 
 static EDGES_PHASE_1_TABLE: LazyLock<PruneTable<Marked<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&EDGES_PHASE_1_GOAL, &face_turns()));
@@ -98,7 +91,7 @@ impl PrunedGoal<Cube3x3> for Phase1Edges {
 }
 
 /// Phase 1: orient every piece and bring the E-slice edges into the E slice, with face turns.
-fn phase_1() -> PrunedCombine<'static, Cube3x3> {
+fn phase_1() -> PrunedCombine<Cube3x3> {
     PrunedCombine::<Cube3x3>::new(
         "Phase 1",
         Box::new(|_| true),
@@ -117,13 +110,13 @@ fn phase_1() -> PrunedCombine<'static, Cube3x3> {
 // group, which leaves the search to explore far more states.
 
 static CORNERS_AND_E_PHASE_2_GOAL: LazyLock<Mask<Cube3x3>> =
-    LazyLock::new(|| Mask::<Cube3x3>::new_from_pieces(corners().chain(RIM)));
+    LazyLock::new(|| Mask::<Cube3x3>::from_pieces(corners().chain(RIM)));
 
 static CORNERS_AND_E_PHASE_2_TABLE: LazyLock<PruneTable<Mask<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&CORNERS_AND_E_PHASE_2_GOAL, &domino_turns()));
 
 static EDGES_PHASE_2_GOAL: LazyLock<Mask<Cube3x3>> =
-    LazyLock::new(|| Mask::<Cube3x3>::new_from_pieces(edges()));
+    LazyLock::new(|| Mask::<Cube3x3>::from_pieces(edges()));
 
 static EDGES_PHASE_2_TABLE: LazyLock<PruneTable<Mask<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&EDGES_PHASE_2_GOAL, &domino_turns()));
@@ -156,10 +149,20 @@ impl PrunedGoal<Cube3x3> for Phase2Edges {
 /// Phase 2: solve a cube in the domino subgroup, with only the moves that keep it there. A cube
 /// outside the subgroup gets [`StepError::UnreachableGoal`](crate::StepError::UnreachableGoal),
 /// since every goal asks for oriented pieces and these moves never change orientation.
-fn phase_2() -> PrunedCombine<'static, Cube3x3> {
+fn phase_2() -> PrunedCombine<Cube3x3> {
     PrunedCombine::<Cube3x3>::new(
         "Phase 2",
-        Box::new(|puzzle| phase_1().is_done(puzzle)),
+        Box::new(|puzzle| {
+            <Cube3x3 as Puzzle>::Piece::all().all(|slot| {
+                [
+                    Orientation3x3::Flip(Zn::ZERO),
+                    Orientation3x3::Twist(Zn::ZERO),
+                    Orientation3x3::Fixed,
+                ]
+                .contains(&puzzle.orientation_at(slot))
+                    && RIM.iter().all(|&slot| RIM.contains(&puzzle.piece_at(slot)))
+            })
+        }),
         [
             Box::new(Phase2CornersAndE) as Box<dyn DistanceStep<Cube3x3>>,
             Box::new(Phase2Edges) as Box<dyn DistanceStep<Cube3x3>>,
@@ -182,20 +185,18 @@ impl Method<Cube3x3> for Kociemba {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Orientation3x3, zn::Zn};
+    use crate::{Orientation3x3, Puzzle, zn::Zn};
 
     /// Phase 1's goal written from the definition, independent of the prune tables: every
     /// corner twist and edge flip is zero, and the four E-slice edges sit in E-slice slots.
     fn in_domino_subgroup(puzzle: &Cube3x3) -> bool {
-        Cube3x3::ALL_PIECES
-            .iter()
-            .filter(|&p| matches!(p, Pieces3x3::Corner(_)))
-            .all(|&slot| puzzle.orientation_at(&slot) == Orientation3x3::Twist(Zn::ZERO))
-            && Cube3x3::ALL_PIECES
-                .iter()
-                .filter(|&p| matches!(p, Pieces3x3::Edge(_)))
-                .all(|&slot| puzzle.orientation_at(&slot) == Orientation3x3::Flip(Zn::ZERO))
-            && RIM.iter().all(|p| RIM.contains(&puzzle.piece_location(p)))
+        Piece3x3::all()
+            .filter(|p| matches!(p, Piece3x3::Corner(_)))
+            .all(|slot| puzzle.orientation_at(slot) == Orientation3x3::Twist(Zn::ZERO))
+            && Piece3x3::all()
+                .filter(|p| matches!(p, Piece3x3::Edge(_)))
+                .all(|slot| puzzle.orientation_at(slot) == Orientation3x3::Flip(Zn::ZERO))
+            && RIM.iter().all(|&p| RIM.contains(&puzzle.piece_location(p)))
     }
 
     #[test]

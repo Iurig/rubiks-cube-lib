@@ -57,14 +57,11 @@ impl Display for StepError {
             f,
             "{}",
             match self {
-                Self::UnreachableGoal =>
-                    "goal could not be reached with the given algset".to_string(),
-                Self::InvalidStartingState =>
-                    "starting state doesn't fit expected properties".to_string(),
+                Self::UnreachableGoal => "goal could not be reached with the given algset",
+                Self::InvalidStartingState => "starting state doesn't fit expected properties",
                 Self::MemoPoisoned =>
-                    "the step's memo is unusable: another solve panicked while deepening it"
-                        .to_string(),
-                Self::Custom(e) => e.to_string(),
+                    "the step's memo is unusable: another solve panicked while deepening it",
+                Self::Custom(e) => return e.fmt(f),
             }
         )
     }

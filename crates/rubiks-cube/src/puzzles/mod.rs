@@ -4,7 +4,7 @@ use std::{
     ops::{Add, Mul},
 };
 
-use crate::{Algorithm, SolveError};
+use crate::{Algorithm, SolveError, indexed::Indexed};
 
 pub mod algorithm;
 pub mod algset;
@@ -29,10 +29,10 @@ pub mod label;
 /// So reading `piece_at` and `orientation_at` at every slot of `Self::default() * m` gives
 /// everything `m` does to any state.
 pub trait Puzzle:
-    Default + Mul<Self::Moves, Output = Self> + Debug + Clone + Eq + Hash + Send + Sync + 'static
+    Default + Mul<Self::Move, Output = Self> + Debug + Clone + Eq + Hash + Send + Sync + 'static
 {
     /// One piece of the puzzle. A piece also names its home slot.
-    type Piece: Copy + Eq + Debug + Hash + 'static + Send + Sync;
+    type Piece: Copy + Eq + Debug + Hash + 'static + Send + Sync + Indexed;
     /// How a piece is oriented in its slot. One type covers every kind of piece, so a puzzle with
     /// several kinds, such as the cube's corners and edges, uses an enum with one variant per kind.
     type Orientation: Debug
@@ -44,27 +44,31 @@ pub trait Puzzle:
         + Sync
         + Add<Output = Self::Orientation>;
     /// One move of the puzzle, such as `R'` on the cube.
-    type Moves: crate::Inv + Eq + Ord + Copy + 'static + Display + Debug + Send + Sync + Hash;
-
-    /// Every piece of the puzzle, each once.
-    const ALL_PIECES: &'static [Self::Piece];
-    /// The moves a step may use when it allows any move. For the cube this is every face,
-    /// slice, and wide move with each modifier, and no rotations.
-    const ALL_MOVES: &'static [Self::Moves];
+    type Move: crate::Inv
+        + Eq
+        + Ord
+        + Copy
+        + 'static
+        + Display
+        + Debug
+        + Send
+        + Sync
+        + Hash
+        + Indexed;
 
     /// The slot where `piece` sits now.
-    fn piece_location(&self, piece: &Self::Piece) -> Self::Piece;
+    fn piece_location(&self, piece: Self::Piece) -> Self::Piece;
 
     /// Whether the puzzle is solved, ignoring how the whole puzzle is rotated.
     #[must_use]
     fn is_solved(&self) -> bool;
 
     /// The piece sitting in `slot` now. `piece_at(slot) == slot` when that piece is home.
-    fn piece_at(&self, slot: &Self::Piece) -> Self::Piece;
+    fn piece_at(&self, slot: Self::Piece) -> Self::Piece;
 
     /// The orientation of the piece in `slot`. It is oriented when this equals the solved
     /// state's orientation at `slot`.
-    fn orientation_at(&self, slot: &Self::Piece) -> Self::Orientation;
+    fn orientation_at(&self, slot: Self::Piece) -> Self::Orientation;
 
     /// A random scrambled state. The same seed always gives the same state.
     #[must_use]
@@ -94,23 +98,5 @@ pub trait Puzzle:
     #[must_use]
     fn apply(&self, alg: &Algorithm<Self>) -> Self {
         alg.iter().fold(self.clone(), |p, &m| p * m)
-    }
-
-    #[expect(
-        clippy::panic,
-        reason = "`ALL_PIECES` lists every piece, so the loop always returns"
-    )]
-    /// The position of `piece` in [`ALL_PIECES`](Self::ALL_PIECES).
-    ///
-    /// # Panics
-    /// If `ALL_PIECES` does not list `piece`, which breaks the constant's contract.
-    #[must_use]
-    fn index(piece: Self::Piece) -> usize {
-        for (i, &p) in Self::ALL_PIECES.iter().enumerate() {
-            if p == piece {
-                return i;
-            }
-        }
-        panic!("ALL_PIECES doesn't contain all values of type Pieces");
     }
 }

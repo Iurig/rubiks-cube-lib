@@ -1,6 +1,6 @@
-use std::{collections::HashSet, fmt::Debug, hash::Hash, iter::IntoIterator, ops::Mul};
+use std::{fmt::Debug, hash::Hash, iter::IntoIterator, ops::Mul};
 
-use crate::{AlgSet, Puzzle};
+use crate::{AlgSet, Indexed, Puzzle, fast_hash::FxSet};
 
 /// A puzzle with optional labels attatched to its pieces, as well as optional orientations.
 ///
@@ -20,10 +20,10 @@ pub struct Labeled<P: Puzzle, L: Marker<P>>(Box<[SlotCondition<P, L>]>);
 /// ignores every piece it does not name.
 ///
 /// ```
-/// use rubiks_cube::{Cube3x3, Edge, Mask, Pieces3x3};
+/// use rubiks_cube::{Cube3x3, Edge, Mask, Piece3x3};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let uf_solved = Mask::<Cube3x3>::new_from_pieces([Pieces3x3::Edge(Edge::Uf)]);
+/// let uf_solved = Mask::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Uf)]);
 /// assert!(uf_solved.applies_to(&Cube3x3::from_solved("R")?));
 /// assert!(!uf_solved.applies_to(&Cube3x3::from_solved("U")?));
 /// # Ok(())
@@ -77,25 +77,25 @@ impl<P: Puzzle> Marker<P> for ByMark {
 
 impl<P: Puzzle, L: Marker<P>> Default for Labeled<P, L> {
     fn default() -> Self {
-        Self::new_empty()
+        Self::empty()
     }
 }
 
-impl<P: Puzzle, L: Marker<P>> Mul<P::Moves> for Labeled<P, L> {
+impl<P: Puzzle, L: Marker<P>> Mul<P::Move> for Labeled<P, L> {
     type Output = Self;
-    fn mul(self, rhs: P::Moves) -> Self::Output {
+    fn mul(self, rhs: P::Move) -> Self::Output {
         self.composed_with(&(P::default() * rhs))
     }
 }
 
 impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
-    pub(crate) fn from_fn(mut condition: impl FnMut(P::Piece) -> SlotCondition<P, L>) -> Self {
-        Self(P::ALL_PIECES.iter().map(|&slot| condition(slot)).collect())
+    pub(crate) fn from_fn(condition: impl FnMut(P::Piece) -> SlotCondition<P, L>) -> Self {
+        Self(P::Piece::all().map(condition).collect())
     }
 
     /// A mask that names no piece, so every puzzle meets it. The same as `Mask::default()`.
     #[must_use]
-    pub fn new_empty() -> Self {
+    pub fn empty() -> Self {
         Self::from_fn(|_| SlotCondition {
             label: None,
             orient: None,
@@ -103,12 +103,12 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     }
 
     /// A mask where each piece in `pieces` must be solved: home and oriented. Same as
-    /// <code>[from_double_iter](Self::from_double_iter)(pieces.clone(), pieces)</code>.
-    pub fn new_from_pieces<I>(pieces: I) -> Self
+    /// <code>[from_pieces_and_orientations](Self::from_pieces_and_orientations)(pieces.clone(), pieces)</code>.
+    pub fn from_pieces<I>(pieces: I) -> Self
     where
         I: IntoIterator<Item = P::Piece> + Clone,
     {
-        Self::from_double_iter(pieces.clone(), pieces)
+        Self::from_pieces_and_orientations(pieces.clone(), pieces)
     }
 
     /// A mask where each piece in `permutations` must sit in its home slot, and the home slot of
@@ -117,27 +117,27 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     /// The two lists are independent. A piece only in `orientations` asks that whatever piece
     /// sits in its slot be oriented, which is how Roux's corner orientation step (`CO`) says
     /// "orient the last-layer corners, in any order".
-    pub fn from_double_iter<I1, I2>(permutations: I1, orientations: I2) -> Self
+    pub fn from_pieces_and_orientations<I1, I2>(permutations: I1, orientations: I2) -> Self
     where
         I1: IntoIterator<Item = P::Piece>,
         I2: IntoIterator<Item = P::Piece>,
     {
-        let perm_iter: HashSet<<P as Puzzle>::Piece> =
-            HashSet::<<P as Puzzle>::Piece>::from_iter(permutations);
-        let orient_iter: HashSet<<P as Puzzle>::Piece> =
-            HashSet::<<P as Puzzle>::Piece>::from_iter(orientations);
+        let perm_iter: FxSet<<P as Puzzle>::Piece> =
+            FxSet::<<P as Puzzle>::Piece>::from_iter(permutations);
+        let orient_iter: FxSet<<P as Puzzle>::Piece> =
+            FxSet::<<P as Puzzle>::Piece>::from_iter(orientations);
         Self::from_fn(|slot| SlotCondition {
             label: perm_iter.contains(&slot).then_some(L::home(slot)),
             orient: orient_iter
                 .contains(&slot)
-                .then_some(P::default().orientation_at(&slot)),
+                .then_some(P::default().orientation_at(slot)),
         })
     }
 
     #[must_use]
     pub(crate) fn filter_by_piece(puzzle: &P, goal: &Marked<P>) -> Self {
         Self::from_fn(|slot| {
-            let piece = puzzle.piece_at(&slot);
+            let piece = puzzle.piece_at(slot);
             let tracked = goal.condition(piece).label.is_some();
             SlotCondition {
                 label: tracked.then_some(L::home(piece)),
@@ -147,7 +147,7 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
                 // This holds as long as the search moveset never carries a piece whose
                 // orientation is free into a slot that asks for one.
                 orient: (tracked || goal.condition(piece).orient.is_some())
-                    .then(|| puzzle.orientation_at(&slot)),
+                    .then(|| puzzle.orientation_at(slot)),
             }
         })
     }
@@ -155,10 +155,10 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     /// What this mask asks of `slot`.
     #[expect(
         clippy::indexing_slicing,
-        reason = "every constructor gives a mask one condition per entry of `P::ALL_PIECES`, and `P::index` returns a position in it"
+        reason = "every constructor gives a mask one condition per index of `P::Piece`, and `Indexed::index` returns one of them"
     )]
     pub(crate) fn condition(&self, slot: P::Piece) -> &SlotCondition<P, L> {
-        &self.0[P::index(slot)]
+        &self.0[slot.index()]
     }
 
     /// This mask carried along by `puzzle`: each slot takes the condition of the slot its piece
@@ -166,35 +166,35 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     /// one at a time with `*` gives the same result as composing once with their product.
     pub(crate) fn composed_with(&self, puzzle: &P) -> Self {
         Self::from_fn(|slot| {
-            let source = self.condition(puzzle.piece_at(&slot));
+            let source = self.condition(puzzle.piece_at(slot));
             SlotCondition {
                 label: source.label,
-                orient: source.orient.map(|o| o + puzzle.orientation_at(&slot)),
+                orient: source.orient.map(|o| o + puzzle.orientation_at(slot)),
             }
         })
     }
 
-    /// A mask where each piece in `permutations` must sit in its home slot, and the home slot of
-    /// each piece in `orientations` must hold an oriented piece.
+    /// A mask where each `(slot, label)` in `labels` asks for that label in that slot, and the
+    /// home slot of each piece in `orientations` must hold an oriented piece.
     ///
     /// The two lists are independent. A piece only in `orientations` asks that whatever piece
     /// sits in its slot be oriented, which is how Roux's corner orientation step (`CO`) says
     /// "orient the last-layer corners, in any order".
-    pub fn from_iter<I1, I2>(labels: I1, orientations: I2) -> Self
+    pub fn from_labels_and_orientations<I1, I2>(labels: I1, orientations: I2) -> Self
     where
         I1: IntoIterator<Item = (P::Piece, L::Label)>,
         I2: IntoIterator<Item = P::Piece>,
     {
-        let perm_iter = HashSet::<(<P as Puzzle>::Piece, L::Label)>::from_iter(labels);
-        let orient_iter: HashSet<<P as Puzzle>::Piece> =
-            HashSet::<<P as Puzzle>::Piece>::from_iter(orientations);
+        let perm_iter = FxSet::<(<P as Puzzle>::Piece, L::Label)>::from_iter(labels);
+        let orient_iter: FxSet<<P as Puzzle>::Piece> =
+            FxSet::<<P as Puzzle>::Piece>::from_iter(orientations);
         Self::from_fn(|slot| SlotCondition {
             label: perm_iter
                 .iter()
                 .find_map(|(curr_slot, label)| (*curr_slot == slot).then_some(*label)),
             orient: orient_iter
                 .contains(&slot)
-                .then_some(P::default().orientation_at(&slot)),
+                .then_some(P::default().orientation_at(slot)),
         })
     }
 }
@@ -203,7 +203,7 @@ impl<P: Puzzle> Mask<P> {
     /// Whether `puzzle` meets every condition in this mask.
     #[must_use]
     pub fn applies_to(&self, puzzle: &P) -> bool {
-        self.0.iter().zip(P::ALL_PIECES).all(|(condition, slot)| {
+        self.0.iter().zip(P::Piece::all()).all(|(condition, slot)| {
             condition
                 .label
                 .is_none_or(|piece| puzzle.piece_at(slot) == piece)
@@ -217,21 +217,19 @@ impl<P: Puzzle> Mask<P> {
     /// Zeroes the orientations that are tracked - is meant to be used in goal-type values.
     #[must_use]
     pub fn and(&self, other: &Self) -> Self {
-        Self::from_double_iter(
-            P::ALL_PIECES
-                .iter()
+        Self::from_pieces_and_orientations(
+            P::Piece::all()
                 .zip(self.0.iter().zip(other.0.clone()))
                 .filter(|&(_, (con_self, ref con_other))| {
                     con_self.label.is_some() && con_other.label.is_some()
                 })
-                .map(|(&slot, _)| slot),
-            P::ALL_PIECES
-                .iter()
+                .map(|(slot, _)| slot),
+            P::Piece::all()
                 .zip(self.0.iter().zip(other.0.clone()))
                 .filter(|&(_, (con_self, ref con_other))| {
                     con_self.orient.is_some() && con_other.orient.is_some()
                 })
-                .map(|(&slot, _)| slot),
+                .map(|(slot, _)| slot),
         )
     }
 }
@@ -242,31 +240,29 @@ impl<P: Puzzle> Marked<P> {
     /// Zeroes the orientations that are tracked - is meant to be used in goal-type values.
     #[must_use]
     pub fn or(&self, other: &Self) -> Self {
-        Self::from_double_iter(
-            P::ALL_PIECES
-                .iter()
-                .zip(self.0.iter().zip(other.0.clone()))
-                .filter(|&(_, (con_self, ref con_other))| {
+        Self::from_pieces_and_orientations(
+            P::Piece::all()
+                .zip(self.0.iter().zip(other.0.iter()))
+                .filter(|&(_, (con_self, con_other))| {
                     con_self.label.is_some() || con_other.label.is_some()
                 })
-                .map(|(&slot, _)| slot),
-            P::ALL_PIECES
-                .iter()
-                .zip(self.0.iter().zip(other.0.clone()))
-                .filter(|&(_, (con_self, ref con_other))| {
+                .map(|(slot, _)| slot),
+            P::Piece::all()
+                .zip(self.0.iter().zip(other.0.iter()))
+                .filter(|&(_, (con_self, con_other))| {
                     con_self.orient.is_some() || con_other.orient.is_some()
                 })
-                .map(|(&slot, _)| slot),
+                .map(|(slot, _)| slot),
         )
     }
 
     /// Whether `puzzle` has the slots marked by tracked solved.
     #[must_use]
     pub fn applies_to(&self, puzzle: &P) -> bool {
-        self.0.iter().zip(P::ALL_PIECES).all(|(condition, slot)| {
+        self.0.iter().zip(P::Piece::all()).all(|(condition, slot)| {
             condition
                 .label
-                .is_none_or(|()| puzzle.piece_at(slot) == *slot)
+                .is_none_or(|()| puzzle.piece_at(slot) == slot)
                 && condition
                     .orient
                     .is_none_or(|orient| puzzle.orientation_at(slot) == orient)
@@ -279,20 +275,21 @@ impl<P: Puzzle> Marked<P> {
         clippy::indexing_slicing,
         reason = "Out of bounds slice is an unrecoverable state"
     )]
+    #[must_use]
     pub fn from_algset(algset: &AlgSet<P>) -> Self {
-        let mut mask = Mask::<P>::new_from_pieces(P::ALL_PIECES.to_vec());
+        let mut mask = Mask::<P>::from_pieces(P::Piece::all());
         let mut changed = true;
         while changed {
             changed = false;
             for alg in algset.algs() {
                 let moved = alg.iter().fold(mask.clone(), |p, m| p * *m);
-                for &p in P::ALL_PIECES {
+                for p in P::Piece::all() {
                     if mask.condition(p).label != moved.condition(p).label {
-                        mask.0[P::index(p)].label = None;
+                        mask.0[p.index()].label = None;
                         changed = true;
                     }
                     if mask.condition(p).orient != moved.condition(p).orient {
-                        mask.0[P::index(p)].orient = None;
+                        mask.0[p.index()].orient = None;
                         changed = true;
                     }
                 }
@@ -312,14 +309,14 @@ impl<P: Puzzle> Marked<P> {
 
 #[cfg(test)]
 mod test {
-    use crate::{Cube3x3, Pieces3x3};
+    use crate::{Cube3x3, Piece3x3};
 
     use super::*;
 
     #[test]
     fn applies_to_composes_correctly_on_full_cube() {
         let cube = Cube3x3::apply_scramble();
-        let mask = Mask::<Cube3x3>::new_from_pieces(Cube3x3::ALL_PIECES.iter().copied());
+        let mask = Mask::<Cube3x3>::from_pieces(Piece3x3::all());
 
         assert!(
             (mask.composed_with(&cube)).applies_to(&cube),
@@ -340,8 +337,8 @@ mod test {
         let goal = Marked::<Cube3x3>::from_algset(&AlgSet::from_parts("U R L").unwrap());
         for cube in random_states() {
             let key = Mask::filter_by_piece(&cube, &goal);
-            for &slot in Cube3x3::ALL_PIECES {
-                if matches!(slot, Pieces3x3::Edge(_)) {
+            for slot in Piece3x3::all() {
+                if matches!(slot, Piece3x3::Edge(_)) {
                     assert!(
                         key.condition(slot).orient.is_some(),
                         "{slot:?} left its flip out of the key:\n{cube}"
@@ -358,8 +355,8 @@ mod test {
         let goal = Marked::<Cube3x3>::from_algset(&AlgSet::from_parts("U R M r").unwrap());
         for cube in random_states() {
             let key = Mask::filter_by_piece(&cube, &goal);
-            for &slot in Cube3x3::ALL_PIECES {
-                if matches!(slot, Pieces3x3::Corner(_) | Pieces3x3::Edge(_)) {
+            for slot in Piece3x3::all() {
+                if matches!(slot, Piece3x3::Corner(_) | Piece3x3::Edge(_)) {
                     let condition = key.condition(slot);
                     assert_eq!(
                         condition.orient.is_some(),

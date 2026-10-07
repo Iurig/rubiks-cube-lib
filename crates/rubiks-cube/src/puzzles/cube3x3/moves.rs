@@ -5,7 +5,7 @@ mod table;
     reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
 )]
 use crate::{
-    ops,
+    Indexed, Piece, ops,
     puzzles::cube3x3::{Cube3x3, pieces::*},
 };
 
@@ -18,10 +18,10 @@ use table::cube_state;
 )]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum MovablePart {
-    Face(Faces),
-    Slice(Slices),
-    Rotation(Rotations),
-    Wide(Faces),
+    Face(Face),
+    Slice(Slice),
+    Rotation(Rotation),
+    Wide(Face),
 }
 
 #[expect(
@@ -50,7 +50,7 @@ impl MoveModifier {
 
 #[expect(
     unnameable_types,
-    reason = "reachable as `<Cube3x3 as Puzzle>::Moves`, and callers build moves from notation; \
+    reason = "reachable as `<Cube3x3 as Puzzle>::Move`, and callers build moves from notation; \
               not exported until `MovablePart` is, since its fields are public"
 )]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -66,25 +66,113 @@ impl Move3x3 {
     }
 }
 
+impl MovablePart {
+    const ALL: [Self; 2 * Face::ALL.len() + Slice::ALL.len() + Rotation::ALL.len()] = {
+        let mut all =
+            [Self::Face(Face::R); 2 * Face::ALL.len() + Slice::ALL.len() + Rotation::ALL.len()];
+        let mut next = 0;
+
+        let mut i = 0;
+        while i < Face::ALL.len() {
+            all[next] = Self::Face(Face::ALL[i]);
+            next += 1;
+            i += 1;
+        }
+        let mut i = 0;
+        while i < Slice::ALL.len() {
+            all[next] = Self::Slice(Slice::ALL[i]);
+            next += 1;
+            i += 1;
+        }
+        let mut i = 0;
+        while i < Rotation::ALL.len() {
+            all[next] = Self::Rotation(Rotation::ALL[i]);
+            next += 1;
+            i += 1;
+        }
+        let mut i = 0;
+        while i < Face::ALL.len() {
+            all[next] = Self::Wide(Face::ALL[i]);
+            next += 1;
+            i += 1;
+        }
+        assert!(next == all.len());
+        all
+    };
+}
+
+impl MoveModifier {
+    const ALL: [Self; 4] = [
+        Self::Clockwise,
+        Self::CounterClockwise,
+        Self::Double,
+        Self::CounterDouble,
+    ];
+}
+
+impl Indexed for MovablePart {
+    const COUNT: usize = Self::ALL.len();
+    fn index(self) -> usize {
+        match self {
+            Self::Face(f) => f as usize,
+            Self::Slice(s) => Face::ALL.len() + s as usize,
+            Self::Rotation(r) => Face::ALL.len() + Slice::ALL.len() + r as usize,
+            Self::Wide(f) => Face::ALL.len() + Slice::ALL.len() + Rotation::ALL.len() + f as usize,
+        }
+    }
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "`Indexed::from_index` takes an index below `COUNT`, the length of `ALL`"
+    )]
+    fn from_index(index: usize) -> Self {
+        Self::ALL[index]
+    }
+}
+
+impl Indexed for MoveModifier {
+    const COUNT: usize = Self::ALL.len();
+    fn index(self) -> usize {
+        self as usize
+    }
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "`Indexed::from_index` takes an index below `COUNT`, the length of `ALL`"
+    )]
+    fn from_index(index: usize) -> Self {
+        Self::ALL[index]
+    }
+}
+
+impl Indexed for Move3x3 {
+    const COUNT: usize = <(MovablePart, MoveModifier)>::COUNT;
+    fn index(self) -> usize {
+        (self.part, self.modifier).index()
+    }
+    fn from_index(index: usize) -> Self {
+        let (part, modifier) = <(MovablePart, MoveModifier)>::from_index(index);
+        Self { part, modifier }
+    }
+}
+
 impl std::fmt::Display for MovablePart {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{}",
             match self {
-                Self::Face(Faces::R) => String::from("R"),
-                Self::Face(Faces::F) => String::from("F"),
-                Self::Face(Faces::U) => String::from("U"),
-                Self::Face(Faces::L) => String::from("L"),
-                Self::Face(Faces::D) => String::from("D"),
-                Self::Face(Faces::B) => String::from("B"),
-                Self::Rotation(Rotations::x) => String::from("x"),
-                Self::Rotation(Rotations::y) => String::from("y"),
-                Self::Rotation(Rotations::z) => String::from("z"),
+                Self::Face(Face::R) => "R",
+                Self::Face(Face::F) => "F",
+                Self::Face(Face::U) => "U",
+                Self::Face(Face::L) => "L",
+                Self::Face(Face::D) => "D",
+                Self::Face(Face::B) => "B",
+                Self::Rotation(Rotation::x) => "x",
+                Self::Rotation(Rotation::y) => "y",
+                Self::Rotation(Rotation::z) => "z",
                 Self::Wide(x) => return write!(f, "{}w", Self::Face(*x)),
-                Self::Slice(Slices::E) => String::from("E"),
-                Self::Slice(Slices::M) => String::from("M"),
-                Self::Slice(Slices::S) => String::from("S"),
+                Self::Slice(Slice::E) => "E",
+                Self::Slice(Slice::M) => "M",
+                Self::Slice(Slice::S) => "S",
             }
         )
     }
@@ -218,21 +306,21 @@ impl TryFrom<&str> for Move3x3 {
         let first = chars.next().ok_or(ParseMoveError::EmptyString)?;
         let after_first = chars.as_str();
         let face = |letter: char| match letter {
-            'R' => Some(Faces::R),
-            'L' => Some(Faces::L),
-            'U' => Some(Faces::U),
-            'D' => Some(Faces::D),
-            'F' => Some(Faces::F),
-            'B' => Some(Faces::B),
+            'R' => Some(Face::R),
+            'L' => Some(Face::L),
+            'U' => Some(Face::U),
+            'D' => Some(Face::D),
+            'F' => Some(Face::F),
+            'B' => Some(Face::B),
             _ => None,
         };
         let (part, modifier_text) = match first {
-            'x' => (MovablePart::Rotation(Rotations::x), after_first),
-            'y' => (MovablePart::Rotation(Rotations::y), after_first),
-            'z' => (MovablePart::Rotation(Rotations::z), after_first),
-            'M' => (MovablePart::Slice(Slices::M), after_first),
-            'E' => (MovablePart::Slice(Slices::E), after_first),
-            'S' => (MovablePart::Slice(Slices::S), after_first),
+            'x' => (MovablePart::Rotation(Rotation::x), after_first),
+            'y' => (MovablePart::Rotation(Rotation::y), after_first),
+            'z' => (MovablePart::Rotation(Rotation::z), after_first),
+            'M' => (MovablePart::Slice(Slice::M), after_first),
+            'E' => (MovablePart::Slice(Slice::E), after_first),
+            'S' => (MovablePart::Slice(Slice::S), after_first),
             _ => match (face(first), face(first.to_ascii_uppercase())) {
                 (Some(f), _) => after_first
                     .strip_prefix('w')
@@ -300,60 +388,16 @@ impl From<Move3x3> for Cube3x3 {
     reason = "tests should panic if failed, and return result for `?` convenience"
 )]
 mod tests {
-    //! Enumerations of every part, modifier, and move. Only tests need them
-    //! today; move them out of this module when a production caller appears.
+    //! `Move3x3::ALL` lists every move independently of `Indexed`, so tests can check one
+    //! against the other.
     use super::*;
-    use crate::Piece;
+    use crate::indexed::assert_round_trips;
     use std::error::Error;
-
-    impl MovablePart {
-        const ALL: [Self; 2 * Faces::ALL.len() + Slices::ALL.len() + Rotations::ALL.len()] = {
-            let mut all = [Self::Face(Faces::R);
-                2 * Faces::ALL.len() + Slices::ALL.len() + Rotations::ALL.len()];
-            let mut next = 0;
-
-            let mut i = 0;
-            while i < Faces::ALL.len() {
-                all[next] = Self::Face(Faces::ALL[i]);
-                next += 1;
-                i += 1;
-            }
-            let mut i = 0;
-            while i < Slices::ALL.len() {
-                all[next] = Self::Slice(Slices::ALL[i]);
-                next += 1;
-                i += 1;
-            }
-            let mut i = 0;
-            while i < Rotations::ALL.len() {
-                all[next] = Self::Rotation(Rotations::ALL[i]);
-                next += 1;
-                i += 1;
-            }
-            let mut i = 0;
-            while i < Faces::ALL.len() {
-                all[next] = Self::Wide(Faces::ALL[i]);
-                next += 1;
-                i += 1;
-            }
-            assert!(next == all.len());
-            all
-        };
-    }
-
-    impl MoveModifier {
-        const ALL: [Self; 4] = [
-            Self::Clockwise,
-            Self::CounterClockwise,
-            Self::Double,
-            Self::CounterDouble,
-        ];
-    }
 
     impl Move3x3 {
         const ALL: [Self; MovablePart::ALL.len() * MoveModifier::ALL.len()] = {
             let mut all: [Self; MovablePart::ALL.len() * MoveModifier::ALL.len()] = [Self {
-                part: MovablePart::Face(Faces::R),
+                part: MovablePart::Face(Face::R),
                 modifier: MoveModifier::Clockwise,
             };
                 MovablePart::ALL.len() * MoveModifier::ALL.len()];
@@ -371,6 +415,14 @@ mod tests {
             }
             all
         };
+    }
+
+    #[test]
+    fn every_move_has_its_own_index() {
+        assert_round_trips::<MovablePart>();
+        assert_round_trips::<MoveModifier>();
+        assert_round_trips::<Move3x3>();
+        assert_eq!(Move3x3::all().collect::<Vec<_>>(), Move3x3::ALL);
     }
 
     #[test]
@@ -420,7 +472,7 @@ mod tests {
 
     #[test]
     fn lowercase_face_is_the_wide_move() {
-        for face in Faces::ALL {
+        for face in Face::ALL {
             let wide = MovablePart::Wide(face).to_string();
             let lower = MovablePart::Face(face).to_string().to_lowercase();
             for modifier in ["", "'", "2", "2'"] {

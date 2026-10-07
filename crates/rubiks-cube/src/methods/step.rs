@@ -8,8 +8,9 @@ pub mod search_step;
 
 /// One stage of a solving method, such as building the first block in Roux.
 ///
-/// A [`Technique`] runs its steps in order. After each step it calls [`is_done`](Step::is_done),
-/// and stops with a [`SolveError`] if the step failed or its goal is not met.
+/// A [`Technique`](crate::Technique) runs its steps in order. After each step it calls
+/// [`is_done`](Step::is_done), and stops with a [`SolveError`](crate::SolveError) if the step
+/// failed or its goal is not met.
 ///
 /// The crate has two step types: [`SearchStep`](crate::SearchStep) searches for its goal, and
 /// [`Choose`](crate::Choose) runs several steps and keeps the shortest result. Implement this

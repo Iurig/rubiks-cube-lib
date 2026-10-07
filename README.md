@@ -119,11 +119,11 @@ chooses between one algorithm and two. With a split block the solver tries both 
 the back square and keeps the shorter:
 
 ```rust
-use rubiks_cube::{CMLLOptions, FirstBlockOptions, Roux};
+use rubiks_cube::{CmllOptions, FirstBlockOptions, Roux};
 
 let roux = Roux::default()
     .first_block(FirstBlockOptions::SquarePair)
-    .cmll(CMLLOptions::TwoLook);
+    .cmll(CmllOptions::TwoLook);
 ```
 
 A method is a list of steps. The crate has two step types: `SearchStep`, which searches for a
@@ -230,7 +230,7 @@ crates/
         step/
           search_step/
             mod.rs            SearchStep: a forward search that meets the memo in the middle
-            memorization.rs   BFSMemo: the backward search from a step's goal, kept across
+            memorization.rs   BfsMemo: the backward search from a step's goal, kept across
                               solves
           choose/
             mod.rs            Choose: runs each alternative, keeps the one with the fewest

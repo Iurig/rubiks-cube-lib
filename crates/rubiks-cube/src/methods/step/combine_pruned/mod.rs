@@ -6,14 +6,15 @@ use rayon::prelude::*;
 use crate::{AlgSet, Algorithm, Labeled, Marker, Puzzle, Segment, Solution, Step, StepError};
 
 use std::{
+    borrow::Cow,
     fmt::Debug,
     hash::Hash,
     ops::ControlFlow,
     sync::atomic::{AtomicU16, Ordering},
 };
 
-pub struct PrunedCombine<'a, P: Puzzle> {
-    name: &'a str,
+pub struct PrunedCombine<P: Puzzle> {
+    name: Cow<'static, str>,
     steps: Vec<Box<dyn DistanceStep<P>>>,
     ready_to_solve: Box<dyn Fn(&P) -> bool + Send + Sync>,
     moveset: AlgSet<P>,
@@ -22,13 +23,14 @@ pub struct PrunedCombine<'a, P: Puzzle> {
     may_follow: Vec<Vec<bool>>,
 }
 
-impl<P: Puzzle> Debug for PrunedCombine<'_, P> {
+impl<P: Puzzle> Debug for PrunedCombine<P> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.name.fmt(f)?;
-        self.steps.fmt(f)?;
-        self.moveset.fmt(f)?;
-        self.may_follow.fmt(f)?;
-        Ok(())
+        f.debug_struct("PrunedCombine")
+            .field("name", &self.name)
+            .field("steps", &self.steps)
+            .field("moveset", &self.moveset)
+            .field("may_follow", &self.may_follow)
+            .finish_non_exhaustive()
     }
 }
 
@@ -64,15 +66,15 @@ impl<P: Puzzle, T: PrunedGoal<P>> DistanceStep<P> for T {
     }
 }
 
-impl<'a, P: Puzzle> PrunedCombine<'a, P> {
+impl<P: Puzzle> PrunedCombine<P> {
     pub fn new<T: IntoIterator<Item = Box<dyn DistanceStep<P>>>>(
-        name: &'a str,
+        name: impl Into<Cow<'static, str>>,
         ready_to_solve: Box<dyn Fn(&P) -> bool + Send + Sync>,
         iter: T,
         moveset: AlgSet<P>,
     ) -> Self {
         Self {
-            name,
+            name: name.into(),
             steps: Vec::<Box<dyn DistanceStep<P>>>::from_iter(iter),
             ready_to_solve,
             may_follow: may_follow(&moveset),
@@ -112,9 +114,9 @@ fn may_follow<P: Puzzle>(moveset: &AlgSet<P>) -> Vec<Vec<bool>> {
         .collect()
 }
 
-impl<P: Puzzle> Step<P> for PrunedCombine<'_, P> {
+impl<P: Puzzle> Step<P> for PrunedCombine<P> {
     fn name(&self) -> &str {
-        self.name
+        &self.name
     }
 
     fn can_solve(&self, puzzle: &P) -> bool {
@@ -143,7 +145,7 @@ impl<P: Puzzle> Step<P> for PrunedCombine<'_, P> {
         /// saw, the next bound to try; `Continue(None)` means no branch can lead to the
         /// goal.
         fn search<P: Puzzle>(
-            combine: &PrunedCombine<'_, P>,
+            combine: &PrunedCombine<P>,
             last: Option<usize>,
             puzzle: &P,
             depth: u8,
