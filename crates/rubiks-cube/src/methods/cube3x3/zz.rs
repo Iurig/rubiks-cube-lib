@@ -2,7 +2,9 @@
 use enum_iterator::{Sequence, all};
 use std::sync::{Arc, LazyLock};
 
-use crate::methods::cube3x3::helpers::{BlockGoal, LastLayer, algs, parts, split_by_blocks};
+use crate::methods::cube3x3::helpers::{
+    BlockGoal, LastLayer, algs, into_steps, parts, split_by_blocks,
+};
 
 use crate::{AlgSet, Choose, Cube3x3, Marked, Method, Step, Technique};
 
@@ -15,13 +17,14 @@ pub struct ZZ {
     ll: LLOptions,
 }
 
-/// The ZZA variant of the ZZ method. Uses ZBLL on the last layer.
-pub const ZZA: ZZ = ZZ {
-    eoline: EoLineOptions,
-    f2l: F2LOptions,
-    ll: LLOptions::OneLook,
-};
-
+impl ZZ {
+    /// The ZZA variant of the ZZ method. Uses ZBLL on the last layer.
+    pub const ZZA: Self = Self {
+        eoline: EoLineOptions,
+        f2l: F2LOptions,
+        ll: LLOptions::OneLook,
+    };
+}
 /// How [`ZZ`] builds its first step, the `EOLine`.
 #[non_exhaustive]
 #[derive(Debug, Clone, Default, Copy)]
@@ -95,20 +98,20 @@ impl Method<Cube3x3> for ZZ {
                 permutation: pll,
             } => {
                 let oll_tech = match oll {
-                    OrientationOptions::Ocll => LastLayer::ocll(OCLL_ALGS.clone()).to_steps(),
-                    OrientationOptions::Coll => LastLayer::coll(COLL_ALGS.clone()).to_steps(),
+                    OrientationOptions::Ocll => into_steps(LastLayer::ocll(OCLL_ALGS.clone())),
+                    OrientationOptions::Coll => into_steps(LastLayer::coll(COLL_ALGS.clone())),
                 };
                 let pll_tech = match pll {
-                    PermutationOptions::OneLook => LastLayer::pll(PLL_ALGS.clone()).to_steps(),
+                    PermutationOptions::OneLook => into_steps(LastLayer::pll(PLL_ALGS.clone())),
                     PermutationOptions::TwoLook => {
-                        let corners = LastLayer::cpll(PLL_CORNER_ALGS.clone()).to_steps();
-                        let edges = LastLayer::epll(PLL_EDGE_ALGS.clone()).to_steps();
+                        let corners = into_steps(LastLayer::cpll(PLL_CORNER_ALGS.clone()));
+                        let edges = into_steps(LastLayer::epll(PLL_EDGE_ALGS.clone()));
                         [corners, edges].into_iter().flatten().collect()
                     }
                 };
                 [oll_tech, pll_tech].into_iter().flatten().collect()
             }
-            LLOptions::OneLook => LastLayer::zbll(ZBLL_ALGS.clone()).to_steps(),
+            LLOptions::OneLook => into_steps(LastLayer::zbll(ZBLL_ALGS.clone())),
         };
 
         [eoline_tech, f2l_tech, ll_tech]

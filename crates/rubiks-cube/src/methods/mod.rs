@@ -111,15 +111,6 @@ fn run_steps<P: Puzzle>(
 /// by defining a type to hold such parameters, then how to get a sequence of steps from such
 /// parameters.
 pub trait Method<P: Puzzle>: Default + Debug {
-    /// A method that runs `steps` in the order given.
-    ///
-    /// A step that should keep its state across methods, such as a
-    /// [`SearchStep`](crate::SearchStep) and its memo, can be shared by cloning its `Arc`.
-    #[must_use]
-    fn new() -> Self {
-        Self::default()
-    }
-
     /// Converts a parametrized [`Method`] to a specific [`Technique`]
     fn to_technique(&self) -> Technique<P>;
 

@@ -2,6 +2,7 @@ use std::{error::Error, fmt::Display};
 
 /// Why a [`Step`](crate::Step) could not solve.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum StepError {
     /// The step's moves cannot bring the puzzle to its goal.
     UnreachableGoal,
@@ -16,6 +17,7 @@ pub enum StepError {
 }
 /// Why a method's solve stopped, naming the step it stopped at.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum SolveError {
     /// A step's requirement isn't met when it should be solved.
     Requirements {

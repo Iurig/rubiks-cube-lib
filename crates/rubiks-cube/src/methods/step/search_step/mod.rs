@@ -13,7 +13,7 @@ use rayon::prelude::*;
 )]
 use crate::Puzzle;
 use crate::{
-    AlgSet, Algorithm, Inv, Marked, Mask, Segment, Solution, Step, StepError, fast_hash::FxMap,
+    AlgSet, Algorithm, Inv, Marked, Mask, Solution, Step, StepError, fast_hash::FxMap,
     methods::step::search_step::memorization::BfsMemo,
 };
 
@@ -29,7 +29,7 @@ type SharedMemo<P> = Arc<Mutex<BfsMemo<P>>>;
 ///
 /// Statics cannot be generic, so each puzzle type that has methods keeps its own cache in a
 /// static.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct MemoCache<P: Puzzle> {
     memos: Mutex<FxMap<MemoKey<P>, SharedMemo<P>>>,
 }
@@ -290,10 +290,10 @@ impl<P: Puzzle> Step<P> for SearchStep<P> {
         if !self.can_solve(p) {
             return Err(StepError::InvalidStartingState);
         }
-        Ok(Solution::from_iter([Segment {
-            moves: self.solve_bfs(p)?,
-            name: self.name().to_string(),
-        }]))
+        Ok(Solution::single_segment(
+            self.name().to_string(),
+            self.solve_bfs(p)?,
+        ))
     }
 }
 

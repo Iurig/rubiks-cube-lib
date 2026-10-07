@@ -1,6 +1,6 @@
 use crate::{Puzzle, Solution, StepError};
 
-use std::{fmt::Debug, sync::Arc};
+use std::fmt::Debug;
 
 pub mod choose;
 pub mod combine_pruned;
@@ -41,14 +41,5 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
             Ok(_) => self.is_done(&puzzle_copy),
             Err(_) => false,
         }
-    }
-
-    /// Turns a single step into a [`Vec`] with one step - used for constructing
-    /// [`Technique`](crate::Technique).
-    fn to_steps(self) -> Vec<Arc<dyn Step<P>>>
-    where
-        Self: Sized + 'static,
-    {
-        vec![Arc::new(self)]
     }
 }

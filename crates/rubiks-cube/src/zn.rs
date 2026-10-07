@@ -1,5 +1,9 @@
 //! Modular integers for piece orientation.
-use std::{fmt::Debug, ops::Neg};
+use std::{
+    fmt::Debug,
+    iter::Sum,
+    ops::{AddAssign, Neg, SubAssign},
+};
 
 /// Integers mod `N`, stored as the representative in `0..N`.
 ///
@@ -30,6 +34,21 @@ impl<const N: usize> Neg for Zn<N> {
     type Output = Self;
     fn neg(self) -> Self::Output {
         Self::new(N - self.value())
+    }
+}
+impl<const N: usize> AddAssign for Zn<N> {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+impl<const N: usize> SubAssign for Zn<N> {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self += -rhs;
+    }
+}
+impl<const N: usize> Sum for Zn<N> {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Self::ZERO, |prev, next| prev + next)
     }
 }
 

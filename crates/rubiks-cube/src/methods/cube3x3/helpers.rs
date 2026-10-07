@@ -6,8 +6,8 @@ use std::{
 use itertools::iproduct;
 
 use crate::{
-    AlgSet, Algorithm, ByPiece, Cube3x3, Marked, Mask, Piece3x3, Puzzle, SearchStep, Segment,
-    Solution, Step, StepError,
+    AlgSet, Algorithm, ByPiece, Cube3x3, Marked, Mask, Piece3x3, Puzzle, SearchStep, Solution,
+    Step, StepError,
     methods::step::combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
 };
 
@@ -26,6 +26,10 @@ pub fn search(
     moves: AlgSet<Cube3x3>,
 ) -> Arc<SearchStep<Cube3x3>> {
     search_with_free_algs(name, before, after, moves, AlgSet::default())
+}
+
+pub(super) fn into_steps<P: Puzzle>(step: impl Step<P> + 'static) -> Vec<Arc<dyn Step<P>>> {
+    vec![Arc::new(step)]
 }
 
 pub fn search_with_free_algs(
@@ -262,14 +266,13 @@ impl Step<Cube3x3> for LastLayer {
         let post = self.post_auf(&solved).ok_or(StepError::UnreachableGoal)?;
         *puzzle = solved.apply(&post);
 
-        Ok(Solution::from_iter([Segment {
-            moves: pre
-                .iter()
+        Ok(Solution::single_segment(
+            self.name.to_string(),
+            pre.iter()
                 .chain(alg.iter())
                 .chain(post.iter())
                 .copied()
                 .collect(),
-            name: self.name.to_string(),
-        }]))
+        ))
     }
 }

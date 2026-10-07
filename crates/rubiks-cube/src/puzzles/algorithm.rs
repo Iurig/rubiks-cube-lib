@@ -79,6 +79,18 @@ impl<P: Puzzle> Inv for Algorithm<P> {
     }
 }
 
+impl<P: Puzzle> PartialOrd for Algorithm<P> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<P: Puzzle> Ord for Algorithm<P> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.0.cmp(&other.0)
+    }
+}
+
 impl<P: Puzzle> FromIterator<P::Move> for Algorithm<P> {
     fn from_iter<I: IntoIterator<Item = P::Move>>(iter: I) -> Self {
         Self(iter.into_iter().collect())

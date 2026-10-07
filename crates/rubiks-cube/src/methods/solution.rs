@@ -14,7 +14,7 @@ use crate::{Algorithm, puzzles::Puzzle};
 /// ```
 ///
 /// Collect `(moves, name)` pairs to build one, or collect solutions to join them.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Default)]
 pub struct Solution<P: Puzzle> {
     step_solutions: Vec<Segment<P>>,
 }
@@ -22,8 +22,8 @@ pub struct Solution<P: Puzzle> {
 /// Segment of a solution: includes a name and the moves that make the solution up.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Segment<P: Puzzle> {
-    pub(super) moves: Algorithm<P>,
-    pub(super) name: String,
+    name: String,
+    moves: Algorithm<P>,
 }
 
 impl<P: Puzzle> Segment<P> {
@@ -44,6 +44,12 @@ impl<P: Puzzle> Solution<P> {
     #[must_use]
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Constructs a solution with only one segment.
+    #[must_use]
+    pub fn single_segment(name: String, moves: Algorithm<P>) -> Self {
+        Self::from_iter([Segment { name, moves }])
     }
 
     /// Each segment's moves and step name, in solving order.
@@ -80,13 +86,6 @@ impl<P: Puzzle> FromIterator<Self> for Solution<P> {
     }
 }
 
-impl<P: Puzzle> Default for Solution<P> {
-    fn default() -> Self {
-        Self {
-            step_solutions: Vec::<Segment<P>>::new(),
-        }
-    }
-}
 impl<'a, P: Puzzle> IntoIterator for &'a Solution<P> {
     type Item = &'a Segment<P>;
     type IntoIter = std::slice::Iter<'a, Segment<P>>;

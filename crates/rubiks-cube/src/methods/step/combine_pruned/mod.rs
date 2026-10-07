@@ -3,7 +3,7 @@ mod prune_table;
 pub use prune_table::PruneTable;
 use rayon::prelude::*;
 
-use crate::{AlgSet, Algorithm, Labeled, Marker, Puzzle, Segment, Solution, Step, StepError};
+use crate::{AlgSet, Algorithm, Labeled, Marker, Puzzle, Solution, Step, StepError};
 
 use std::{
     borrow::Cow,
@@ -208,10 +208,7 @@ impl<P: Puzzle> Step<P> for PrunedCombine<P> {
             }
         };
         *puzzle = puzzle.apply(&path);
-        Ok(Solution::from_iter([Segment {
-            moves: path,
-            name: self.name.to_string(),
-        }]))
+        Ok(Solution::single_segment(self.name.to_string(), path))
     }
 }
 

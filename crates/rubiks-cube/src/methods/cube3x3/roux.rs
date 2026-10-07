@@ -256,9 +256,9 @@ mod test {
             .iter()
             .next()
             .ok_or("the solution has no segments")?;
-        assert_eq!(fb_segment.name, "FB Square", "{solution}");
+        assert_eq!(fb_segment.name(), "FB Square", "{solution}");
         assert!(
-            fb_segment.moves.is_empty(),
+            fb_segment.moves().is_empty(),
             "the back square was already solved:\n{solution}"
         );
         Ok(())
@@ -279,11 +279,11 @@ mod test {
 
         let sb_segment = solution
             .iter()
-            .find(|segment| segment.name.starts_with("SB"))
+            .find(|segment| segment.name().starts_with("SB"))
             .ok_or("the solution has no SB segment")?;
-        assert_eq!(sb_segment.name, "SB Square", "{solution}");
+        assert_eq!(sb_segment.name(), "SB Square", "{solution}");
         assert!(
-            sb_segment.moves.is_empty(),
+            sb_segment.moves().is_empty(),
             "the back square was already solved:\n{solution}"
         );
         Ok(())

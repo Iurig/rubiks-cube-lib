@@ -2,8 +2,6 @@ pub mod facelets;
 pub mod moves;
 pub mod pieces;
 
-use std::ops::Neg;
-
 #[allow(
     clippy::wildcard_imports,
     reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
@@ -75,10 +73,8 @@ impl Puzzle for Cube3x3 {
             edges: EdgeConfiguration::random_state(&mut rng),
             ..Default::default()
         };
-        attempt.corners.orientation[0] =
-            attempt.corners.orientation[0] + attempt.corners.orientation_sum().neg();
-        attempt.edges.orientation[0] =
-            attempt.edges.orientation[0] + attempt.edges.orientation_sum().neg();
+        attempt.corners.orientation[0] -= attempt.corners.orientation_sum();
+        attempt.edges.orientation[0] -= attempt.edges.orientation_sum();
         if !(attempt.is_reachable()) {
             attempt.edges.permutation.swap(0, 1);
         }
@@ -360,8 +356,7 @@ mod tests {
         twisted.corners.orientation[Corner::Ufr as usize] = Zn::new(1);
         let after = twisted * r;
         let mut expected = r;
-        expected.corners.orientation[Corner::Ubr as usize] =
-            expected.corners.orientation[Corner::Ubr as usize] + Zn::new(1);
+        expected.corners.orientation[Corner::Ubr as usize] += Zn::new(1);
         assert_eq!(after, expected);
         Ok(())
     }

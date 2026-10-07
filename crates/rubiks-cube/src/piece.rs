@@ -119,7 +119,7 @@ where
     #[must_use]
     pub(crate) fn parity(&self) -> Zn<2> {
         let mut visited = Vec::new();
-        let mut par = Zn::new(0);
+        let mut par = Zn::ZERO;
         for p in self.permutation {
             if !visited.contains(&p) {
                 visited.push(p);
@@ -136,7 +136,7 @@ where
                         .get(index(*travel))
                         .expect("self.permutation must be a valid permutation");
                 }
-                par = par + Zn::new(cycle_size - 1);
+                par += Zn::new(cycle_size - 1);
             }
         }
         par
@@ -144,9 +144,7 @@ where
 
     #[must_use]
     pub(crate) fn orientation_sum(&self) -> Zn<O> {
-        self.orientation
-            .iter()
-            .fold(Zn::new(0), |prev, &next| prev + next)
+        self.orientation.iter().copied().sum()
     }
 
     /// Compose permutations done by `self` with `other`

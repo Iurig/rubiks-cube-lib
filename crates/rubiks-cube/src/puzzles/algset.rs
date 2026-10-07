@@ -36,7 +36,7 @@ use crate::{
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct AlgSet<P: Puzzle>(Arc<[Algorithm<P>]>);
 
-impl<'a, P: Puzzle> AlgSet<P> {
+impl<P: Puzzle> AlgSet<P> {
     /// Every sequence of either collection, each listed once.
     ///
     /// The order of the sequences is not kept, and a sequence in both collections, or twice in
@@ -52,15 +52,15 @@ impl<'a, P: Puzzle> AlgSet<P> {
     }
 
     /// Returns an iterator over [`Algorithm`]s.
-    pub fn iter(&'a self) -> std::slice::Iter<'a, Algorithm<P>> {
-        <&Self as IntoIterator>::into_iter(self)
+    pub fn iter(&self) -> std::slice::Iter<'_, Algorithm<P>> {
+        self.0.iter()
     }
 }
 
 impl<P: Puzzle> FromIterator<Algorithm<P>> for AlgSet<P> {
     fn from_iter<T: IntoIterator<Item = Algorithm<P>>>(iter: T) -> Self {
         let mut algs: Vec<Algorithm<P>> = iter.into_iter().collect();
-        algs.sort_unstable_by(|a, b| a.iter().cmp(b.iter()));
+        algs.sort_unstable();
         algs.dedup();
         Self(algs.into())
     }
