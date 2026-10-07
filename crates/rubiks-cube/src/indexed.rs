@@ -1,8 +1,14 @@
+/// Trait for types with few variants that are all accessible from a comprehensive array. So they
+/// can be iterated from, and a permutation can be expressed simply as another array.
 pub trait Indexed: Copy {
+    /// How many values the type can assume.
     const COUNT: usize;
+    /// Where the value is indexed in the comprehensive array.
     fn index(self) -> usize;
+    /// What value lives in a given index of the array.
     fn from_index(index: usize) -> Self;
 
+    /// Iterator over all values of the type.
     fn all() -> impl Iterator<Item = Self> + Clone {
         (0..Self::COUNT).map(Self::from_index)
     }
