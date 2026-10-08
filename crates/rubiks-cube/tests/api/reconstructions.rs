@@ -9,7 +9,7 @@ fn assert_reconstruction(scramble: &str, solution: &str) -> Result<(), Box<dyn E
         scrambled.is_reachable(),
         "scramble reached an unreachable state: {scrambled:?}"
     );
-    let finished = scrambled.move_sequence(solution)?;
+    let finished = scrambled.apply_moves(solution)?;
     assert!(finished.is_reachable());
     assert!(finished.is_solved(), "not solved: {finished:?}");
     Ok(())
@@ -33,7 +33,7 @@ fn composition_works_on_fmc_wr() -> Result<(), Box<dyn Error>> {
     let scramble = Cube3x3::from_moves(scramble_string)?;
     assert_eq!(
         Cube3x3::from_moves(&format!("{scramble_string} {solution_string}"))?,
-        scramble.move_sequence(solution_string)?,
+        scramble.apply_moves(solution_string)?,
         "composing {scramble_string} and {solution_string} doesn't result in applying {scramble_string} {solution_string}"
     );
     Ok(())

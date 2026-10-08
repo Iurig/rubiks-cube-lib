@@ -1,11 +1,15 @@
-use std::fmt::{self, Display};
+use std::{
+    fmt::{self, Display},
+    str::FromStr,
+};
 
-use crate::{Inv, Puzzle};
+use crate::{Inv, ParseSequenceError, Puzzle};
 
 /// A sequence of moves applied in order, such as an algorithm or a step's solution.
 ///
 /// It prints as its moves separated by spaces, in the crate's notation, so what it prints reads
-/// back as the same moves.
+/// back as the same moves. It implements [`FromStr`], which parses ignoring line comments written
+/// with `//`, as well as empty lines.
 ///
 /// ```no_run
 /// use rubiks_cube::{Algorithm, Cube3x3, Inv, Solution};
@@ -21,6 +25,28 @@ use crate::{Inv, Puzzle};
 /// ```
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct Algorithm<P: Puzzle>(Vec<P::Move>);
+
+impl<P: Puzzle> FromStr for Algorithm<P> {
+    type Err = ParseSequenceError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.lines()
+            .enumerate()
+            .flat_map(|(line_index, line)| {
+                let moves = line.split_once("//").map_or(line, |(moves, _)| moves);
+                moves
+                    .split_whitespace()
+                    .enumerate()
+                    .map(move |(move_index, m)| {
+                        P::Move::from_str(m).map_err(|e| ParseSequenceError {
+                            source: e,
+                            line: line_index + 1,
+                            position: move_index + 1,
+                        })
+                    })
+            })
+            .collect()
+    }
+}
 
 impl<P: Puzzle> Algorithm<P> {
     /// An algorithm with no moves.
@@ -124,14 +150,13 @@ impl<'a, P: Puzzle> IntoIterator for &'a Algorithm<P> {
 mod test {
     use std::error::Error;
 
-    use crate::{Cube3x3, puzzles::cube3x3::moves::Move3x3};
+    use crate::Cube3x3;
 
     use super::*;
 
     #[test]
     fn algorithm_into_iter_and_iter_agree() -> Result<(), Box<dyn Error>> {
-        let alg = Move3x3::sequence("R U R' U' R' F R2 U' R' U' R U R' F'")
-            .collect::<Result<Algorithm<Cube3x3>, _>>()?;
+        let alg: Algorithm<Cube3x3> = "R U R' U' R' F R2 U' R' U' R U R' F'".parse()?;
         let alg_vec_2 = alg.iter().copied().collect::<Vec<_>>();
         let alg_vec_1 = alg.into_iter().collect::<Vec<_>>();
         assert_eq!(alg_vec_1, alg_vec_2);

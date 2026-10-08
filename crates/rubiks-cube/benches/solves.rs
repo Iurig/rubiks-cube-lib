@@ -108,7 +108,7 @@ fn bench(roux: Roux, seed: u64) -> Result<(), Box<dyn Error>> {
         let t = Instant::now();
         let (solution, measured) = solve_measured(roux, &mut cube)?;
         let elapsed = t.elapsed();
-        if !scrambled.move_sequence(&solution.to_string())?.is_solved() {
+        if !scrambled.apply_moves(&solution.to_string())?.is_solved() {
             return Err(format!("solve {i} does not solve its scramble").into());
         }
         if i == 0 {

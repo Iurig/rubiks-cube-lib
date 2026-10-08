@@ -138,14 +138,6 @@ macro_rules! chain_steps {
 }
 pub(crate) use chain_steps;
 
-macro_rules! parse {
-    ($moves: literal) => {
-        <Cube3x3 as Puzzle>::Move::sequence($moves)
-            .map(|m| m.expect("manually typed move sequences should always parse"))
-            .collect::<Algorithm<Cube3x3>>()
-    };
-}
-
 #[derive(Debug, Default)]
 pub struct LastLayer {
     pub name: Cow<'static, str>,
@@ -171,8 +163,14 @@ const LL_EDGES: [Piece3x3; 4] = {
     ]
 };
 
-static AUF: LazyLock<[Algorithm<Cube3x3>; 4]> =
-    LazyLock::new(|| [parse!(""), parse!("U"), parse!("U2"), parse!("U'")]);
+static AUF: LazyLock<[Algorithm<Cube3x3>; 4]> = LazyLock::new(|| {
+    [
+        "".parse().expect("manually typed"),
+        "U".parse().expect("manually typed"),
+        "U2".parse().expect("manually typed"),
+        "U'".parse().expect("manually typed"),
+    ]
+});
 
 fn aufs() -> &'static [Algorithm<Cube3x3>; 4] {
     &AUF

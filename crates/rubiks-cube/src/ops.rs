@@ -89,16 +89,13 @@ pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
 )]
 mod tests {
     use super::*;
-    use crate::{Algorithm, Cube3x3, ParseSequenceError, Puzzle, puzzles::cube3x3::moves::Move3x3};
+    use crate::{Algorithm, Cube3x3, Puzzle};
     use std::error::Error;
-
-    fn algorithm(text: &str) -> Result<Algorithm<Cube3x3>, ParseSequenceError> {
-        Move3x3::sequence(text).collect()
-    }
 
     #[test]
     fn algorithm_inverse_reverses_and_inverts_each_move() -> Result<(), Box<dyn Error>> {
-        assert_eq!(algorithm("R U R' F2")?.inverse(), algorithm("F2' R U' R'")?);
+        let alg: Algorithm<Cube3x3> = "R U R' F2".parse()?;
+        assert_eq!(alg.inverse(), "F2' R U' R'".parse()?);
         Ok(())
     }
 
@@ -109,14 +106,14 @@ mod tests {
 
     #[test]
     fn inverting_an_algorithm_twice_gives_it_back() -> Result<(), Box<dyn Error>> {
-        let alg = algorithm("r U' M2 x E' Fw2 D")?;
+        let alg: Algorithm<Cube3x3> = "r U' M2 x E' Fw2 D".parse()?;
         assert_eq!(alg.inverse().inverse(), alg);
         Ok(())
     }
 
     #[test]
     fn algorithm_then_its_inverse_returns_to_the_start() -> Result<(), Box<dyn Error>> {
-        let alg = algorithm("R U R' U' R' F R2 U' R' U' R U R' F'")?;
+        let alg: Algorithm<Cube3x3> = "R U R' U' R' F R2 U' R' U' R U R' F'".parse()?;
         for seed in 0..20 {
             let start = Cube3x3::scrambled_with_seed(seed);
             let end = alg

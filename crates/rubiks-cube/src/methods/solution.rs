@@ -1,6 +1,6 @@
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
-use crate::{Algorithm, puzzles::Puzzle};
+use crate::{Algorithm, ParseSequenceError, puzzles::Puzzle};
 
 /// The moves a method found, as one segment per step, in solving order.
 ///
@@ -24,6 +24,30 @@ pub struct Solution<P: Puzzle> {
 pub struct Segment<P: Puzzle> {
     name: String,
     moves: Algorithm<P>,
+}
+
+impl<P: Puzzle> FromStr for Solution<P> {
+    type Err = ParseSequenceError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.lines()
+            .enumerate()
+            .filter_map(|(count, line)| {
+                (!line.chars().all(char::is_whitespace))
+                    .then_some(line.parse::<Segment<P>>().map_err(|e| e.on_line(count)))
+            })
+            .collect()
+    }
+}
+
+impl<P: Puzzle> FromStr for Segment<P> {
+    type Err = ParseSequenceError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let split_comment = s.split_once("//").unwrap_or((s, ""));
+        Ok(Self {
+            name: split_comment.1.trim().to_owned(),
+            moves: split_comment.0.parse()?,
+        })
+    }
 }
 
 impl<P: Puzzle> Segment<P> {
@@ -126,34 +150,22 @@ mod tests {
 
     use std::error::Error;
 
-    use crate::{Cube3x3, ParseSequenceError, puzzles::cube3x3::moves::Move3x3};
+    use crate::Cube3x3;
 
     use super::*;
 
     #[test]
     fn move_count_counts_correctly() -> Result<(), Box<dyn Error>> {
-        let s: Solution<Cube3x3> = Solution::from_iter([Segment {
-            moves: Move3x3::sequence("y U2 r M'")
-                .collect::<Result<Algorithm<Cube3x3>, ParseSequenceError>>()?,
-            name: "Step 1".to_string(),
-        }]);
+        let s: Solution<Cube3x3> = "y U2 r M' // Step 1".parse()?;
+
         assert_eq!(s.move_count(), 4);
         Ok(())
-    }
-
-    fn segment(moves: &str, name: &str) -> Result<Segment<Cube3x3>, ParseSequenceError> {
-        Ok(Segment {
-            moves: Move3x3::sequence(moves).collect::<Result<_, _>>()?,
-            name: name.to_string(),
-        })
     }
 
     #[test]
     fn borrowed_and_owned_iteration_yield_the_same_segments_in_order() -> Result<(), Box<dyn Error>>
     {
-        let solution: Solution<Cube3x3> = [segment("R U", "First")?, segment("M'", "Second")?]
-            .into_iter()
-            .collect();
+        let solution: Solution<Cube3x3> = "R U // First \n M' // Second".parse()?;
 
         let mut borrowed = Vec::new();
         for segment in &solution {
@@ -172,9 +184,9 @@ mod tests {
 
     #[test]
     fn extend_appends_segments_after_the_existing_ones() -> Result<(), Box<dyn Error>> {
-        let mut solution: Solution<Cube3x3> = Solution::from_iter([segment("R", "First")?]);
+        let mut solution: Solution<Cube3x3> = "R // First".parse()?;
 
-        solution.extend([segment("U2", "Second")?, segment("F' L", "Third")?]);
+        solution.extend("U2 // Second\nF' L // Third".parse::<Solution<Cube3x3>>()?);
 
         let names: Vec<&str> = solution.iter().map(Segment::name).collect();
         assert_eq!(names, ["First", "Second", "Third"]);

@@ -8,9 +8,9 @@ pub mod pieces;
 )]
 use self::{moves::*, pieces::*};
 
-use crate::ParseSequenceError;
-use crate::{Algorithm, Indexed, Method, Piece, SolveError, methods::cube3x3::kociemba::Kociemba};
 use crate::{
+    Algorithm, Indexed, Method, ParseSequenceError, Piece, SolveError,
+    methods::cube3x3::kociemba::Kociemba,
     ops::{Inv, Pow},
     puzzles::Puzzle,
     zn::Zn,
@@ -183,17 +183,17 @@ impl Cube3x3 {
     /// Errors when a whitespace separated &str outside of comments is not parseable
     /// as a move; the error names that &str and its line and position, both counted
     /// from 1, using the type [`ParseSequenceError`]
-    pub fn move_sequence(&self, moves: &str) -> Result<Self, ParseSequenceError> {
-        Move3x3::sequence(moves).try_fold(*self, |cube, m| Ok(cube * Self::from(m?)))
+    pub fn apply_moves(&self, moves: &str) -> Result<Self, ParseSequenceError> {
+        Ok(self.apply(&moves.parse()?))
     }
 
     /// Applies a move sequence to the solved cube.
     ///
     /// # Errors
     ///
-    /// Same as [`Self::move_sequence`].
+    /// Same as [`Self::apply_moves`].
     pub fn from_moves(m: &str) -> Result<Self, ParseSequenceError> {
-        Self::default().move_sequence(m)
+        Self::default().apply_moves(m)
     }
 
     fn rotated_until_solved_centers(&self) -> Option<Self> {

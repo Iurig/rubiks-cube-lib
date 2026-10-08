@@ -39,7 +39,7 @@ fn every_roux_option_combination_solves() -> Result<(), Box<dyn Error>> {
                         .map_err(|e| format!("{described}, scramble {i}: {e}"))?
                         .to_string();
                     assert!(
-                        scrambled.move_sequence(&recon)?.is_solved(),
+                        scrambled.apply_moves(&recon)?.is_solved(),
                         "{described} did not solve scramble {i}:\n{scrambled}\n{recon}"
                     );
                 }

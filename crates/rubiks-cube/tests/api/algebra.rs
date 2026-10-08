@@ -115,12 +115,12 @@ fn random_words_stay_reachable_and_undo_cleanly() -> Result<(), Box<dyn Error>> 
 
         let mut cube = Cube3x3::default();
         for token in forward.split(' ') {
-            cube = cube.move_sequence(token)?;
+            cube = cube.apply_moves(token)?;
             assert!(cube.is_reachable(), "unreachable somewhere in {forward}");
         }
         assert_eq!(Cube3x3::from_moves(&forward)?, cube);
         assert!(
-            cube.move_sequence(&backward)?.is_solved(),
+            cube.apply_moves(&backward)?.is_solved(),
             "{forward} then {backward} should be solved"
         );
         assert_eq!(cube * cube.inverse(), Cube3x3::default());

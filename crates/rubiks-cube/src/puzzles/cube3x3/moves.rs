@@ -2,6 +2,7 @@ mod table;
 
 use std::str::FromStr;
 
+use crate::ParseMoveError;
 #[allow(
     clippy::wildcard_imports,
     reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
@@ -10,7 +11,6 @@ use crate::{
     Indexed, Piece, ops,
     puzzles::cube3x3::{Cube3x3, pieces::*},
 };
-use crate::{ParseMoveError, ParseSequenceError};
 
 use table::cube_state;
 
@@ -254,30 +254,6 @@ impl FromStr for Move3x3 {
     }
 }
 
-impl Move3x3 {
-    /// Every move in a move sequence, in order.
-    ///
-    /// `//` starts a comment that runs to the end of the line, whitespace
-    /// separates moves, and each token is parsed with [`FromStr`]. A
-    /// sequence with no moves in it, such as an empty string or a comment on
-    /// its own, yields nothing.
-    pub fn sequence(text: &str) -> impl Iterator<Item = Result<Self, ParseSequenceError>> {
-        text.lines().enumerate().flat_map(|(line_number, line)| {
-            line.split_once("//")
-                .map_or(line, |(moves, _)| moves)
-                .split_whitespace()
-                .enumerate()
-                .map(move |(move_number, m)| {
-                    Self::from_str(m).map_err(|e| ParseSequenceError {
-                        source: e,
-                        line: line_number + 1,
-                        position: move_number + 1,
-                    })
-                })
-        })
-    }
-}
-
 impl From<Move3x3> for Cube3x3 {
     fn from(m: Move3x3) -> Self {
         cube_state(m.part, m.modifier)
@@ -293,7 +269,7 @@ mod tests {
     //! `Move3x3::ALL` lists every move independently of `Indexed`, so tests can check one
     //! against the other.
     use super::*;
-    use crate::indexed::assert_round_trips;
+    use crate::{Algorithm, ParseSequenceError, indexed::assert_round_trips};
     use std::error::Error;
 
     impl Move3x3 {
@@ -334,41 +310,42 @@ mod tests {
         }
     }
 
-    fn moves_of(text: &str) -> Result<Vec<Move3x3>, ParseSequenceError> {
-        Move3x3::sequence(text).collect()
-    }
-
     #[test]
     fn comments_run_to_end_of_line() -> Result<(), Box<dyn Error>> {
-        assert_eq!(moves_of("R U //this is a comment")?, moves_of("R U")?);
         assert_eq!(
-            moves_of(
-                "y2 F' M F' R U' R U' Fw z' // FB
+            "R U //this is a comment".parse::<Algorithm<Cube3x3>>()?,
+            "R U".parse()?
+        );
+        assert_eq!(
+            "y2 F' M F' R U' R U' Fw z' // FB
                  U R U r M' U' R U2' R' // SS
                  U R' U' R U' R' U' r // SP (CMLL skip)
                  U M' U' M U' U' M' U M // EOLR
                  U' U' M2' U' M U' U' M' U' U' M2' // EP"
-            )?,
-            moves_of(
-                "y2 F' M F' R U' R U' Fw z'
+                .parse::<Algorithm<Cube3x3>>()?,
+            "y2 F' M F' R U' R U' Fw z'
                  U R U r M' U' R U2' R'
                  U R' U' R U' R' U' r
                  U M' U' M U' U' M' U M
                  U' U' M2' U' M U' U' M' U' U' M2'"
-            )?
+                .parse()?
         );
         Ok(())
     }
 
     #[test]
-    #[expect(
-        clippy::assert_is_empty,
-        reason = "is_empty reads better because of type conversion"
-    )]
     fn empty_and_comment_only_sequences_have_no_moves() -> Result<(), Box<dyn Error>> {
-        assert!(moves_of("")?.is_empty());
-        assert!(moves_of("// just a comment")?.is_empty());
-        assert!(moves_of("  \n\t// one\n// two\n")?.is_empty());
+        assert!("".parse::<Algorithm<Cube3x3>>()?.is_empty());
+        assert!(
+            "// just a comment"
+                .parse::<Algorithm<Cube3x3>>()?
+                .is_empty()
+        );
+        assert!(
+            "  \n\t// one\n// two\n"
+                .parse::<Algorithm<Cube3x3>>()?
+                .is_empty()
+        );
         Ok(())
     }
 
@@ -449,7 +426,7 @@ mod tests {
             assert_eq!(Move3x3::from_str(bad), Err(expected_err));
         }
         assert_eq!(
-            moves_of("R Q U"),
+            "R Q U".parse::<Algorithm<Cube3x3>>(),
             Err(ParseSequenceError {
                 source: ParseMoveError::BadPart {
                     invalid_move: "Q".to_string(),

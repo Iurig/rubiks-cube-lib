@@ -2,9 +2,10 @@ use std::{
     fmt::{Debug, Display},
     hash::Hash,
     ops::{Add, Mul},
+    str::FromStr,
 };
 
-use crate::{Algorithm, SolveError, indexed::Indexed};
+use crate::{Algorithm, ParseMoveError, SolveError, indexed::Indexed};
 
 pub mod algorithm;
 pub mod algset;
@@ -54,7 +55,8 @@ pub trait Puzzle:
         + Send
         + Sync
         + Hash
-        + Indexed;
+        + Indexed
+        + FromStr<Err = ParseMoveError>;
 
     /// The slot where `piece` sits now.
     fn slot_of(&self, piece: Self::Piece) -> Self::Piece;

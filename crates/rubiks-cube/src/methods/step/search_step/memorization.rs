@@ -140,7 +140,6 @@ mod tests {
     use super::*;
     use crate::*;
     use fastrand::Rng;
-    use puzzles::cube3x3::moves::Move3x3;
 
     #[test]
     fn applying_mask_matches_filtering_through() {
@@ -162,17 +161,10 @@ mod tests {
         }
     }
 
-    fn moves(text: &str) -> Algorithm<Cube3x3> {
-        Move3x3::sequence(text).map(Result::unwrap).collect()
-    }
-
     /// A memo over the whole cube, searched with R and U moves only.
     fn r_u_memo(depth: usize) -> (BfsMemo<Cube3x3>, PieceSet<Cube3x3>) {
         let goal = PieceSet::<Cube3x3>::from_pieces(Piece3x3::all());
-        let allowed = vec!["R", "R'", "R2", "U", "U'", "U2"]
-            .into_iter()
-            .map(moves)
-            .collect();
+        let allowed = AlgSet::from_moves("R R' R2 U U' U2").unwrap();
         let mut memo = BfsMemo::new(goal.clone());
         memo.search_to(depth, &allowed, &AlgSet::new());
         (memo, goal)
@@ -184,7 +176,7 @@ mod tests {
         let r = Cube3x3::from_moves("R").unwrap();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&r, &goal)),
-            Some(&moves("R'"))
+            Some(&"R'".parse().unwrap())
         );
     }
 
@@ -194,7 +186,7 @@ mod tests {
         let r_u = Cube3x3::from_moves("R U").unwrap();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&r_u, &goal)),
-            Some(&moves("U' R'"))
+            Some(&"U' R'".parse().unwrap())
         );
     }
 
@@ -202,13 +194,13 @@ mod tests {
     #[test]
     fn memo_keys_match_forward_masks_after_a_piece_leaves_home() {
         let goal = PieceSet::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Fr)]);
-        let allowed = [moves("R'"), moves("U'")].into_iter().collect();
+        let allowed = AlgSet::from_moves("R' U'").unwrap();
         let mut memo = BfsMemo::new(goal.clone());
         memo.search_to(1, &allowed, &AlgSet::new());
         let r_u = Cube3x3::from_moves("R U").unwrap();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&r_u, &goal)),
-            Some(&moves("U' R'"))
+            Some(&"U' R'".parse().unwrap())
         );
     }
 
@@ -217,13 +209,13 @@ mod tests {
     fn memo_solutions_use_the_allowed_sequences_as_written() {
         let goal = PieceSet::<Cube3x3>::from_pieces(Piece3x3::all());
         let sune = "R U R' U R U2 R'";
-        let allowed = std::iter::once(moves(sune)).collect();
+        let allowed = AlgSet::from_algs_in_str(sune).unwrap();
         let mut memo = BfsMemo::new(goal.clone());
         memo.search_to(0, &allowed, &AlgSet::new());
         let before_sune = Cube3x3::from_moves(sune).unwrap().inverse();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&before_sune, &goal)),
-            Some(&moves(sune))
+            Some(&sune.parse().unwrap())
         );
     }
 
@@ -233,14 +225,14 @@ mod tests {
     #[test]
     fn free_sequences_are_closed_before_costly_ones_claim_their_states() {
         let goal = PieceSet::<Cube3x3>::from_pieces(Piece3x3::all());
-        let allowed = [moves("U"), moves("R")].into_iter().collect();
-        let free = std::iter::once(moves("U")).collect();
+        let allowed = AlgSet::from_moves("U R").unwrap();
+        let free = AlgSet::from_moves("U").unwrap();
         let mut memo = BfsMemo::new(goal.clone());
         memo.search_to(0, &allowed, &free);
         let before_r_u = Cube3x3::from_moves("R U").unwrap().inverse();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&before_r_u, &goal)),
-            Some(&moves("R U"))
+            Some(&"R U".parse().unwrap())
         );
     }
 
@@ -265,7 +257,7 @@ mod tests {
         let u = Cube3x3::from_moves("U").unwrap();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&u, &goal)),
-            Some(&moves("U'"))
+            Some(&"U'".parse().unwrap())
         );
     }
 
@@ -311,7 +303,7 @@ mod tests {
                 PieceSet::<Cube3x3>::filter_by_piece(&cube, &fb_filter)
             );
         }
-        cube = cube.move_sequence("L").unwrap();
+        cube = cube.apply_moves("L").unwrap();
 
         assert_ne!(
             fb_filter,

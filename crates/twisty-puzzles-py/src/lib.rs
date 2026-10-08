@@ -27,7 +27,7 @@ mod twisty_puzzles_py {
         fn apply(&mut self, moves: &str) -> PyResult<()> {
             self.0 = self
                 .0
-                .move_sequence(moves)
+                .apply_moves(moves)
                 .map_err(|e| PyValueError::new_err(e.to_string()))?;
 
             Ok(())

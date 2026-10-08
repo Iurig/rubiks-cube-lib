@@ -186,7 +186,7 @@ fn adjacent_face_sequence_has_constant_and_correct_period() -> Result<(), Box<dy
     for p in adjacent_face_pairs {
         let mut c = Cube3x3::default();
         for _ in 1..period {
-            c = c.move_sequence(p.0)?.move_sequence(p.1)?;
+            c = c.apply_moves(p.0)?.apply_moves(p.1)?;
             assert!(
                 !c.is_solved(),
                 "the period hasn't arrived for {} {}",
@@ -194,7 +194,7 @@ fn adjacent_face_sequence_has_constant_and_correct_period() -> Result<(), Box<dy
                 p.1
             );
         }
-        c = c.move_sequence(p.0)?.move_sequence(p.1)?;
+        c = c.apply_moves(p.0)?.apply_moves(p.1)?;
         assert!(
             c.is_solved(),
             "the period should've arrived for {} {}",
@@ -225,7 +225,7 @@ fn slice_face_has_constant_and_correct_period() -> Result<(), Box<dyn Error>> {
     for p in pairs {
         let mut c = Cube3x3::default();
         for i in 1..period {
-            c = c.move_sequence(p.0)?.move_sequence(p.1)?;
+            c = c.apply_moves(p.0)?.apply_moves(p.1)?;
             assert!(
                 !c.is_solved(),
                 "the period shouldn't have arrived for ({} {})^{i}",
@@ -233,7 +233,7 @@ fn slice_face_has_constant_and_correct_period() -> Result<(), Box<dyn Error>> {
                 p.1
             );
         }
-        c = c.move_sequence(p.0)?.move_sequence(p.1)?;
+        c = c.apply_moves(p.0)?.apply_moves(p.1)?;
         assert!(
             c.is_solved(),
             "the period should've arrived for {} {}",

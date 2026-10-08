@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     assert!(Cube3x3::from_moves("R U R' U'")?.pow(6).is_solved());
 
     // Chain moves onto an existing state
-    let cube = Cube3x3::IDENTITY.move_sequence("R U")?.move_sequence("R' U'")?;
+    let cube = Cube3x3::IDENTITY.apply_moves("R U")?.apply_moves("R' U'")?;
     assert_eq!(cube, Cube3x3::from_moves("R U R' U'")?);
 
     // Unknown tokens are errors, not panics
@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     assert!(cube.is_solved());
 
     // A printed solution is notation, so the scramble followed by it replays to solved.
-    let replayed = Cube3x3::from_moves(scramble)?.move_sequence(&solution.to_string())?;
+    let replayed = Cube3x3::from_moves(scramble)?.apply_moves(&solution.to_string())?;
     assert!(replayed.is_solved());
 
     // The same solve, one step per `next()`.
@@ -179,7 +179,7 @@ cargo doc --open
 
 The main entry points:
 
-- **`Cube3x3`** is a cube state. `from_moves` and `move_sequence` apply notation, `*` composes
+- **`Cube3x3`** is a cube state. `from_moves` and `apply_moves` apply notation, `*` composes
   states, and `corners()`, `edges()`, and `centers()` give the pieces for queries such as
   `piece_at`.
 - **`Puzzle`** is the trait the solver works through. Import it to call `is_solved` or

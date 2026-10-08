@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
+use itertools::Itertools;
+
 use crate::{
     Algorithm, Cube3x3, Indexed, ParseSequenceError, Puzzle,
-    fast_hash::FxSet,
-    puzzles::cube3x3::moves::{MovablePart, Move3x3, MoveModifier},
+    puzzles::cube3x3::moves::{Move3x3, MoveModifier},
 };
 
 /// A collection of move sequences, each applied as one unit: a single move, or a whole algorithm.
@@ -90,13 +91,11 @@ impl AlgSet<Cube3x3> {
     /// # Errors
     /// If `text` contains an invalid move.
     pub fn from_parts(text: &str) -> Result<Self, ParseSequenceError> {
-        Ok(Move3x3::sequence(text)
-            .try_fold(FxSet::<MovablePart>::default(), |mut parts, m| {
-                let part = m?.part;
-                parts.insert(part);
-                Ok(parts)
-            })?
-            .into_iter()
+        Ok(text
+            .parse::<Algorithm<Cube3x3>>()?
+            .iter()
+            .map(|m| m.part)
+            .unique()
             .flat_map(|part| {
                 [
                     MoveModifier::Clockwise,
@@ -118,8 +117,7 @@ impl AlgSet<Cube3x3> {
         text.lines()
             .enumerate()
             .filter_map(|(line_number, line)| {
-                Move3x3::sequence(line)
-                    .collect::<Result<Algorithm<Cube3x3>, _>>()
+                line.parse::<Algorithm<Cube3x3>>()
                     .map(|moves| (!moves.is_empty()).then_some(moves))
                     .map_err(|e| e.on_line(line_number + 1))
                     .transpose()
@@ -134,9 +132,11 @@ impl AlgSet<Cube3x3> {
     /// # Errors
     /// If `text` contains an invalid move.
     pub fn from_moves(text: &str) -> Result<Self, ParseSequenceError> {
-        Move3x3::sequence(text)
-            .map(|m| m.map(|m| Algorithm::from_iter([m])))
-            .collect()
+        Ok(text
+            .parse::<Algorithm<Cube3x3>>()?
+            .iter()
+            .map(|&m| Algorithm::from_iter([m]))
+            .collect())
     }
 
     /// Adds an empty [`Algorithm`] to an [`AlgSet`].
@@ -153,6 +153,8 @@ impl AlgSet<Cube3x3> {
 )]
 mod tests {
     use std::error::Error;
+
+    use crate::fast_hash::FxSet;
 
     use super::*;
 
@@ -214,8 +216,9 @@ mod tests {
 
     #[test]
     fn from_moves_removes_duplicates() -> Result<(), Box<dyn Error>> {
-        let expected: FxSet<Algorithm<Cube3x3>> = Move3x3::sequence("U U2 U'")
-            .map(|m| m.map(|m| Algorithm::from_iter([m])))
+        let expected: FxSet<Algorithm<Cube3x3>> = ["U", "U2", "U'"]
+            .into_iter()
+            .map(str::parse)
             .collect::<Result<_, _>>()?;
 
         let algset = AlgSet::<Cube3x3>::from_moves("U U2 U' U")?;

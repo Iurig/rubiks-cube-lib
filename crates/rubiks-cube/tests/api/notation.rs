@@ -6,10 +6,10 @@ fn multiple_moves_break_down_correctly() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         Cube3x3::from_moves("R U R' U'")?,
         Cube3x3::default()
-            .move_sequence("R")?
-            .move_sequence("U")?
-            .move_sequence("R'")?
-            .move_sequence("U'")?
+            .apply_moves("R")?
+            .apply_moves("U")?
+            .apply_moves("R'")?
+            .apply_moves("U'")?
     );
     Ok(())
 }
@@ -88,8 +88,8 @@ fn r_prime_is_inverse_of_r() -> Result<(), Box<dyn Error>> {
 #[test]
 fn sequences_without_moves_leave_the_cube_unchanged() -> Result<(), Box<dyn Error>> {
     let cube = Cube3x3::from_moves("R U")?;
-    assert_eq!(cube.move_sequence("")?, cube);
-    assert_eq!(cube.move_sequence("// nothing here")?, cube);
+    assert_eq!(cube.apply_moves("")?, cube);
+    assert_eq!(cube.apply_moves("// nothing here")?, cube);
     assert_eq!(
         Cube3x3::from_moves("\n  // only comments\n")?,
         Cube3x3::default()
