@@ -30,7 +30,7 @@ fn every_move_acts_on_any_state_as_it_acts_on_the_solved_state() {
 
 #[test]
 fn identity_is_two_sided() -> Result<(), Box<dyn Error>> {
-    let r = Cube3x3::from_solved("R")?;
+    let r = Cube3x3::from_moves("R")?;
     assert_eq!(Cube3x3::default() * r, r);
     assert_eq!(r * Cube3x3::default(), r);
     Ok(())
@@ -38,17 +38,14 @@ fn identity_is_two_sided() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn pow_0_gives_identity_cube() -> Result<(), Box<dyn Error>> {
-    assert_eq!(
-        Cube3x3::from_solved("R U R' U'")?.pow(0),
-        Cube3x3::default()
-    );
+    assert_eq!(Cube3x3::from_moves("R U R' U'")?.pow(0), Cube3x3::default());
     Ok(())
 }
 
 #[test]
 fn pow_finishes_correctly_for_large_exponent() -> Result<(), Box<dyn Error>> {
     let large_u32 = u32::MAX - 2;
-    let r = Cube3x3::from_solved("R")?;
+    let r = Cube3x3::from_moves("R")?;
     assert_eq!(large_u32 % 4, 1);
     assert_eq!(r.pow(large_u32), r);
     Ok(())
@@ -57,7 +54,7 @@ fn pow_finishes_correctly_for_large_exponent() -> Result<(), Box<dyn Error>> {
 #[test]
 fn move_inverse_is_move_cubed() -> Result<(), Box<dyn Error>> {
     for m in IMPLEMENTED_MOVES {
-        let cube = Cube3x3::from_solved(m)?;
+        let cube = Cube3x3::from_moves(m)?;
         assert_eq!(cube.inverse(), cube.pow(3));
     }
     Ok(())
@@ -66,7 +63,7 @@ fn move_inverse_is_move_cubed() -> Result<(), Box<dyn Error>> {
 #[test]
 fn inverse_is_an_involution() -> Result<(), Box<dyn Error>> {
     for m in IMPLEMENTED_MOVES {
-        let cube = Cube3x3::from_solved(m)?;
+        let cube = Cube3x3::from_moves(m)?;
         assert_eq!(cube.inverse().inverse(), cube);
     }
     assert_eq!(Cube3x3::default().inverse(), Cube3x3::default());
@@ -75,17 +72,17 @@ fn inverse_is_an_involution() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn mul_is_associative() -> Result<(), Box<dyn Error>> {
-    let a = Cube3x3::from_solved("R")?;
-    let b = Cube3x3::from_solved("U2 L")?.pow(2);
-    let c = Cube3x3::from_solved("y")?.inverse();
+    let a = Cube3x3::from_moves("R")?;
+    let b = Cube3x3::from_moves("U2 L")?.pow(2);
+    let c = Cube3x3::from_moves("y")?.inverse();
     assert_eq!((a * b) * c, a * (b * c));
     Ok(())
 }
 
 #[test]
 fn inverse_of_product_reverses_order() -> Result<(), Box<dyn Error>> {
-    let a = Cube3x3::from_solved("U")?.pow(1);
-    let b = Cube3x3::from_solved("R")?.pow(2);
+    let a = Cube3x3::from_moves("U")?.pow(1);
+    let b = Cube3x3::from_moves("R")?.pow(2);
     assert_eq!((a * b).inverse(), b.inverse() * a.inverse());
     assert_ne!((a * b).inverse(), a.inverse() * b.inverse());
     Ok(())
@@ -121,7 +118,7 @@ fn random_words_stay_reachable_and_undo_cleanly() -> Result<(), Box<dyn Error>> 
             cube = cube.move_sequence(token)?;
             assert!(cube.is_reachable(), "unreachable somewhere in {forward}");
         }
-        assert_eq!(Cube3x3::from_solved(&forward)?, cube);
+        assert_eq!(Cube3x3::from_moves(&forward)?, cube);
         assert!(
             cube.move_sequence(&backward)?.is_solved(),
             "{forward} then {backward} should be solved"

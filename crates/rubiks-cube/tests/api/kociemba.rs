@@ -2,8 +2,6 @@
 //! unit tests: a broken hash then fails the fast unit tests first, and cargo stops before any
 //! table is built.
 
-use std::sync::Arc;
-
 use rubiks_cube::zn::Zn;
 use rubiks_cube::*;
 
@@ -17,9 +15,8 @@ const RIM: [Piece3x3; 4] = [
 
 /// The step of `Kociemba` called `name`.
 #[expect(clippy::panic, reason = "a test helper: a missing step fails the test")]
-fn phase(name: &str) -> Arc<dyn Step<Cube3x3>> {
-    Kociemba
-        .to_technique()
+fn phase<'a>(technique: &'a Technique<Cube3x3>, name: &str) -> &'a dyn Step<Cube3x3> {
+    technique
         .steps()
         .find(|step| step.name() == name)
         .unwrap_or_else(|| panic!("kociemba has no step called {name}"))
@@ -34,7 +31,7 @@ fn in_domino_subgroup(puzzle: &Cube3x3) -> bool {
         && Piece3x3::all()
             .filter(|p| matches!(p, Piece3x3::Edge(_)))
             .all(|slot| puzzle.orientation_at(slot) == Orientation3x3::Flip(Zn::ZERO))
-        && RIM.iter().all(|&p| RIM.contains(&puzzle.piece_location(p)))
+        && RIM.iter().all(|&p| RIM.contains(&puzzle.slot_of(p)))
 }
 
 /// The moves of `solution`, all segments in order, applied to `start`.
@@ -50,7 +47,7 @@ fn replay(start: &Cube3x3, solution: &Solution<Cube3x3>) -> Cube3x3 {
 fn phase_1_solves() {
     let _ = env_logger::builder().is_test(true).try_init();
     let mut cube = Cube3x3::apply_scramble_with_seed(0);
-    let solution = phase("Phase 1").solve(&mut cube);
+    let solution = phase(&Kociemba.to_technique(), "Phase 1").solve(&mut cube);
     dbg!(&solution);
     match solution {
         Ok(s) => println!("{s}"),
@@ -63,7 +60,9 @@ fn phase_1_solves() {
 #[test]
 fn phase_2_leaves_a_solved_cube_alone() {
     let mut cube = Cube3x3::default();
-    let solution = phase("Phase 2").solve(&mut cube).unwrap();
+    let solution = phase(&Kociemba.to_technique(), "Phase 2")
+        .solve(&mut cube)
+        .unwrap();
     assert_eq!(solution.move_count(), 0);
     assert_eq!(cube, Cube3x3::default());
 }
@@ -72,9 +71,11 @@ fn phase_2_leaves_a_solved_cube_alone() {
 /// the sequence that made the state.
 #[test]
 fn phase_2_solves_a_domino_state_in_at_most_its_length() {
-    let start = Cube3x3::from_solved("R2 U F2 D' L2 U2 B2 D R2 U'").unwrap();
+    let start = Cube3x3::from_moves("R2 U F2 D' L2 U2 B2 D R2 U'").unwrap();
     let mut cube = start;
-    let solution = phase("Phase 2").solve(&mut cube).unwrap();
+    let solution = phase(&Kociemba.to_technique(), "Phase 2")
+        .solve(&mut cube)
+        .unwrap();
     assert!(
         cube.is_solved(),
         "{solution}
@@ -86,20 +87,21 @@ fn phase_2_solves_a_domino_state_in_at_most_its_length() {
 
 #[test]
 fn phase_2_rejects_a_cube_outside_the_domino_subgroup() {
-    let mut cube = Cube3x3::from_solved("R").unwrap();
-    let result = phase("Phase 2").solve(&mut cube);
+    let mut cube = Cube3x3::from_moves("R").unwrap();
+    let result = phase(&Kociemba.to_technique(), "Phase 2").solve(&mut cube);
     assert!(
         matches!(result, Err(StepError::UnreachableGoal)),
         "{result:?}"
     );
-    assert_eq!(cube, Cube3x3::from_solved("R").unwrap());
+    assert_eq!(cube, Cube3x3::from_moves("R").unwrap());
 }
 
 #[test]
 fn phase_2_solves_what_phase_1_leaves() {
     let mut cube = Cube3x3::apply_scramble_with_seed(0);
-    phase("Phase 1").solve(&mut cube).unwrap();
-    let solution = phase("Phase 2").solve(&mut cube).unwrap();
+    let kociemba = Kociemba.to_technique();
+    phase(&kociemba, "Phase 1").solve(&mut cube).unwrap();
+    let solution = phase(&kociemba, "Phase 2").solve(&mut cube).unwrap();
     assert!(
         cube.is_solved(),
         "{solution}

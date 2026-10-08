@@ -74,6 +74,6 @@ fn scramble_and_solve_with_parsing_round_trip() -> Result<(), Box<dyn Error>> {
         .solve(&mut Cube3x3::default().apply(&scramble))?
         .to_string();
 
-    assert!(Cube3x3::from_solved(&format!("{scramble}\n {solution}"))?.is_solved());
+    assert!(Cube3x3::from_moves(&format!("{scramble}\n {solution}"))?.is_solved());
     Ok(())
 }

@@ -128,7 +128,7 @@ impl<P: Puzzle> SearchStepBuilder<P> {
     /// # Errors
     /// Errors if the goal doesn't guarantee the prerequisite.
     pub fn build_in(self, cache: &MemoCache<P>) -> Result<SearchStep<P>, SearchStepError<P>> {
-        if self.before.is_subset_of(&self.after) {
+        if self.before.is_subset(&self.after) {
             let memo = cache.memo(
                 self.after.clone(),
                 &self.search_algs,
@@ -171,7 +171,7 @@ impl<P: Puzzle> SearchStep<P> {
             before: PieceSet::default(),
             after: goal,
             search_algs: AlgSet::all_moves(),
-            free_search_algs: AlgSet::empty(),
+            free_search_algs: AlgSet::new(),
         }
     }
 

@@ -23,7 +23,7 @@ use crate::{Mask, Piece, Puzzle, piece::index};
 /// ```
 /// use rubiks_cube::Cube3x3;
 ///
-/// let cube = Cube3x3::from_solved("R")?;
+/// let cube = Cube3x3::from_moves("R")?;
 /// let expected = [
 ///     "    UUF",
 ///     "    UUF",
@@ -475,7 +475,7 @@ mod tests {
     #[test]
     fn r_moves_the_right_column_of_each_face_along_the_ring() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            Cube3x3::from_solved("R")?.to_string(),
+            Cube3x3::from_moves("R")?.to_string(),
             net([
                 "UUF",
                 "UUF",
@@ -495,7 +495,7 @@ mod tests {
     #[test]
     fn u_moves_the_top_row_of_the_side_faces() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            Cube3x3::from_solved("U")?.to_string(),
+            Cube3x3::from_moves("U")?.to_string(),
             net([
                 "UUU",
                 "UUU",
@@ -516,7 +516,7 @@ mod tests {
     #[test]
     fn f_moves_the_ring_around_the_front_face() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            Cube3x3::from_solved("F")?.to_string(),
+            Cube3x3::from_moves("F")?.to_string(),
             net([
                 "UUU",
                 "UUU",
@@ -536,7 +536,7 @@ mod tests {
     #[test]
     fn m_moves_the_middle_column_and_the_centers() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            Cube3x3::from_solved("M")?.to_string(),
+            Cube3x3::from_moves("M")?.to_string(),
             net([
                 "UBU",
                 "UBU",
@@ -556,7 +556,7 @@ mod tests {
     #[test]
     fn y_rotates_the_side_faces_whole() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            Cube3x3::from_solved("y")?.to_string(),
+            Cube3x3::from_moves("y")?.to_string(),
             net([
                 "UUU",
                 "UUU",
@@ -575,7 +575,7 @@ mod tests {
     #[test]
     fn face_reads_the_same_facelets_display_prints() -> Result<(), Box<dyn Error>> {
         use Center::{B, D, F, R, U};
-        let facelets = Cube3x3::from_solved("R")?.facelets();
+        let facelets = Cube3x3::from_moves("R")?.facelets();
         assert_eq!(facelets.face(U), &[U, U, F, U, U, F, U, U, F]);
         assert_eq!(facelets.face(B), &[U, B, B, U, B, B, U, B, B]);
         assert_eq!(facelets.face(R), &[R; 9]);
@@ -650,7 +650,7 @@ mod tests {
         for m in [
             "R", "U", "F", "L", "D", "B", "M", "E", "S", "x", "y", "z", "r",
         ] {
-            let there_and_back = Cube3x3::from_solved(&format!("{m} {m}'"))?;
+            let there_and_back = Cube3x3::from_moves(&format!("{m} {m}'"))?;
             assert_eq!(there_and_back.to_string(), solved, "{m}");
         }
         Ok(())

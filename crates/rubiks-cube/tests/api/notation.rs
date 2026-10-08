@@ -4,7 +4,7 @@ use std::error::Error;
 #[test]
 fn multiple_moves_break_down_correctly() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3x3::from_solved("R U R' U'")?,
+        Cube3x3::from_moves("R U R' U'")?,
         Cube3x3::default()
             .move_sequence("R")?
             .move_sequence("U")?
@@ -16,7 +16,7 @@ fn multiple_moves_break_down_correctly() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn bad_move_error_names_its_line_and_position() {
-    let e = Cube3x3::from_solved(
+    let e = Cube3x3::from_moves(
         "R U R'
     F U F'
     Mw' M",
@@ -67,7 +67,7 @@ fn incorrect_strings_return_error() {
         ),
     ];
     for (text, _cause, position) in cases {
-        let e = Cube3x3::from_solved(text).unwrap_err();
+        let e = Cube3x3::from_moves(text).unwrap_err();
         assert!(matches!(
             e.source().unwrap().downcast_ref::<ParseMoveError>(),
             Some(_cause),
@@ -79,19 +79,19 @@ fn incorrect_strings_return_error() {
 
 #[test]
 fn r_prime_is_inverse_of_r() -> Result<(), Box<dyn Error>> {
-    let r = Cube3x3::from_solved("R")?;
-    let r_prime = Cube3x3::from_solved("R'")?;
+    let r = Cube3x3::from_moves("R")?;
+    let r_prime = Cube3x3::from_moves("R'")?;
     assert_eq!(r.inverse(), r_prime);
     Ok(())
 }
 
 #[test]
 fn sequences_without_moves_leave_the_cube_unchanged() -> Result<(), Box<dyn Error>> {
-    let cube = Cube3x3::from_solved("R U")?;
+    let cube = Cube3x3::from_moves("R U")?;
     assert_eq!(cube.move_sequence("")?, cube);
     assert_eq!(cube.move_sequence("// nothing here")?, cube);
     assert_eq!(
-        Cube3x3::from_solved("\n  // only comments\n")?,
+        Cube3x3::from_moves("\n  // only comments\n")?,
         Cube3x3::default()
     );
     Ok(())

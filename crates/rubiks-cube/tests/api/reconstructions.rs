@@ -4,7 +4,7 @@ use std::error::Error;
 /// A reconstruction is a scramble followed by a solution. The scrambled state
 /// must be reachable, and the final state must be reachable and solved.
 fn assert_reconstruction(scramble: &str, solution: &str) -> Result<(), Box<dyn Error>> {
-    let scrambled = Cube3x3::from_solved(scramble)?;
+    let scrambled = Cube3x3::from_moves(scramble)?;
     assert!(
         scrambled.is_reachable(),
         "scramble reached an unreachable state: {scrambled:?}"
@@ -17,10 +17,10 @@ fn assert_reconstruction(scramble: &str, solution: &str) -> Result<(), Box<dyn E
 
 #[test]
 fn fmc_wr_as_multiplication() -> Result<(), Box<dyn Error>> {
-    let scramble = Cube3x3::from_solved(
+    let scramble = Cube3x3::from_moves(
         "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F",
     )?;
-    let solve = Cube3x3::from_solved("    D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")?;
+    let solve = Cube3x3::from_moves("    D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")?;
     assert!(scramble.is_reachable());
     assert!((scramble * solve).is_solved(), "{:?}", scramble * solve);
     Ok(())
@@ -30,9 +30,9 @@ fn fmc_wr_as_multiplication() -> Result<(), Box<dyn Error>> {
 fn composition_works_on_fmc_wr() -> Result<(), Box<dyn Error>> {
     let scramble_string = "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F";
     let solution_string = "D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'";
-    let scramble = Cube3x3::from_solved(scramble_string)?;
+    let scramble = Cube3x3::from_moves(scramble_string)?;
     assert_eq!(
-        Cube3x3::from_solved(&format!("{scramble_string} {solution_string}"))?,
+        Cube3x3::from_moves(&format!("{scramble_string} {solution_string}"))?,
         scramble.move_sequence(solution_string)?,
         "composing {scramble_string} and {solution_string} doesn't result in applying {scramble_string} {solution_string}"
     );
@@ -135,7 +135,7 @@ fn roux_solve_without_wide_moves() -> Result<(), Box<dyn Error>> {
 #[test]
 fn roux_solve_removes_comments() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3x3::from_solved(concat!(
+        Cube3x3::from_moves(concat!(
             "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
             "y2 F' M F' R U' R U' Fw z'
             U R U r M' U' R U2' R'
@@ -143,7 +143,7 @@ fn roux_solve_removes_comments() -> Result<(), Box<dyn Error>> {
             U M' U' M U' U' M' U M
             U' U' M2' U' M U' U' M' U' U' M2' "
         ))?,
-        Cube3x3::from_solved(concat!(
+        Cube3x3::from_moves(concat!(
             "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",
             "y2 F' M F' R U' R U' Fw z' // FB
             U R U r M' U' R U2' R' // SS

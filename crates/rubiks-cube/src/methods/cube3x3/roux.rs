@@ -5,7 +5,7 @@ use crate::{
     AlgSet, Choose, Cube3x3, Indexed, Method, Piece3x3, PieceSet, Step, methods::Technique,
 };
 
-use crate::methods::cube3x3::helpers::{algs, parts};
+use crate::methods::cube3x3::helpers::{algs, chain_steps, parts, set_options};
 
 const CMLL_ONE_LOOK_ALGS_STR: &str = include_str!("algsets/cmll/one_look.txt");
 const CO_ALGS_TEXT: &str = include_str!("algsets/cmll/co.txt");
@@ -18,53 +18,30 @@ const CP_ALGS_TEXT: &str = include_str!("algsets/cmll/cp.txt");
 /// split of a stage with its method:
 ///
 /// ```rust
-/// use rubiks_cube::{CmllOptions, FirstBlockOptions, Roux};
+/// use rubiks_cube::{Cmll, FirstBlock, Roux};
 ///
 /// let roux = Roux::default()
-///     .first_block(FirstBlockOptions::SquarePair)
-///     .cmll(CmllOptions::TwoLook);
+///     .first_block(FirstBlock::SquarePair)
+///     .cmll(Cmll::TwoLook);
 /// ```
-#[derive(Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
 pub struct Roux {
-    fb: FirstBlockOptions,
-    sb: SecondBlockOptions,
-    cmll: CmllOptions,
-    lse: LseOptions,
+    first_block: FirstBlock,
+    second_block: SecondBlock,
+    cmll: Cmll,
+    lse: Lse,
 }
 
 impl Roux {
-    /// Changes the first block options of the current method to [`fb`](FirstBlockOptions).
-    #[must_use]
-    pub const fn first_block(mut self, fb: FirstBlockOptions) -> Self {
-        self.fb = fb;
-        self
-    }
-
-    /// Changes the second block options of the current method to [`sb`](SecondBlockOptions).
-    #[must_use]
-    pub const fn second_block(mut self, sb: SecondBlockOptions) -> Self {
-        self.sb = sb;
-        self
-    }
-
-    /// Changes the CMLL options of the current method to [`cmll`](CmllOptions).
-    #[must_use]
-    pub const fn cmll(mut self, cmll: CmllOptions) -> Self {
-        self.cmll = cmll;
-        self
-    }
-
-    /// Changes the LSE options of the current method to [`lse`](LseOptions).
-    #[must_use]
-    pub const fn lse(mut self, lse: LseOptions) -> Self {
-        self.lse = lse;
-        self
-    }
+    set_options!("first block", first_block, FirstBlock);
+    set_options!("second block", second_block, SecondBlock);
+    set_options!("CMLL", cmll, Cmll);
+    set_options!("LSE", lse, Lse);
 }
 
 /// How [`Roux`] builds the first block, the 1x2x3 block on the left.
-#[derive(Clone, Copy, Default, Debug)]
-pub enum FirstBlockOptions {
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+pub enum FirstBlock {
     /// One search for the whole block.
     #[default]
     OneLook,
@@ -75,8 +52,8 @@ pub enum FirstBlockOptions {
 }
 
 /// How [`Roux`] builds the second block, the 1x2x3 block on the right.
-#[derive(Clone, Copy, Default, Debug)]
-pub enum SecondBlockOptions {
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+pub enum SecondBlock {
     /// One search for the whole block.
     OneLook,
     /// A 1x2x2 square, front or back, then the pair that finishes the block.
@@ -87,8 +64,8 @@ pub enum SecondBlockOptions {
 }
 
 /// How [`Roux`] solves the U-layer corners.
-#[derive(Clone, Copy, Default, Debug)]
-pub enum CmllOptions {
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+pub enum Cmll {
     /// One algorithm from the full CMLL set.
     #[default]
     OneLook,
@@ -97,8 +74,8 @@ pub enum CmllOptions {
 }
 
 /// How [`Roux`] solves the last six edges.
-#[derive(Clone, Copy, Default, Debug)]
-pub enum LseOptions {
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+pub enum Lse {
     /// One search for all six edges with `U` and `M`.
     #[default]
     Eolr,
@@ -114,17 +91,17 @@ static LSE_KEEPING_CORNERS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| algs("M
 
 impl Method<Cube3x3> for Roux {
     fn to_technique(&self) -> Technique<Cube3x3> {
-        let fb_tech = match self.fb {
-            FirstBlockOptions::OneLook => chain_steps!(
+        let fb_tech = match self.first_block {
+            FirstBlock::OneLook => chain_steps!(
                 moves: &FB_MOVES, goal: &SB_MOVES,
                 "FB",
             ),
-            FirstBlockOptions::SquarePair => chain_steps!(
+            FirstBlock::SquarePair => chain_steps!(
                 moves: &FB_MOVES, goal: &SB_MOVES,
                 "FB Square" => (parts("B"), parts("F")),
                 "FB Pair",
             ),
-            FirstBlockOptions::EdgePairPair => chain_steps!(
+            FirstBlock::EdgePairPair => chain_steps!(
                 moves: &FB_MOVES, goal: &SB_MOVES,
                 "DL" => (parts("F B")),
                 "FB Square" => (parts("B"), parts("F")),
@@ -132,17 +109,17 @@ impl Method<Cube3x3> for Roux {
             ),
         };
 
-        let sb_tech = match self.sb {
-            SecondBlockOptions::OneLook => chain_steps!(
+        let sb_tech = match self.second_block {
+            SecondBlock::OneLook => chain_steps!(
                 moves: &SB_MOVES, goal: &CMLL_ALGS,
                 "SB"
             ),
-            SecondBlockOptions::SquarePair => chain_steps!(
+            SecondBlock::SquarePair => chain_steps!(
                 moves: &SB_MOVES, goal: &CMLL_ALGS,
                 "SB Square" => (algs("r U r'"), algs("r' U r")),
                 "SB Pair"
             ),
-            SecondBlockOptions::EdgePairPair => chain_steps!(
+            SecondBlock::EdgePairPair => chain_steps!(
                 moves: &SB_MOVES, goal: &CMLL_ALGS,
                 "DR" => (algs("r U r'\n r' U r")),
                 "SB Square" => (algs("r U r'"), algs("r' U r")),
@@ -153,13 +130,13 @@ impl Method<Cube3x3> for Roux {
         let after_cmll = PieceSet::from_algset(&LSE_KEEPING_CORNERS);
 
         let cmll_tech: Vec<Arc<dyn Step<Cube3x3>>> = match self.cmll {
-            CmllOptions::OneLook => chain_steps!(
+            Cmll::OneLook => chain_steps!(
                 moves: &CMLL_ALGS.combined_with(&LSE_MOVES),
                 goal: &LSE_KEEPING_CORNERS,
                 free: &FREE_AUF,
                 "CMLL",
             ),
-            CmllOptions::TwoLook => [
+            Cmll::TwoLook => [
                 chain_steps!(
                     moves: &algs(CO_ALGS_TEXT).combined_with(&LSE_KEEPING_CORNERS),
                     goal: &LSE_MOVES,
@@ -176,7 +153,7 @@ impl Method<Cube3x3> for Roux {
         };
 
         let lse_tech: Vec<Arc<dyn Step<Cube3x3>>> = match self.lse {
-            LseOptions::Eolr => vec![Arc::new(
+            Lse::Eolr => vec![Arc::new(
                 SearchStep::builder("LSE", PieceSet::from_pieces(Piece3x3::all()))
                     .search_algs(LSE_MOVES.clone())
                     .expect_solved(after_cmll)
@@ -215,8 +192,8 @@ mod test {
             .into_iter()
             .find(|s| s.name() == "CMLL")
             .unwrap();
-        let sune = Cube3x3::from_solved("R U R' U R U2 R'").unwrap();
-        for scramble in [Cube3x3::from_solved("U2").unwrap(), sune.inverse()] {
+        let sune = Cube3x3::from_moves("R U R' U R U2 R'").unwrap();
+        for scramble in [Cube3x3::from_moves("U2").unwrap(), sune.inverse()] {
             let mut cube = scramble;
             cmll.solve(&mut cube).unwrap();
             assert!(cmll.is_done(&cube), "not solved:\n{cube}");
@@ -256,10 +233,10 @@ mod test {
     #[test]
     fn split_fb_builds_the_back_square_when_it_is_cheaper() -> Result<(), Box<dyn Error>> {
         let roux = Roux {
-            fb: FirstBlockOptions::SquarePair,
+            first_block: FirstBlock::SquarePair,
             ..Roux::default()
         };
-        let mut cube = Cube3x3::from_solved("F R U")?;
+        let mut cube = Cube3x3::from_moves("F R U")?;
 
         let solution = roux.solve(&mut cube)?;
 
@@ -281,10 +258,10 @@ mod test {
     #[test]
     fn split_sb_builds_the_back_square_when_it_is_cheaper() -> Result<(), Box<dyn Error>> {
         let roux = Roux {
-            sb: SecondBlockOptions::SquarePair,
+            second_block: SecondBlock::SquarePair,
             ..Roux::default()
         };
-        let mut cube = Cube3x3::from_solved("R U R'")?;
+        let mut cube = Cube3x3::from_moves("R U R'")?;
 
         let solution = roux.solve(&mut cube)?;
 
@@ -302,19 +279,19 @@ mod test {
 
     /// Every combination of the options.
     fn every_options() -> impl Iterator<Item = Roux> {
-        use CmllOptions as C;
-        use FirstBlockOptions as F;
-        use SecondBlockOptions as S;
+        use Cmll as C;
+        use FirstBlock as F;
+        use SecondBlock as S;
         iproduct!(
             [F::OneLook, F::SquarePair, F::EdgePairPair],
             [S::OneLook, S::SquarePair, S::EdgePairPair],
             [C::OneLook, C::TwoLook]
         )
         .map(|(fb, sb, cmll)| Roux {
-            fb,
-            sb,
+            first_block: fb,
+            second_block: sb,
             cmll,
-            lse: LseOptions::Eolr,
+            lse: Lse::Eolr,
         })
     }
 
@@ -323,7 +300,7 @@ mod test {
     #[test]
     fn every_roux_step_is_done_on_a_solved_cube_and_not_on_a_scrambled_one()
     -> Result<(), Box<dyn Error>> {
-        let scrambled = Cube3x3::from_solved("R U' F2 L D' B R2 U F' L2 D B' U2 R'")?;
+        let scrambled = Cube3x3::from_moves("R U' F2 L D' B R2 U F' L2 D B' U2 R'")?;
 
         for step in every_options().flat_map(|options| options.to_technique().steps) {
             assert!(
@@ -353,19 +330,19 @@ mod test {
                 .collect();
 
             let mut expected: Vec<&str> = Vec::new();
-            expected.extend_from_slice(match options.fb {
-                FirstBlockOptions::OneLook => &["FB"][..],
-                FirstBlockOptions::SquarePair => &["FB Square", "FB Pair"],
-                FirstBlockOptions::EdgePairPair => &["DL", "FB Square", "FB Pair"],
+            expected.extend_from_slice(match options.first_block {
+                FirstBlock::OneLook => &["FB"][..],
+                FirstBlock::SquarePair => &["FB Square", "FB Pair"],
+                FirstBlock::EdgePairPair => &["DL", "FB Square", "FB Pair"],
             });
-            expected.extend_from_slice(match options.sb {
-                SecondBlockOptions::OneLook => &["SB"][..],
-                SecondBlockOptions::SquarePair => &["SB Square", "SB Pair"],
-                SecondBlockOptions::EdgePairPair => &["DR", "SB Square", "SB Pair"],
+            expected.extend_from_slice(match options.second_block {
+                SecondBlock::OneLook => &["SB"][..],
+                SecondBlock::SquarePair => &["SB Square", "SB Pair"],
+                SecondBlock::EdgePairPair => &["DR", "SB Square", "SB Pair"],
             });
             expected.extend_from_slice(match options.cmll {
-                CmllOptions::OneLook => &["CMLL"][..],
-                CmllOptions::TwoLook => &["CO", "CP"],
+                Cmll::OneLook => &["CMLL"][..],
+                Cmll::TwoLook => &["CO", "CP"],
             });
             expected.push("LSE");
 

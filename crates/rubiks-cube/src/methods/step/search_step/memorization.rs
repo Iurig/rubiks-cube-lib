@@ -174,14 +174,14 @@ mod tests {
             .map(moves)
             .collect();
         let mut memo = BfsMemo::new(goal.clone());
-        memo.search_to(depth, &allowed, &AlgSet::empty());
+        memo.search_to(depth, &allowed, &AlgSet::new());
         (memo, goal)
     }
 
     #[test]
     fn memo_solution_undoes_one_move() {
         let (memo, goal) = r_u_memo(1);
-        let r = Cube3x3::from_solved("R").unwrap();
+        let r = Cube3x3::from_moves("R").unwrap();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&r, &goal)),
             Some(&moves("R'"))
@@ -191,7 +191,7 @@ mod tests {
     #[test]
     fn memo_solution_undoes_the_whole_path() {
         let (memo, goal) = r_u_memo(2);
-        let r_u = Cube3x3::from_solved("R U").unwrap();
+        let r_u = Cube3x3::from_moves("R U").unwrap();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&r_u, &goal)),
             Some(&moves("U' R'"))
@@ -204,8 +204,8 @@ mod tests {
         let goal = PieceSet::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Fr)]);
         let allowed = [moves("R'"), moves("U'")].into_iter().collect();
         let mut memo = BfsMemo::new(goal.clone());
-        memo.search_to(1, &allowed, &AlgSet::empty());
-        let r_u = Cube3x3::from_solved("R U").unwrap();
+        memo.search_to(1, &allowed, &AlgSet::new());
+        let r_u = Cube3x3::from_moves("R U").unwrap();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&r_u, &goal)),
             Some(&moves("U' R'"))
@@ -219,8 +219,8 @@ mod tests {
         let sune = "R U R' U R U2 R'";
         let allowed = std::iter::once(moves(sune)).collect();
         let mut memo = BfsMemo::new(goal.clone());
-        memo.search_to(0, &allowed, &AlgSet::empty());
-        let before_sune = Cube3x3::from_solved(sune).unwrap().inverse();
+        memo.search_to(0, &allowed, &AlgSet::new());
+        let before_sune = Cube3x3::from_moves(sune).unwrap().inverse();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&before_sune, &goal)),
             Some(&moves(sune))
@@ -237,7 +237,7 @@ mod tests {
         let free = std::iter::once(moves("U")).collect();
         let mut memo = BfsMemo::new(goal.clone());
         memo.search_to(0, &allowed, &free);
-        let before_r_u = Cube3x3::from_solved("R U").unwrap().inverse();
+        let before_r_u = Cube3x3::from_moves("R U").unwrap().inverse();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&before_r_u, &goal)),
             Some(&moves("R U"))
@@ -250,7 +250,7 @@ mod tests {
     fn mask_ignores_orientation_of_other_pieces_in_a_goal_pieces_home_slot() {
         let fr = Piece3x3::Edge(Edge::Fr);
         let goal = PieceSet::<Cube3x3>::from_pieces([fr]);
-        let f = Cube3x3::from_solved("F").unwrap();
+        let f = Cube3x3::from_moves("F").unwrap();
         assert_ne!(f.piece_at(fr), fr);
         assert_eq!(Mask::filter_by_piece(&f, &goal).condition(fr).orient, None);
     }
@@ -262,7 +262,7 @@ mod tests {
         let free = AlgSet::from_moves("U'").unwrap();
         let mut memo = BfsMemo::new(goal.clone());
         memo.search_to(0, &allowed, &free);
-        let u = Cube3x3::from_solved("U").unwrap();
+        let u = Cube3x3::from_moves("U").unwrap();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&u, &goal)),
             Some(&moves("U'"))

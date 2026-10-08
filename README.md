@@ -23,22 +23,22 @@ use rubiks_cube::{Cube3x3, Inv, Pow, Puzzle};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Apply a sequence to the solved cube, example is Sebastiano Tronto's 16 move FMC WR
-    let scramble = Cube3x3::from_solved("R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F")?;
-    let solution = Cube3x3::from_solved("D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")?;
+    let scramble = Cube3x3::from_moves("R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F")?;
+    let solution = Cube3x3::from_moves("D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")?;
 
     // Composition is multiplication: left operand first, then right
     assert!((scramble * solution).is_solved());
 
     // Inverses and powers
-    assert_eq!(Cube3x3::from_solved("R")?.inverse(), Cube3x3::from_solved("R'")?);
-    assert!(Cube3x3::from_solved("R U R' U'")?.pow(6).is_solved());
+    assert_eq!(Cube3x3::from_moves("R")?.inverse(), Cube3x3::from_moves("R'")?);
+    assert!(Cube3x3::from_moves("R U R' U'")?.pow(6).is_solved());
 
     // Chain moves onto an existing state
     let cube = Cube3x3::IDENTITY.move_sequence("R U")?.move_sequence("R' U'")?;
-    assert_eq!(cube, Cube3x3::from_solved("R U R' U'")?);
+    assert_eq!(cube, Cube3x3::from_moves("R U R' U'")?);
 
     // Unknown tokens are errors, not panics
-    assert!(Cube3x3::from_solved("R Q U").is_err());
+    assert!(Cube3x3::from_moves("R Q U").is_err());
     Ok(())
 }
 ```
@@ -49,7 +49,7 @@ Move strings use standard cube notation. Whitespace and newlines separate moves,
 after `//` on a line is a comment, so you can paste annotated reconstructions directly:
 
 ```rust
-let solved = rubiks_cube::Cube3x3::from_solved("
+let solved = rubiks_cube::Cube3x3::from_moves("
     U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D   // scramble
     y2 F' M F' R U' R U' Fw z'                                  // FB
     U R U r M' U' R U2' R'                                      // SS
@@ -84,16 +84,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let scramble = "D2 F2 R2 U L2 D R2 U' B2 L2 B L2 F' L D2 U R' B D2";
     let roux = Roux::default();
 
-    let mut cube = Cube3x3::from_solved(scramble)?;
+    let mut cube = Cube3x3::from_moves(scramble)?;
     let solution = roux.solve(&mut cube)?;
     assert!(cube.is_solved());
 
     // A printed solution is notation, so the scramble followed by it replays to solved.
-    let replayed = Cube3x3::from_solved(scramble)?.move_sequence(&solution.to_string())?;
+    let replayed = Cube3x3::from_moves(scramble)?.move_sequence(&solution.to_string())?;
     assert!(replayed.is_solved());
 
     // The same solve, one step per `next()`.
-    let mut cube = Cube3x3::from_solved(scramble)?;
+    let mut cube = Cube3x3::from_moves(scramble)?;
     for segment in roux.solve_steps(&mut cube) {
         print!("{}", segment?);
     }
@@ -119,11 +119,11 @@ chooses between one algorithm and two. With a split block the solver tries both 
 the back square and keeps the shorter:
 
 ```rust
-use rubiks_cube::{CmllOptions, FirstBlockOptions, Roux};
+use rubiks_cube::{Cmll, FirstBlock, Roux};
 
 let roux = Roux::default()
-    .first_block(FirstBlockOptions::SquarePair)
-    .cmll(CmllOptions::TwoLook);
+    .first_block(FirstBlock::SquarePair)
+    .cmll(Cmll::TwoLook);
 ```
 
 A method is a list of steps. The crate has two step types: `SearchStep`, which searches for a
@@ -179,7 +179,7 @@ cargo doc --open
 
 The main entry points:
 
-- **`Cube3x3`** is a cube state. `from_solved` and `move_sequence` apply notation, `*` composes
+- **`Cube3x3`** is a cube state. `from_moves` and `move_sequence` apply notation, `*` composes
   states, and `corners()`, `edges()`, and `centers()` give the pieces for queries such as
   `piece_at`.
 - **`Puzzle`** is the trait the solver works through. Import it to call `is_solved` or
@@ -289,7 +289,7 @@ What works today:
   handedness tests, and the whole notation is exercised by CFOP and Roux reconstructions.
 - Move strings return `Result`: an unknown token is an `Err` naming it, never a panic.
 - `is_solved` is rotation-aware: it re-orients the cube by its centers before comparing with
-  the identity, so `Cube3x3::from_solved("x y2 z'")` reports solved.
+  the identity, so `Cube3x3::from_moves("x y2 z'")` reports solved.
 - A cube state can be queried: `cube.corners().piece_at(Corner::Ubr)` says which piece sits in
   the UBR slot, and `orientation_at` reads its twist or flip. The handedness tests are written
   against these queries, from outside the crate.

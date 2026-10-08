@@ -32,7 +32,7 @@ pub struct AlgSet<P: Puzzle>(Arc<[Algorithm<P>]>);
 impl<P: Puzzle> AlgSet<P> {
     /// Constructs an empty [`AlgSet`].
     #[must_use]
-    pub fn empty() -> Self {
+    pub fn new() -> Self {
         Self(Arc::new([]))
     }
 
@@ -100,7 +100,7 @@ impl AlgSet<Cube3x3> {
             .flat_map(|part| {
                 [
                     MoveModifier::Clockwise,
-                    MoveModifier::CounterClockwise,
+                    MoveModifier::Prime,
                     MoveModifier::Double,
                 ]
                 .map(|modifier| Algorithm::from_iter([Move3x3::new(part, modifier)]))

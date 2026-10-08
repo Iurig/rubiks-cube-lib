@@ -1,5 +1,5 @@
 use crate::{
-    Piece,
+    Indexed, Piece,
     piece::PieceConfiguration,
     puzzles::cube3x3::pieces::Orientation3x3::{Fixed, Flip, Twist},
     zn::Zn,
@@ -23,10 +23,18 @@ macro_rules! new_piece {
                 $p
             ),+
         }
+        impl Indexed for $type_name {
+            const COUNT: usize = $amount;
+            fn index(self) -> usize {
+                const { assert!(std::mem::size_of::<Self>() == 1) }
+                self as usize
+            }
+            fn from_index(index: usize) -> Self {
+                *Self::ALL.get(index).expect("index in 0..COUNT")
+            }
+        }
         impl Piece<$amount> for $type_name {
-            const ALL: [Self; $amount] = [
-                $($type_name::$p),+
-            ];
+            const ALL: [Self; $amount] = [$($type_name::$p),+];
         }
         impl crate::piece::private::Sealed for $type_name {}
         const _: () = {
@@ -67,7 +75,7 @@ pub type Face = Center;
 
 /// Any piece of the 3×3 cube: the cube's [`Puzzle::Piece`](crate::Puzzle::Piece) type. Masks and
 /// piece queries on a [`Cube3x3`](crate::Cube3x3) take this type.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub enum Piece3x3 {
     /// A center piece.
     Center(Center),
@@ -102,18 +110,17 @@ impl Slice {
     pub const ALL: [Self; 3] = [Self::M, Self::S, Self::E];
 }
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[expect(non_camel_case_types, reason = "rotations are inherently lower case")]
 #[expect(
     unnameable_types,
     reason = "reachable through `MovablePart::Rotation`; exported together with `MovablePart`"
 )]
 pub enum Rotation {
-    x,
-    y,
-    z,
+    X,
+    Y,
+    Z,
 }
 impl Rotation {
-    pub const ALL: [Self; 3] = [Self::x, Self::y, Self::z];
+    pub const ALL: [Self; 3] = [Self::X, Self::Y, Self::Z];
 }
 
 #[expect(

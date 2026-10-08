@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use crate::Indexed;
 use crate::ops::Inv;
 use crate::zn::Zn;
 #[expect(
@@ -11,19 +12,13 @@ pub mod private {
 }
 
 /// One of the `N` pieces of a kind, named by its home slot.
-pub trait Piece<const N: usize>: Copy + Eq + private::Sealed + Debug {
+pub trait Piece<const N: usize>: Indexed + Eq + private::Sealed + Debug {
     /// Every piece, in slot order.
     const ALL: [Self; N];
-
-    /// The piece at position `index` of [`Self::ALL`], if any.
-    #[must_use]
-    fn from_index(index: usize) -> Option<Self> {
-        Self::ALL.get(index).copied()
-    }
 }
 
-/// A uniformly random order of all `N` pieces (Fisher-Yates shuffle).
-fn random_permutation<P: Piece<N>, const N: usize>(rng: &mut fastrand::Rng) -> [P; N] {
+/// A uniformly random order of all `N` pieces.
+fn random_permutation<const N: usize, P: Piece<N>>(rng: &mut fastrand::Rng) -> [P; N] {
     let mut permutation = P::ALL;
     for i in 0..N {
         permutation.swap(i, rng.usize(i..N));
@@ -40,9 +35,12 @@ pub(crate) const fn index<P, const N: usize>(piece: P) -> usize
 where
     P: Piece<N>,
 {
-    // SAFETY:
-    // Safety guaranteed by Piece being Sealed: Every implementation of Piece should be a
-    // `repr(u8)` enum.
+    const { assert!(std::mem::size_of::<P>() == 1) }
+    // SAFETY: `Piece` is sealed, and the only implementations come from `new_piece!`, which
+    // makes a fieldless `#[repr(u8)]` enum. Such an enum is one byte holding its discriminant,
+    // so reading that byte is in bounds and gives an initialized `u8`. `Sealed` alone does not
+    // check the layout; the macro does, and the size assertion above catches a non-macro impl
+    // whose type is not one byte.
     unsafe { (&raw const piece).cast::<u8>().read() as usize }
 }
 
@@ -87,9 +85,12 @@ where
     P: Piece<N>,
 {
     /// The solved state for a given piece type
-    pub const IDENTITY: Self = Self {
-        permutation: P::ALL,
-        orientation: [Zn::ZERO; N],
+    pub const IDENTITY: Self = {
+        const { assert!(N == P::COUNT) };
+        Self {
+            permutation: P::ALL,
+            orientation: [Zn::ZERO; N],
+        }
     };
 
     /// The piece now sitting in `slot`.
@@ -203,11 +204,11 @@ mod tests {
     fn corner_and_edge_all_match_discriminants() {
         for (i, c) in Corner::ALL.iter().enumerate() {
             assert_eq!(*c as usize, i);
-            assert_eq!(Corner::from_index(i), Some(*c));
+            assert_eq!(Corner::from_index(i), *c);
         }
         for (i, e) in Edge::ALL.iter().enumerate() {
             assert_eq!(*e as usize, i);
-            assert_eq!(Edge::from_index(i), Some(*e));
+            assert_eq!(Edge::from_index(i), *e);
         }
     }
 

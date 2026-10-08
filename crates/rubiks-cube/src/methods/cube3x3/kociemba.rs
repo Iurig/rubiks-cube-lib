@@ -27,7 +27,7 @@ const RIM: [Piece3x3; 4] = [
 fn face_turns() -> AlgSet<Cube3x3> {
     Move3x3::all()
         .filter(|m| {
-            matches!(m.part, MovablePart::Face(_)) && m.modifier != MoveModifier::CounterDouble
+            matches!(m.part, MovablePart::Face(_)) && m.modifier != MoveModifier::DoublePrime
         })
         .map(|m| Algorithm::from_iter([m]))
         .collect()
@@ -38,7 +38,7 @@ fn face_turns() -> AlgSet<Cube3x3> {
 fn domino_turns() -> AlgSet<Cube3x3> {
     Move3x3::all()
         .filter(|m| match m.part {
-            MovablePart::Face(Face::U | Face::D) => m.modifier != MoveModifier::CounterDouble,
+            MovablePart::Face(Face::U | Face::D) => m.modifier != MoveModifier::DoublePrime,
             MovablePart::Face(_) => m.modifier == MoveModifier::Double,
             _ => false,
         })
@@ -97,11 +97,11 @@ fn phase_1() -> PrunedCombine<Cube3x3> {
     )
 }
 
-// Phase 2's goals use `ByIdentity`, because they must tell the pieces of a group apart: `ByMembership`
-// would only say which slots hold them. As in Kociemba's own solver, each goal pairs a group of
-// pieces with the E-slice edges, so one table knows how both interact: 8! * 4! = 967680 entries
-// each. Separate tables for the three groups give a lower bound only as good as the worst-placed
-// group, which leaves the search to explore far more states.
+// Phase 2's goals use `ByIdentity`, because they must tell the pieces of a group apart:
+// `ByMembership` would only say which slots hold them. As in Kociemba's own solver, each goal pairs
+// a group of pieces with the E-slice edges, so one table knows how both interact: 8! * 4! = 967680
+// entries each. Separate tables for the three groups give a lower bound only as good as the
+// worst-placed group, which leaves the search to explore far more states.
 
 static CORNERS_AND_E_PHASE_2_GOAL: LazyLock<Mask<Cube3x3>> =
     LazyLock::new(|| Mask::<Cube3x3>::from_pieces(corners().chain(RIM)));
@@ -151,8 +151,7 @@ fn phase_2() -> PrunedCombine<Cube3x3> {
                     Orientation3x3::Fixed,
                 ]
                 .contains(&puzzle.orientation_at(slot))
-                    && RIM.iter().all(|&slot| RIM.contains(&puzzle.piece_at(slot)))
-            })
+            }) && RIM.iter().all(|&slot| RIM.contains(&puzzle.piece_at(slot)))
         },
         [Phase2Goal::CornersAndE, Phase2Goal::Edges],
         domino_turns(),
@@ -184,7 +183,7 @@ mod tests {
             && Piece3x3::all()
                 .filter(|p| matches!(p, Piece3x3::Edge(_)))
                 .all(|slot| puzzle.orientation_at(slot) == Orientation3x3::Flip(Zn::ZERO))
-            && RIM.iter().all(|&p| RIM.contains(&puzzle.piece_location(p)))
+            && RIM.iter().all(|&p| RIM.contains(&puzzle.slot_of(p)))
     }
 
     #[test]

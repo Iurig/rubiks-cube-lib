@@ -68,6 +68,18 @@ pub fn split_by_blocks(
     PrunedCombine::new(name, move |cube| before.applies_to(cube), blocks, moves)
 }
 
+macro_rules! set_options {
+    ($step_name: literal, $field_name: ident, $option_type: ty) => {
+        #[doc = concat!("Changes the ", $step_name, " options of the current method to [`", stringify!($field_name), "`](", stringify!($option_type) ,")")]
+        #[must_use]
+        pub const fn $field_name(mut self, $field_name: $option_type) -> Self {
+            self.$field_name = $field_name;
+            self
+        }
+    };
+}
+pub(crate) use set_options;
+
 macro_rules! chain_steps {
     // The chain starts from the pieces `moves` cannot touch, which must already be solved.
     // `free` sequences, such as an AUF, may be added to every step's solution without counting
@@ -81,7 +93,7 @@ macro_rules! chain_steps {
     }};
 
     (moves: $moves:expr, goal: $goal:expr, $($stages:tt)+) => {
-        chain_steps!(moves: $moves, goal: $goal, free: &AlgSet::empty(), $($stages)+)
+        chain_steps!(moves: $moves, goal: $goal, free: &AlgSet::new(), $($stages)+)
     };
 
     (@stages $moves:ident, $free:ident, $goal:ident, $befores:tt, [$($steps:expr),*],
@@ -124,6 +136,7 @@ macro_rules! chain_steps {
         row
     }};
 }
+pub(crate) use chain_steps;
 
 macro_rules! parse {
     ($moves: literal) => {
@@ -161,8 +174,8 @@ const LL_EDGES: [Piece3x3; 4] = {
 static AUF: LazyLock<[Algorithm<Cube3x3>; 4]> =
     LazyLock::new(|| [parse!(""), parse!("U"), parse!("U2"), parse!("U'")]);
 
-fn aufs() -> [Algorithm<Cube3x3>; 4] {
-    AUF.clone()
+fn aufs() -> &'static [Algorithm<Cube3x3>; 4] {
+    &AUF
 }
 
 #[expect(
@@ -211,8 +224,9 @@ impl LastLayer {
     }
     fn post_auf(&self, cube: &Cube3x3) -> Option<Algorithm<Cube3x3>> {
         aufs()
-            .into_iter()
+            .iter()
             .find(|auf| self.permuted.applies_to(&cube.apply(auf)))
+            .cloned()
     }
 
     pub fn coll(algs: AlgSet<Cube3x3>) -> Self {
@@ -256,7 +270,7 @@ impl Step<Cube3x3> for LastLayer {
         let (pre, alg) = iproduct!(aufs(), self.algs.iter())
             .find(|(pre, alg)| self.is_done(&puzzle.apply(pre).apply(alg)))
             .ok_or(StepError::UnreachableGoal)?;
-        let solved = puzzle.apply(&pre).apply(alg);
+        let solved = puzzle.apply(pre).apply(alg);
         let post = self.post_auf(&solved).ok_or(StepError::UnreachableGoal)?;
         *puzzle = solved.apply(&post);
 

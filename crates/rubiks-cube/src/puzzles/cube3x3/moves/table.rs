@@ -46,8 +46,8 @@ const fn table_index(part: MovablePart, modifier: MoveModifier) -> usize {
     3 * table_index_clockwise(part)
         + match modifier {
             Clockwise => 0,
-            CounterClockwise => 1,
-            CounterDouble | Double => 2,
+            Prime => 1,
+            DoublePrime | Double => 2,
         }
 }
 #[expect(
@@ -86,7 +86,7 @@ impl MoveInformation {
             part: self.part,
             modifier: {
                 match self.modifier {
-                    Clockwise | CounterClockwise => Double,
+                    Clockwise | Prime => Double,
                     _ => panic!(),
                 }
             },
@@ -106,9 +106,9 @@ impl Slice {
 impl Rotation {
     const fn follows(self) -> Face {
         match self {
-            Self::x => Face::R,
-            Self::y => Face::U,
-            Self::z => Face::F,
+            Self::X => Face::R,
+            Self::Y => Face::U,
+            Self::Z => Face::F,
         }
     }
 }
@@ -395,27 +395,27 @@ mod tests {
     #[test]
     fn rotations_are_face_then_slice_then_opposite_face_undone() {
         assert_eq!(
-            clockwise(MovablePart::Rotation(Rotation::x)),
+            clockwise(MovablePart::Rotation(Rotation::X)),
             seq(&[
                 (MovablePart::Face(Face::R), Clockwise),
-                (MovablePart::Slice(Slice::M), CounterClockwise),
-                (MovablePart::Face(Face::L), CounterClockwise),
+                (MovablePart::Slice(Slice::M), Prime),
+                (MovablePart::Face(Face::L), Prime),
             ])
         );
         assert_eq!(
-            clockwise(MovablePart::Rotation(Rotation::y)),
+            clockwise(MovablePart::Rotation(Rotation::Y)),
             seq(&[
                 (MovablePart::Face(Face::U), Clockwise),
-                (MovablePart::Slice(Slice::E), CounterClockwise),
-                (MovablePart::Face(Face::D), CounterClockwise),
+                (MovablePart::Slice(Slice::E), Prime),
+                (MovablePart::Face(Face::D), Prime),
             ])
         );
         assert_eq!(
-            clockwise(MovablePart::Rotation(Rotation::z)),
+            clockwise(MovablePart::Rotation(Rotation::Z)),
             seq(&[
                 (MovablePart::Face(Face::F), Clockwise),
                 (MovablePart::Slice(Slice::S), Clockwise),
-                (MovablePart::Face(Face::B), CounterClockwise),
+                (MovablePart::Face(Face::B), Prime),
             ])
         );
     }
@@ -425,9 +425,9 @@ mod tests {
         // Rw = L x, Uw = D y, Fw = B z: reaches each wide move by a different
         // route than the table's own derivation (face then parallel slice).
         for (wide, opposite, rotation) in [
-            (Face::R, Face::L, Rotation::x),
-            (Face::U, Face::D, Rotation::y),
-            (Face::F, Face::B, Rotation::z),
+            (Face::R, Face::L, Rotation::X),
+            (Face::U, Face::D, Rotation::Y),
+            (Face::F, Face::B, Rotation::Z),
         ] {
             assert_eq!(
                 clockwise(MovablePart::Wide(wide)),
@@ -447,7 +447,7 @@ mod tests {
         for entry in all_clockwise_moves() {
             let part = entry.part;
             let cw = cube_state(part, Clockwise);
-            let ccw = cube_state(part, CounterClockwise);
+            let ccw = cube_state(part, Prime);
             assert_eq!(cw * ccw, Cube3x3::default(), "{part:?}' must undo {part:?}");
             assert_eq!(
                 cube_state(part, Double),
@@ -456,7 +456,7 @@ mod tests {
             );
             assert_eq!(
                 cube_state(part, Double),
-                cube_state(part, CounterDouble),
+                cube_state(part, DoublePrime),
                 "{part:?}2 and {part:?}2' must share a cube state"
             );
         }

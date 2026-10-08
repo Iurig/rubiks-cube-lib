@@ -45,7 +45,7 @@ impl Puzzle for Cube3x3 {
         self.rotated_until_solved_centers() == Some(Self::default())
     }
 
-    fn piece_location(&self, piece: Self::Piece) -> Self::Piece {
+    fn slot_of(&self, piece: Self::Piece) -> Self::Piece {
         Piece3x3::all()
             .find(|&slot| self.piece_at(slot) == piece)
             .expect("All Cubes should have all pieces somewhere")
@@ -102,12 +102,8 @@ impl Indexed for Piece3x3 {
             Self::Edge(e) => Center::ALL.len() + Corner::ALL.len() + e as usize,
         }
     }
-    #[expect(
-        clippy::indexing_slicing,
-        reason = "`Indexed::from_index` takes an index below `COUNT`, the length of `ALL_PIECES`"
-    )]
     fn from_index(index: usize) -> Self {
-        Cube3x3::ALL_PIECES[index]
+        *Cube3x3::ALL_PIECES.get(index).expect("index in 0..COUNT")
     }
 }
 
@@ -196,7 +192,7 @@ impl Cube3x3 {
     /// # Errors
     ///
     /// Same as [`Self::move_sequence`].
-    pub fn from_solved(m: &str) -> Result<Self, ParseSequenceError> {
+    pub fn from_moves(m: &str) -> Result<Self, ParseSequenceError> {
         Self::default().move_sequence(m)
     }
 
@@ -211,18 +207,18 @@ impl Cube3x3 {
         .contains(&Face::F)
         {
             rotated_self = rotated_self
-                * Move3x3::new(MovablePart::Rotation(Rotation::y), MoveModifier::Clockwise);
+                * Move3x3::new(MovablePart::Rotation(Rotation::Y), MoveModifier::Clockwise);
         }
         for _ in 0..4 {
             if rotated_self.centers().piece_at(Face::F) != Face::F {
                 rotated_self = rotated_self
-                    * Move3x3::new(MovablePart::Rotation(Rotation::x), MoveModifier::Clockwise);
+                    * Move3x3::new(MovablePart::Rotation(Rotation::X), MoveModifier::Clockwise);
             }
         }
         for _ in 0..4 {
             if rotated_self.centers().piece_at(Face::U) != Face::U {
                 rotated_self = rotated_self
-                    * Move3x3::new(MovablePart::Rotation(Rotation::z), MoveModifier::Clockwise);
+                    * Move3x3::new(MovablePart::Rotation(Rotation::Z), MoveModifier::Clockwise);
             }
         }
 
@@ -352,7 +348,7 @@ mod tests {
     fn mul_carries_orientation_along_with_the_piece() -> Result<(), Box<dyn Error>> {
         // Pre-twist the piece at UFR, then apply R: that piece lands at UBR and
         // its twist is added to the twist R gives the UBR slot.
-        let r = Cube3x3::from_solved("R")?;
+        let r = Cube3x3::from_moves("R")?;
         let mut twisted = Cube3x3::default();
         twisted.corners.orientation[Corner::Ufr as usize] = Zn::new(1);
         let after = twisted * r;
@@ -378,19 +374,19 @@ mod tests {
 
     #[test]
     fn r_is_reachable() -> Result<(), Box<dyn Error>> {
-        assert!(Cube3x3::from_solved("R")?.is_reachable());
+        assert!(Cube3x3::from_moves("R")?.is_reachable());
         Ok(())
     }
 
     #[test]
     fn m_is_reachable() -> Result<(), Box<dyn Error>> {
-        assert!(Cube3x3::from_solved("M")?.is_reachable());
+        assert!(Cube3x3::from_moves("M")?.is_reachable());
         Ok(())
     }
 
     #[test]
     fn y_is_reachable() -> Result<(), Box<dyn Error>> {
-        assert!(Cube3x3::from_solved("y")?.is_reachable());
+        assert!(Cube3x3::from_moves("y")?.is_reachable());
         Ok(())
     }
 
@@ -411,22 +407,22 @@ mod tests {
 
     #[test]
     fn y_rotated_solved_is_solved() -> Result<(), Box<dyn Error>> {
-        let rotated_def = Cube3x3::from_solved("y")?;
+        let rotated_def = Cube3x3::from_moves("y")?;
         assert!(rotated_def.is_solved());
         Ok(())
     }
 
     #[test]
     fn rotated_solved_is_solved() -> Result<(), Box<dyn Error>> {
-        let rotated_def = Cube3x3::from_solved("y z y z x2 z2")?;
+        let rotated_def = Cube3x3::from_moves("y z y z x2 z2")?;
         assert!(rotated_def.is_solved());
         Ok(())
     }
 
     #[test]
     fn all_axes_rotated_solved_is_solved_but_not_after_a_face_turn() -> Result<(), Box<dyn Error>> {
-        assert!(Cube3x3::from_solved("x y2 z'")?.is_solved());
-        assert!(!Cube3x3::from_solved("x y2 z' R")?.is_solved());
+        assert!(Cube3x3::from_moves("x y2 z'")?.is_solved());
+        assert!(!Cube3x3::from_moves("x y2 z' R")?.is_solved());
         Ok(())
     }
 }

@@ -24,8 +24,8 @@ pub struct Labeled<P: Puzzle, L: Marker<P>>(Box<[SlotCondition<P, L>]>);
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let uf_solved = Mask::from_pieces([Piece3x3::Edge(Edge::Uf)]);
-/// assert!(uf_solved.applies_to(&Cube3x3::from_solved("R")?));
-/// assert!(!uf_solved.applies_to(&Cube3x3::from_solved("U")?));
+/// assert!(uf_solved.applies_to(&Cube3x3::from_moves("R")?));
+/// assert!(!uf_solved.applies_to(&Cube3x3::from_moves("U")?));
 /// # Ok(())
 /// # }
 /// ```
@@ -78,7 +78,7 @@ impl<P: Puzzle> Marker<P> for ByMembership {
 
 impl<P: Puzzle, L: Marker<P>> Default for Labeled<P, L> {
     fn default() -> Self {
-        Self::empty()
+        Self::new()
     }
 }
 
@@ -96,7 +96,7 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
 
     /// A mask that names no piece, so every puzzle meets it. The same as `Mask::default()`.
     #[must_use]
-    pub fn empty() -> Self {
+    pub fn new() -> Self {
         Self::from_fn(|_| SlotCondition {
             label: None,
             orient: None,
@@ -218,14 +218,14 @@ impl<P: Puzzle> Mask<P> {
     pub fn and(&self, other: &Self) -> Self {
         Self::from_pieces_and_orientations(
             P::Piece::all()
-                .zip(self.0.iter().zip(other.0.clone()))
-                .filter(|&(_, (con_self, ref con_other))| {
+                .zip(self.0.iter().zip(other.0.iter()))
+                .filter(|&(_, (con_self, con_other))| {
                     con_self.label.is_some() && con_other.label.is_some()
                 })
                 .map(|(slot, _)| slot),
             P::Piece::all()
-                .zip(self.0.iter().zip(other.0.clone()))
-                .filter(|&(_, (con_self, ref con_other))| {
+                .zip(self.0.iter().zip(other.0.iter()))
+                .filter(|&(_, (con_self, con_other))| {
                     con_self.orient.is_some() && con_other.orient.is_some()
                 })
                 .map(|(slot, _)| slot),
@@ -257,7 +257,7 @@ impl<P: Puzzle> PieceSet<P> {
 
     /// Whether every slot this marks, for its piece or its orientation, `other` marks too.
     #[must_use]
-    pub fn is_subset_of(&self, other: &Self) -> bool {
+    pub fn is_subset(&self, other: &Self) -> bool {
         self.0
             .iter()
             .zip(other.0.iter())

@@ -57,7 +57,7 @@ pub trait Puzzle:
         + Indexed;
 
     /// The slot where `piece` sits now.
-    fn piece_location(&self, piece: Self::Piece) -> Self::Piece;
+    fn slot_of(&self, piece: Self::Piece) -> Self::Piece;
 
     /// Whether the puzzle is solved, ignoring how the whole puzzle is rotated.
     #[must_use]

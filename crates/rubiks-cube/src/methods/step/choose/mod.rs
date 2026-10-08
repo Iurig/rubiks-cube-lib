@@ -126,7 +126,7 @@ mod tests {
 
         assert_eq!(
             cube,
-            Cube3x3::from_solved("R")?,
+            Cube3x3::from_moves("R")?,
             "only the short moves are applied"
         );
         assert_eq!(solution.move_count(), 1);
@@ -152,7 +152,7 @@ mod tests {
 
         let solution = choose.solve(&mut cube)?;
 
-        assert_eq!(cube, Cube3x3::from_solved("U")?);
+        assert_eq!(cube, Cube3x3::from_moves("U")?);
         let names: Vec<&str> = solution.iter().map(Segment::name).collect();
         assert_eq!(names, ["Runs"]);
         Ok(())
@@ -221,7 +221,7 @@ mod tests {
             assert_eq!(names, ["Short"], "short first: {short_first}");
             assert_eq!(
                 cube,
-                Cube3x3::from_solved("R")?,
+                Cube3x3::from_moves("R")?,
                 "short first: {short_first}"
             );
         }
@@ -243,7 +243,7 @@ mod tests {
 
         let names: Vec<&str> = solution.iter().map(Segment::name).collect();
         assert_eq!(names, ["First"]);
-        assert_eq!(cube, Cube3x3::from_solved("R")?);
+        assert_eq!(cube, Cube3x3::from_moves("R")?);
         Ok(())
     }
 }

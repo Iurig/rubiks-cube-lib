@@ -6,6 +6,9 @@ pub trait Indexed: Copy {
     /// Where the value is indexed in the comprehensive array.
     fn index(self) -> usize;
     /// What value lives in a given index of the array.
+    ///
+    /// # Panics
+    /// Panics if the index is not in the range `0..COUNT`.
     fn from_index(index: usize) -> Self;
 
     /// Iterator over all values of the type.

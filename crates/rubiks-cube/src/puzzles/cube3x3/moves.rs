@@ -1,5 +1,7 @@
 mod table;
 
+use std::str::FromStr;
+
 #[allow(
     clippy::wildcard_imports,
     reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
@@ -32,19 +34,19 @@ pub enum MovablePart {
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum MoveModifier {
     Clockwise,
-    CounterClockwise,
+    Prime,
     Double,
-    CounterDouble,
+    DoublePrime,
 }
 
 impl MoveModifier {
     #[must_use]
     pub const fn inverse(self) -> Self {
         match self {
-            Self::Clockwise => Self::CounterClockwise,
-            Self::CounterClockwise => Self::Clockwise,
-            Self::Double => Self::CounterDouble,
-            Self::CounterDouble => Self::Double,
+            Self::Clockwise => Self::Prime,
+            Self::Prime => Self::Clockwise,
+            Self::Double => Self::DoublePrime,
+            Self::DoublePrime => Self::Double,
         }
     }
 }
@@ -105,9 +107,9 @@ impl MovablePart {
 impl MoveModifier {
     const ALL: [Self; 4] = [
         Self::Clockwise,
-        Self::CounterClockwise,
+        Self::Prime,
         Self::Double,
-        Self::CounterDouble,
+        Self::DoublePrime,
     ];
 }
 
@@ -121,12 +123,8 @@ impl Indexed for MovablePart {
             Self::Wide(f) => Face::ALL.len() + Slice::ALL.len() + Rotation::ALL.len() + f as usize,
         }
     }
-    #[expect(
-        clippy::indexing_slicing,
-        reason = "`Indexed::from_index` takes an index below `COUNT`, the length of `ALL`"
-    )]
     fn from_index(index: usize) -> Self {
-        Self::ALL[index]
+        *Self::ALL.get(index).expect("index in 0..COUNT")
     }
 }
 
@@ -135,12 +133,8 @@ impl Indexed for MoveModifier {
     fn index(self) -> usize {
         self as usize
     }
-    #[expect(
-        clippy::indexing_slicing,
-        reason = "`Indexed::from_index` takes an index below `COUNT`, the length of `ALL`"
-    )]
     fn from_index(index: usize) -> Self {
-        Self::ALL[index]
+        *Self::ALL.get(index).expect("index in 0..COUNT")
     }
 }
 
@@ -164,9 +158,9 @@ impl std::fmt::Display for MovablePart {
             Self::Face(Face::L) => write!(f, "L"),
             Self::Face(Face::D) => write!(f, "D"),
             Self::Face(Face::B) => write!(f, "B"),
-            Self::Rotation(Rotation::x) => write!(f, "x"),
-            Self::Rotation(Rotation::y) => write!(f, "y"),
-            Self::Rotation(Rotation::z) => write!(f, "z"),
+            Self::Rotation(Rotation::X) => write!(f, "x"),
+            Self::Rotation(Rotation::Y) => write!(f, "y"),
+            Self::Rotation(Rotation::Z) => write!(f, "z"),
             Self::Wide(x) => write!(f, "{}w", Self::Face(*x)),
             Self::Slice(Slice::E) => write!(f, "E"),
             Self::Slice(Slice::M) => write!(f, "M"),
@@ -179,8 +173,8 @@ impl std::fmt::Display for MoveModifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Clockwise => write!(f, ""),
-            Self::CounterClockwise => write!(f, "'"),
-            Self::CounterDouble => write!(f, "2'"),
+            Self::Prime => write!(f, "'"),
+            Self::DoublePrime => write!(f, "2'"),
             Self::Double => write!(f, "2"),
         }
     }
@@ -201,15 +195,15 @@ impl ops::Inv for Move3x3 {
     }
 }
 
-impl TryFrom<&str> for Move3x3 {
-    type Error = ParseMoveError;
+impl FromStr for Move3x3 {
+    type Err = ParseMoveError;
     /// One move in notation: a part, then a modifier.
     ///
     /// The part is an uppercase face letter (`R`), a face letter followed by
     /// `w` for the wide move (`Rw`), a lowercase face letter meaning the same
     /// wide move (`r`), a slice (`M E S`), or a rotation (`x y z`). Whatever
     /// follows the part must be a modifier: nothing, `'`, `2`, or `2'`.
-    fn try_from(token: &str) -> Result<Self, Self::Error> {
+    fn from_str(token: &str) -> Result<Self, Self::Err> {
         let mut chars = token.chars();
         let first = chars.next().ok_or(ParseMoveError::EmptyString)?;
         let after_first = chars.as_str();
@@ -223,9 +217,9 @@ impl TryFrom<&str> for Move3x3 {
             _ => None,
         };
         let (part, modifier_text) = match first {
-            'x' => (MovablePart::Rotation(Rotation::x), after_first),
-            'y' => (MovablePart::Rotation(Rotation::y), after_first),
-            'z' => (MovablePart::Rotation(Rotation::z), after_first),
+            'x' => (MovablePart::Rotation(Rotation::X), after_first),
+            'y' => (MovablePart::Rotation(Rotation::Y), after_first),
+            'z' => (MovablePart::Rotation(Rotation::Z), after_first),
             'M' => (MovablePart::Slice(Slice::M), after_first),
             'E' => (MovablePart::Slice(Slice::E), after_first),
             'S' => (MovablePart::Slice(Slice::S), after_first),
@@ -246,9 +240,9 @@ impl TryFrom<&str> for Move3x3 {
         };
         let modifier = match modifier_text {
             "" => MoveModifier::Clockwise,
-            "'" => MoveModifier::CounterClockwise,
+            "'" => MoveModifier::Prime,
             "2" => MoveModifier::Double,
-            "2'" | "'2" => MoveModifier::CounterDouble,
+            "2'" | "'2" => MoveModifier::DoublePrime,
             other => {
                 return Err(ParseMoveError::BadModifier {
                     invalid_move: token.to_string(),
@@ -274,7 +268,7 @@ impl Move3x3 {
                 .split_whitespace()
                 .enumerate()
                 .map(move |(move_number, m)| {
-                    Self::try_from(m).map_err(|e| ParseSequenceError {
+                    Self::from_str(m).map_err(|e| ParseSequenceError {
                         source: e,
                         line: line_number + 1,
                         position: move_number + 1,
@@ -336,7 +330,7 @@ mod tests {
     #[test]
     fn move_display_round_trip() {
         for m in Move3x3::ALL {
-            assert_eq!(m, Move3x3::try_from(m.to_string().as_str()).unwrap());
+            assert_eq!(m, Move3x3::from_str(m.to_string().as_str()).unwrap());
         }
     }
 
@@ -385,8 +379,8 @@ mod tests {
             let lower = MovablePart::Face(face).to_string().to_lowercase();
             for modifier in ["", "'", "2", "2'"] {
                 assert_eq!(
-                    Move3x3::try_from(format!("{lower}{modifier}").as_str()),
-                    Move3x3::try_from(format!("{wide}{modifier}").as_str()),
+                    Move3x3::from_str(format!("{lower}{modifier}").as_str()),
+                    Move3x3::from_str(format!("{wide}{modifier}").as_str()),
                 );
             }
         }
@@ -452,7 +446,7 @@ mod tests {
                 },
             ),
         ] {
-            assert_eq!(Move3x3::try_from(bad), Err(expected_err));
+            assert_eq!(Move3x3::from_str(bad), Err(expected_err));
         }
         assert_eq!(
             moves_of("R Q U"),

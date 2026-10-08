@@ -38,7 +38,7 @@ exclude_re = [
     'rubiks-cube-cli/src/main\.rs:.*replace == with != in main',
     # Hang-only: the IDA* estimate never reaches 0, so every `PrunedCombine::solve` runs
     # forever. Non-termination is the only way these can show.
-    'replace <impl DistanceStep<P> for T>::distance_from_solved -> Option<u8> with Some\(1\)',
+    'replace <impl DistanceStep<P> for T>::distance_from_moves -> Option<u8> with Some\(1\)',
     'replace PruneTable<K>::get_distance -> Option<u8> with Some\(1\)',
     'replace <impl Step<P> for PrunedCombine<.*>>::solve::estimate -> Option<u8> with Some\(1\)',
     'replace Labeled<P, L>::composed_with -> Self with Default::default\(\)',

@@ -1,16 +1,16 @@
 [workspace]
-resolver = "3"
-members = ["crates/rubiks-cube", "crates/rubiks-cube-cli", "crates/twisty-puzzles-py"]
+    members =["crates/rubiks-cube", "crates/rubiks-cube-cli", "crates/twisty-puzzles-py"]
+    resolver="3"
 
-[workspace.package]
-edition = "2024"
-license = "MIT"
-repository = "https://github.com/Iurig/rubiks"
-readme = "README.md"
+    [workspace.package]
+        edition   ="2024"
+        license   ="MIT"
+        readme    ="README.md"
+        repository="https://github.com/Iurig/rubiks"
 
 [profile.test]
-inherits = "release"
-debug-assertions = true
-overflow-checks = true
-debug = "line-tables-only"
-incremental = true
+    debug           ="line-tables-only"
+    debug-assertions=true
+    incremental     =true
+    inherits        ="release"
+    overflow-checks =true

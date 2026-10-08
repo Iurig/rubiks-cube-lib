@@ -52,7 +52,7 @@ fn masked_default_applies_to_default_but_not_r() {
     assert!(Mask::from_pieces_and_orientations(pieces1, pieces2).applies_to(&Cube3x3::default()));
     assert!(
         !Mask::from_pieces_and_orientations(pieces1, pieces2)
-            .applies_to(&Cube3x3::from_solved("R").unwrap())
+            .applies_to(&Cube3x3::from_moves("R").unwrap())
     );
 }
 
@@ -71,7 +71,7 @@ fn masked_default_applies_to_default_and_r_if_mask_excludes_r() {
     assert!(Mask::from_pieces_and_orientations(pieces1, pieces2).applies_to(&Cube3x3::default()));
     assert!(
         Mask::from_pieces_and_orientations(pieces1, pieces2)
-            .applies_to(&Cube3x3::from_solved("R").unwrap())
+            .applies_to(&Cube3x3::from_moves("R").unwrap())
     );
 }
 
@@ -80,11 +80,11 @@ fn masked_with_correct_permutation_but_wrong_orientation_parses_correctly() {
     let pieces = [Piece3x3::Corner(Corner::Ufr)];
     assert!(
         Mask::from_pieces_and_orientations(pieces, [])
-            .applies_to(&Cube3x3::from_solved("R U").unwrap())
+            .applies_to(&Cube3x3::from_moves("R U").unwrap())
     );
     assert!(
         !Mask::from_pieces_and_orientations([], pieces)
-            .applies_to(&Cube3x3::from_solved("R U").unwrap())
+            .applies_to(&Cube3x3::from_moves("R U").unwrap())
     );
 }
 
@@ -93,11 +93,11 @@ fn masked_with_correct_orientation_but_wrong_permutation_parses_correctly() {
     let pieces = [Piece3x3::Corner(Corner::Ufr)];
     assert!(
         !Mask::from_pieces_and_orientations(pieces, [])
-            .applies_to(&Cube3x3::from_solved("U").unwrap())
+            .applies_to(&Cube3x3::from_moves("U").unwrap())
     );
     assert!(
         Mask::from_pieces_and_orientations([], pieces)
-            .applies_to(&Cube3x3::from_solved("U").unwrap())
+            .applies_to(&Cube3x3::from_moves("U").unwrap())
     );
 }
 

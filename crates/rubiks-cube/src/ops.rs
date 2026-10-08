@@ -131,7 +131,7 @@ mod tests {
     #[test]
     fn clockwise_moves_have_order_exactly_4() -> Result<(), Box<dyn Error>> {
         for m in &["R", "U", "D", "L", "F", "B", "E", "S", "M"] {
-            let cube = Cube3x3::from_solved(m)?;
+            let cube = Cube3x3::from_moves(m)?;
             for k in 1..4 {
                 assert!(!cube.pow(k).is_solved(), "{m}^{k} should not be solved");
             }

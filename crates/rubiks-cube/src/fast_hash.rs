@@ -171,8 +171,8 @@ mod tests {
     #[test]
     fn different_cubes_with_the_same_masked_pieces_find_each_other() {
         let goal = PieceSet::<Cube3x3>::from_pieces(FIRST_BLOCK);
-        let after_u = Cube3x3::from_solved("U").unwrap();
-        let after_r_m = Cube3x3::from_solved("R M'").unwrap();
+        let after_u = Cube3x3::from_moves("U").unwrap();
+        let after_r_m = Cube3x3::from_moves("R M'").unwrap();
         assert_ne!(after_u, after_r_m);
 
         let from_u = PieceSet::<Cube3x3>::filter_by_piece(&after_u, &goal);

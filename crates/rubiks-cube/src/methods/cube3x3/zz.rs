@@ -3,53 +3,62 @@ use enum_iterator::{Sequence, all};
 use std::sync::{Arc, LazyLock};
 
 use crate::methods::cube3x3::helpers::{
-    BlockGoal, LastLayer, algs, into_steps, parts, split_by_blocks,
+    BlockGoal, LastLayer, algs, chain_steps, into_steps, parts, set_options, split_by_blocks,
 };
 
 use crate::{AlgSet, Choose, Cube3x3, Method, PieceSet, Step, Technique};
 
 /// The ZZ method for the 3x3 Rubik's Cube: EO line, first two layers, then last layer.
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(test, derive(Sequence))]
 pub struct ZZ {
-    eoline: EoLineOptions,
-    f2l: F2LOptions,
-    ll: LLOptions,
+    eoline: EoLine,
+    f2l: F2L,
+    ll: LL,
 }
 
 impl ZZ {
     /// The ZZ-a variant of the ZZ method. Uses ZBLL on the last layer.
     pub const ZZ_A: Self = Self {
-        eoline: EoLineOptions,
-        f2l: F2LOptions,
-        ll: LLOptions::OneLook,
+        eoline: EoLine,
+        f2l: F2L,
+        ll: LL::OneLook,
     };
+    set_options!("EOLine", eoline, EoLine);
+    set_options!("F2L", f2l, F2L);
+    set_options!("last layer", ll, LL);
 }
+
 /// How [`ZZ`] builds its first step, the `EOLine`.
 #[non_exhaustive]
-#[derive(Debug, Clone, Default, Copy)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(test, derive(Sequence))]
-pub struct EoLineOptions;
+pub struct EoLine;
 /// How [`ZZ`] builds its F2L.
 #[non_exhaustive]
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(test, derive(Sequence))]
-pub struct F2LOptions;
+pub struct F2L;
+/// How [`ZZ`] builds its last layer.
 #[non_exhaustive]
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(test, derive(Sequence))]
-pub enum LLOptions {
+pub enum LL {
+    /// 2-look last layer.
     TwoLook {
-        orientation: OrientationOptions,
-        permutation: PermutationOptions,
+        /// The first look.
+        first: FirstLook,
+        /// The second look.
+        second: SecondLook,
     },
+    /// 1-look last layer, solved with ZBLL.
     OneLook,
 }
 /// The first step of a two-look ZZ last layer.
 #[non_exhaustive]
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(test, derive(Sequence))]
-pub enum OrientationOptions {
+pub enum FirstLook {
     /// Orientation of the Corners of the Last Layer.
     #[default]
     Ocll,
@@ -58,9 +67,9 @@ pub enum OrientationOptions {
 }
 /// The second step of a two-look ZZ last layer.
 #[non_exhaustive]
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(test, derive(Sequence))]
-pub enum PermutationOptions {
+pub enum SecondLook {
     /// Standard PLL
     #[default]
     OneLook,
@@ -68,11 +77,11 @@ pub enum PermutationOptions {
     TwoLook,
 }
 
-impl Default for LLOptions {
+impl Default for LL {
     fn default() -> Self {
         Self::TwoLook {
-            orientation: OrientationOptions::default(),
-            permutation: PermutationOptions::default(),
+            first: FirstLook::default(),
+            second: SecondLook::default(),
         }
     }
 }
@@ -80,11 +89,11 @@ impl Default for LLOptions {
 impl Method<Cube3x3> for ZZ {
     fn to_technique(&self) -> Technique<Cube3x3> {
         let eoline_tech = match self.eoline {
-            EoLineOptions => chain_steps!(moves: &EO_LINE_MOVES, goal: &F2L_MOVES, "EO Line"),
+            EoLine => chain_steps!(moves: &EO_LINE_MOVES, goal: &F2L_MOVES, "EO Line"),
         };
 
         let f2l_tech = match self.f2l {
-            F2LOptions => vec![Arc::from(split_by_blocks(
+            F2L => vec![Arc::from(split_by_blocks(
                 "F2L",
                 PieceSet::from_algset(&F2L_MOVES),
                 F2L_BLOCKS.iter(),
@@ -93,17 +102,17 @@ impl Method<Cube3x3> for ZZ {
         };
 
         let ll_tech = match self.ll {
-            LLOptions::TwoLook {
-                orientation: oll,
-                permutation: pll,
+            LL::TwoLook {
+                first: oll,
+                second: pll,
             } => {
                 let oll_tech = match oll {
-                    OrientationOptions::Ocll => into_steps(LastLayer::ocll(OCLL_ALGS.clone())),
-                    OrientationOptions::Coll => into_steps(LastLayer::coll(COLL_ALGS.clone())),
+                    FirstLook::Ocll => into_steps(LastLayer::ocll(OCLL_ALGS.clone())),
+                    FirstLook::Coll => into_steps(LastLayer::coll(COLL_ALGS.clone())),
                 };
                 let pll_tech = match pll {
-                    PermutationOptions::OneLook => into_steps(LastLayer::pll(PLL_ALGS.clone())),
-                    PermutationOptions::TwoLook => {
+                    SecondLook::OneLook => into_steps(LastLayer::pll(PLL_ALGS.clone())),
+                    SecondLook::TwoLook => {
                         let corners = into_steps(LastLayer::cpll(PLL_CORNER_ALGS.clone()));
                         let edges = into_steps(LastLayer::epll(PLL_EDGE_ALGS.clone()));
                         [corners, edges].concat()
@@ -111,7 +120,7 @@ impl Method<Cube3x3> for ZZ {
                 };
                 [oll_tech, pll_tech].concat()
             }
-            LLOptions::OneLook => into_steps(LastLayer::zbll(ZBLL_ALGS.clone())),
+            LL::OneLook => into_steps(LastLayer::zbll(ZBLL_ALGS.clone())),
         };
 
         [eoline_tech, f2l_tech, ll_tech]

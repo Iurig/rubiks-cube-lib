@@ -10,7 +10,7 @@ use std::error::Error;
 #[test]
 fn r_takes_front_top_corner_to_back_top() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3x3::from_solved("R")?.corners().piece_at(Corner::Ubr),
+        Cube3x3::from_moves("R")?.corners().piece_at(Corner::Ubr),
         Corner::Ufr
     );
     Ok(())
@@ -18,7 +18,7 @@ fn r_takes_front_top_corner_to_back_top() -> Result<(), Box<dyn Error>> {
 #[test]
 fn l_takes_back_top_corner_to_front_top() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3x3::from_solved("L")?.corners().piece_at(Corner::Ufl),
+        Cube3x3::from_moves("L")?.corners().piece_at(Corner::Ufl),
         Corner::Ubl
     );
     Ok(())
@@ -26,7 +26,7 @@ fn l_takes_back_top_corner_to_front_top() -> Result<(), Box<dyn Error>> {
 #[test]
 fn u_takes_front_right_corner_to_front_left() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3x3::from_solved("U")?.corners().piece_at(Corner::Ufl),
+        Cube3x3::from_moves("U")?.corners().piece_at(Corner::Ufl),
         Corner::Ufr
     );
     Ok(())
@@ -34,7 +34,7 @@ fn u_takes_front_right_corner_to_front_left() -> Result<(), Box<dyn Error>> {
 #[test]
 fn d_takes_front_right_corner_to_back_right() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3x3::from_solved("D")?.corners().piece_at(Corner::Dbr),
+        Cube3x3::from_moves("D")?.corners().piece_at(Corner::Dbr),
         Corner::Dfr
     );
     Ok(())
@@ -42,7 +42,7 @@ fn d_takes_front_right_corner_to_back_right() -> Result<(), Box<dyn Error>> {
 #[test]
 fn f_takes_top_right_corner_to_bottom_right() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3x3::from_solved("F")?.corners().piece_at(Corner::Dfr),
+        Cube3x3::from_moves("F")?.corners().piece_at(Corner::Dfr),
         Corner::Ufr
     );
     Ok(())
@@ -50,7 +50,7 @@ fn f_takes_top_right_corner_to_bottom_right() -> Result<(), Box<dyn Error>> {
 #[test]
 fn b_takes_top_right_corner_to_top_left() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3x3::from_solved("B")?.corners().piece_at(Corner::Ubl),
+        Cube3x3::from_moves("B")?.corners().piece_at(Corner::Ubl),
         Corner::Ubr
     );
     Ok(())
@@ -61,7 +61,7 @@ fn b_takes_top_right_corner_to_top_left() -> Result<(), Box<dyn Error>> {
 #[test]
 fn e_follows_d_and_takes_front_center_to_right() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3x3::from_solved("E")?.centers().piece_at(Center::R),
+        Cube3x3::from_moves("E")?.centers().piece_at(Center::R),
         Center::F
     );
     Ok(())
@@ -69,7 +69,7 @@ fn e_follows_d_and_takes_front_center_to_right() -> Result<(), Box<dyn Error>> {
 #[test]
 fn m_follows_l_and_takes_top_center_to_front() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3x3::from_solved("M")?.centers().piece_at(Center::F),
+        Cube3x3::from_moves("M")?.centers().piece_at(Center::F),
         Center::U
     );
     Ok(())
@@ -77,7 +77,7 @@ fn m_follows_l_and_takes_top_center_to_front() -> Result<(), Box<dyn Error>> {
 #[test]
 fn s_follows_f_and_takes_top_center_to_right() -> Result<(), Box<dyn Error>> {
     assert_eq!(
-        Cube3x3::from_solved("S")?.centers().piece_at(Center::R),
+        Cube3x3::from_moves("S")?.centers().piece_at(Center::R),
         Center::U
     );
     Ok(())
@@ -85,7 +85,7 @@ fn s_follows_f_and_takes_top_center_to_right() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), Box<dyn Error>> {
-    let r = Cube3x3::from_solved("R")?;
+    let r = Cube3x3::from_moves("R")?;
     for c in [Corner::Ubl, Corner::Ufl, Corner::Dfl, Corner::Dbl] {
         assert_eq!(r.corners().piece_at(c), c);
         assert_eq!(r.corners().orientation_at(c), Zn::ZERO);
@@ -109,28 +109,28 @@ fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), Box<dyn Error
 
 #[test]
 fn r_and_l_commute() -> Result<(), Box<dyn Error>> {
-    assert!(Cube3x3::from_solved("R L R' L'")?.is_solved());
+    assert!(Cube3x3::from_moves("R L R' L'")?.is_solved());
     Ok(())
 }
 
 #[test]
 fn u_and_d_commute() -> Result<(), Box<dyn Error>> {
-    assert!(Cube3x3::from_solved("U D U' D'")?.is_solved());
+    assert!(Cube3x3::from_moves("U D U' D'")?.is_solved());
     Ok(())
 }
 
 #[test]
 fn rotations_match_moves() -> Result<(), Box<dyn Error>> {
-    assert_eq!(Cube3x3::from_solved("y")?, Cube3x3::from_solved("U E' D'")?);
-    assert_eq!(Cube3x3::from_solved("z")?, Cube3x3::from_solved("F S B'")?);
-    assert_eq!(Cube3x3::from_solved("x")?, Cube3x3::from_solved("R M' L'")?);
+    assert_eq!(Cube3x3::from_moves("y")?, Cube3x3::from_moves("U E' D'")?);
+    assert_eq!(Cube3x3::from_moves("z")?, Cube3x3::from_moves("F S B'")?);
+    assert_eq!(Cube3x3::from_moves("x")?, Cube3x3::from_moves("R M' L'")?);
     Ok(())
 }
 
 #[test]
 fn r_2_is_equal_to_r_prime_2() -> Result<(), Box<dyn Error>> {
-    let r2 = Cube3x3::from_solved("R2")?;
-    let r_prime_2 = Cube3x3::from_solved("R' R'")?;
+    let r2 = Cube3x3::from_moves("R2")?;
+    let r_prime_2 = Cube3x3::from_moves("R' R'")?;
     assert_eq!(r2, r_prime_2);
     Ok(())
 }
@@ -157,7 +157,7 @@ fn sexy_move_has_correct_period_on_all_face_pairs() -> Result<(), Box<dyn Error>
         .map(|&(m1, m2)| String::from(m1) + " " + m2 + " " + m1 + "' " + m2 + "' ")
         .collect();
     for s in sexy {
-        let cube = Cube3x3::from_solved(&s)?;
+        let cube = Cube3x3::from_moves(&s)?;
         for k in 1..6 {
             assert!(!cube.pow(k).is_solved(), "({s})^{k} should not be solved");
         }

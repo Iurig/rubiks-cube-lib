@@ -20,7 +20,7 @@ use crate::{SolveError, methods::step::Step, puzzles::Puzzle};
 /// use rubiks_cube::{Cube3x3, Method, Puzzle, Roux};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let mut cube = Cube3x3::from_solved("R U R' F' L2 D B'")?;
+/// let mut cube = Cube3x3::from_moves("R U R' F' L2 D B'")?;
 /// let solution = Roux::default().solve(&mut cube)?;
 /// assert!(cube.is_solved());
 /// println!("{solution}");
@@ -53,8 +53,8 @@ impl<P: Puzzle> Technique<P> {
     }
 
     /// Returns the steps of the Technique as an [`Iterator`](core::iter::Iterator).
-    pub fn steps(&self) -> impl Iterator<Item = Arc<dyn Step<P>>> {
-        self.steps.iter().cloned()
+    pub fn steps(&self) -> impl Iterator<Item = &dyn Step<P>> {
+        self.steps.iter().map(|s| &**s)
     }
 
     /// Returns an [`Iterator`](core::iter::Iterator) over the solutions of every step which
@@ -134,7 +134,7 @@ pub trait Method<P: Puzzle>: Default + Debug {
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let roux = Roux::default();
-    /// let mut cube = Cube3x3::from_solved("R U R' F' L2 D B'")?;
+    /// let mut cube = Cube3x3::from_moves("R U R' F' L2 D B'")?;
     /// for segment in roux.solve_steps(&mut cube) {
     ///     print!("{}", segment?);
     /// }
@@ -221,7 +221,7 @@ mod tests {
         )
         .expect_solved(uf_solved)
         .build()?;
-        let scrambled = Cube3x3::from_solved("U")?;
+        let scrambled = Cube3x3::from_moves("U")?;
         let mut cube = scrambled;
 
         let result = step.solve(&mut cube);
@@ -277,7 +277,7 @@ mod tests {
         );
         let later = FixedStep::new("Later", "", true, true);
         let method = Technique::new(vec![solve_uf, later.clone()]);
-        let mut cube = Cube3x3::from_solved("U")?;
+        let mut cube = Cube3x3::from_moves("U")?;
 
         let first = method.solve_steps(&mut cube).next();
 

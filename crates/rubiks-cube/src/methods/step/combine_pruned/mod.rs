@@ -38,7 +38,7 @@ impl<P: Puzzle> Debug for PrunedCombine<P> {
 pub trait DistanceStep<P: Puzzle>: Debug + Send + Sync {
     /// How many moveset sequences `puzzle` is from the goal, or `None` if no sequence reaches
     /// it.
-    fn distance_from_solved(&self, puzzle: &P) -> Option<u8>;
+    fn distance_from_moves(&self, puzzle: &P) -> Option<u8>;
 }
 
 /// A goal with a table of how far each state is from it. Every `PrunedGoal` is a
@@ -46,7 +46,8 @@ pub trait DistanceStep<P: Puzzle>: Debug + Send + Sync {
 /// table is always read with the same key it was filled with.
 pub trait PrunedGoal<P: Puzzle>: Debug + Send + Sync {
     /// The labels the goal uses: [`ByIdentity`](crate::ByIdentity) when the table must tell pieces
-    /// apart, [`ByMembership`](crate::ByMembership) when it only needs to know which slots hold them.
+    /// apart, [`ByMembership`](crate::ByMembership) when it only needs to know which slots hold
+    /// them.
     type Marker: Marker<P, Label: Send + Sync> + Clone + Eq + Hash + Debug + Send + Sync;
 
     /// The goal the table was built from.
@@ -57,7 +58,7 @@ pub trait PrunedGoal<P: Puzzle>: Debug + Send + Sync {
 }
 
 impl<P: Puzzle, T: PrunedGoal<P>> DistanceStep<P> for T {
-    fn distance_from_solved(&self, puzzle: &P) -> Option<u8> {
+    fn distance_from_moves(&self, puzzle: &P) -> Option<u8> {
         // The table holds the goal carried along by sequences of moves, so the key is the goal
         // carried along by the whole puzzle. `filter_by_piece` would not do: it keeps some
         // orientation requirements on fixed slots, which builds keys the table never stored.
@@ -134,7 +135,7 @@ impl<P: Puzzle> Step<P> for PrunedCombine<P> {
     fn is_done(&self, puzzle: &P) -> bool {
         self.steps
             .iter()
-            .all(|s| s.distance_from_solved(puzzle) == Some(0))
+            .all(|s| s.distance_from_moves(puzzle) == Some(0))
     }
 
     #[expect(
@@ -146,7 +147,7 @@ impl<P: Puzzle> Step<P> for PrunedCombine<P> {
         /// every step must be done at the end. `None` when some step cannot reach its goal.
         fn estimate<P: Puzzle>(steps: &[Box<dyn DistanceStep<P>>], puzzle: &P) -> Option<u8> {
             steps.iter().try_fold(0, |max, s| {
-                s.distance_from_solved(puzzle).map(|d| max.max(d))
+                s.distance_from_moves(puzzle).map(|d| max.max(d))
             })
         }
 

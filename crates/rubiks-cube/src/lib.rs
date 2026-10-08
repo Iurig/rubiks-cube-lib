@@ -8,12 +8,12 @@
 //! use rubiks_cube::{Cube3x3, Inv, Pow, Puzzle};
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! let scramble = Cube3x3::from_solved("R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F")?;
-//! let solution = Cube3x3::from_solved("D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")?;
+//! let scramble = Cube3x3::from_moves("R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F")?;
+//! let solution = Cube3x3::from_moves("D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")?;
 //! assert!((scramble * solution).is_solved());
 //!
-//! assert_eq!(Cube3x3::from_solved("R")?.inverse(), Cube3x3::from_solved("R'")?);
-//! assert!(Cube3x3::from_solved("R U R' U'")?.pow(6).is_solved());
+//! assert_eq!(Cube3x3::from_moves("R")?.inverse(), Cube3x3::from_moves("R'")?);
+//! assert!(Cube3x3::from_moves("R U R' U'")?.pow(6).is_solved());
 //! # Ok(())
 //! # }
 //! ```
@@ -35,7 +35,7 @@
 //! use rubiks_cube::{Cube3x3, Method, Puzzle, Roux};
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! let mut cube = Cube3x3::from_solved("D2 F2 R2 U L2 D R2 U' B2 L2 B L2 F' L D2 U R' B D2")?;
+//! let mut cube = Cube3x3::from_moves("D2 F2 R2 U L2 D R2 U' B2 L2 B L2 F' L D2 U R' B D2")?;
 //! let solution = Roux::default().solve(&mut cube)?;
 //! assert!(cube.is_solved());
 //! print!("{solution}");
@@ -78,13 +78,11 @@ pub mod zn;
 
 pub use error::{ParseMoveError, ParseSequenceError, SearchStepError, SolveError, StepError};
 pub use indexed::Indexed;
+// Methods with options are re-exported as modules too (`roux::Cmll`), so the options need no method
+// prefix. `kociemba` has no options.
 pub use methods::{
     Method, Segment, Solution, Technique,
-    cube3x3::{
-        kociemba::Kociemba,
-        roux::{CmllOptions, FirstBlockOptions, LseOptions, Roux, SecondBlockOptions},
-        zz::{EoLineOptions, F2LOptions, OrientationOptions, PermutationOptions, ZZ},
-    },
+    cube3x3::{kociemba::Kociemba, roux, roux::Roux, zz, zz::ZZ},
     step::{
         Step,
         choose::Choose,

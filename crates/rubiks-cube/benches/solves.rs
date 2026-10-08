@@ -90,13 +90,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     // pays for is memo growth.
     for (pass, seed) in [(1, 2026), (2, 2027)] {
         eprintln!("pass {pass} (seed {seed}):");
-        bench(&roux, seed)?;
+        bench(roux, seed)?;
     }
     eprintln!("peak heap over the whole run: {}", mib(PEAK.load(Relaxed))?);
     Ok(())
 }
 
-fn bench(roux: &Roux, seed: u64) -> Result<(), Box<dyn Error>> {
+fn bench(roux: Roux, seed: u64) -> Result<(), Box<dyn Error>> {
     let mut rng = fastrand::Rng::with_seed(seed);
     let mut whole = Stats::default();
     let mut per_step: BTreeMap<String, Stats> = BTreeMap::new();
@@ -154,7 +154,7 @@ fn bench(roux: &Roux, seed: u64) -> Result<(), Box<dyn Error>> {
 /// Drives `Method::solve_steps`, timing each `next()` and recording its peak extra heap.
 /// Each `next()` runs exactly one step.
 fn solve_measured(
-    roux: &Roux,
+    roux: Roux,
     cube: &mut Cube3x3,
 ) -> Result<(Solution<Cube3x3>, Vec<Measured>), Box<dyn Error>> {
     let mut steps = roux.solve_steps(cube);
