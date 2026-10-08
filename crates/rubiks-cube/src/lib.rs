@@ -76,7 +76,7 @@ mod piece;
 mod puzzles;
 pub mod zn;
 
-pub use error::{ParseMoveError, ParseSequenceError, SolveError, StepError};
+pub use error::{ParseMoveError, ParseSequenceError, SearchStepError, SolveError, StepError};
 pub use indexed::Indexed;
 pub use methods::{
     Method, Segment, Solution, Technique,
@@ -85,7 +85,11 @@ pub use methods::{
         roux::{CmllOptions, FirstBlockOptions, LseOptions, Roux, SecondBlockOptions},
         zz::{EoLineOptions, F2LOptions, OrientationOptions, PermutationOptions, ZZ},
     },
-    step::{Step, choose::Choose, search_step::SearchStep},
+    step::{
+        Step,
+        choose::Choose,
+        search_step::{MemoCache, SearchStep, SearchStepBuilder},
+    },
 };
 pub use ops::{Inv, Pow};
 pub use piece::{Piece, PieceConfiguration};
@@ -98,7 +102,7 @@ pub use puzzles::{
     Puzzle,
     algorithm::Algorithm,
     algset::AlgSet,
-    label::{ByMark, ByPiece, Labeled, Marked, Marker, Mask},
+    label::{ByIdentity, ByMembership, Labeled, Marker, Mask, PieceSet},
 };
 
 /// Runs the Rust examples in `README.md` as doc tests, so they cannot drift from the code.

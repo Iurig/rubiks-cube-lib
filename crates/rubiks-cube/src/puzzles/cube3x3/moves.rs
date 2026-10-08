@@ -157,40 +157,32 @@ impl Indexed for Move3x3 {
 
 impl std::fmt::Display for MovablePart {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::Face(Face::R) => "R",
-                Self::Face(Face::F) => "F",
-                Self::Face(Face::U) => "U",
-                Self::Face(Face::L) => "L",
-                Self::Face(Face::D) => "D",
-                Self::Face(Face::B) => "B",
-                Self::Rotation(Rotation::x) => "x",
-                Self::Rotation(Rotation::y) => "y",
-                Self::Rotation(Rotation::z) => "z",
-                Self::Wide(x) => return write!(f, "{}w", Self::Face(*x)),
-                Self::Slice(Slice::E) => "E",
-                Self::Slice(Slice::M) => "M",
-                Self::Slice(Slice::S) => "S",
-            }
-        )
+        match self {
+            Self::Face(Face::R) => write!(f, "R"),
+            Self::Face(Face::F) => write!(f, "F"),
+            Self::Face(Face::U) => write!(f, "U"),
+            Self::Face(Face::L) => write!(f, "L"),
+            Self::Face(Face::D) => write!(f, "D"),
+            Self::Face(Face::B) => write!(f, "B"),
+            Self::Rotation(Rotation::x) => write!(f, "x"),
+            Self::Rotation(Rotation::y) => write!(f, "y"),
+            Self::Rotation(Rotation::z) => write!(f, "z"),
+            Self::Wide(x) => write!(f, "{}w", Self::Face(*x)),
+            Self::Slice(Slice::E) => write!(f, "E"),
+            Self::Slice(Slice::M) => write!(f, "M"),
+            Self::Slice(Slice::S) => write!(f, "S"),
+        }
     }
 }
 
 impl std::fmt::Display for MoveModifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::Clockwise => "",
-                Self::CounterClockwise => "'",
-                Self::CounterDouble => "2'",
-                Self::Double => "2",
-            }
-        )
+        match self {
+            Self::Clockwise => write!(f, ""),
+            Self::CounterClockwise => write!(f, "'"),
+            Self::CounterDouble => write!(f, "2'"),
+            Self::Double => write!(f, "2"),
+        }
     }
 }
 

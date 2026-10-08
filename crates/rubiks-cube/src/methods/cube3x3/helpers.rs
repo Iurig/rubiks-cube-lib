@@ -6,9 +6,9 @@ use std::{
 use itertools::iproduct;
 
 use crate::{
-    AlgSet, Algorithm, ByPiece, Cube3x3, Marked, Mask, Piece3x3, Puzzle, SearchStep, Solution,
-    Step, StepError,
-    methods::step::combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
+    AlgSet, Algorithm, ByIdentity, Cube3x3, Mask, Piece3x3, PieceSet, Puzzle, Solution, Step,
+    StepError,
+    methods::step::combine_pruned::{PruneTable, PrunedCombine, PrunedGoal},
 };
 
 pub fn parts(text: &str) -> AlgSet<Cube3x3> {
@@ -19,40 +19,8 @@ pub fn algs(text: &str) -> AlgSet<Cube3x3> {
     AlgSet::from_algs_in_str(text).expect("hand-written algorithm sets should always parse")
 }
 
-pub fn search(
-    name: impl Into<Cow<'static, str>>,
-    before: Marked<Cube3x3>,
-    after: Marked<Cube3x3>,
-    moves: AlgSet<Cube3x3>,
-) -> Arc<SearchStep<Cube3x3>> {
-    search_with_free_algs(name, before, after, moves, AlgSet::default())
-}
-
 pub(super) fn into_steps<P: Puzzle>(step: impl Step<P> + 'static) -> Vec<Arc<dyn Step<P>>> {
     vec![Arc::new(step)]
-}
-
-pub fn search_with_free_algs(
-    name: impl Into<Cow<'static, str>>,
-    before: Marked<Cube3x3>,
-    after: Marked<Cube3x3>,
-    moves: AlgSet<Cube3x3>,
-    free_algs: AlgSet<Cube3x3>,
-) -> Arc<SearchStep<Cube3x3>> {
-    Arc::new(SearchStep::sharing_memo(
-        &super::MEMOS,
-        name,
-        before,
-        after,
-        moves,
-        free_algs,
-    ))
-}
-
-macro_rules! r#dyn {
-    ($goal: expr) => {
-        Box::new($goal) as Box<dyn DistanceStep<Cube3x3>>
-    };
 }
 
 macro_rules! mask {
@@ -68,7 +36,11 @@ pub struct BlockGoal {
 }
 
 impl BlockGoal {
-    pub fn new(after: &Marked<Cube3x3>, block: &Marked<Cube3x3>, moves: &AlgSet<Cube3x3>) -> Self {
+    pub fn new(
+        after: &PieceSet<Cube3x3>,
+        block: &PieceSet<Cube3x3>,
+        moves: &AlgSet<Cube3x3>,
+    ) -> Self {
         let goal = mask!(after).and(&mask!(block));
         let table = PruneTable::from_goal(&goal, moves);
         Self { goal, table }
@@ -76,7 +48,7 @@ impl BlockGoal {
 }
 
 impl PrunedGoal<Cube3x3> for &'static BlockGoal {
-    type Marker = ByPiece;
+    type Marker = ByIdentity;
 
     fn goal(&self) -> &Mask<Cube3x3> {
         &self.goal
@@ -89,16 +61,11 @@ impl PrunedGoal<Cube3x3> for &'static BlockGoal {
 
 pub fn split_by_blocks(
     name: impl Into<Cow<'static, str>>,
-    before: Marked<Cube3x3>,
+    before: PieceSet<Cube3x3>,
     blocks: impl IntoIterator<Item = &'static BlockGoal>,
     moves: AlgSet<Cube3x3>,
 ) -> PrunedCombine<Cube3x3> {
-    PrunedCombine::new(
-        name,
-        Box::new(move |cube| before.applies_to(cube)),
-        blocks.into_iter().map(|block| r#dyn!(block)),
-        moves,
-    )
+    PrunedCombine::new(name, move |cube| before.applies_to(cube), blocks, moves)
 }
 
 macro_rules! chain_steps {
@@ -110,18 +77,18 @@ macro_rules! chain_steps {
         let moves: &AlgSet<Cube3x3> = $moves;
         let goal: &AlgSet<Cube3x3> = $goal;
         let free: &AlgSet<Cube3x3> = $free;
-        chain_steps!(@stages moves, free, goal, (Marked::from_algset(moves)), [], $($stages)+)
+        chain_steps!(@stages moves, free, goal, (PieceSet::from_algset(moves)), [], $($stages)+)
     }};
 
     (moves: $moves:expr, goal: $goal:expr, $($stages:tt)+) => {
-        chain_steps!(moves: $moves, goal: $goal, free: &AlgSet::default(), $($stages)+)
+        chain_steps!(moves: $moves, goal: $goal, free: &AlgSet::empty(), $($stages)+)
     };
 
     (@stages $moves:ident, $free:ident, $goal:ident, $befores:tt, [$($steps:expr),*],
      $name:literal $(,)?) => {{
         let steps: Vec<Arc<dyn Step<Cube3x3>>> = vec![
             $($steps,)*
-            chain_steps!(@choose $moves, $free, $name, $befores, (Marked::from_algset($goal))),
+            chain_steps!(@choose $moves, $free, $name, $befores, (PieceSet::from_algset($goal))),
         ];
         steps
     }};
@@ -130,9 +97,9 @@ macro_rules! chain_steps {
      $name:literal => ($($divider:expr),+ $(,)?), $($rest:tt)+) => {
         chain_steps!(
             @stages $moves, $free, $goal,
-            ($(Marked::from_algset(&$goal.combined_with(&$divider))),+),
+            ($(PieceSet::from_algset(&$goal.combined_with(&$divider))),+),
             [$($steps,)* chain_steps!(@choose $moves, $free, $name, $befores,
-                ($(Marked::from_algset(&$goal.combined_with(&$divider))),+))],
+                ($(PieceSet::from_algset(&$goal.combined_with(&$divider))),+))],
             $($rest)+
         )
     };
@@ -145,8 +112,13 @@ macro_rules! chain_steps {
 
     (@row $moves:ident, $free:ident, $name:literal, $before:expr, ($($after:expr),+)) => {{
         let row: Vec<Arc<dyn Step<Cube3x3>>> = vec![$(
-            $crate::methods::cube3x3::helpers::search_with_free_algs(
-                $name, $before, $after, $moves.clone(), $free.clone(),
+            Arc::new(
+                $crate::SearchStep::builder($name, $after)
+                    .expect_solved($before)
+                    .search_algs($moves.clone())
+                    .free_algs($free.clone())
+                    .build()
+                    .expect("each chain_steps stage keeps the stage before it solved"),
             )
         ),+];
         row
@@ -193,19 +165,33 @@ fn aufs() -> [Algorithm<Cube3x3>; 4] {
     AUF.clone()
 }
 
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "rarely constructed, the fields names are documentation enough"
+)]
+#[derive(Debug, Clone, Copy)]
+pub struct LastLayerGoal {
+    corner_orientation: bool,
+    corner_permutation: bool,
+    edge_orientation: bool,
+    edge_permutation: bool,
+}
+
+impl LastLayerGoal {
+    const SOLVE_LL: Self = Self {
+        corner_orientation: true,
+        corner_permutation: true,
+        edge_orientation: true,
+        edge_permutation: true,
+    };
+    const SET_UP_EPLL: Self = Self {
+        edge_permutation: false,
+        ..Self::SOLVE_LL
+    };
+}
+
 impl LastLayer {
-    #[expect(
-        clippy::fn_params_excessive_bools,
-        reason = "Private function to helper file - only used here."
-    )]
-    fn new(
-        name: impl Into<Cow<'static, str>>,
-        algs: AlgSet<Cube3x3>,
-        co: bool,
-        cp: bool,
-        eo: bool,
-        ep: bool,
-    ) -> Self {
+    fn new(name: impl Into<Cow<'static, str>>, algs: AlgSet<Cube3x3>, goal: LastLayerGoal) -> Self {
         let pick =
             |wanted: bool, pieces: &[Piece3x3; 4]| wanted.then_some(*pieces).into_iter().flatten();
         Self {
@@ -213,10 +199,12 @@ impl LastLayer {
             algs,
             oriented: Mask::from_pieces_and_orientations(
                 [],
-                pick(co, &LL_CORNERS).chain(pick(eo, &LL_EDGES)),
+                pick(goal.corner_orientation, &LL_CORNERS)
+                    .chain(pick(goal.edge_orientation, &LL_EDGES)),
             ),
             permuted: Mask::from_pieces_and_orientations(
-                pick(cp, &LL_CORNERS).chain(pick(ep, &LL_EDGES)),
+                pick(goal.corner_permutation, &LL_CORNERS)
+                    .chain(pick(goal.edge_permutation, &LL_EDGES)),
                 [],
             ),
         }
@@ -228,22 +216,28 @@ impl LastLayer {
     }
 
     pub fn coll(algs: AlgSet<Cube3x3>) -> Self {
-        Self::new("COLL", algs, true, true, true, false)
+        Self::new("COLL", algs, LastLayerGoal::SET_UP_EPLL)
     }
     pub fn ocll(algs: AlgSet<Cube3x3>) -> Self {
-        Self::new("OCLL", algs, true, false, true, false)
+        let ocll_goal = LastLayerGoal {
+            corner_orientation: true,
+            corner_permutation: false,
+            edge_orientation: true,
+            edge_permutation: false,
+        };
+        Self::new("OCLL", algs, ocll_goal)
     }
     pub fn pll(algs: AlgSet<Cube3x3>) -> Self {
-        Self::new("PLL", algs, true, true, true, true)
+        Self::new("PLL", algs, LastLayerGoal::SOLVE_LL)
     }
     pub fn cpll(algs: AlgSet<Cube3x3>) -> Self {
-        Self::new("CPLL", algs, true, true, true, false)
+        Self::new("CPLL", algs, LastLayerGoal::SET_UP_EPLL)
     }
     pub fn epll(algs: AlgSet<Cube3x3>) -> Self {
-        Self::new("EPLL", algs, true, true, true, true)
+        Self::new("EPLL", algs, LastLayerGoal::SOLVE_LL)
     }
     pub fn zbll(algs: AlgSet<Cube3x3>) -> Self {
-        Self::new("ZBLL", algs, true, true, true, true)
+        Self::new("ZBLL", algs, LastLayerGoal::SOLVE_LL)
     }
 }
 

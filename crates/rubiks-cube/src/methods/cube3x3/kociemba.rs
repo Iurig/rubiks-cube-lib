@@ -1,11 +1,11 @@
 use std::sync::{Arc, LazyLock};
 
 use crate::{
-    AlgSet, Algorithm, ByMark, ByPiece, Cube3x3, Edge, Indexed, Marked, Mask, Method,
-    Orientation3x3, Piece3x3, Puzzle,
+    AlgSet, Algorithm, ByIdentity, ByMembership, Cube3x3, Edge, Indexed, Mask, Method,
+    Orientation3x3, Piece3x3, PieceSet, Puzzle,
     methods::{
         Technique,
-        step::combine_pruned::{DistanceStep, PruneTable, PrunedCombine, PrunedGoal},
+        step::combine_pruned::{PruneTable, PrunedCombine, PrunedGoal},
     },
     puzzles::cube3x3::{
         moves::{MovablePart, Move3x3, MoveModifier},
@@ -54,39 +54,36 @@ fn edges() -> impl Iterator<Item = Piece3x3> + Clone {
     Piece3x3::all().filter(|p| matches!(p, Piece3x3::Edge(_)))
 }
 
-static CORNERS_PHASE_1_GOAL: LazyLock<Marked<Cube3x3>> =
-    LazyLock::new(|| Marked::<Cube3x3>::from_pieces_and_orientations([], corners()));
+static CORNERS_PHASE_1_GOAL: LazyLock<PieceSet<Cube3x3>> =
+    LazyLock::new(|| PieceSet::<Cube3x3>::from_pieces_and_orientations([], corners()));
 
-static CORNERS_PHASE_1_TABLE: LazyLock<PruneTable<Marked<Cube3x3>>> =
+static CORNERS_PHASE_1_TABLE: LazyLock<PruneTable<PieceSet<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&CORNERS_PHASE_1_GOAL, &face_turns()));
 
-static EDGES_PHASE_1_GOAL: LazyLock<Marked<Cube3x3>> =
-    LazyLock::new(|| Marked::<Cube3x3>::from_pieces_and_orientations(RIM, edges()));
+static EDGES_PHASE_1_GOAL: LazyLock<PieceSet<Cube3x3>> =
+    LazyLock::new(|| PieceSet::<Cube3x3>::from_pieces_and_orientations(RIM, edges()));
 
-static EDGES_PHASE_1_TABLE: LazyLock<PruneTable<Marked<Cube3x3>>> =
+static EDGES_PHASE_1_TABLE: LazyLock<PruneTable<PieceSet<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&EDGES_PHASE_1_GOAL, &face_turns()));
 
 #[derive(Debug)]
-struct Phase1Corners;
-impl PrunedGoal<Cube3x3> for Phase1Corners {
-    type Marker = ByMark;
-    fn goal(&self) -> &Marked<Cube3x3> {
-        &CORNERS_PHASE_1_GOAL
-    }
-    fn table(&self) -> &PruneTable<Marked<Cube3x3>> {
-        &CORNERS_PHASE_1_TABLE
-    }
+enum Phase1Goal {
+    Corners,
+    Edges,
 }
-
-#[derive(Debug)]
-struct Phase1Edges;
-impl PrunedGoal<Cube3x3> for Phase1Edges {
-    type Marker = ByMark;
-    fn goal(&self) -> &Marked<Cube3x3> {
-        &EDGES_PHASE_1_GOAL
+impl PrunedGoal<Cube3x3> for Phase1Goal {
+    type Marker = ByMembership;
+    fn goal(&self) -> &PieceSet<Cube3x3> {
+        match self {
+            Self::Corners => &CORNERS_PHASE_1_GOAL,
+            Self::Edges => &EDGES_PHASE_1_GOAL,
+        }
     }
-    fn table(&self) -> &PruneTable<Marked<Cube3x3>> {
-        &EDGES_PHASE_1_TABLE
+    fn table(&self) -> &PruneTable<PieceSet<Cube3x3>> {
+        match self {
+            Self::Corners => &CORNERS_PHASE_1_TABLE,
+            Self::Edges => &EDGES_PHASE_1_TABLE,
+        }
     }
 }
 
@@ -94,16 +91,13 @@ impl PrunedGoal<Cube3x3> for Phase1Edges {
 fn phase_1() -> PrunedCombine<Cube3x3> {
     PrunedCombine::<Cube3x3>::new(
         "Phase 1",
-        Box::new(|_| true),
-        [
-            Box::new(Phase1Corners) as Box<dyn DistanceStep<Cube3x3>>,
-            Box::new(Phase1Edges) as Box<dyn DistanceStep<Cube3x3>>,
-        ],
+        |_| true,
+        [Phase1Goal::Corners, Phase1Goal::Edges],
         face_turns(),
     )
 }
 
-// Phase 2's goals use `ByPiece`, because they must tell the pieces of a group apart: `ByMark`
+// Phase 2's goals use `ByIdentity`, because they must tell the pieces of a group apart: `ByMembership`
 // would only say which slots hold them. As in Kociemba's own solver, each goal pairs a group of
 // pieces with the E-slice edges, so one table knows how both interact: 8! * 4! = 967680 entries
 // each. Separate tables for the three groups give a lower bound only as good as the worst-placed
@@ -122,27 +116,24 @@ static EDGES_PHASE_2_TABLE: LazyLock<PruneTable<Mask<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&EDGES_PHASE_2_GOAL, &domino_turns()));
 
 #[derive(Debug)]
-struct Phase2CornersAndE;
-impl PrunedGoal<Cube3x3> for Phase2CornersAndE {
-    type Marker = ByPiece;
-    fn goal(&self) -> &Mask<Cube3x3> {
-        &CORNERS_AND_E_PHASE_2_GOAL
-    }
-    fn table(&self) -> &PruneTable<Mask<Cube3x3>> {
-        &CORNERS_AND_E_PHASE_2_TABLE
-    }
+enum Phase2Goal {
+    CornersAndE,
+    /// The U/D-layer edges with the E-slice edges, which is every edge.
+    Edges,
 }
-
-/// The U/D-layer edges with the E-slice edges, which is every edge.
-#[derive(Debug)]
-struct Phase2Edges;
-impl PrunedGoal<Cube3x3> for Phase2Edges {
-    type Marker = ByPiece;
+impl PrunedGoal<Cube3x3> for Phase2Goal {
+    type Marker = ByIdentity;
     fn goal(&self) -> &Mask<Cube3x3> {
-        &EDGES_PHASE_2_GOAL
+        match self {
+            Self::CornersAndE => &CORNERS_AND_E_PHASE_2_GOAL,
+            Self::Edges => &EDGES_PHASE_2_GOAL,
+        }
     }
     fn table(&self) -> &PruneTable<Mask<Cube3x3>> {
-        &EDGES_PHASE_2_TABLE
+        match self {
+            Self::CornersAndE => &CORNERS_AND_E_PHASE_2_TABLE,
+            Self::Edges => &EDGES_PHASE_2_TABLE,
+        }
     }
 }
 
@@ -152,7 +143,7 @@ impl PrunedGoal<Cube3x3> for Phase2Edges {
 fn phase_2() -> PrunedCombine<Cube3x3> {
     PrunedCombine::<Cube3x3>::new(
         "Phase 2",
-        Box::new(|puzzle| {
+        |puzzle| {
             <Cube3x3 as Puzzle>::Piece::all().all(|slot| {
                 [
                     Orientation3x3::Flip(Zn::ZERO),
@@ -162,11 +153,8 @@ fn phase_2() -> PrunedCombine<Cube3x3> {
                 .contains(&puzzle.orientation_at(slot))
                     && RIM.iter().all(|&slot| RIM.contains(&puzzle.piece_at(slot)))
             })
-        }),
-        [
-            Box::new(Phase2CornersAndE) as Box<dyn DistanceStep<Cube3x3>>,
-            Box::new(Phase2Edges) as Box<dyn DistanceStep<Cube3x3>>,
-        ],
+        },
+        [Phase2Goal::CornersAndE, Phase2Goal::Edges],
         domino_turns(),
     )
 }

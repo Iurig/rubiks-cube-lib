@@ -52,7 +52,7 @@ mod tests {
     use std::hash::BuildHasher;
 
     use super::*;
-    use crate::{Center, Corner, Cube3x3, Edge, Marked, Piece3x3};
+    use crate::{Center, Corner, Cube3x3, Edge, Piece3x3, PieceSet};
     use statrs::{
         distribution::{Binomial, DiscreteCDF},
         statistics::Distribution,
@@ -67,7 +67,7 @@ mod tests {
         Piece3x3::Edge(Edge::Bl),
     ];
 
-    fn hash(mask: &Marked<Cube3x3>) -> u64 {
+    fn hash(mask: &PieceSet<Cube3x3>) -> u64 {
         BuildHasherDefault::<FxHasher>::default().hash_one(mask)
     }
 
@@ -156,10 +156,10 @@ mod tests {
 
     #[test]
     fn masks_built_from_pieces_in_any_order_find_each_other() {
-        let forward = Marked::<Cube3x3>::from_pieces(FIRST_BLOCK);
+        let forward = PieceSet::<Cube3x3>::from_pieces(FIRST_BLOCK);
         let mut reversed_pieces = FIRST_BLOCK;
         reversed_pieces.reverse();
-        let reversed = Marked::<Cube3x3>::from_pieces(reversed_pieces);
+        let reversed = PieceSet::<Cube3x3>::from_pieces(reversed_pieces);
 
         assert_eq!(forward, reversed);
         assert_eq!(hash(&forward), hash(&reversed));
@@ -170,13 +170,13 @@ mod tests {
     /// `U` and `R M'` leave the first block alone, so two different cubes filter to one key.
     #[test]
     fn different_cubes_with_the_same_masked_pieces_find_each_other() {
-        let goal = Marked::<Cube3x3>::from_pieces(FIRST_BLOCK);
+        let goal = PieceSet::<Cube3x3>::from_pieces(FIRST_BLOCK);
         let after_u = Cube3x3::from_solved("U").unwrap();
         let after_r_m = Cube3x3::from_solved("R M'").unwrap();
         assert_ne!(after_u, after_r_m);
 
-        let from_u = Marked::<Cube3x3>::filter_by_piece(&after_u, &goal);
-        let from_r_m = Marked::<Cube3x3>::filter_by_piece(&after_r_m, &goal);
+        let from_u = PieceSet::<Cube3x3>::filter_by_piece(&after_u, &goal);
+        let from_r_m = PieceSet::<Cube3x3>::filter_by_piece(&after_r_m, &goal);
 
         assert_eq!(from_u, from_r_m);
         assert_eq!(hash(&from_u), hash(&from_r_m));

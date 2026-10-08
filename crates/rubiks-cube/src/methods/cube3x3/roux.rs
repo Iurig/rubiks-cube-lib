@@ -1,8 +1,11 @@
 use std::sync::{Arc, LazyLock};
 
-use crate::{AlgSet, Choose, Cube3x3, Indexed, Marked, Method, Piece3x3, Step, methods::Technique};
+use crate::SearchStep;
+use crate::{
+    AlgSet, Choose, Cube3x3, Indexed, Method, Piece3x3, PieceSet, Step, methods::Technique,
+};
 
-use crate::methods::cube3x3::helpers::{algs, parts, search};
+use crate::methods::cube3x3::helpers::{algs, parts};
 
 const CMLL_ONE_LOOK_ALGS_STR: &str = include_str!("algsets/cmll/one_look.txt");
 const CO_ALGS_TEXT: &str = include_str!("algsets/cmll/co.txt");
@@ -21,7 +24,6 @@ const CP_ALGS_TEXT: &str = include_str!("algsets/cmll/cp.txt");
 ///     .first_block(FirstBlockOptions::SquarePair)
 ///     .cmll(CmllOptions::TwoLook);
 /// ```
-#[non_exhaustive]
 #[derive(Default, Debug)]
 pub struct Roux {
     fb: FirstBlockOptions,
@@ -148,7 +150,7 @@ impl Method<Cube3x3> for Roux {
             ),
         };
 
-        let after_cmll = Marked::from_algset(&LSE_KEEPING_CORNERS);
+        let after_cmll = PieceSet::from_algset(&LSE_KEEPING_CORNERS);
 
         let cmll_tech: Vec<Arc<dyn Step<Cube3x3>>> = match self.cmll {
             CmllOptions::OneLook => chain_steps!(
@@ -170,17 +172,16 @@ impl Method<Cube3x3> for Roux {
                     "CP",
                 ),
             ]
-            .into_iter()
-            .flatten()
-            .collect::<Vec<_>>(),
+            .concat(),
         };
 
         let lse_tech: Vec<Arc<dyn Step<Cube3x3>>> = match self.lse {
-            LseOptions::Eolr => vec![search(
-                "LSE",
-                after_cmll,
-                Marked::from_pieces(Piece3x3::all()),
-                LSE_MOVES.clone(),
+            LseOptions::Eolr => vec![Arc::new(
+                SearchStep::builder("LSE", PieceSet::from_pieces(Piece3x3::all()))
+                    .search_algs(LSE_MOVES.clone())
+                    .expect_solved(after_cmll)
+                    .build()
+                    .expect("manually constructed step should construct"),
             )],
             //LseOptions::EO => (),
         };
@@ -222,20 +223,28 @@ mod test {
         }
     }
 
-    /// Every `to_technique` call builds new step objects, so memos are shared through
-    /// `MEMOS`, keyed by `after ∪ before` and the movesets. A step built again with the same
-    /// goals shares its memo, and so does the one-look block with the pair that finishes it,
-    /// because the pair's `before` lies inside its `after`.
+    /// Every `to_technique` call builds new step objects, so memos are shared through the global
+    /// cache, keyed by `after` and the movesets. A step built again with the same goals shares its
+    /// memo, and so does the one-look block with the pair that finishes it, because the pair's
+    /// `before` lies inside its `after`.
     #[test]
     fn rebuilt_roux_steps_share_their_memos() {
-        let fb_start = Marked::from_algset(&FB_MOVES);
-        let fb_goal = Marked::from_algset(&SB_MOVES);
-        let back_square = Marked::from_algset(&SB_MOVES.combined_with(&parts("F")));
+        let fb_start = PieceSet::from_algset(&FB_MOVES);
+        let fb_goal = PieceSet::from_algset(&SB_MOVES);
+        let back_square = PieceSet::from_algset(&SB_MOVES.combined_with(&parts("F")));
 
-        let fb = search("FB", fb_start.clone(), fb_goal.clone(), FB_MOVES.clone());
-        let fb_again = search("FB", fb_start.clone(), fb_goal.clone(), FB_MOVES.clone());
-        let fb_pair = search("FB Pair", back_square.clone(), fb_goal, FB_MOVES.clone());
-        let fb_square = search("FB Square", fb_start, back_square, FB_MOVES.clone());
+        let search = |name: &'static str, before: &PieceSet<Cube3x3>, after: &PieceSet<Cube3x3>| {
+            SearchStep::builder(name, after.clone())
+                .expect_solved(before.clone())
+                .search_algs(FB_MOVES.clone())
+                .build()
+                .unwrap()
+        };
+
+        let fb = search("FB", &fb_start, &fb_goal);
+        let fb_again = search("FB", &fb_start, &fb_goal);
+        let fb_pair = search("FB Pair", &back_square, &fb_goal);
+        let fb_square = search("FB Square", &fb_start, &back_square);
 
         assert!(fb.shares_memo_with(&fb_again));
         assert!(fb.shares_memo_with(&fb_pair));

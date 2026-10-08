@@ -6,7 +6,7 @@ use crate::methods::cube3x3::helpers::{
     BlockGoal, LastLayer, algs, into_steps, parts, split_by_blocks,
 };
 
-use crate::{AlgSet, Choose, Cube3x3, Marked, Method, Step, Technique};
+use crate::{AlgSet, Choose, Cube3x3, Method, PieceSet, Step, Technique};
 
 /// The ZZ method for the 3x3 Rubik's Cube: EO line, first two layers, then last layer.
 #[derive(Debug, Default, Clone, Copy)]
@@ -86,7 +86,7 @@ impl Method<Cube3x3> for ZZ {
         let f2l_tech = match self.f2l {
             F2LOptions => vec![Arc::from(split_by_blocks(
                 "F2L",
-                Marked::from_algset(&F2L_MOVES),
+                PieceSet::from_algset(&F2L_MOVES),
                 F2L_BLOCKS.iter(),
                 F2L_MOVES.clone(),
             )) as Arc<dyn Step<Cube3x3>>],
@@ -124,9 +124,9 @@ impl Method<Cube3x3> for ZZ {
 static EO_LINE_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("F B U R L D "));
 static F2L_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("U R L "));
 static F2L_BLOCKS: LazyLock<[BlockGoal; 2]> = LazyLock::new(|| {
-    let f2l = Marked::from_algset(&OCLL_ALGS);
+    let f2l = PieceSet::from_algset(&OCLL_ALGS);
     ["R U", "L U"].map(|other_side| {
-        BlockGoal::new(&f2l, &Marked::from_algset(&parts(other_side)), &F2L_MOVES)
+        BlockGoal::new(&f2l, &PieceSet::from_algset(&parts(other_side)), &F2L_MOVES)
     })
 });
 static OCLL_ALGS: LazyLock<AlgSet<Cube3x3>> =

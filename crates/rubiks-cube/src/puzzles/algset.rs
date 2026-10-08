@@ -1,19 +1,12 @@
 use std::sync::Arc;
 
 use crate::{
-    Algorithm, Cube3x3, ParseSequenceError, Puzzle,
+    Algorithm, Cube3x3, Indexed, ParseSequenceError, Puzzle,
     fast_hash::FxSet,
     puzzles::cube3x3::moves::{MovablePart, Move3x3, MoveModifier},
 };
 
 /// A collection of move sequences, each applied as one unit: a single move, or a whole algorithm.
-///
-/// The collection carries no cost. Cost is decided by the [`SearchStep`](crate::SearchStep) that
-/// uses it: every sequence of the collection given to
-/// [`SearchStep::new`](crate::SearchStep::new) costs one, and
-/// [`SearchStep::with_free_algs`](crate::SearchStep::with_free_algs) also takes a second
-/// collection of free sequences, such as a `U` turn between algorithms, which the search only
-/// minimizes once the number of costly sequences is already minimal.
 ///
 /// For the cube, build one from notation text with [`from_parts`](Self::from_parts),
 /// [`from_algs_in_str`](Self::from_algs_in_str), or [`from_moves`](Self::from_moves), and join
@@ -37,6 +30,19 @@ use crate::{
 pub struct AlgSet<P: Puzzle>(Arc<[Algorithm<P>]>);
 
 impl<P: Puzzle> AlgSet<P> {
+    /// Constructs an empty [`AlgSet`].
+    #[must_use]
+    pub fn empty() -> Self {
+        Self(Arc::new([]))
+    }
+
+    /// Constructs an [`AlgSet`] with one [`Algorithm`] for every [`P::Move`](Puzzle::Move)
+    #[must_use]
+    pub fn all_moves() -> Self {
+        P::Move::all()
+            .map(|m| std::iter::once(m).collect())
+            .collect()
+    }
     /// Every sequence of either collection, each listed once.
     ///
     /// The order of the sequences is not kept, and a sequence in both collections, or twice in
@@ -154,12 +160,12 @@ mod tests {
     fn combined_with_reconstructs_an_algset() -> Result<(), Box<dyn Error>> {
         let algset = AlgSet::from_parts("R U L F B D")?;
 
-        for (splitpoint, _) in algset.algs().iter().enumerate() {
-            let first_section = algset.algs()[..splitpoint].to_vec();
-            let second_section = algset.algs()[splitpoint..].to_vec();
+        for splitpoint in 0..algset.algs().len() {
+            let (first, second) = algset.algs().split_at(splitpoint);
             assert_eq!(
                 algset,
-                AlgSet::from_iter(first_section).combined_with(&AlgSet::from_iter(second_section))
+                AlgSet::from_iter(first.iter().cloned())
+                    .combined_with(&AlgSet::from_iter(second.iter().cloned()))
             );
         }
         Ok(())

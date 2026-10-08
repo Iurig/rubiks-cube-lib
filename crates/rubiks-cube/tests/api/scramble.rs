@@ -59,8 +59,8 @@ fn random_scramble_on_3x3_is_uniform_and_all_are_reachable() {
 #[test]
 fn scramble_never_clashes_and_is_never_solved() {
     let mut scrambles = HashSet::new();
-    for _ in 0..100_000 {
-        let cube = Cube3x3::apply_scramble();
+    for seed in 0..100_000 {
+        let cube = Cube3x3::apply_scramble_with_seed(seed);
         assert!(!scrambles.contains(&cube));
         assert!(!cube.is_solved());
         scrambles.insert(cube);
@@ -69,7 +69,7 @@ fn scramble_never_clashes_and_is_never_solved() {
 
 #[test]
 fn scramble_and_solve_with_parsing_round_trip() -> Result<(), Box<dyn Error>> {
-    let scramble = Cube3x3::scramble()?;
+    let scramble = Cube3x3::scramble_with_seed(0)?;
     let solution = Roux::default()
         .solve(&mut Cube3x3::default().apply(&scramble))?
         .to_string();

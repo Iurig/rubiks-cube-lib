@@ -1,4 +1,4 @@
-use std::{fmt::Debug, hash::Hash, iter::IntoIterator, ops::Mul};
+use std::{fmt::Debug, hash::Hash, ops::Mul};
 
 use crate::{AlgSet, Indexed, Puzzle, fast_hash::FxSet};
 
@@ -9,7 +9,7 @@ use crate::{AlgSet, Indexed, Puzzle, fast_hash::FxSet};
 /// where the labels are anything of unit type, and everything in between.
 ///
 /// For partial puzzles, use [`Mask`](crate::Mask), for pieces tracked with a generic mark, use
-/// [`Marked`](crate::Marked)
+/// [`PieceSet`](crate::PieceSet)
 #[derive(Clone, Eq, Debug, Hash, PartialEq)]
 pub struct Labeled<P: Puzzle, L: Marker<P>>(Box<[SlotCondition<P, L>]>);
 
@@ -23,19 +23,19 @@ pub struct Labeled<P: Puzzle, L: Marker<P>>(Box<[SlotCondition<P, L>]>);
 /// use rubiks_cube::{Cube3x3, Edge, Mask, Piece3x3};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let uf_solved = Mask::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Uf)]);
+/// let uf_solved = Mask::from_pieces([Piece3x3::Edge(Edge::Uf)]);
 /// assert!(uf_solved.applies_to(&Cube3x3::from_solved("R")?));
 /// assert!(!uf_solved.applies_to(&Cube3x3::from_solved("U")?));
 /// # Ok(())
 /// # }
 /// ```
-pub type Mask<P> = Labeled<P, ByPiece>;
+pub type Mask<P> = Labeled<P, ByIdentity>;
 
 /// A puzzle state with optional orientations, and optional tracking of specific pieces.
 ///
 /// Used for defining steps by marking positions to be solved, as well as to track cubes throughout
 /// moves without distinction for its marked pieces.
-pub type Marked<P> = Labeled<P, ByMark>;
+pub type PieceSet<P> = Labeled<P, ByMembership>;
 
 /// What a [`Mask`] asks of one slot: which piece must sit there, and which orientation the piece
 /// there must have. `None` asks nothing.
@@ -45,9 +45,10 @@ pub struct SlotCondition<P: Puzzle, L: Marker<P>> {
     pub(crate) orient: Option<P::Orientation>,
 }
 
-/// What a [`Labeled`] writes in a slot. Implemented by marker types instead of by the label types
-/// themselves, so the impls for [`ByPiece`] and [`ByMark`] cannot overlap even if some puzzle's
-/// piece type is `()`.
+/// What a [`Labeled`] writes in a slot.
+///
+/// Implemented by marker types instead of by the label types themselves, so the impls for
+/// [`ByIdentity`] and [`ByMembership`] cannot overlap even if some puzzle's piece type is `()`.
 pub trait Marker<P: Puzzle> {
     /// The label stored in each slot.
     type Label: Copy + Eq + Hash + Debug;
@@ -57,20 +58,20 @@ pub trait Marker<P: Puzzle> {
 
 /// Labels are pieces: each slot names the piece that must sit there. [`Mask`] uses it.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct ByPiece;
+pub struct ByIdentity;
 
 /// Labels are `()`: a labeled slot's own piece must end up home. Goals use it.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct ByMark;
+pub struct ByMembership;
 
-impl<P: Puzzle> Marker<P> for ByPiece {
+impl<P: Puzzle> Marker<P> for ByIdentity {
     type Label = P::Piece;
     fn home(slot: P::Piece) -> Self::Label {
         slot
     }
 }
 
-impl<P: Puzzle> Marker<P> for ByMark {
+impl<P: Puzzle> Marker<P> for ByMembership {
     type Label = ();
     fn home(_slot: P::Piece) -> Self::Label {}
 }
@@ -103,7 +104,8 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     }
 
     /// A mask where each piece in `pieces` must be solved: home and oriented. Same as
-    /// <code>[from_pieces_and_orientations](Self::from_pieces_and_orientations)(pieces.clone(), pieces)</code>.
+    /// <code>[from_pieces_and_orientations](Self::from_pieces_and_orientations)(pieces.clone(),
+    /// pieces)</code>.
     pub fn from_pieces<I>(pieces: I) -> Self
     where
         I: IntoIterator<Item = P::Piece> + Clone,
@@ -122,10 +124,8 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
         I1: IntoIterator<Item = P::Piece>,
         I2: IntoIterator<Item = P::Piece>,
     {
-        let perm_iter: FxSet<<P as Puzzle>::Piece> =
-            FxSet::<<P as Puzzle>::Piece>::from_iter(permutations);
-        let orient_iter: FxSet<<P as Puzzle>::Piece> =
-            FxSet::<<P as Puzzle>::Piece>::from_iter(orientations);
+        let perm_iter: FxSet<<P as Puzzle>::Piece> = FxSet::from_iter(permutations);
+        let orient_iter: FxSet<<P as Puzzle>::Piece> = FxSet::from_iter(orientations);
         Self::from_fn(|slot| SlotCondition {
             label: perm_iter.contains(&slot).then_some(L::home(slot)),
             orient: orient_iter
@@ -135,7 +135,7 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     }
 
     #[must_use]
-    pub(crate) fn filter_by_piece(puzzle: &P, goal: &Marked<P>) -> Self {
+    pub(crate) fn filter_by_piece(puzzle: &P, goal: &PieceSet<P>) -> Self {
         Self::from_fn(|slot| {
             let piece = puzzle.piece_at(slot);
             let tracked = goal.condition(piece).label.is_some();
@@ -185,9 +185,8 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
         I1: IntoIterator<Item = (P::Piece, L::Label)>,
         I2: IntoIterator<Item = P::Piece>,
     {
-        let perm_iter = FxSet::<(<P as Puzzle>::Piece, L::Label)>::from_iter(labels);
-        let orient_iter: FxSet<<P as Puzzle>::Piece> =
-            FxSet::<<P as Puzzle>::Piece>::from_iter(orientations);
+        let perm_iter = FxSet::from_iter(labels);
+        let orient_iter: FxSet<<P as Puzzle>::Piece> = FxSet::from_iter(orientations);
         Self::from_fn(|slot| SlotCondition {
             label: perm_iter
                 .iter()
@@ -234,8 +233,8 @@ impl<P: Puzzle> Mask<P> {
     }
 }
 
-impl<P: Puzzle> Marked<P> {
-    /// Composes two instances of [`Marked<P>`], marking pieces if they are tracked by either one.
+impl<P: Puzzle> PieceSet<P> {
+    /// Composes two instances of [`PieceSet<P>`], marking pieces if they are tracked by either one.
     ///
     /// Zeroes the orientations that are tracked - is meant to be used in goal-type values.
     #[must_use]
@@ -256,6 +255,18 @@ impl<P: Puzzle> Marked<P> {
         )
     }
 
+    /// Whether every slot this marks, for its piece or its orientation, `other` marks too.
+    #[must_use]
+    pub fn is_subset_of(&self, other: &Self) -> bool {
+        self.0
+            .iter()
+            .zip(other.0.iter())
+            .all(|(con_self, con_other)| {
+                (con_self.label.is_none() || con_other.label.is_some())
+                    && (con_self.orient.is_none() || con_other.orient.is_some())
+            })
+    }
+
     /// Whether `puzzle` has the slots marked by tracked solved.
     #[must_use]
     pub fn applies_to(&self, puzzle: &P) -> bool {
@@ -269,7 +280,7 @@ impl<P: Puzzle> Marked<P> {
         })
     }
 
-    /// Constructs a [`Marked Puzzle`](Marked<P>) by checking which pieces cannot be moved using
+    /// Constructs a [`PieceSet Puzzle`](PieceSet<P>) by checking which pieces cannot be moved using
     /// only an algset.
     #[expect(
         clippy::indexing_slicing,
@@ -315,11 +326,11 @@ mod test {
 
     #[test]
     fn applies_to_composes_correctly_on_full_cube() {
-        let cube = Cube3x3::apply_scramble();
-        let mask = Mask::<Cube3x3>::from_pieces(Piece3x3::all());
+        let cube = Cube3x3::apply_scramble_with_seed(0);
+        let mask = Mask::from_pieces(Piece3x3::all());
 
         assert!(
-            (mask.composed_with(&cube)).applies_to(&cube),
+            mask.composed_with(&cube).applies_to(&cube),
             "{}\n\n{}",
             mask.composed_with(&cube),
             cube
@@ -334,7 +345,7 @@ mod test {
     fn the_key_keeps_every_orientation_the_goal_moveset_preserves_wherever_the_piece_sits() {
         // `U R L` flips no edge, so every edge's flip decides whether the goal is met, including
         // a stray edge parked in DF or DB, the two edge slots where the goal names a piece.
-        let goal = Marked::<Cube3x3>::from_algset(&AlgSet::from_parts("U R L").unwrap());
+        let goal = PieceSet::from_algset(&AlgSet::from_parts("U R L").unwrap());
         for cube in random_states() {
             let key = Mask::filter_by_piece(&cube, &goal);
             for slot in Piece3x3::all() {
@@ -352,7 +363,7 @@ mod test {
     fn the_key_keeps_no_orientation_the_goal_moveset_changes() {
         // `U R M r` twists or flips every corner and edge it moves, so only the pieces it leaves
         // alone, which the key names, keep their orientation in it.
-        let goal = Marked::<Cube3x3>::from_algset(&AlgSet::from_parts("U R M r").unwrap());
+        let goal = PieceSet::from_algset(&AlgSet::from_parts("U R M r").unwrap());
         for cube in random_states() {
             let key = Mask::filter_by_piece(&cube, &goal);
             for slot in Piece3x3::all() {

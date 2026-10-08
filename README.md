@@ -207,7 +207,7 @@ crates/
       fast_hash.rs            FxHasher, the fast hasher behind the search memo
       puzzles/
         mod.rs                the Puzzle trait
-        label.rs              Labeled, Mask, Marked: which pieces must be in place or oriented
+        label.rs              Labeled, Mask, PieceSet: which pieces must be in place or oriented
         algorithm.rs          Algorithm: a sequence of moves
         algset.rs             AlgSet: move sequences a search applies as single units
         cube3x3/

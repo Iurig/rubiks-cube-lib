@@ -13,18 +13,20 @@ use rayon::prelude::*;
 )]
 use crate::Puzzle;
 use crate::{
-    AlgSet, Algorithm, Inv, Marked, Mask, Solution, Step, StepError, fast_hash::FxMap,
-    methods::step::search_step::memorization::BfsMemo,
+    AlgSet, Algorithm, Inv, Mask, PieceSet, Solution, Step, StepError,
+    error::SearchStepError,
+    fast_hash::FxMap,
+    methods::step::search_step::memorization::{BfsMemo, global_cache},
 };
 
 /// The pieces a memo brings home, and the sequences it searches with: everything a memo's
 /// contents depend on.
-type MemoKey<P> = (Marked<P>, AlgSet<P>, AlgSet<P>);
+type MemoKey<P> = (PieceSet<P>, AlgSet<P>, AlgSet<P>);
 
 /// A memo that several steps can grow, one search at a time.
 type SharedMemo<P> = Arc<Mutex<BfsMemo<P>>>;
 
-/// One shared memo per [`MemoKey`], so steps that search for the same thing with the same
+/// One shared memo per memo key, so steps that search for the same thing with the same
 /// sequences grow the same memo, even when built at different times by different methods.
 ///
 /// Statics cannot be generic, so each puzzle type that has methods keeps its own cache in a
@@ -35,6 +37,8 @@ pub struct MemoCache<P: Puzzle> {
 }
 
 impl<P: Puzzle> MemoCache<P> {
+    /// Builds an empty [`MemoCache`].
+    #[must_use]
     pub fn new() -> Self {
         Self {
             memos: Mutex::new(FxMap::default()),
@@ -44,7 +48,7 @@ impl<P: Puzzle> MemoCache<P> {
     /// The memo that brings `solved` home with these sequences, created empty on first use.
     fn memo(
         &self,
-        solved: Marked<P>,
+        solved: PieceSet<P>,
         search_algs: &AlgSet<P>,
         free_search_algs: &AlgSet<P>,
     ) -> SharedMemo<P> {
@@ -80,68 +84,94 @@ impl<P: Puzzle> MemoCache<P> {
 #[derive(Debug)]
 pub struct SearchStep<P: Puzzle> {
     name: Cow<'static, str>,
-    before: Marked<P>,
-    after: Marked<P>,
+    before: PieceSet<P>,
+    after: PieceSet<P>,
     search_algs: AlgSet<P>,
     free_search_algs: AlgSet<P>,
     memo: SharedMemo<P>,
 }
 
-impl<P: Puzzle> SearchStep<P> {
-    /// A step named `name` that starts when `before` holds and searches until `after` holds.
-    ///
-    /// Each sequence of `search_algs` is applied as a unit: a single move, or a whole algorithm.
+/// Builder for [`SearchStep`].
+#[derive(Debug)]
+pub struct SearchStepBuilder<P: Puzzle> {
+    name: Cow<'static, str>,
+    before: PieceSet<P>,
+    after: PieceSet<P>,
+    search_algs: AlgSet<P>,
+    free_search_algs: AlgSet<P>,
+}
+
+impl<P: Puzzle> SearchStepBuilder<P> {
+    /// Sets a prerequisite to be checked before solving with the [`SearchStep`] being built.
     #[must_use]
-    pub fn new(
-        name: impl Into<Cow<'static, str>>,
-        before: Marked<P>,
-        after: Marked<P>,
-        search_algs: AlgSet<P>,
-    ) -> Self {
-        Self::with_free_algs(name, before, after, search_algs, AlgSet::<P>::default())
+    pub fn expect_solved(mut self, pieces: PieceSet<P>) -> Self {
+        self.before = pieces;
+        self
     }
 
-    /// Like [`new`](Self::new), but the sequences of `free_search_algs` add
-    /// no cost: the search finds the fewest sequences of `search_algs`, with any number of free
-    /// ones between them, such as an AUF between algorithms.
+    /// Defines over which [`AlgSet`] the search should happen.
     #[must_use]
-    pub fn with_free_algs(
-        name: impl Into<Cow<'static, str>>,
-        before: Marked<P>,
-        after: Marked<P>,
-        search_algs: AlgSet<P>,
-        free_search_algs: AlgSet<P>,
-    ) -> Self {
-        let memo = Arc::new(Mutex::new(BfsMemo::new(after.or(&before))));
-        Self {
-            name: name.into(),
-            before,
-            after,
-            search_algs,
-            free_search_algs,
-            memo,
+    pub fn search_algs(mut self, algs: AlgSet<P>) -> Self {
+        self.search_algs = algs;
+        self
+    }
+
+    /// Defines an [`AlgSet`] of [`Algorithm`]s to be considered free when searching.
+    #[must_use]
+    pub fn free_algs(mut self, algs: AlgSet<P>) -> Self {
+        self.free_search_algs = algs;
+        self
+    }
+
+    /// Builds the [`SearchStep`] using a given [`MemoCache`].
+    ///
+    /// # Errors
+    /// Errors if the goal doesn't guarantee the prerequisite.
+    pub fn build_in(self, cache: &MemoCache<P>) -> Result<SearchStep<P>, SearchStepError<P>> {
+        if self.before.is_subset_of(&self.after) {
+            let memo = cache.memo(
+                self.after.clone(),
+                &self.search_algs,
+                &self.free_search_algs,
+            );
+            Ok(SearchStep {
+                name: self.name,
+                before: self.before,
+                after: self.after,
+                search_algs: self.search_algs,
+                free_search_algs: self.free_search_algs,
+                memo,
+            })
+        } else {
+            Err(SearchStepError::InvalidPrerequisite {
+                before: self.before,
+                after: self.after,
+            })
         }
     }
+}
 
-    /// Like [`with_free_algs`](Self::with_free_algs), but the memo comes from `cache`,
-    /// shared with every other step of `cache` that brings the same pieces home with the same
-    /// sequences.
-    pub(crate) fn sharing_memo(
-        cache: &MemoCache<P>,
-        name: impl Into<Cow<'static, str>>,
-        before: Marked<P>,
-        after: Marked<P>,
-        search_algs: AlgSet<P>,
-        free_search_algs: AlgSet<P>,
-    ) -> Self {
-        let memo = cache.memo(after.or(&before), &search_algs, &free_search_algs);
-        Self {
+impl<P: Puzzle> SearchStepBuilder<P> {
+    /// Builds the [`SearchStep`] using a global [`MemoCache`].
+    ///
+    /// # Errors
+    /// Errors if the goal doesn't guarantee the prerequisite.
+    pub fn build(self) -> Result<SearchStep<P>, SearchStepError<P>> {
+        self.build_in(&global_cache::<P>())
+    }
+}
+
+impl<P: Puzzle> SearchStep<P> {
+    /// Constructor for [`SearchStepBuilder`]. The constructed builder builds a [`SearchStep`] over
+    /// all moves of the given [`Puzzle`].
+    #[must_use]
+    pub fn builder(name: impl Into<Cow<'static, str>>, goal: PieceSet<P>) -> SearchStepBuilder<P> {
+        SearchStepBuilder {
             name: name.into(),
-            before,
-            after,
-            search_algs,
-            free_search_algs,
-            memo,
+            before: PieceSet::default(),
+            after: goal,
+            search_algs: AlgSet::all_moves(),
+            free_search_algs: AlgSet::empty(),
         }
     }
 
@@ -262,7 +292,7 @@ impl<P: Puzzle> SearchStep<P> {
             .get(&self.mask(&cube))
             .expect("every state in a level was investigated")
         {
-            cube = sequence.iter().rev().fold(cube, |c, m| c * m.inverse());
+            cube = cube.apply(&sequence.inverse());
             path.push_front(sequence);
         }
         path.into_iter().flatten().copied().collect()
@@ -305,12 +335,14 @@ mod tests {
     #[test]
     fn a_goal_mixing_named_and_orientation_only_slots_is_met() {
         let eo_line_moves = AlgSet::from_parts("F B U R L D").unwrap();
-        let step = SearchStep::new(
+        let step = SearchStep::builder(
             "EO Line",
-            Marked::from_algset(&eo_line_moves),
-            Marked::from_algset(&AlgSet::from_parts("U R L").unwrap()),
-            eo_line_moves,
-        );
+            PieceSet::from_algset(&AlgSet::from_parts("U R L").unwrap()),
+        )
+        .expect_solved(PieceSet::from_algset(&eo_line_moves))
+        .search_algs(eo_line_moves)
+        .build()
+        .unwrap();
         for seed in 0..4 {
             let mut cube = Cube3x3::apply_scramble_with_seed(seed);
             step.solve(&mut cube).unwrap();
@@ -321,12 +353,10 @@ mod tests {
     #[test]
     fn a_poisoned_memo_is_reported_as_memo_poisoned() {
         let u_turns = AlgSet::from_parts("U").unwrap();
-        let step = SearchStep::new(
-            "UF",
-            Marked::default(),
-            Marked::from_pieces([Piece3x3::Edge(Edge::Uf)]),
-            u_turns,
-        );
+        let step = SearchStep::builder("UF", PieceSet::from_pieces([Piece3x3::Edge(Edge::Uf)]))
+            .search_algs(u_turns)
+            .build_in(&MemoCache::new())
+            .unwrap();
 
         let memo = Arc::clone(&step.memo);
         let panicked = std::thread::spawn(move || {

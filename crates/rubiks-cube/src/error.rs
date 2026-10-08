@@ -2,6 +2,8 @@ use std::error::Error;
 
 use thiserror::Error;
 
+use crate::{PieceSet, Puzzle};
+
 /// Why a [`Step`](crate::Step) could not solve.
 #[derive(Debug, Error)]
 #[non_exhaustive]
@@ -19,7 +21,7 @@ pub enum StepError {
     MemoPoisoned,
     #[error("{}", *.0)]
     /// Any other error, for steps written outside the crate.
-    Custom(Box<dyn Error + Send + Sync>),
+    Custom(#[source] Box<dyn Error + Send + Sync>),
 }
 /// Why a method's solve stopped, naming the step it stopped at.
 #[derive(Debug, Error)]
@@ -80,6 +82,21 @@ pub struct ParseSequenceError {
     pub(crate) source: ParseMoveError,
     pub(crate) line: usize,
     pub(crate) position: usize,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Error)]
+/// Attempted to construct a [`SearchStep`](crate::SearchStep) with invalid
+/// [`SearchStepBuilder`](crate::SearchStepBuilder).
+#[non_exhaustive]
+pub enum SearchStepError<P: Puzzle> {
+    /// The step prerequisite was not guaranteed by the goal.
+    #[error("the pieces expected solved are not all in the goal")]
+    InvalidPrerequisite {
+        /// The prerequisite
+        before: PieceSet<P>,
+        /// The goal
+        after: PieceSet<P>,
+    },
 }
 
 impl ParseSequenceError {

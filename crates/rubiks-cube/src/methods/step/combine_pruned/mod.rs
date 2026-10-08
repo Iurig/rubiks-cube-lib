@@ -45,8 +45,8 @@ pub trait DistanceStep<P: Puzzle>: Debug + Send + Sync {
 /// [`DistanceStep`] through the impl below, which is the only code that reads the table, so the
 /// table is always read with the same key it was filled with.
 pub trait PrunedGoal<P: Puzzle>: Debug + Send + Sync {
-    /// The labels the goal uses: [`ByPiece`](crate::ByPiece) when the table must tell pieces
-    /// apart, [`ByMark`](crate::ByMark) when it only needs to know which slots hold them.
+    /// The labels the goal uses: [`ByIdentity`](crate::ByIdentity) when the table must tell pieces
+    /// apart, [`ByMembership`](crate::ByMembership) when it only needs to know which slots hold them.
     type Marker: Marker<P, Label: Send + Sync> + Clone + Eq + Hash + Debug + Send + Sync;
 
     /// The goal the table was built from.
@@ -67,16 +67,19 @@ impl<P: Puzzle, T: PrunedGoal<P>> DistanceStep<P> for T {
 }
 
 impl<P: Puzzle> PrunedCombine<P> {
-    pub fn new<T: IntoIterator<Item = Box<dyn DistanceStep<P>>>>(
+    pub fn new(
         name: impl Into<Cow<'static, str>>,
-        ready_to_solve: Box<dyn Fn(&P) -> bool + Send + Sync>,
-        iter: T,
+        ready_to_solve: impl Fn(&P) -> bool + Send + Sync + 'static,
+        iter: impl IntoIterator<Item = impl DistanceStep<P> + 'static>,
         moveset: AlgSet<P>,
     ) -> Self {
         Self {
             name: name.into(),
-            steps: Vec::<Box<dyn DistanceStep<P>>>::from_iter(iter),
-            ready_to_solve,
+            steps: iter
+                .into_iter()
+                .map(|s| Box::new(s) as Box<dyn DistanceStep<P>>)
+                .collect(),
+            ready_to_solve: Box::new(ready_to_solve),
             may_follow: may_follow(&moveset),
             moveset,
         }
@@ -98,11 +101,16 @@ impl<P: Puzzle> PrunedCombine<P> {
 fn may_follow<P: Puzzle>(moveset: &AlgSet<P>) -> Vec<Vec<bool>> {
     let algs = moveset.algs();
     let alone: Vec<P> = algs.iter().map(|alg| P::default().apply(alg)).collect();
-    (0..algs.len())
-        .zip(alone.iter().zip(algs))
+
+    alone
+        .iter()
+        .zip(algs)
+        .enumerate()
         .map(|(a_index, (after_a, a))| {
-            (0..algs.len())
-                .zip(alone.iter().zip(algs))
+            alone
+                .iter()
+                .zip(algs)
+                .enumerate()
                 .map(|(b_index, (after_b, b))| {
                     let a_then_b = after_a.apply(b);
                     let shortens = a_then_b == P::default() || alone.contains(&a_then_b);
