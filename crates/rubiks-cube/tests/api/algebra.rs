@@ -7,7 +7,7 @@ use std::error::Error;
 #[test]
 fn every_move_acts_on_any_state_as_it_acts_on_the_solved_state() {
     for seed in 0..20 {
-        let p = Cube3x3::apply_scramble_with_seed(seed);
+        let p = Cube3x3::scrambled_with_seed(seed);
         for m in <Cube3x3 as Puzzle>::Move::all() {
             let action = Cube3x3::default() * m;
             let moved = p * m;

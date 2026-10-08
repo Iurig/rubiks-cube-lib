@@ -172,7 +172,7 @@ mod test {
 
     #[test]
     fn zz_solves_the_cube() -> Result<(), Box<dyn Error>> {
-        let mut cube = Cube3x3::apply_scramble_with_seed(2);
+        let mut cube = Cube3x3::scrambled_with_seed(2);
 
         for partial_solution in ZZ::default().solve_steps(&mut cube) {
             println!("{}", partial_solution?);
@@ -185,7 +185,7 @@ mod test {
     fn zz_works_with_all_options() -> Result<(), Box<dyn Error>> {
         let settings = all::<ZZ>().collect::<Vec<_>>();
         let scrambled_cubes = (0..u64::try_from(settings.len())?)
-            .map(Cube3x3::apply_scramble_with_seed)
+            .map(Cube3x3::scrambled_with_seed)
             .collect::<Vec<_>>();
         for (&cube, setting) in scrambled_cubes.iter().zip(settings) {
             dbg!(&setting);

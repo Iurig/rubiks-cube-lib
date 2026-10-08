@@ -18,11 +18,11 @@ const CP_ALGS_TEXT: &str = include_str!("algsets/cmll/cp.txt");
 /// split of a stage with its method:
 ///
 /// ```rust
-/// use rubiks_cube::{Cmll, FirstBlock, Roux};
+/// use rubiks_cube::{Roux, roux};
 ///
 /// let roux = Roux::default()
-///     .first_block(FirstBlock::SquarePair)
-///     .cmll(Cmll::TwoLook);
+///     .first_block(roux::FirstBlock::SquarePair)
+///     .cmll(roux::Cmll::TwoLook);
 /// ```
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
 pub struct Roux {

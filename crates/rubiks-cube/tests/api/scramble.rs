@@ -27,7 +27,7 @@ fn random_scramble_on_3x3_is_uniform_and_all_are_reachable() {
         HashMap::from_iter(Edge::ALL.iter().map(|&c| (c, [0; 2])));
 
     for seed in 0..100_000 {
-        let random_cube = Cube3x3::apply_scramble_with_seed(seed);
+        let random_cube = Cube3x3::scrambled_with_seed(seed);
         assert!(random_cube.is_reachable());
         for c in Corner::ALL {
             corner_perm_buckets.get_mut(&c).unwrap()[random_cube.corners().piece_at(c) as usize] +=
@@ -60,7 +60,7 @@ fn random_scramble_on_3x3_is_uniform_and_all_are_reachable() {
 fn scramble_never_clashes_and_is_never_solved() {
     let mut scrambles = HashSet::new();
     for seed in 0..100_000 {
-        let cube = Cube3x3::apply_scramble_with_seed(seed);
+        let cube = Cube3x3::scrambled_with_seed(seed);
         assert!(!scrambles.contains(&cube));
         assert!(!cube.is_solved());
         scrambles.insert(cube);

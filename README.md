@@ -119,11 +119,11 @@ chooses between one algorithm and two. With a split block the solver tries both 
 the back square and keeps the shorter:
 
 ```rust
-use rubiks_cube::{Cmll, FirstBlock, Roux};
+use rubiks_cube::{Roux, roux};
 
 let roux = Roux::default()
-    .first_block(FirstBlock::SquarePair)
-    .cmll(Cmll::TwoLook);
+    .first_block(roux::FirstBlock::SquarePair)
+    .cmll(roux::Cmll::TwoLook);
 ```
 
 A method is a list of steps. The crate has two step types: `SearchStep`, which searches for a

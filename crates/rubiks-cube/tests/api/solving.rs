@@ -19,9 +19,7 @@ fn full_solve_and_checking_bfs() -> Result<(), Box<dyn Error>> {
 #[test]
 fn every_roux_option_combination_solves() -> Result<(), Box<dyn Error>> {
     use rubiks_cube::roux::*;
-    let scrambles: Vec<Cube3x3> = (2026..2030)
-        .map(Cube3x3::apply_scramble_with_seed)
-        .collect();
+    let scrambles: Vec<Cube3x3> = (2026..2030).map(Cube3x3::scrambled_with_seed).collect();
     for fb in [
         FirstBlock::OneLook,
         FirstBlock::SquarePair,

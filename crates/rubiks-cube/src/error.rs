@@ -53,7 +53,7 @@ pub enum SolveError {
 #[non_exhaustive]
 #[derive(Clone, Debug, Eq, PartialEq, Error)]
 pub enum ParseMoveError {
-    /// Reachable only through `Move3x3::try_from("")`; a sequence never yields
+    /// Reachable only through `Move3x3::from_str("")`; a sequence never yields
     /// an empty move, so it carries no offending text.
     #[error("empty string cannot be parsed into moves")]
     EmptyString,

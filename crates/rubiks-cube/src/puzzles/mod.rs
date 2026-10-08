@@ -72,12 +72,12 @@ pub trait Puzzle:
 
     /// A random scrambled state. The same seed always gives the same state.
     #[must_use]
-    fn apply_scramble_with_seed(seed: u64) -> Self;
+    fn scrambled_with_seed(seed: u64) -> Self;
 
     /// A random scrambled state from a random seed.
     #[must_use]
-    fn apply_scramble() -> Self {
-        Self::apply_scramble_with_seed(fastrand::u64(..))
+    fn scrambled() -> Self {
+        Self::scrambled_with_seed(fastrand::u64(..))
     }
 
     /// The scramble itself in algorithm form. The same seed always returns the same scramble.

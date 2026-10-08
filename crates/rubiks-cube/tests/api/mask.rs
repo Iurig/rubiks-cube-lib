@@ -106,7 +106,7 @@ fn empty_mask_always_applies() {
     for seed in 0..100 {
         assert!(
             Mask::from_labels_and_orientations([], [])
-                .applies_to(&Cube3x3::apply_scramble_with_seed(seed))
+                .applies_to(&Cube3x3::scrambled_with_seed(seed))
         );
     }
 }

@@ -326,7 +326,7 @@ mod test {
 
     #[test]
     fn applies_to_composes_correctly_on_full_cube() {
-        let cube = Cube3x3::apply_scramble_with_seed(0);
+        let cube = Cube3x3::scrambled_with_seed(0);
         let mask = Mask::from_pieces(Piece3x3::all());
 
         assert!(
@@ -338,7 +338,7 @@ mod test {
     }
 
     fn random_states() -> impl Iterator<Item = Cube3x3> {
-        (0..20).map(Cube3x3::apply_scramble_with_seed)
+        (0..20).map(Cube3x3::scrambled_with_seed)
     }
 
     #[test]

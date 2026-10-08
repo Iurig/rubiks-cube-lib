@@ -17,7 +17,7 @@ use table::cube_state;
 #[expect(
     unnameable_types,
     reason = "reachable through `Move3x3::part`; not exported until ticket 01 derives the parts' \
-              `Display` and `TryFrom` from one list and ticket 04 settles the face role"
+              `Display` and `FromStr` from one list and ticket 04 settles the face role"
 )]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum MovablePart {
@@ -258,7 +258,7 @@ impl Move3x3 {
     /// Every move in a move sequence, in order.
     ///
     /// `//` starts a comment that runs to the end of the line, whitespace
-    /// separates moves, and each token is parsed with [`TryFrom<&str>`]. A
+    /// separates moves, and each token is parsed with [`FromStr`]. A
     /// sequence with no moves in it, such as an empty string or a comment on
     /// its own, yields nothing.
     pub fn sequence(text: &str) -> impl Iterator<Item = Result<Self, ParseSequenceError>> {

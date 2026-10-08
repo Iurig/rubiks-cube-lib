@@ -344,7 +344,7 @@ mod tests {
         .build()
         .unwrap();
         for seed in 0..4 {
-            let mut cube = Cube3x3::apply_scramble_with_seed(seed);
+            let mut cube = Cube3x3::scrambled_with_seed(seed);
             step.solve(&mut cube).unwrap();
             assert!(step.is_done(&cube), "seed {seed}:\n{cube}");
         }

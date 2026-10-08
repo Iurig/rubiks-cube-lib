@@ -67,7 +67,7 @@ impl Puzzle for Cube3x3 {
         }
     }
 
-    fn apply_scramble_with_seed(seed: u64) -> Self {
+    fn scrambled_with_seed(seed: u64) -> Self {
         let mut rng = fastrand::Rng::with_seed(seed);
         let mut attempt = Self {
             corners: CornerConfiguration::random_state(&mut rng),
@@ -83,7 +83,7 @@ impl Puzzle for Cube3x3 {
     }
 
     fn scramble_with_seed(seed: u64) -> Result<Algorithm<Self>, SolveError> {
-        let mut cube = Self::apply_scramble_with_seed(seed);
+        let mut cube = Self::scrambled_with_seed(seed);
         Ok(Kociemba
             .solve(&mut cube)?
             .iter()
@@ -394,7 +394,7 @@ mod tests {
     fn hundred_random_states_are_reachable() {
         for seed in 0..100 {
             assert!(
-                Cube3x3::apply_scramble_with_seed(seed).is_reachable(),
+                Cube3x3::scrambled_with_seed(seed).is_reachable(),
                 "the state from seed {seed} is not reachable"
             );
         }
