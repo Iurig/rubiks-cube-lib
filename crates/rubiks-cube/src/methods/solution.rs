@@ -32,8 +32,8 @@ impl<P: Puzzle> FromStr for Solution<P> {
         s.lines()
             .enumerate()
             .filter_map(|(count, line)| {
-                (!line.chars().all(char::is_whitespace))
-                    .then_some(line.parse::<Segment<P>>().map_err(|e| e.on_line(count)))
+                (!line.trim().is_empty())
+                    .then_some(line.parse::<Segment<P>>().map_err(|e| e.on_line(count + 1)))
             })
             .collect()
     }
@@ -192,5 +192,19 @@ mod tests {
         assert_eq!(names, ["First", "Second", "Third"]);
         assert_eq!(solution.move_count(), 4);
         Ok(())
+    }
+
+    #[test]
+    fn an_invalid_move_names_its_line_and_position() {
+        for (text, expected) in [
+            ("Q2 // First", (1, 1)),
+            ("R // First\nM Q2 // Second", (2, 2)),
+            ("R // First\n\nM Q2 // Second", (3, 2)),
+        ] {
+            let Err(error) = text.parse::<Solution<Cube3x3>>() else {
+                panic!("`Q2` should not parse in {text:?}");
+            };
+            assert_eq!((error.line(), error.position()), expected, "{text:?}");
+        }
     }
 }

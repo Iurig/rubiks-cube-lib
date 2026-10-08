@@ -9,7 +9,8 @@ use crate::{Inv, ParseSequenceError, Puzzle};
 ///
 /// It prints as its moves separated by spaces, in the crate's notation, so what it prints reads
 /// back as the same moves. It implements [`FromStr`], which parses ignoring line comments written
-/// with `//`, as well as empty lines.
+/// with `//`, as well as empty lines. [`&str`](std::str)s that can't be parsed will return an error
+/// carrying line number and position along the line, 1 indexed.
 ///
 /// ```no_run
 /// use rubiks_cube::{Algorithm, Cube3x3, Inv, Solution};
