@@ -39,18 +39,6 @@ pub enum MoveModifier {
     DoublePrime,
 }
 
-impl MoveModifier {
-    #[must_use]
-    pub const fn inverse(self) -> Self {
-        match self {
-            Self::Clockwise => Self::Prime,
-            Self::Prime => Self::Clockwise,
-            Self::Double => Self::DoublePrime,
-            Self::DoublePrime => Self::Double,
-        }
-    }
-}
-
 #[expect(
     unnameable_types,
     reason = "reachable as `<Cube3x3 as Puzzle>::Move`, and callers build moves from notation; \
@@ -111,6 +99,16 @@ impl MoveModifier {
         Self::Double,
         Self::DoublePrime,
     ];
+
+    #[must_use]
+    pub const fn inverse(self) -> Self {
+        match self {
+            Self::Clockwise => Self::Prime,
+            Self::Prime => Self::Clockwise,
+            Self::Double => Self::DoublePrime,
+            Self::DoublePrime => Self::Double,
+        }
+    }
 }
 
 impl Indexed for MovablePart {
@@ -187,7 +185,7 @@ impl std::fmt::Display for Move3x3 {
 }
 
 impl ops::Inv for Move3x3 {
-    fn inverse(&self) -> Self {
+    fn inv(self) -> Self {
         Self {
             part: self.part,
             modifier: self.modifier.inverse(),

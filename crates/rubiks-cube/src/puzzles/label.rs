@@ -10,7 +10,7 @@ use crate::{AlgSet, Indexed, Puzzle, fast_hash::FxSet};
 ///
 /// For partial puzzles, use [`Mask`](crate::Mask), for pieces tracked with a generic mark, use
 /// [`PieceSet`](crate::PieceSet)
-#[derive(Clone, Eq, Debug, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Labeled<P: Puzzle, L: Marker<P>>(Box<[SlotCondition<P, L>]>);
 
 /// A partly defined puzzle state, usually read as a condition: which pieces must sit in their

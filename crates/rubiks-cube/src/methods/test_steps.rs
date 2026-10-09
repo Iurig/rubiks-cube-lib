@@ -9,28 +9,29 @@ use crate::{Algorithm, Cube3x3, Puzzle, Solution, Step, StepError};
 
 /// A step whose result is fixed in advance. `solve` either returns the error from `error`,
 /// or applies `moves` to the cube and returns them as one segment named after the step.
-/// `is_done` reports `done`, whatever the cube. It counts how many times `solve` ran.
-#[derive(Debug)]
+/// `is_done` reports `done`, whatever the cube. It counts how many times `solve` ran; clones
+/// share the count.
+#[derive(Clone, Debug)]
 pub struct FixedStep {
     name: &'static str,
     moves: &'static str,
     can_solve: bool,
     done: bool,
     error: Option<fn() -> StepError>,
-    runs: AtomicUsize,
+    runs: Arc<AtomicUsize>,
 }
 
 impl FixedStep {
     /// A step that applies `moves` (notation text; `""` for none) and reports `done`.
-    pub fn new(name: &'static str, moves: &'static str, can_solve: bool, done: bool) -> Arc<Self> {
-        Arc::new(Self {
+    pub fn new(name: &'static str, moves: &'static str, can_solve: bool, done: bool) -> Self {
+        Self {
             name,
             moves,
             can_solve,
             done,
             error: None,
-            runs: AtomicUsize::new(0),
-        })
+            runs: Arc::new(AtomicUsize::new(0)),
+        }
     }
 
     /// A step whose `solve` always returns `error()` and leaves the cube alone.
@@ -41,7 +42,7 @@ impl FixedStep {
             can_solve: true,
             done: false,
             error: Some(error),
-            runs: AtomicUsize::new(0),
+            runs: Arc::new(AtomicUsize::new(0)),
         })
     }
 

@@ -1,13 +1,11 @@
 use std::{borrow::Cow, sync::Arc};
 
-use itertools::Itertools;
-
 use crate::{Puzzle, Solution, Step, StepError};
 
 /// A step that tries several steps and keeps the shortest working solution.
 ///
 /// Each alternative solves its own copy of the puzzle. Alternatives returning
-/// [`StepError::InvalidStartingState`] are skipped, so `Choose` also picks whichever
+/// [`StepError::InvalidStartingState`] are skipped, so `Shortest` also picks whichever
 /// alternatives can start at all. Any other error ends the whole choice. On a tie, the earlier
 /// alternative wins. The solution keeps the name of the alternative that ran, and the puzzle is
 /// left as that alternative left it.
@@ -17,35 +15,49 @@ use crate::{Puzzle, Solution, Step, StepError};
 ///
 /// [`is_done`](Step::is_done) holds when any alternative's `is_done` holds.
 #[derive(Debug)]
-pub struct Choose<P: Puzzle> {
+pub struct Shortest<P: Puzzle> {
     steps: Vec<Arc<dyn Step<P>>>,
     name: Cow<'static, str>,
 }
 
-impl<P: Puzzle> Choose<P> {
+impl<P: Puzzle> Shortest<P> {
     /// A choice between `steps`, its name is a simple direct reference to the steps it chooses,
     /// e.g. `"step1 or step2 or step3"`. The name appears in errors about the choice itself.
     /// When an alternative runs, the solution names that alternative instead.
     #[must_use]
-    pub fn new(steps: Vec<Arc<dyn Step<P>>>) -> Self {
-        let name = steps.iter().map(|s| s.name()).join(" or ");
+    pub fn new(steps: impl IntoIterator<Item = Arc<dyn Step<P>>>) -> Self {
+        let (steps_collected, name) = steps.into_iter().fold(
+            (Vec::new(), Cow::<str>::Owned(String::new())),
+            |(mut step_vector, mut name), s| {
+                step_vector.push(s.clone());
+                if !name.is_empty() {
+                    name.to_mut().push_str(" or ");
+                }
+                name.to_mut().push_str(s.name());
+                (step_vector, name)
+            },
+        );
+
         Self {
-            steps,
-            name: Cow::Owned(name),
+            steps: steps_collected,
+            name,
         }
     }
 
     /// A choice between `steps`, explicitly named `name`.
     #[must_use]
-    pub fn named(name: impl Into<Cow<'static, str>>, steps: Vec<Arc<dyn Step<P>>>) -> Self {
+    pub fn named(
+        name: impl Into<Cow<'static, str>>,
+        steps: impl IntoIterator<Item = Arc<dyn Step<P>>>,
+    ) -> Self {
         Self {
-            steps,
+            steps: steps.into_iter().collect(),
             name: name.into(),
         }
     }
 }
 
-impl<P: Puzzle> Step<P> for Choose<P> {
+impl<P: Puzzle> Step<P> for Shortest<P> {
     fn name(&self) -> &str {
         &self.name
     }
@@ -99,7 +111,7 @@ mod tests {
     use std::error::Error;
 
     use super::*;
-    use crate::{Cube3x3, Segment, methods::test_steps::FixedStep};
+    use crate::{Cube3x3, Segment, Technique, methods::test_steps::FixedStep};
 
     fn cannot_start() -> StepError {
         StepError::InvalidStartingState
@@ -113,13 +125,11 @@ mod tests {
     fn the_shorter_alternative_is_kept_and_the_longer_leaves_no_trace() -> Result<(), Box<dyn Error>>
     {
         // The longer one comes first, so the win is not just list order.
-        let choose = Choose::named(
-            "Either",
-            vec![
-                FixedStep::new("Long", "R U", true, true),
-                FixedStep::new("Short", "R", true, true),
-            ],
-        );
+        let steps = Technique::new([
+            Arc::new(FixedStep::new("Long", "R U", true, true)) as Arc<dyn Step<Cube3x3>>,
+            Arc::new(FixedStep::new("Short", "R", true, true)),
+        ]);
+        let choose = Shortest::named("Either", steps);
         let mut cube = Cube3x3::default();
 
         let solution = choose.solve(&mut cube)?;
@@ -141,13 +151,11 @@ mod tests {
 
     #[test]
     fn an_alternative_that_cannot_start_is_skipped() -> Result<(), Box<dyn Error>> {
-        let choose = Choose::named(
-            "Either",
-            vec![
-                FixedStep::failing("Cannot start", cannot_start),
-                FixedStep::new("Runs", "U", true, true),
-            ],
-        );
+        let steps: Vec<Arc<dyn Step<Cube3x3>>> = vec![
+            FixedStep::failing("Cannot start", cannot_start),
+            Arc::new(FixedStep::new("Runs", "U", true, true)) as Arc<dyn Step<Cube3x3>>,
+        ];
+        let choose = Shortest::named("Either", steps);
         let mut cube = Cube3x3::default();
 
         let solution = choose.solve(&mut cube)?;
@@ -160,13 +168,11 @@ mod tests {
 
     #[test]
     fn any_other_error_ends_the_choice_even_if_another_alternative_succeeds() {
-        let choose = Choose::named(
-            "Either",
-            vec![
-                FixedStep::failing("Broken", unreachable),
-                FixedStep::new("Would run", "U", true, true),
-            ],
-        );
+        let steps: Vec<Arc<dyn Step<Cube3x3>>> = vec![
+            FixedStep::failing("Broken", unreachable),
+            Arc::new(FixedStep::new("Would run", "U", true, true)) as Arc<dyn Step<Cube3x3>>,
+        ];
+        let choose = Shortest::named("Either", steps);
         let mut cube = Cube3x3::default();
 
         let result = choose.solve(&mut cube);
@@ -184,13 +190,11 @@ mod tests {
 
     #[test]
     fn when_no_alternative_can_start_the_choice_cannot_start() {
-        let choose = Choose::named(
-            "Either",
-            vec![
-                FixedStep::failing("First", cannot_start),
-                FixedStep::failing("Second", cannot_start),
-            ],
-        );
+        let steps: Vec<Arc<dyn Step<Cube3x3>>> = vec![
+            FixedStep::failing("First", cannot_start),
+            FixedStep::failing("Second", cannot_start),
+        ];
+        let choose = Shortest::named("Either", steps);
         let mut cube = Cube3x3::default();
 
         let result = choose.solve(&mut cube);
@@ -205,14 +209,14 @@ mod tests {
     #[test]
     fn the_shorter_alternative_wins_whichever_comes_first() -> Result<(), Box<dyn Error>> {
         for short_first in [false, true] {
-            let short: Arc<dyn Step<Cube3x3>> = FixedStep::new("Short", "R", true, true);
-            let long: Arc<dyn Step<Cube3x3>> = FixedStep::new("Long", "R U", true, true);
+            let short: Arc<dyn Step<Cube3x3>> = Arc::new(FixedStep::new("Short", "R", true, true));
+            let long: Arc<dyn Step<Cube3x3>> = Arc::new(FixedStep::new("Long", "R U", true, true));
             let alternatives = if short_first {
                 vec![short, long]
             } else {
                 vec![long, short]
             };
-            let choose = Choose::named("Either", alternatives);
+            let choose = Shortest::named("Either", alternatives);
             let mut cube = Cube3x3::default();
 
             let solution = choose.solve(&mut cube)?;
@@ -230,13 +234,11 @@ mod tests {
 
     #[test]
     fn on_a_tie_the_earlier_alternative_is_kept() -> Result<(), Box<dyn Error>> {
-        let choose = Choose::named(
-            "Either",
-            vec![
-                FixedStep::new("First", "R", true, true),
-                FixedStep::new("Second", "U", true, true),
-            ],
-        );
+        let steps: Vec<Arc<dyn Step<Cube3x3>>> = vec![
+            Arc::new(FixedStep::new("First", "R", true, true)),
+            Arc::new(FixedStep::new("Second", "U", true, true)),
+        ];
+        let choose = Shortest::named("Either", steps);
         let mut cube = Cube3x3::default();
 
         let solution = choose.solve(&mut cube)?;

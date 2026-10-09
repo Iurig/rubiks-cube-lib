@@ -116,7 +116,7 @@ macro_rules! chain_steps {
         )
     };
     (@choose $moves:ident, $free:ident, $name:literal, ($($before:expr),+), $afters:tt) => {
-        Arc::new(Choose::named(
+        Arc::new(Shortest::named(
             $name,
             [$(chain_steps!(@row $moves, $free, $name, $before, $afters)),+].concat(),
         ))
@@ -180,7 +180,7 @@ fn aufs() -> &'static [Algorithm<Cube3x3>; 4] {
     clippy::struct_excessive_bools,
     reason = "rarely constructed, the fields names are documentation enough"
 )]
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct LastLayerGoal {
     corner_orientation: bool,
     corner_permutation: bool,

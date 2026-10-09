@@ -5,7 +5,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::{Algorithm, ParseMoveError, SolveError, indexed::Indexed};
+use crate::{Algorithm, Cube3x3, ParseMoveError, SolveError, indexed::Indexed};
 
 pub mod algorithm;
 pub mod algset;
@@ -100,5 +100,12 @@ pub trait Puzzle:
     #[must_use]
     fn apply(&self, alg: &Algorithm<Self>) -> Self {
         alg.iter().fold(self.clone(), |p, &m| p * m)
+    }
+}
+
+impl Mul<Algorithm<Self>> for Cube3x3 {
+    type Output = Self;
+    fn mul(self, rhs: Algorithm<Self>) -> Self::Output {
+        rhs.iter().fold(self, |p, &m| p * m)
     }
 }

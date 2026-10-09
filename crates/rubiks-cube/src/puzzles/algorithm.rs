@@ -1,5 +1,6 @@
 use std::{
     fmt::{self, Display},
+    ops::Index,
     str::FromStr,
 };
 
@@ -20,12 +21,20 @@ use crate::{Inv, ParseSequenceError, Puzzle};
 /// let solution: Solution<Cube3x3> = Kociemba.solve(&mut cube)?;
 /// let moves: Algorithm<Cube3x3> = solution.iter().flat_map(|s| s.moves()).copied().collect();
 /// // The inverse of a solution is a scramble that gives back the state it solved.
-/// assert_eq!(Cube3x3::from_moves(&moves.inverse().to_string())?, Cube3x3::from_moves("R U R' F2")?);
+/// assert_eq!(Cube3x3::from_moves(&moves.inv().to_string())?, Cube3x3::from_moves("R U R' F2")?);
 /// # Ok(())
 /// # }
 /// ```
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct Algorithm<P: Puzzle>(Vec<P::Move>);
+
+/// The moves in reverse order, each inverted: applying an algorithm and then its inverse leaves
+/// any state unchanged.
+impl<P: Puzzle> Inv for Algorithm<P> {
+    fn inv(self) -> Self {
+        self.into_iter().rev().map(Inv::inv).collect()
+    }
+}
 
 impl<P: Puzzle> FromStr for Algorithm<P> {
     type Err = ParseSequenceError;
@@ -49,38 +58,9 @@ impl<P: Puzzle> FromStr for Algorithm<P> {
     }
 }
 
-impl<P: Puzzle> Algorithm<P> {
-    /// An algorithm with no moves.
-    #[must_use]
-    pub const fn new() -> Self {
-        Self(Vec::new())
-    }
-
-    /// The moves, in the order they are applied.
-    pub fn iter(&self) -> std::slice::Iter<'_, P::Move> {
-        self.0.iter()
-    }
-
-    /// The number of moves.
-    #[must_use]
-    pub const fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    /// Whether the algorithm has no moves.
-    #[must_use]
-    pub const fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    /// Adds the moves of `other` after the last move.
-    pub fn extend_from(&mut self, other: &Self) {
-        self.0.extend_from_slice(&other.0);
-    }
-
-    /// Keeps the first `len` moves and drops the rest.
-    pub fn truncate(&mut self, len: usize) {
-        self.0.truncate(len);
+impl<P: Puzzle> AsRef<[P::Move]> for Algorithm<P> {
+    fn as_ref(&self) -> &[P::Move] {
+        &self.0[..]
     }
 }
 
@@ -95,14 +75,6 @@ impl<P: Puzzle> Display for Algorithm<P> {
             }
         }
         Ok(())
-    }
-}
-
-/// The moves in reverse order, each inverted: applying an algorithm and then its inverse leaves
-/// any state unchanged.
-impl<P: Puzzle> Inv for Algorithm<P> {
-    fn inverse(&self) -> Self {
-        Self(self.0.inverse())
     }
 }
 
@@ -146,6 +118,52 @@ impl<'a, P: Puzzle> IntoIterator for &'a Algorithm<P> {
     }
 }
 
+impl<P: Puzzle> Index<usize> for Algorithm<P> {
+    type Output = P::Move;
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "failing indexing out of range is the intended behaviour for the trait."
+    )]
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl<P: Puzzle> Algorithm<P> {
+    /// An algorithm with no moves.
+    #[must_use]
+    pub const fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    /// The moves, in the order they are applied.
+    pub fn iter(&self) -> std::slice::Iter<'_, P::Move> {
+        self.0.iter()
+    }
+
+    /// The number of moves.
+    #[must_use]
+    pub const fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Whether the algorithm has no moves.
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Adds the moves of `other` after the last move.
+    pub fn extend_from(&mut self, other: &Self) {
+        self.0.extend_from_slice(&other.0);
+    }
+
+    /// Keeps the first `len` moves and drops the rest.
+    pub fn truncate(&mut self, len: usize) {
+        self.0.truncate(len);
+    }
+}
+
 #[cfg(test)]
 #[expect(clippy::panic_in_result_fn, reason = "Standardized across tests")]
 mod test {
@@ -162,5 +180,37 @@ mod test {
         let alg_vec_1 = alg.into_iter().collect::<Vec<_>>();
         assert_eq!(alg_vec_1, alg_vec_2);
         Ok(())
+    }
+
+    #[test]
+    fn as_ref_is_the_moves_in_order() -> Result<(), Box<dyn Error>> {
+        let alg: Algorithm<Cube3x3> = "R U R' F2".parse()?;
+        let expected = ["R", "U", "R'", "F2"]
+            .map(<Cube3x3 as Puzzle>::Move::from_str)
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
+        assert_eq!(alg.as_ref(), expected.as_slice());
+        assert_eq!(Algorithm::<Cube3x3>::new().as_ref(), []);
+        Ok(())
+    }
+
+    #[test]
+    fn index_is_the_move_at_that_position() -> Result<(), Box<dyn Error>> {
+        let alg: Algorithm<Cube3x3> = "R U R' F2".parse()?;
+        for (i, text) in ["R", "U", "R'", "F2"].into_iter().enumerate() {
+            assert_eq!(
+                alg[i],
+                <Cube3x3 as Puzzle>::Move::from_str(text)?,
+                "move {i}"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    #[should_panic(expected = "index out of bounds")]
+    fn indexing_past_the_last_move_panics() {
+        let alg: Algorithm<Cube3x3> = Algorithm::new();
+        let _ = alg[0];
     }
 }

@@ -6,10 +6,10 @@ use crate::methods::cube3x3::helpers::{
     BlockGoal, LastLayer, algs, chain_steps, into_steps, parts, set_options, split_by_blocks,
 };
 
-use crate::{AlgSet, Choose, Cube3x3, Method, PieceSet, Step, Technique};
+use crate::{AlgSet, Cube3x3, Method, PieceSet, Shortest, Step, Technique};
 
 /// The ZZ method for the 3x3 Rubik's Cube: EO line, first two layers, then last layer.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 #[cfg_attr(test, derive(Sequence))]
 pub struct ZZ {
     eoline: EoLine,
@@ -31,17 +31,17 @@ impl ZZ {
 
 /// How [`ZZ`] builds its first step, the `EOLine`.
 #[non_exhaustive]
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 #[cfg_attr(test, derive(Sequence))]
 pub struct EoLine;
 /// How [`ZZ`] builds its F2L.
 #[non_exhaustive]
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 #[cfg_attr(test, derive(Sequence))]
 pub struct F2L;
 /// How [`ZZ`] builds its last layer.
 #[non_exhaustive]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(test, derive(Sequence))]
 pub enum LL {
     /// 2-look last layer.
@@ -56,7 +56,7 @@ pub enum LL {
 }
 /// The first step of a two-look ZZ last layer.
 #[non_exhaustive]
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 #[cfg_attr(test, derive(Sequence))]
 pub enum FirstLook {
     /// Orientation of the Corners of the Last Layer.
@@ -67,7 +67,7 @@ pub enum FirstLook {
 }
 /// The second step of a two-look ZZ last layer.
 #[non_exhaustive]
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 #[cfg_attr(test, derive(Sequence))]
 pub enum SecondLook {
     /// Standard PLL
@@ -166,7 +166,7 @@ mod test {
     #![expect(clippy::panic_in_result_fn, reason = "standard procedure in our tests")]
     use std::error::Error;
 
-    use crate::Puzzle;
+    use crate::{Puzzle, Solution};
 
     use super::*;
 
@@ -174,9 +174,9 @@ mod test {
     fn zz_solves_the_cube() -> Result<(), Box<dyn Error>> {
         let mut cube = Cube3x3::scrambled_with_seed(2);
 
-        for partial_solution in ZZ::default().solve_steps(&mut cube) {
-            println!("{}", partial_solution?);
-        }
+        let _ = ZZ::default()
+            .solve_steps(&mut cube)
+            .collect::<Result<Solution<Cube3x3>, _>>()?;
         assert!(cube.is_solved());
         Ok(())
     }
@@ -190,10 +190,7 @@ mod test {
         for (&cube, setting) in scrambled_cubes.iter().zip(settings) {
             dbg!(&setting);
             let mut solving_cube = cube;
-            println!("{cube}\n");
-            for partial_solution in setting.solve_steps(&mut solving_cube) {
-                print!("{}", partial_solution?);
-            }
+            setting.solve(&mut solving_cube)?;
             assert!(solving_cube.is_solved());
         }
         Ok(())

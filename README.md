@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     assert!((scramble * solution).is_solved());
 
     // Inverses and powers
-    assert_eq!(Cube3x3::from_moves("R")?.inverse(), Cube3x3::from_moves("R'")?);
+    assert_eq!(Cube3x3::from_moves("R")?.inv(), Cube3x3::from_moves("R'")?);
     assert!(Cube3x3::from_moves("R U R' U'")?.pow(6).is_solved());
 
     // Chain moves onto an existing state
@@ -127,7 +127,7 @@ let roux = Roux::default()
 ```
 
 A method is a list of steps. The crate has two step types: `SearchStep`, which searches for a
-goal within a fixed set of moves or algorithms, and `Choose`, which keeps the shortest of
+goal within a fixed set of moves or algorithms, and `Shortest`, which keeps the shortest of
 several steps. Any type that implements the `Step` trait can join them. The
 [API documentation](#api-documentation) describes each type.
 
@@ -186,7 +186,7 @@ The main entry points:
   `random_state_with_seed`.
 - **`Method`** is the trait of a solving method, such as **`Roux`** or **`Kociemba`**. It turns
   the method's options into a list of steps, and `solve` or `solve_steps` runs them.
-- **`Step`**, **`SearchStep`**, and **`Choose`** are the steps a method is built from, and
+- **`Step`**, **`SearchStep`**, and **`Shortest`** are the steps a method is built from, and
   **`Mask`** says what a step needs and what it solves.
 - **`Solution`**, **`StepError`**, and **`SolveError`** are what a solve returns.
 
@@ -233,7 +233,7 @@ crates/
             memorization.rs   BfsMemo: the backward search from a step's goal, kept across
                               solves
           choose/
-            mod.rs            Choose: runs each alternative, keeps the one with the fewest
+            mod.rs            Shortest: runs each alternative, keeps the one with the fewest
                               moves
           combine_pruned/
             mod.rs            PrunedCombine: a search guided by prune tables
@@ -305,7 +305,7 @@ What works today:
   phases are searches guided by prune tables, which the first solve builds in a few seconds.
 - A solve fails with a typed error that names the step: the step's own `StepError`, or
   `NotDone` when the step returned without meeting its goal.
-- A method can mix step types, and `Choose` picks between alternatives by move count.
+- A method can mix step types, and `Shortest` picks between alternatives by move count.
 
 ## Roadmap
 

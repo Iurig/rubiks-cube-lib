@@ -81,7 +81,7 @@ fn incorrect_strings_return_error() {
 fn r_prime_is_inverse_of_r() -> Result<(), Box<dyn Error>> {
     let r = Cube3x3::from_moves("R")?;
     let r_prime = Cube3x3::from_moves("R'")?;
-    assert_eq!(r.inverse(), r_prime);
+    assert_eq!(r.inv(), r_prime);
     Ok(())
 }
 

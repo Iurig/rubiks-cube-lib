@@ -12,7 +12,7 @@
 //! let solution = Cube3x3::from_moves("D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'")?;
 //! assert!((scramble * solution).is_solved());
 //!
-//! assert_eq!(Cube3x3::from_moves("R")?.inverse(), Cube3x3::from_moves("R'")?);
+//! assert_eq!(Cube3x3::from_moves("R")?.inv(), Cube3x3::from_moves("R'")?);
 //! assert!(Cube3x3::from_moves("R U R' U'")?.pow(6).is_solved());
 //! # Ok(())
 //! # }
@@ -53,7 +53,7 @@
 //! ```
 //!
 //! To build other methods, combine [`SearchStep`]s, which search for a goal given as a
-//! [`Mask`], and [`Choose`], which keeps the shortest of several alternatives. Any type that
+//! [`Mask`], and [`Shortest`], which keeps the shortest of several alternatives. Any type that
 //! implements [`Step`] can join them. [`Method::solve_steps`] runs a method one step per
 //! iteration, for timing or progress reports.
 //!
@@ -85,7 +85,7 @@ pub use methods::{
     cube3x3::{kociemba::Kociemba, roux, roux::Roux, zz, zz::ZZ},
     step::{
         Step,
-        choose::Choose,
+        choose::Shortest,
         search_step::{MemoCache, SearchStep, SearchStepBuilder},
     },
 };

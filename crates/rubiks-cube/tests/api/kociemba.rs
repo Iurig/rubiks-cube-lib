@@ -48,13 +48,8 @@ fn phase_1_solves() {
     let _ = env_logger::builder().is_test(true).try_init();
     let mut cube = Cube3x3::scrambled_with_seed(0);
     let solution = phase(&Kociemba.to_technique(), "Phase 1").solve(&mut cube);
-    dbg!(&solution);
-    match solution {
-        Ok(s) => println!("{s}"),
-        Err(e) => print!("{e}"),
-    }
-    println!("{cube}");
-    assert!(in_domino_subgroup(&cube));
+
+    assert!(in_domino_subgroup(&cube), "{solution:?}\n {cube}");
 }
 
 #[test]

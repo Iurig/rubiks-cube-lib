@@ -6,7 +6,7 @@ mod test_steps;
 
 pub use solution::{Segment, Solution};
 
-use std::{fmt::Debug, sync::Arc};
+use std::{fmt::Debug, ops::Index, sync::Arc};
 
 use crate::{SolveError, methods::step::Step, puzzles::Puzzle};
 
@@ -27,9 +27,20 @@ use crate::{SolveError, methods::step::Step, puzzles::Puzzle};
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Technique<P: Puzzle> {
     steps: Vec<Arc<dyn Step<P>>>,
+}
+
+impl<P: Puzzle> Index<usize> for Technique<P> {
+    type Output = dyn Step<P>;
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "implementing indexing is supposed to be able to panic"
+    )]
+    fn index(&self, index: usize) -> &Self::Output {
+        &*self.steps[index]
+    }
 }
 
 impl<P: Puzzle> FromIterator<Arc<dyn Step<P>>> for Technique<P> {
@@ -40,9 +51,20 @@ impl<P: Puzzle> FromIterator<Arc<dyn Step<P>>> for Technique<P> {
     }
 }
 
+impl<P: Puzzle> IntoIterator for Technique<P> {
+    type IntoIter = <Vec<Arc<dyn Step<P>>> as IntoIterator>::IntoIter;
+    type Item = Arc<dyn Step<P>>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.steps.into_iter()
+    }
+}
+
 impl<P: Puzzle> Technique<P> {
-    fn new(steps: Vec<Arc<dyn Step<P>>>) -> Self {
-        Self { steps }
+    /// Constructor for a technique: takes in any
+    pub fn new(steps: impl IntoIterator<Item = Arc<dyn Step<P>>>) -> Self {
+        Self {
+            steps: steps.into_iter().collect(),
+        }
     }
 
     /// # Errors
@@ -108,7 +130,7 @@ fn run_steps<P: Puzzle>(
 /// parameters, collapses to a different [`Technique`]. Implementation of [`Method`] usually starts
 /// by defining a type to hold such parameters, then how to get a sequence of steps from such
 /// parameters.
-pub trait Method<P: Puzzle>: Default + Debug {
+pub trait Method<P: Puzzle>: Debug {
     /// Converts a parametrized [`Method`] to a specific [`Technique`]
     fn to_technique(&self) -> Technique<P>;
 
@@ -118,7 +140,10 @@ pub trait Method<P: Puzzle>: Default + Debug {
     /// # Errors
     /// The first [`SolveError`]. No later step runs, and `puzzle` is left as the failing step
     /// left it.
-    fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, SolveError> {
+    fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, SolveError>
+    where
+        Self: Sized,
+    {
         self.solve_steps(puzzle).collect()
     }
 
@@ -141,7 +166,10 @@ pub trait Method<P: Puzzle>: Default + Debug {
     /// # Ok(())
     /// # }
     /// ```
-    fn solve_steps(&self, puzzle: &mut P) -> impl Iterator<Item = Result<Solution<P>, SolveError>> {
+    fn solve_steps(&self, puzzle: &mut P) -> impl Iterator<Item = Result<Solution<P>, SolveError>>
+    where
+        Self: Sized,
+    {
         run_steps(self.to_technique().steps, puzzle)
     }
 }
@@ -164,19 +192,11 @@ mod tests {
         StepError::Custom("fixed failure".into())
     }
 
-    /// A method that runs the steps it holds, to test what every method gets from `Method`.
-    #[derive(Debug, Default)]
-    struct Steps(Vec<Arc<dyn Step<Cube3x3>>>);
-
-    impl Method<Cube3x3> for Steps {
-        fn to_technique(&self) -> Technique<Cube3x3> {
-            self.0.iter().cloned().collect()
-        }
-    }
-
     #[test]
     fn a_method_step_that_returns_but_is_not_done_fails_the_solve_naming_it() {
-        let method = Steps(vec![FixedStep::new("Never done", "", true, false)]);
+        let never_done: Arc<dyn Step<Cube3x3>> =
+            Arc::new(FixedStep::new("Never done", "", true, false));
+        let method = Technique::new([never_done]);
 
         let result = method.solve(&mut Cube3x3::default());
 
@@ -192,9 +212,9 @@ mod tests {
     #[test]
     fn after_a_step_that_cannot_start_the_iterator_yields_nothing_more() {
         let later = FixedStep::new("Later", "", true, true);
-        let method = Steps(vec![
-            FixedStep::new("Cannot start", "", false, true),
-            later.clone(),
+        let method = Technique::new([
+            Arc::new(FixedStep::new("Cannot start", "", false, true)) as Arc<dyn Step<Cube3x3>>,
+            Arc::new(later.clone()),
         ]);
         let mut cube = Cube3x3::default();
         let mut steps = method.solve_steps(&mut cube);
@@ -236,7 +256,9 @@ mod tests {
 
     #[test]
     fn a_step_that_returns_but_is_not_done_fails_the_solve_naming_it() {
-        let method = Technique::new(vec![FixedStep::new("Never done", "", true, false)]);
+        let never_done: Arc<dyn Step<Cube3x3>> =
+            Arc::new(FixedStep::new("Never done", "", true, false));
+        let method = Technique::new([never_done]);
 
         let result = method.solve(&mut Cube3x3::default());
 
@@ -251,7 +273,9 @@ mod tests {
 
     #[test]
     fn a_custom_step_error_comes_back_wrapped_and_naming_the_step() {
-        let method = Technique::new(vec![FixedStep::failing("Always fails", fixed_failure)]);
+        let always_fails: Arc<dyn Step<Cube3x3>> =
+            FixedStep::failing("Always fails", fixed_failure);
+        let method = Technique::new([always_fails]);
 
         let result = method.solve(&mut Cube3x3::default());
 
@@ -270,13 +294,14 @@ mod tests {
     fn each_next_runs_one_step_and_leaves_the_cube_after_it() -> Result<(), Box<dyn Error>> {
         let uf_solved = PieceSet::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Uf)]);
         let u_turns = AlgSet::from_parts("U")?;
-        let solve_uf = Arc::new(
-            SearchStep::builder("UF", uf_solved.clone())
-                .search_algs(u_turns)
-                .build()?,
-        );
+        let solve_uf = SearchStep::builder("UF", uf_solved.clone())
+            .search_algs(u_turns)
+            .build()?;
         let later = FixedStep::new("Later", "", true, true);
-        let method = Technique::new(vec![solve_uf, later.clone()]);
+        let method = Technique::new([
+            Arc::new(solve_uf) as Arc<dyn Step<Cube3x3>>,
+            Arc::new(later.clone()),
+        ]);
         let mut cube = Cube3x3::from_moves("U")?;
 
         let first = method.solve_steps(&mut cube).next();
@@ -298,7 +323,7 @@ mod tests {
     fn after_an_error_the_iterator_yields_nothing_more() {
         let failing = FixedStep::failing("Fails", fixed_failure);
         let later = FixedStep::new("Later", "", true, true);
-        let method = Technique::new(vec![failing, later.clone()]);
+        let method = Technique::new([failing as Arc<dyn Step<Cube3x3>>, Arc::new(later.clone())]);
         let mut cube = Cube3x3::default();
         let mut steps = method.solve_steps(&mut cube);
 

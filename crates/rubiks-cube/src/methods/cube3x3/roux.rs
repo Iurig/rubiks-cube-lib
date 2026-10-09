@@ -2,7 +2,7 @@ use std::sync::{Arc, LazyLock};
 
 use crate::SearchStep;
 use crate::{
-    AlgSet, Choose, Cube3x3, Indexed, Method, Piece3x3, PieceSet, Step, methods::Technique,
+    AlgSet, Cube3x3, Indexed, Method, Piece3x3, PieceSet, Shortest, Step, methods::Technique,
 };
 
 use crate::methods::cube3x3::helpers::{algs, chain_steps, parts, set_options};
@@ -24,7 +24,7 @@ const CP_ALGS_TEXT: &str = include_str!("algsets/cmll/cp.txt");
 ///     .first_block(roux::FirstBlock::SquarePair)
 ///     .cmll(roux::Cmll::TwoLook);
 /// ```
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub struct Roux {
     first_block: FirstBlock,
     second_block: SecondBlock,
@@ -40,7 +40,7 @@ impl Roux {
 }
 
 /// How [`Roux`] builds the first block, the 1x2x3 block on the left.
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub enum FirstBlock {
     /// One search for the whole block.
     #[default]
@@ -52,7 +52,7 @@ pub enum FirstBlock {
 }
 
 /// How [`Roux`] builds the second block, the 1x2x3 block on the right.
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub enum SecondBlock {
     /// One search for the whole block.
     OneLook,
@@ -64,7 +64,7 @@ pub enum SecondBlock {
 }
 
 /// How [`Roux`] solves the U-layer corners.
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub enum Cmll {
     /// One algorithm from the full CMLL set.
     #[default]
@@ -74,7 +74,7 @@ pub enum Cmll {
 }
 
 /// How [`Roux`] solves the last six edges.
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub enum Lse {
     /// One search for all six edges with `U` and `M`.
     #[default]
@@ -193,7 +193,7 @@ mod test {
             .find(|s| s.name() == "CMLL")
             .unwrap();
         let sune = Cube3x3::from_moves("R U R' U R U2 R'").unwrap();
-        for scramble in [Cube3x3::from_moves("U2").unwrap(), sune.inverse()] {
+        for scramble in [Cube3x3::from_moves("U2").unwrap(), sune.inv()] {
             let mut cube = scramble;
             cmll.solve(&mut cube).unwrap();
             assert!(cmll.is_done(&cube), "not solved:\n{cube}");

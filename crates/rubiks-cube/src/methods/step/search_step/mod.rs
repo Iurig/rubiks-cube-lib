@@ -292,7 +292,7 @@ impl<P: Puzzle> SearchStep<P> {
             .get(&self.mask(&cube))
             .expect("every state in a level was investigated")
         {
-            cube = cube.apply(&sequence.inverse());
+            cube = cube.apply(&sequence.clone().inv());
             path.push_front(sequence);
         }
         path.into_iter().flatten().copied().collect()

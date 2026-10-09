@@ -68,7 +68,7 @@ where
         clippy::indexing_slicing,
         reason = "wrong indexing should panic instead of failing silently"
     )]
-    fn inverse(&self) -> Self {
+    fn inv(self) -> Self {
         let mut inv = Self::IDENTITY;
         for ((&piece, orientation), home) in
             self.permutation.iter().zip(&self.orientation).zip(P::ALL)

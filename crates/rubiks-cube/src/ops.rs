@@ -19,23 +19,23 @@ pub trait Inv: Sized {
     ///     }
     /// }
     /// impl Inv for FieldZ2 {
-    ///     fn inverse(&self) -> Self {
+    ///     fn inv(self) -> Self {
     ///         self.clone()
     ///     }
     /// }
     ///
-    /// assert_eq!(FieldZ2::Zero, FieldZ2::Zero * FieldZ2::Zero.inverse());
-    /// assert_eq!(FieldZ2::Zero, FieldZ2::One * FieldZ2::One.inverse());
+    /// assert_eq!(FieldZ2::Zero, FieldZ2::Zero * FieldZ2::Zero.inv());
+    /// assert_eq!(FieldZ2::Zero, FieldZ2::One * FieldZ2::One.inv());
     /// ```
     #[must_use = "this returns the inverse of a state, without modifying the original state"]
-    fn inverse(&self) -> Self;
+    fn inv(self) -> Self;
 }
 
 /// The inverse of a move sequence, such as an [`Algorithm`](crate::Algorithm): the moves in
 /// reverse order, each one inverted. `R U` gives `U' R'`.
 impl<M: Inv> Inv for Vec<M> {
-    fn inverse(&self) -> Self {
-        self.iter().rev().map(Inv::inverse).collect()
+    fn inv(self) -> Self {
+        self.into_iter().rev().map(Inv::inv).collect()
     }
 }
 
@@ -71,13 +71,13 @@ pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
     /// assert_eq!(TurnCount(2).pow(3), TurnCount(2));
     /// ```
     #[must_use = "returns the power instead of applying it in place"]
-    fn pow(&self, exponent: u32) -> Self {
+    fn pow(self, exponent: u32) -> Self {
         // values 0, 1 and 2 are needed for recursion on `_` branch
         match exponent {
             0 => Self::identity(),
-            1 => self.clone(),
-            2 => self.clone() * self.clone(),
-            _ => self.pow(exponent % 2) * self.pow(exponent / 2).pow(2),
+            1 => self,
+            2 => self.clone() * self,
+            _ => self.clone().pow(exponent % 2) * self.pow(exponent / 2).pow(2),
         }
     }
 }
@@ -95,19 +95,19 @@ mod tests {
     #[test]
     fn algorithm_inverse_reverses_and_inverts_each_move() -> Result<(), Box<dyn Error>> {
         let alg: Algorithm<Cube3x3> = "R U R' F2".parse()?;
-        assert_eq!(alg.inverse(), "F2' R U' R'".parse()?);
+        assert_eq!(alg.inv(), "F2' R U' R'".parse()?);
         Ok(())
     }
 
     #[test]
     fn empty_algorithm_is_its_own_inverse() {
-        assert_eq!(Algorithm::<Cube3x3>::new().inverse(), Algorithm::new());
+        assert_eq!(Algorithm::<Cube3x3>::new().inv(), Algorithm::new());
     }
 
     #[test]
     fn inverting_an_algorithm_twice_gives_it_back() -> Result<(), Box<dyn Error>> {
         let alg: Algorithm<Cube3x3> = "r U' M2 x E' Fw2 D".parse()?;
-        assert_eq!(alg.inverse().inverse(), alg);
+        assert_eq!(alg.clone().inv().inv(), alg);
         Ok(())
     }
 
@@ -118,7 +118,7 @@ mod tests {
             let start = Cube3x3::scrambled_with_seed(seed);
             let end = alg
                 .iter()
-                .chain(&alg.inverse())
+                .chain(&alg.clone().inv())
                 .fold(start, |cube, &m| cube * m);
             assert_eq!(end, start, "seed {seed}");
         }

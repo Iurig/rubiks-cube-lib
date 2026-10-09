@@ -116,7 +116,7 @@ impl<P: Puzzle> BfsMemo<P> {
         let moved = sequence
             .iter()
             .rev()
-            .fold(parent.clone(), |puzzle, m| puzzle * m.inverse());
+            .fold(parent.clone(), |puzzle, m| puzzle * m.inv());
         let mask = Mask::filter_by_piece(&moved, &self.goal);
         if self.memorization.contains_key(&mask) {
             return None;
@@ -212,7 +212,7 @@ mod tests {
         let allowed = AlgSet::from_algs_in_str(sune).unwrap();
         let mut memo = BfsMemo::new(goal.clone());
         memo.search_to(0, &allowed, &AlgSet::new());
-        let before_sune = Cube3x3::from_moves(sune).unwrap().inverse();
+        let before_sune = Cube3x3::from_moves(sune).unwrap().inv();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&before_sune, &goal)),
             Some(&sune.parse().unwrap())
@@ -229,7 +229,7 @@ mod tests {
         let free = AlgSet::from_moves("U").unwrap();
         let mut memo = BfsMemo::new(goal.clone());
         memo.search_to(0, &allowed, &free);
-        let before_r_u = Cube3x3::from_moves("R U").unwrap().inverse();
+        let before_r_u = Cube3x3::from_moves("R U").unwrap().inv();
         assert_eq!(
             memo.solution(&Mask::filter_by_piece(&before_r_u, &goal)),
             Some(&"R U".parse().unwrap())

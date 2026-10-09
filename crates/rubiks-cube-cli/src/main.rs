@@ -2,7 +2,7 @@ use anyhow::ensure;
 use clap::Parser;
 use rubiks_cube::{Method, Puzzle, Roux, ZZ};
 
-#[derive(Parser, Debug)]
+#[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
     #[arg(short, long)]

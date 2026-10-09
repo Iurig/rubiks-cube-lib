@@ -89,7 +89,7 @@ impl Puzzle for Cube3x3 {
             .iter()
             .flat_map(|s| s.moves().iter().copied())
             .collect::<Algorithm<Self>>()
-            .inverse())
+            .inv())
     }
 }
 
@@ -136,11 +136,11 @@ impl Pow for Cube3x3 {
 }
 
 impl Inv for Cube3x3 {
-    fn inverse(&self) -> Self {
+    fn inv(self) -> Self {
         Self {
-            centers: self.centers.inverse(),
-            corners: self.corners.inverse(),
-            edges: self.edges.inverse(),
+            centers: self.centers.inv(),
+            corners: self.corners.inv(),
+            edges: self.edges.inv(),
         }
     }
 }

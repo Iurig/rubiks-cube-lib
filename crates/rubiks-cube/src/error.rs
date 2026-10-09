@@ -12,7 +12,7 @@ pub enum StepError {
     #[error("goal could not be reached with the given algset")]
     UnreachableGoal,
     /// The puzzle does not meet what the step needs before it starts, such as a
-    /// [`SearchStep`](crate::SearchStep)'s `before` mask. [`Choose`](crate::Choose) skips an
+    /// [`SearchStep`](crate::SearchStep)'s `before` mask. [`Shortest`](crate::Shortest) skips an
     /// alternative that returns this.
     #[error("starting state doesn't fit expected properties")]
     InvalidStartingState,
@@ -51,7 +51,7 @@ pub enum SolveError {
 
 /// Why one move failed to parse.
 #[non_exhaustive]
-#[derive(Clone, Debug, Eq, PartialEq, Error)]
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum ParseMoveError {
     /// Reachable only through `"".parse::<Move3x3>()`; a sequence parse never tries to parse an
     /// empty move, so it carries no offending text.
@@ -75,7 +75,7 @@ pub enum ParseMoveError {
     },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Error)]
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
 /// A move in a sequence failed to parse; `line` and `position` count from 1.
 #[error("at line {line}, position {position}: {source}")]
 pub struct ParseSequenceError {
@@ -84,7 +84,7 @@ pub struct ParseSequenceError {
     pub(crate) position: usize,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Error)]
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
 /// Attempted to construct a [`SearchStep`](crate::SearchStep) with invalid
 /// [`SearchStepBuilder`](crate::SearchStepBuilder).
 #[non_exhaustive]

@@ -75,7 +75,7 @@ pub type Face = Center;
 
 /// Any piece of the 3×3 cube: the cube's [`Puzzle::Piece`](crate::Puzzle::Piece) type. Masks and
 /// piece queries on a [`Cube3x3`](crate::Cube3x3) take this type.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Piece3x3 {
     /// A center piece.
     Center(Center),
@@ -123,12 +123,12 @@ impl Rotation {
     pub const ALL: [Self; 3] = [Self::X, Self::Y, Self::Z];
 }
 
-#[expect(
-    clippy::unreachable,
-    reason = "if this arm is ever reached, the state of puzzle is absolutely unrecoverable"
-)]
 impl std::ops::Add for Orientation3x3 {
     type Output = Self;
+    #[expect(
+        clippy::unreachable,
+        reason = "if this arm is ever reached, the state of puzzle is absolutely unrecoverable"
+    )]
     fn add(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
             (Fixed, Fixed) => Fixed,

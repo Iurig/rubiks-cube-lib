@@ -59,9 +59,9 @@ pub fn cube_state(part: MovablePart, modifier: MoveModifier) -> Cube3x3 {
 }
 
 impl Inv for MoveInformation {
-    fn inverse(&self) -> Self {
+    fn inv(self) -> Self {
         Self {
-            cube_state: self.cube_state.inverse(),
+            cube_state: self.cube_state.inv(),
             part: self.part,
             modifier: self.modifier.inverse(),
         }
@@ -77,7 +77,7 @@ impl MoveInformation {
     };
 
     #[expect(
-        clippy::panic,
+        clippy::unreachable,
         reason = "private, and only called on clockwise entries while building the table"
     )]
     fn double(&self) -> Self {
@@ -87,7 +87,7 @@ impl MoveInformation {
             modifier: {
                 match self.modifier {
                     Clockwise | Prime => Double,
-                    _ => panic!(),
+                    _ => unreachable!("double is only built from clockwise entries"),
                 }
             },
         }
@@ -299,7 +299,7 @@ fn slice_along(face: Face, placed: &[MoveInformation; CLOCKWISE_MOVE_COUNT]) -> 
         } else if s.follows().opposite() == face {
             return placed[table_index_clockwise(MovablePart::Slice(s))]
                 .cube_state
-                .inverse();
+                .inv();
         }
     }
     panic!("all faces must have a slice_along")
@@ -329,7 +329,7 @@ fn all_clockwise_moves() -> [MoveInformation; CLOCKWISE_MOVE_COUNT] {
                         Rotation::ALL[i].follows().opposite(),
                     ))]
                     .cube_state
-                    .inverse())
+                    .inv())
                     * (slice_along(Rotation::ALL[i].follows(), &all_clockwise_moves)),
                 part: MovablePart::Rotation(Rotation::ALL[i]),
                 modifier: Clockwise,
@@ -362,7 +362,7 @@ fn all_moves() -> [MoveInformation; 3 * CLOCKWISE_MOVE_COUNT] {
 
     for i in 0..CLOCKWISE_MOVE_COUNT {
         all_moves[3 * i] = clockwise_moves[i];
-        all_moves[3 * i + 1] = clockwise_moves[i].inverse();
+        all_moves[3 * i + 1] = clockwise_moves[i].inv();
         all_moves[3 * i + 2] = clockwise_moves[i].double();
     }
     for (i, m) in all_moves.iter().enumerate() {

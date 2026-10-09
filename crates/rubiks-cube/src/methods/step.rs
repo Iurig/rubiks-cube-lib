@@ -13,7 +13,7 @@ pub mod search_step;
 /// failed or its goal is not met.
 ///
 /// The crate has two step types: [`SearchStep`](crate::SearchStep) searches for its goal, and
-/// [`Choose`](crate::Choose) runs several steps and keeps the shortest result. Implement this
+/// [`Shortest`](crate::Shortest) runs several steps and keeps the shortest result. Implement this
 /// trait to write another kind, such as a step that follows hand-written rules. A step is
 /// `Send + Sync` so that one built step can be shared by many methods through an `Arc`.
 pub trait Step<P: Puzzle>: Send + Sync + Debug {

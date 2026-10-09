@@ -55,7 +55,7 @@ fn pow_finishes_correctly_for_large_exponent() -> Result<(), Box<dyn Error>> {
 fn move_inverse_is_move_cubed() -> Result<(), Box<dyn Error>> {
     for m in IMPLEMENTED_MOVES {
         let cube = Cube3x3::from_moves(m)?;
-        assert_eq!(cube.inverse(), cube.pow(3));
+        assert_eq!(cube.inv(), cube.pow(3));
     }
     Ok(())
 }
@@ -64,9 +64,9 @@ fn move_inverse_is_move_cubed() -> Result<(), Box<dyn Error>> {
 fn inverse_is_an_involution() -> Result<(), Box<dyn Error>> {
     for m in IMPLEMENTED_MOVES {
         let cube = Cube3x3::from_moves(m)?;
-        assert_eq!(cube.inverse().inverse(), cube);
+        assert_eq!(cube.inv().inv(), cube);
     }
-    assert_eq!(Cube3x3::default().inverse(), Cube3x3::default());
+    assert_eq!(Cube3x3::default().inv(), Cube3x3::default());
     Ok(())
 }
 
@@ -74,7 +74,7 @@ fn inverse_is_an_involution() -> Result<(), Box<dyn Error>> {
 fn mul_is_associative() -> Result<(), Box<dyn Error>> {
     let a = Cube3x3::from_moves("R")?;
     let b = Cube3x3::from_moves("U2 L")?.pow(2);
-    let c = Cube3x3::from_moves("y")?.inverse();
+    let c = Cube3x3::from_moves("y")?.inv();
     assert_eq!((a * b) * c, a * (b * c));
     Ok(())
 }
@@ -83,8 +83,8 @@ fn mul_is_associative() -> Result<(), Box<dyn Error>> {
 fn inverse_of_product_reverses_order() -> Result<(), Box<dyn Error>> {
     let a = Cube3x3::from_moves("U")?.pow(1);
     let b = Cube3x3::from_moves("R")?.pow(2);
-    assert_eq!((a * b).inverse(), b.inverse() * a.inverse());
-    assert_ne!((a * b).inverse(), a.inverse() * b.inverse());
+    assert_eq!((a * b).inv(), b.inv() * a.inv());
+    assert_ne!((a * b).inv(), a.inv() * b.inv());
     Ok(())
 }
 
@@ -123,7 +123,7 @@ fn random_words_stay_reachable_and_undo_cleanly() -> Result<(), Box<dyn Error>> 
             cube.apply_moves(&backward)?.is_solved(),
             "{forward} then {backward} should be solved"
         );
-        assert_eq!(cube * cube.inverse(), Cube3x3::default());
+        assert_eq!(cube * cube.inv(), Cube3x3::default());
     }
     Ok(())
 }

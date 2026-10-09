@@ -7,7 +7,7 @@ use std::{hash::Hash, ops::Mul};
 
 use rayon::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct PruneTable<K> {
     table: FxMap<K, u8>,
 }

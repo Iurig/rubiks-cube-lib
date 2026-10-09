@@ -2,7 +2,7 @@ use std::sync::{Arc, LazyLock};
 
 use crate::{
     AlgSet, Algorithm, ByIdentity, ByMembership, Cube3x3, Edge, Indexed, Mask, Method,
-    Orientation3x3, Piece3x3, PieceSet, Puzzle,
+    Orientation3x3, Piece3x3, PieceSet, Puzzle, Step,
     methods::{
         Technique,
         step::combine_pruned::{PruneTable, PrunedCombine, PrunedGoal},
@@ -160,12 +160,15 @@ fn phase_2() -> PrunedCombine<Cube3x3> {
 
 /// Kociemba's two-phase method.
 /// The first call builds the pruning tables, which takes a few seconds.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub struct Kociemba;
 
 impl Method<Cube3x3> for Kociemba {
     fn to_technique(&self) -> Technique<Cube3x3> {
-        Technique::new(vec![Arc::new(phase_1()), Arc::new(phase_2())])
+        Technique::new([
+            Arc::new(phase_1()) as Arc<dyn Step<Cube3x3>>,
+            Arc::new(phase_2()),
+        ])
     }
 }
 

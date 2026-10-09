@@ -14,13 +14,13 @@ use crate::{Algorithm, ParseSequenceError, puzzles::Puzzle};
 /// ```
 ///
 /// Build one with [`single_segment`](Self::single_segment), or collect solutions to join them.
-#[derive(Debug, Eq, PartialEq, Default, Clone)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Solution<P: Puzzle> {
     step_solutions: Vec<Segment<P>>,
 }
 
 /// Segment of a solution: includes a name and the moves that make the solution up.
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Segment<P: Puzzle> {
     name: String,
     moves: Algorithm<P>,

@@ -4,15 +4,15 @@ use std::error::Error;
 #[test]
 fn full_solve_and_checking_bfs() -> Result<(), Box<dyn Error>> {
     let scr = "U B' D L2 U B2 R2 D2 L2 D' U2 B2 R2 L U2 F' R' B L D'\n";
-    let mut scrambled = Cube3x3::from_moves(scr).expect("deu ruim");
+    let mut scrambled = Cube3x3::from_moves(scr)?;
 
     let recon: String = Roux::default().solve(&mut scrambled)?.to_string();
 
     assert_eq!(
-        Cube3x3::from_moves(&(scr.to_string() + recon.as_str())).expect("deu OUTRO ruim"),
-        Cube3x3::default()
+        Cube3x3::from_moves(&(scr.to_string() + recon.as_str()))?,
+        Cube3x3::default(),
+        "{recon}"
     );
-    println!("{recon}");
     Ok(())
 }
 
@@ -53,7 +53,6 @@ fn every_roux_option_combination_solves() -> Result<(), Box<dyn Error>> {
 fn skips_work() -> Result<(), Box<dyn Error>> {
     let mut scrambled = Cube3x3::from_moves("U2")?;
     let recon = Roux::default().solve(&mut scrambled)?.to_string();
-    println!("{recon}");
-    assert!(scrambled.is_solved());
+    assert!(scrambled.is_solved(), "{recon}");
     Ok(())
 }
