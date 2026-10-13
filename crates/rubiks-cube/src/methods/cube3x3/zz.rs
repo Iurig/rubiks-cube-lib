@@ -2,9 +2,9 @@
 use enum_iterator::{Sequence, all};
 use std::sync::{Arc, LazyLock};
 
+use super::helpers::set_options;
 use crate::methods::cube3x3::helpers::{
-    BlockGoal, LastLayer, chain_steps, include_algs, into_steps, parts, set_options,
-    split_by_blocks,
+    BlockGoal, LastLayer, chain_steps, include_algs, into_steps, parts, split_by_blocks,
 };
 
 use crate::{AlgSet, Cube3x3, Method, PieceSet, Step, Technique};

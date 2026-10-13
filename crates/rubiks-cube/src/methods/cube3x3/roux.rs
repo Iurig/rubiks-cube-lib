@@ -1,9 +1,9 @@
 use std::sync::{Arc, LazyLock};
 
-use crate::SearchStep;
-use crate::{AlgSet, Cube3x3, Indexed, Method, Piece3x3, PieceSet, Step, methods::Technique};
-
-use crate::methods::cube3x3::helpers::{algs, chain_steps, include_algs, parts, set_options};
+use super::helpers::{algs, chain_steps, include_algs, parts, set_options};
+use crate::{
+    AlgSet, Cube3x3, Indexed, Method, Piece3x3, PieceSet, SearchStep, Step, methods::Technique,
+};
 
 /// The Roux method for the 3x3 Rubik's Cube: first block, second block, CMLL, then the last six
 /// edges.

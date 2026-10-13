@@ -11,13 +11,19 @@ use crate::{
     methods::step::combine_pruned::{PruneTable, PrunedCombine, PrunedGoal},
 };
 
-macro_rules! algs {
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __algs {
     ($($s:literal),+) => {
         $crate::AlgSet::from_algs_in_str($($s),+).expect(concat!("invalid algorithms: ", $($s),+))
     };
 }
-pub(crate) use algs;
+/// Converts a `\n` separated `&str` literal into and [`AlgSet`].
+#[doc(inline)]
+pub use crate::__algs as algs;
 
+/// Converts a `\n` separated text file located at `/src/methods/cube3x3/algsets/` into and
+/// [`AlgSet`].
 macro_rules! include_algs {
     ($($path:literal),+) => {
         $crate::AlgSet::from_algs_in_str(concat!($(include_str!(concat!(
@@ -30,12 +36,16 @@ macro_rules! include_algs {
 }
 pub(crate) use include_algs;
 
-macro_rules! parts {
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __parts {
     ($s:literal) => {
         $crate::AlgSet::from_parts($s).expect(concat!("invalid parts: ", $s))
     };
 }
-pub(crate) use parts;
+/// Converts a space separated `&str` literal of parts into and [`AlgSet`].
+#[doc(inline)]
+pub use crate::__parts as parts;
 
 pub(super) fn into_steps<P: Puzzle>(step: impl Step<P> + 'static) -> Vec<Arc<dyn Step<P>>> {
     vec![Arc::new(step)]
@@ -54,6 +64,7 @@ pub struct BlockGoal {
 }
 
 impl BlockGoal {
+    #[must_use]
     pub fn new(
         after: &PieceSet<Cube3x3>,
         block: &PieceSet<Cube3x3>,
@@ -98,7 +109,9 @@ macro_rules! set_options {
 }
 pub(crate) use set_options;
 
-macro_rules! chain_steps {
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __chain_steps {
     // The chain starts from the pieces `moves` cannot touch, which must already be solved.
     // `free` sequences, such as an AUF, may be added to every step's solution without counting
     // toward its depth. This rule must come before the one without `free`, whose `$stages` would
@@ -107,28 +120,28 @@ macro_rules! chain_steps {
         let moves: &$crate::AlgSet<$crate::Cube3x3> = $moves;
         let goal: &$crate::AlgSet<$crate::Cube3x3> = $goal;
         let free: &$crate::AlgSet<$crate::Cube3x3> = $free;
-        chain_steps!(@stages moves, free, goal, ($crate::PieceSet::from_algset(moves)), [], $($stages)+)
+        $crate::__chain_steps!(@stages moves, free, goal, ($crate::PieceSet::from_algset(moves)), [], $($stages)+)
     }};
 
     (moves: $moves:expr, goal: $goal:expr, $($stages:tt)+) => {
-        chain_steps!(moves: $moves, goal: $goal, free: &$crate::AlgSet::new(), $($stages)+)
+        $crate::__chain_steps!(moves: $moves, goal: $goal, free: &$crate::AlgSet::new(), $($stages)+)
     };
 
     (@stages $moves:ident, $free:ident, $goal:ident, $befores:tt, [$($steps:expr),*],
      $name:literal $(,)?) => {{
         let steps: Vec<::std::sync::Arc<dyn $crate::Step<$crate::Cube3x3>>> = vec![
             $($steps,)*
-            chain_steps!(@choose $moves, $free, $name, $befores, ($crate::PieceSet::from_algset($goal))),
+            $crate::__chain_steps!(@choose $moves, $free, $name, $befores, ($crate::PieceSet::from_algset($goal))),
         ];
         steps
     }};
 
     (@stages $moves:ident, $free:ident, $goal:ident, $befores:tt, [$($steps:expr),*],
      $name:literal => ($($divider:expr),+ $(,)?), $($rest:tt)+) => {
-        chain_steps!(
+        $crate::__chain_steps!(
             @stages $moves, $free, $goal,
             ($($crate::PieceSet::from_algset(&$goal.combined_with(&$divider))),+),
-            [$($steps,)* chain_steps!(@choose $moves, $free, $name, $befores,
+            [$($steps,)* $crate::__chain_steps!(@choose $moves, $free, $name, $befores,
                 ($($crate::PieceSet::from_algset(&$goal.combined_with(&$divider))),+))],
             $($rest)+
         )
@@ -136,7 +149,7 @@ macro_rules! chain_steps {
     (@choose $moves:ident, $free:ident, $name:literal, ($($before:expr),+), $afters:tt) => {
         ::std::sync::Arc::new($crate::Shortest::named(
             $name,
-            [$(chain_steps!(@row $moves, $free, $name, $before, $afters)),+].concat(),
+            [$($crate::__chain_steps!(@row $moves, $free, $name, $before, $afters)),+].concat(),
         ))
     };
 
@@ -154,7 +167,8 @@ macro_rules! chain_steps {
         row
     }};
 }
-pub(crate) use chain_steps;
+#[doc(inline)]
+pub use crate::__chain_steps as chain_steps;
 
 #[derive(Debug, Default)]
 pub struct LastLayer {
@@ -245,9 +259,11 @@ impl LastLayer {
             .cloned()
     }
 
+    #[must_use]
     pub fn coll(algs: &AlgSet<Cube3x3>) -> Self {
         Self::new("COLL", algs.or_skip(), LastLayerGoal::SET_UP_EPLL)
     }
+    #[must_use]
     pub fn ocll(algs: &AlgSet<Cube3x3>) -> Self {
         let ocll_goal = LastLayerGoal {
             corner_orientation: true,
@@ -257,15 +273,19 @@ impl LastLayer {
         };
         Self::new("OCLL", algs.or_skip(), ocll_goal)
     }
+    #[must_use]
     pub fn pll(algs: &AlgSet<Cube3x3>) -> Self {
         Self::new("PLL", algs.or_skip(), LastLayerGoal::SOLVE_LL)
     }
+    #[must_use]
     pub fn cpll(algs: &AlgSet<Cube3x3>) -> Self {
         Self::new("CPLL", algs.or_skip(), LastLayerGoal::SET_UP_EPLL)
     }
+    #[must_use]
     pub fn epll(algs: &AlgSet<Cube3x3>) -> Self {
         Self::new("EPLL", algs.or_skip(), LastLayerGoal::SOLVE_LL)
     }
+    #[must_use]
     pub fn zbll(algs: &AlgSet<Cube3x3>) -> Self {
         Self::new("ZBLL", algs.or_skip(), LastLayerGoal::SOLVE_LL)
     }

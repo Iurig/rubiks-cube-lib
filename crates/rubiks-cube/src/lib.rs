@@ -82,7 +82,7 @@ pub use indexed::Indexed;
 // prefix. `kociemba` has no options.
 pub use methods::{
     Method, Segment, Solution, Technique,
-    cube3x3::{helpers, kociemba::Kociemba, roux, roux::Roux, zz, zz::ZZ},
+    cube3x3::{kociemba::Kociemba, roux, roux::Roux, zz, zz::ZZ},
     step::{
         Step,
         choose::Shortest,
@@ -102,6 +102,11 @@ pub use puzzles::{
     algset::AlgSet,
     label::{ByIdentity, ByMembership, Labeled, Marker, Mask, PieceSet},
 };
+
+pub mod cube3x3_method_helpers {
+    //! Tools for defining your own 3x3 method.
+    pub use crate::methods::cube3x3::helpers::{algs, chain_steps, parts};
+}
 
 /// Runs the Rust examples in `README.md` as doc tests, so they cannot drift from the code.
 /// This item exists only while doc tests run and never appears in the docs.
