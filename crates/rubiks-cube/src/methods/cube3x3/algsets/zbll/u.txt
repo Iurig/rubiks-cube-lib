@@ -16,7 +16,7 @@ R' U R U R' U2 R U R D R' U2 R D' R'     // ZBLL U 15
 R' U2 R' D' R U2 R' D R U2 R U R' U R    // ZBLL U 16
 R2 D' R U2 R' D R U2 R   // ZBLL U 17
 R' U2 R2 D R' U2 R D' R2 U R U2 R' U2 R          // ZBLL U 18
-R' U R U R' U2 R y U2 R U' R' U2 R U' R'         // ZBLL U 19
+R' U R U R' U2 R y U2 R U' R' U2 R U' R' y'      // ZBLL U 19
 F R U R' U' R2 D R' U' R D' R2 U' R U R' F'      // ZBLL U 20
 R2 D' R U2 R' U' D R' U' R2 U R U R2     // ZBLL U 21
 R2 F' R U2 R U2 R' F U' R U R' U' R      // ZBLL U 22

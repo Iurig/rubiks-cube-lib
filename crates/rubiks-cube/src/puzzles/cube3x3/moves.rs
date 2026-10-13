@@ -42,18 +42,30 @@ pub enum MoveModifier {
 #[expect(
     unnameable_types,
     reason = "reachable as `<Cube3x3 as Puzzle>::Move`, and callers build moves from notation; \
-              not exported until `MovablePart` is, since its fields are public"
+              not exported until `MovablePart` is, since `new` and `part` take and return one"
 )]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Move3x3 {
-    pub part: MovablePart,
-    pub modifier: MoveModifier,
+    part: MovablePart,
+    modifier: MoveModifier,
 }
 
 impl Move3x3 {
     #[must_use]
     pub const fn new(part: MovablePart, modifier: MoveModifier) -> Self {
         Self { part, modifier }
+    }
+
+    /// The part this move turns.
+    #[must_use]
+    pub const fn part(self) -> MovablePart {
+        self.part
+    }
+
+    /// How far and which way the part turns.
+    #[must_use]
+    pub const fn modifier(self) -> MoveModifier {
+        self.modifier
     }
 }
 

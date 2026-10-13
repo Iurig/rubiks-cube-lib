@@ -7,10 +7,6 @@ use std::{
 
 use rayon::prelude::*;
 
-#[allow(
-    clippy::wildcard_imports,
-    reason = "`allow`, not `expect`: the lint is skipped when the library is compiled with `cfg(test)`"
-)]
 use crate::Puzzle;
 use crate::{
     AlgSet, Algorithm, Inv, Mask, PieceSet, Solution, Step, StepError,

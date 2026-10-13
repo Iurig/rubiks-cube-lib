@@ -82,7 +82,7 @@ pub use indexed::Indexed;
 // prefix. `kociemba` has no options.
 pub use methods::{
     Method, Segment, Solution, Technique,
-    cube3x3::{kociemba::Kociemba, roux, roux::Roux, zz, zz::ZZ},
+    cube3x3::{helpers, kociemba::Kociemba, roux, roux::Roux, zz, zz::ZZ},
     step::{
         Step,
         choose::Shortest,

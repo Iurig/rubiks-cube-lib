@@ -11,13 +11,31 @@ use crate::{
     methods::step::combine_pruned::{PruneTable, PrunedCombine, PrunedGoal},
 };
 
-pub fn parts(text: &str) -> AlgSet<Cube3x3> {
-    AlgSet::from_parts(text).expect("hand-written part lists should always parse")
+macro_rules! algs {
+    ($($s:literal),+) => {
+        $crate::AlgSet::from_algs_in_str($($s),+).expect(concat!("invalid algorithms: ", $($s),+))
+    };
 }
+pub(crate) use algs;
 
-pub fn algs(text: &str) -> AlgSet<Cube3x3> {
-    AlgSet::from_algs_in_str(text).expect("hand-written algorithm sets should always parse")
+macro_rules! include_algs {
+    ($($path:literal),+) => {
+        $crate::AlgSet::from_algs_in_str(concat!($(include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/methods/cube3x3/algsets/",
+            $path
+        ))),+))
+        .expect(concat!("invalid algorithms in ", $($path),+))
+    };
 }
+pub(crate) use include_algs;
+
+macro_rules! parts {
+    ($s:literal) => {
+        $crate::AlgSet::from_parts($s).expect(concat!("invalid parts: ", $s))
+    };
+}
+pub(crate) use parts;
 
 pub(super) fn into_steps<P: Puzzle>(step: impl Step<P> + 'static) -> Vec<Arc<dyn Step<P>>> {
     vec![Arc::new(step)]
@@ -25,7 +43,7 @@ pub(super) fn into_steps<P: Puzzle>(step: impl Step<P> + 'static) -> Vec<Arc<dyn
 
 macro_rules! mask {
     ($mark: ident) => {
-        Mask::filter_by_piece(&Cube3x3::default(), &$mark)
+        $crate::Mask::filter_by_piece(&$crate::Cube3x3::default(), &$mark)
     };
 }
 
@@ -86,21 +104,21 @@ macro_rules! chain_steps {
     // toward its depth. This rule must come before the one without `free`, whose `$stages` would
     // otherwise swallow `free: ...` as a stage.
     (moves: $moves:expr, goal: $goal:expr, free: $free:expr, $($stages:tt)+) => {{
-        let moves: &AlgSet<Cube3x3> = $moves;
-        let goal: &AlgSet<Cube3x3> = $goal;
-        let free: &AlgSet<Cube3x3> = $free;
-        chain_steps!(@stages moves, free, goal, (PieceSet::from_algset(moves)), [], $($stages)+)
+        let moves: &$crate::AlgSet<$crate::Cube3x3> = $moves;
+        let goal: &$crate::AlgSet<$crate::Cube3x3> = $goal;
+        let free: &$crate::AlgSet<$crate::Cube3x3> = $free;
+        chain_steps!(@stages moves, free, goal, ($crate::PieceSet::from_algset(moves)), [], $($stages)+)
     }};
 
     (moves: $moves:expr, goal: $goal:expr, $($stages:tt)+) => {
-        chain_steps!(moves: $moves, goal: $goal, free: &AlgSet::new(), $($stages)+)
+        chain_steps!(moves: $moves, goal: $goal, free: &$crate::AlgSet::new(), $($stages)+)
     };
 
     (@stages $moves:ident, $free:ident, $goal:ident, $befores:tt, [$($steps:expr),*],
      $name:literal $(,)?) => {{
-        let steps: Vec<Arc<dyn Step<Cube3x3>>> = vec![
+        let steps: Vec<::std::sync::Arc<dyn $crate::Step<$crate::Cube3x3>>> = vec![
             $($steps,)*
-            chain_steps!(@choose $moves, $free, $name, $befores, (PieceSet::from_algset($goal))),
+            chain_steps!(@choose $moves, $free, $name, $befores, ($crate::PieceSet::from_algset($goal))),
         ];
         steps
     }};
@@ -109,22 +127,22 @@ macro_rules! chain_steps {
      $name:literal => ($($divider:expr),+ $(,)?), $($rest:tt)+) => {
         chain_steps!(
             @stages $moves, $free, $goal,
-            ($(PieceSet::from_algset(&$goal.combined_with(&$divider))),+),
+            ($($crate::PieceSet::from_algset(&$goal.combined_with(&$divider))),+),
             [$($steps,)* chain_steps!(@choose $moves, $free, $name, $befores,
-                ($(PieceSet::from_algset(&$goal.combined_with(&$divider))),+))],
+                ($($crate::PieceSet::from_algset(&$goal.combined_with(&$divider))),+))],
             $($rest)+
         )
     };
     (@choose $moves:ident, $free:ident, $name:literal, ($($before:expr),+), $afters:tt) => {
-        Arc::new(Shortest::named(
+        ::std::sync::Arc::new($crate::Shortest::named(
             $name,
             [$(chain_steps!(@row $moves, $free, $name, $before, $afters)),+].concat(),
         ))
     };
 
     (@row $moves:ident, $free:ident, $name:literal, $before:expr, ($($after:expr),+)) => {{
-        let row: Vec<Arc<dyn Step<Cube3x3>>> = vec![$(
-            Arc::new(
+        let row: Vec<::std::sync::Arc<dyn $crate::Step<$crate::Cube3x3>>> = vec![$(
+            ::std::sync::Arc::new(
                 $crate::SearchStep::builder($name, $after)
                     .expect_solved($before)
                     .search_algs($moves.clone())
@@ -227,29 +245,29 @@ impl LastLayer {
             .cloned()
     }
 
-    pub fn coll(algs: AlgSet<Cube3x3>) -> Self {
-        Self::new("COLL", algs, LastLayerGoal::SET_UP_EPLL)
+    pub fn coll(algs: &AlgSet<Cube3x3>) -> Self {
+        Self::new("COLL", algs.or_skip(), LastLayerGoal::SET_UP_EPLL)
     }
-    pub fn ocll(algs: AlgSet<Cube3x3>) -> Self {
+    pub fn ocll(algs: &AlgSet<Cube3x3>) -> Self {
         let ocll_goal = LastLayerGoal {
             corner_orientation: true,
             corner_permutation: false,
             edge_orientation: true,
             edge_permutation: false,
         };
-        Self::new("OCLL", algs, ocll_goal)
+        Self::new("OCLL", algs.or_skip(), ocll_goal)
     }
-    pub fn pll(algs: AlgSet<Cube3x3>) -> Self {
-        Self::new("PLL", algs, LastLayerGoal::SOLVE_LL)
+    pub fn pll(algs: &AlgSet<Cube3x3>) -> Self {
+        Self::new("PLL", algs.or_skip(), LastLayerGoal::SOLVE_LL)
     }
-    pub fn cpll(algs: AlgSet<Cube3x3>) -> Self {
-        Self::new("CPLL", algs, LastLayerGoal::SET_UP_EPLL)
+    pub fn cpll(algs: &AlgSet<Cube3x3>) -> Self {
+        Self::new("CPLL", algs.or_skip(), LastLayerGoal::SET_UP_EPLL)
     }
-    pub fn epll(algs: AlgSet<Cube3x3>) -> Self {
-        Self::new("EPLL", algs, LastLayerGoal::SOLVE_LL)
+    pub fn epll(algs: &AlgSet<Cube3x3>) -> Self {
+        Self::new("EPLL", algs.or_skip(), LastLayerGoal::SOLVE_LL)
     }
-    pub fn zbll(algs: AlgSet<Cube3x3>) -> Self {
-        Self::new("ZBLL", algs, LastLayerGoal::SOLVE_LL)
+    pub fn zbll(algs: &AlgSet<Cube3x3>) -> Self {
+        Self::new("ZBLL", algs.or_skip(), LastLayerGoal::SOLVE_LL)
     }
 }
 

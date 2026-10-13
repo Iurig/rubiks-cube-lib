@@ -27,7 +27,7 @@ const RIM: [Piece3x3; 4] = [
 fn face_turns() -> AlgSet<Cube3x3> {
     Move3x3::all()
         .filter(|m| {
-            matches!(m.part, MovablePart::Face(_)) && m.modifier != MoveModifier::DoublePrime
+            matches!(m.part(), MovablePart::Face(_)) && m.modifier() != MoveModifier::DoublePrime
         })
         .map(|m| Algorithm::from_iter([m]))
         .collect()
@@ -37,9 +37,9 @@ fn face_turns() -> AlgSet<Cube3x3> {
 /// and half turns of the other faces.
 fn domino_turns() -> AlgSet<Cube3x3> {
     Move3x3::all()
-        .filter(|m| match m.part {
-            MovablePart::Face(Face::U | Face::D) => m.modifier != MoveModifier::DoublePrime,
-            MovablePart::Face(_) => m.modifier == MoveModifier::Double,
+        .filter(|m| match m.part() {
+            MovablePart::Face(Face::U | Face::D) => m.modifier() != MoveModifier::DoublePrime,
+            MovablePart::Face(_) => m.modifier() == MoveModifier::Double,
             _ => false,
         })
         .map(|m| Algorithm::from_iter([m]))

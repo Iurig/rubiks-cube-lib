@@ -93,8 +93,8 @@ impl AlgSet<Cube3x3> {
     pub fn from_parts(text: &str) -> Result<Self, ParseSequenceError> {
         Ok(text
             .parse::<Algorithm<Cube3x3>>()?
-            .iter()
-            .map(|m| m.part)
+            .into_iter()
+            .map(Move3x3::part)
             .unique()
             .flat_map(|part| {
                 [

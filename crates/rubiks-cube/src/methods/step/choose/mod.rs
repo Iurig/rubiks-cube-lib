@@ -57,6 +57,12 @@ impl<P: Puzzle> Shortest<P> {
     }
 }
 
+impl<P: Puzzle> FromIterator<Arc<dyn Step<P>>> for Shortest<P> {
+    fn from_iter<T: IntoIterator<Item = Arc<dyn Step<P>>>>(iter: T) -> Self {
+        Self::new(iter)
+    }
+}
+
 impl<P: Puzzle> Step<P> for Shortest<P> {
     fn name(&self) -> &str {
         &self.name

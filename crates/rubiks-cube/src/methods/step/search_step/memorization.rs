@@ -273,24 +273,22 @@ mod tests {
             Piece3x3::Edge(crate::Edge::Bl),
         ];
         let sb_moves = [
-            puzzles::cube3x3::moves::Move3x3 {
-                part: puzzles::cube3x3::moves::MovablePart::Face(puzzles::cube3x3::pieces::Face::U),
-                modifier: puzzles::cube3x3::moves::MoveModifier::Clockwise,
-            },
-            puzzles::cube3x3::moves::Move3x3 {
-                part: puzzles::cube3x3::moves::MovablePart::Face(puzzles::cube3x3::pieces::Face::R),
-                modifier: puzzles::cube3x3::moves::MoveModifier::Clockwise,
-            },
-            puzzles::cube3x3::moves::Move3x3 {
-                part: puzzles::cube3x3::moves::MovablePart::Slice(
-                    puzzles::cube3x3::pieces::Slice::M,
-                ),
-                modifier: puzzles::cube3x3::moves::MoveModifier::Clockwise,
-            },
-            puzzles::cube3x3::moves::Move3x3 {
-                part: puzzles::cube3x3::moves::MovablePart::Wide(puzzles::cube3x3::pieces::Face::R),
-                modifier: puzzles::cube3x3::moves::MoveModifier::Clockwise,
-            },
+            puzzles::cube3x3::moves::Move3x3::new(
+                puzzles::cube3x3::moves::MovablePart::Face(puzzles::cube3x3::pieces::Face::U),
+                puzzles::cube3x3::moves::MoveModifier::Clockwise,
+            ),
+            puzzles::cube3x3::moves::Move3x3::new(
+                puzzles::cube3x3::moves::MovablePart::Face(puzzles::cube3x3::pieces::Face::R),
+                puzzles::cube3x3::moves::MoveModifier::Clockwise,
+            ),
+            puzzles::cube3x3::moves::Move3x3::new(
+                puzzles::cube3x3::moves::MovablePart::Slice(puzzles::cube3x3::pieces::Slice::M),
+                puzzles::cube3x3::moves::MoveModifier::Clockwise,
+            ),
+            puzzles::cube3x3::moves::Move3x3::new(
+                puzzles::cube3x3::moves::MovablePart::Wide(puzzles::cube3x3::pieces::Face::R),
+                puzzles::cube3x3::moves::MoveModifier::Clockwise,
+            ),
         ];
 
         let fb_filter = PieceSet::<Cube3x3>::from_pieces_and_orientations(fb_pieces, fb_pieces);

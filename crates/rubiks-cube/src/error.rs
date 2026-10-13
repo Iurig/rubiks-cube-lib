@@ -19,9 +19,9 @@ pub enum StepError {
     /// Another thread panicked while deepening the step's memo, so the memo may be inconsistent.
     #[error("the step's memo is unusable: another solve panicked while deepening it")]
     MemoPoisoned,
-    #[error("{}", *.0)]
+    #[error(transparent)]
     /// Any other error, for steps written outside the crate.
-    Custom(#[source] Box<dyn Error + Send + Sync>),
+    Custom(Box<dyn Error + Send + Sync>),
 }
 /// Why a method's solve stopped, naming the step it stopped at.
 #[derive(Debug, Error)]
@@ -34,7 +34,7 @@ pub enum SolveError {
         step: String,
     },
     /// The step reported an error.
-    #[error("step {step} could not finish: {source}")]
+    #[error("step {step} could not finish")]
     Step {
         /// The step's name.
         step: String,
@@ -77,7 +77,7 @@ pub enum ParseMoveError {
 
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 /// A move in a sequence failed to parse; `line` and `position` count from 1.
-#[error("at line {line}, position {position}: {source}")]
+#[error("at line {line}, position {position}")]
 pub struct ParseSequenceError {
     pub(crate) source: ParseMoveError,
     pub(crate) line: usize,

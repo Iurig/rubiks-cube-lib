@@ -1,4 +1,5 @@
 pub mod cube3x3;
+//pub mod neutrality;
 mod solution;
 pub mod step;
 #[cfg(test)]
@@ -30,6 +31,7 @@ use crate::{SolveError, methods::step::Step, puzzles::Puzzle};
 #[derive(Clone, Debug)]
 pub struct Technique<P: Puzzle> {
     steps: Vec<Arc<dyn Step<P>>>,
+    // neutrality: Neutrality<P>,
 }
 
 impl<P: Puzzle> Index<usize> for Technique<P> {
@@ -47,6 +49,7 @@ impl<P: Puzzle> FromIterator<Arc<dyn Step<P>>> for Technique<P> {
     fn from_iter<T: IntoIterator<Item = Arc<dyn Step<P>>>>(iter: T) -> Self {
         Self {
             steps: iter.into_iter().collect(),
+            // neutrality: Neutrality::default(),
         }
     }
 }
@@ -64,9 +67,12 @@ impl<P: Puzzle> Technique<P> {
     pub fn new(steps: impl IntoIterator<Item = Arc<dyn Step<P>>>) -> Self {
         Self {
             steps: steps.into_iter().collect(),
+            // neutrality: Neutrality::default(),
         }
     }
 
+    /// Solves the provided [`Puzzle`], returning the solution.
+    ///
     /// # Errors
     /// Errors if any step fails to start, to complete, or if it completes but isn't solved at the
     /// end.
@@ -87,6 +93,25 @@ impl<P: Puzzle> Technique<P> {
     ) -> impl Iterator<Item = Result<Solution<P>, SolveError>> {
         run_steps(self.steps.iter().cloned(), puzzle)
     }
+
+    /// Constructs the [`Technique`] with a given neutrality.
+    #[must_use]
+    pub fn with_neutrality(
+        steps: impl IntoIterator<Item = Arc<dyn Step<P>>>,
+        // neutrality: Neutrality<P>,
+    ) -> Self {
+        Self {
+            steps: steps.into_iter().collect(),
+            // neutrality,
+        }
+    }
+    /*
+    /// Sets the neutrality of the [`Technique`].{}
+    #[must_use]
+    pub fn neutrality(mut self, neutrality: Neutrality<P>) -> Self {
+        self.neutrality = neutrality;
+        self
+    } */
 }
 
 /// Runs `steps` in order on `puzzle`, one per `next()`. Before each step it checks

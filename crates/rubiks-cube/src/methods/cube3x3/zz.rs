@@ -3,10 +3,11 @@ use enum_iterator::{Sequence, all};
 use std::sync::{Arc, LazyLock};
 
 use crate::methods::cube3x3::helpers::{
-    BlockGoal, LastLayer, algs, chain_steps, into_steps, parts, set_options, split_by_blocks,
+    BlockGoal, LastLayer, chain_steps, include_algs, into_steps, parts, set_options,
+    split_by_blocks,
 };
 
-use crate::{AlgSet, Cube3x3, Method, PieceSet, Shortest, Step, Technique};
+use crate::{AlgSet, Cube3x3, Method, PieceSet, Step, Technique};
 
 /// The ZZ method for the 3x3 Rubik's Cube: EO line, first two layers, then last layer.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
@@ -107,20 +108,22 @@ impl Method<Cube3x3> for ZZ {
                 second: pll,
             } => {
                 let oll_tech = match oll {
-                    FirstLook::Ocll => into_steps(LastLayer::ocll(OCLL_ALGS.clone())),
-                    FirstLook::Coll => into_steps(LastLayer::coll(COLL_ALGS.clone())),
+                    FirstLook::Ocll => into_steps(LastLayer::ocll(&include_algs!("oll/ocll.txt"))),
+                    FirstLook::Coll => into_steps(LastLayer::coll(&include_algs!("oll/coll.txt"))),
                 };
                 let pll_tech = match pll {
-                    SecondLook::OneLook => into_steps(LastLayer::pll(PLL_ALGS.clone())),
+                    SecondLook::OneLook => {
+                        into_steps(LastLayer::pll(&include_algs!("pll/one_look.txt")))
+                    }
                     SecondLook::TwoLook => {
-                        let corners = into_steps(LastLayer::cpll(PLL_CORNER_ALGS.clone()));
-                        let edges = into_steps(LastLayer::epll(PLL_EDGE_ALGS.clone()));
+                        let corners = into_steps(LastLayer::cpll(&include_algs!("pll/corner.txt")));
+                        let edges = into_steps(LastLayer::epll(&include_algs!("pll/edge.txt")));
                         [corners, edges].concat()
                     }
                 };
                 [oll_tech, pll_tech].concat()
             }
-            LL::OneLook => into_steps(LastLayer::zbll(ZBLL_ALGS.clone())),
+            LL::OneLook => into_steps(LastLayer::zbll(&ZBLL_ALGS)),
         };
 
         [eoline_tech, f2l_tech, ll_tech]
@@ -130,34 +133,25 @@ impl Method<Cube3x3> for ZZ {
     }
 }
 
-static EO_LINE_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("F B U R L D "));
-static F2L_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("U R L "));
+static EO_LINE_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("F B U R L D"));
+static F2L_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U R L"));
 static F2L_BLOCKS: LazyLock<[BlockGoal; 2]> = LazyLock::new(|| {
-    let f2l = PieceSet::from_algset(&OCLL_ALGS);
-    ["R U", "L U"].map(|other_side| {
-        BlockGoal::new(&f2l, &PieceSet::from_algset(&parts(other_side)), &F2L_MOVES)
-    })
+    let f2l = PieceSet::from_algset(&ZBLL_ALGS);
+    [
+        BlockGoal::new(&f2l, &PieceSet::from_algset(&parts!("R U")), &F2L_MOVES),
+        BlockGoal::new(&f2l, &PieceSet::from_algset(&parts!("L U")), &F2L_MOVES),
+    ]
 });
-static OCLL_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("algsets/oll/ocll.txt")).or_skip());
-static COLL_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("algsets/oll/coll.txt")).or_skip());
-static PLL_CORNER_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("algsets/pll/corner.txt")).or_skip());
-static PLL_EDGE_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("algsets/pll/edge.txt")).or_skip());
-static PLL_ALGS: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| algs(include_str!("algsets/pll/one_look.txt")).or_skip());
 static ZBLL_ALGS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| {
-    algs(concat!(
-        include_str!("algsets/zbll/t.txt"),
-        include_str!("algsets/zbll/u.txt"),
-        include_str!("algsets/zbll/l.txt"),
-        include_str!("algsets/zbll/pi.txt"),
-        include_str!("algsets/zbll/h.txt"),
-        include_str!("algsets/zbll/sune.txt"),
-        include_str!("algsets/zbll/anti_sune.txt"),
-    ))
+    include_algs!(
+        "zbll/t.txt",
+        "zbll/u.txt",
+        "zbll/l.txt",
+        "zbll/pi.txt",
+        "zbll/h.txt",
+        "zbll/sune.txt",
+        "zbll/anti_sune.txt"
+    )
     .or_skip()
 });
 

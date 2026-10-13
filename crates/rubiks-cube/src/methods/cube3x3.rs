@@ -1,4 +1,4 @@
-mod helpers;
+pub mod helpers;
 pub mod kociemba;
 /// Module with options for the [`Roux`](crate::Roux) method.
 pub mod roux;

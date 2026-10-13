@@ -1,15 +1,9 @@
 use std::sync::{Arc, LazyLock};
 
 use crate::SearchStep;
-use crate::{
-    AlgSet, Cube3x3, Indexed, Method, Piece3x3, PieceSet, Shortest, Step, methods::Technique,
-};
+use crate::{AlgSet, Cube3x3, Indexed, Method, Piece3x3, PieceSet, Step, methods::Technique};
 
-use crate::methods::cube3x3::helpers::{algs, chain_steps, parts, set_options};
-
-const CMLL_ONE_LOOK_ALGS_STR: &str = include_str!("algsets/cmll/one_look.txt");
-const CO_ALGS_TEXT: &str = include_str!("algsets/cmll/co.txt");
-const CP_ALGS_TEXT: &str = include_str!("algsets/cmll/cp.txt");
+use crate::methods::cube3x3::helpers::{algs, chain_steps, include_algs, parts, set_options};
 
 /// The Roux method for the 3x3 Rubik's Cube: first block, second block, CMLL, then the last six
 /// edges.
@@ -41,6 +35,7 @@ impl Roux {
 
 /// How [`Roux`] builds the first block, the 1x2x3 block on the left.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+#[non_exhaustive]
 pub enum FirstBlock {
     /// One search for the whole block.
     #[default]
@@ -53,6 +48,7 @@ pub enum FirstBlock {
 
 /// How [`Roux`] builds the second block, the 1x2x3 block on the right.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+#[non_exhaustive]
 pub enum SecondBlock {
     /// One search for the whole block.
     OneLook,
@@ -65,6 +61,7 @@ pub enum SecondBlock {
 
 /// How [`Roux`] solves the U-layer corners.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+#[non_exhaustive]
 pub enum Cmll {
     /// One algorithm from the full CMLL set.
     #[default]
@@ -75,6 +72,7 @@ pub enum Cmll {
 
 /// How [`Roux`] solves the last six edges.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+#[non_exhaustive]
 pub enum Lse {
     /// One search for all six edges with `U` and `M`.
     #[default]
@@ -82,12 +80,12 @@ pub enum Lse {
     //EO,
 }
 
-static FB_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("F U R L D B M r"));
-static SB_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("U R M r"));
-static FREE_AUF: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("U"));
-static CMLL_ALGS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| algs(CMLL_ONE_LOOK_ALGS_STR));
-static LSE_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts("U M"));
-static LSE_KEEPING_CORNERS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| algs("M\nU M U'"));
+static FB_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("F U R L D B M r"));
+static SB_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U R M r"));
+static FREE_AUF: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U"));
+static CMLL_ALGS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| include_algs!("cmll/one_look.txt"));
+static LSE_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U M"));
+static LSE_KEEPING_CORNERS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| algs!("M\n U M U'"));
 
 impl Method<Cube3x3> for Roux {
     fn to_technique(&self) -> Technique<Cube3x3> {
@@ -98,13 +96,13 @@ impl Method<Cube3x3> for Roux {
             ),
             FirstBlock::SquarePair => chain_steps!(
                 moves: &FB_MOVES, goal: &SB_MOVES,
-                "FB Square" => (parts("B"), parts("F")),
+                "FB Square" => (parts!("B"), parts!("F")),
                 "FB Pair",
             ),
             FirstBlock::EdgePairPair => chain_steps!(
                 moves: &FB_MOVES, goal: &SB_MOVES,
-                "DL" => (parts("F B")),
-                "FB Square" => (parts("B"), parts("F")),
+                "DL" => (parts!("F B")),
+                "FB Square" => (parts!("B"), parts!("F")),
                 "FB Pair",
             ),
         };
@@ -116,13 +114,13 @@ impl Method<Cube3x3> for Roux {
             ),
             SecondBlock::SquarePair => chain_steps!(
                 moves: &SB_MOVES, goal: &CMLL_ALGS,
-                "SB Square" => (algs("r U r'"), algs("r' U r")),
+                "SB Square" => (algs!("r U r'"), algs!("r' U r")),
                 "SB Pair"
             ),
             SecondBlock::EdgePairPair => chain_steps!(
                 moves: &SB_MOVES, goal: &CMLL_ALGS,
-                "DR" => (algs("r U r'\n r' U r")),
-                "SB Square" => (algs("r U r'"), algs("r' U r")),
+                "DR" => (algs!("r U r'\n r' U r")),
+                "SB Square" => (algs!("r U r'"), algs!("r' U r")),
                 "SB Pair",
             ),
         };
@@ -138,13 +136,13 @@ impl Method<Cube3x3> for Roux {
             ),
             Cmll::TwoLook => [
                 chain_steps!(
-                    moves: &algs(CO_ALGS_TEXT).combined_with(&LSE_KEEPING_CORNERS),
+                    moves: &include_algs!("cmll/co.txt").combined_with(&LSE_KEEPING_CORNERS),
                     goal: &LSE_MOVES,
                     free: &FREE_AUF,
                     "CO",
                 ),
                 chain_steps!(
-                    moves: &algs(CP_ALGS_TEXT).combined_with(&LSE_KEEPING_CORNERS),
+                    moves: &include_algs!("cmll/cp.txt").combined_with(&LSE_KEEPING_CORNERS),
                     goal: &LSE_KEEPING_CORNERS,
                     "CP",
                 ),
@@ -208,7 +206,7 @@ mod test {
     fn rebuilt_roux_steps_share_their_memos() {
         let fb_start = PieceSet::from_algset(&FB_MOVES);
         let fb_goal = PieceSet::from_algset(&SB_MOVES);
-        let back_square = PieceSet::from_algset(&SB_MOVES.combined_with(&parts("F")));
+        let back_square = PieceSet::from_algset(&SB_MOVES.combined_with(&parts!("F")));
 
         let search = |name: &'static str, before: &PieceSet<Cube3x3>, after: &PieceSet<Cube3x3>| {
             SearchStep::builder(name, after.clone())
