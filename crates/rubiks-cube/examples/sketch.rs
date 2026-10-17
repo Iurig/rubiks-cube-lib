@@ -12,10 +12,10 @@ fn main() {
     let eolr = SearchStep::builder("EOLR", PieceSet::from_algset(&algs!("M\n U2")))
         .search_algs(parts!("M U"));
 
-    let advanced_roux = Technique::<Cube3x3>::default()
-        .add("FB", ["R", "U", "F", "B", "D", "M", "r"]) // Sets a step with no goal and the given moves.
-        .add("SB", ["R", "U", "r", "M"]) // Previous step goal: whatever isn't touched by the moves.
-        .add_with_goal(
+    let advanced_roux = Technique::<Cube3x3>::builder()
+        .search("FB", ["R", "U", "F", "B", "D", "M", "r"]) // Sets a step with no goal and the given moves.
+        .search("SB", ["R", "U", "r", "M"]) // Previous step goal: whatever isn't touched by the moves.
+        .search_with_goal(
             // explicit goal defining
             "CMLL",
             [include_str!("path/to/algs/"), "U"], /* Algs to be used, isolated quarter
@@ -27,12 +27,12 @@ fn main() {
             algs!(["U M' U'", "M"]), /* The goal: these algs don't move corners, so they enforce
                                       * corners to be solved. */
         )
-        .add_step(eolr) // explicitly defined step, doesn't touch the previous step goal because it is defined
+        .then(eolr) // explicitly defined step, doesn't touch the previous step goal because it is defined
         .finish("LSE", ["M", "U"]); // goal: to solve the cube
 
-    let advanced_cfop = Technique::<Cube3x3>::with_neutrality(["x2", "y"]) // white or yellow bottom
-        .add("Cross", ["R", "F", "U", "L", "D", "u"])
-        .add_until_all(
+    let advanced_cfop = Technique::<Cube3x3>::builder().with_neutrality(["x2", "y"]) // white or yellow bottom
+        .search("Cross", ["R", "F", "U", "L", "D", "u"])
+        .until_all(
             "F2L", // Solves many steps, always choosing the shortest to solve at every point.
             ["R U* R'", "L U* L'", "R' U* R", "L' U* L", "y"], /* The moveset should be the same
                     * for all steps. */
@@ -41,6 +41,6 @@ fn main() {
                                                                    * pieces not touched by each
                                                                    * set of algs. */
         )
-        .add_with_goal("OLL", [include_str!("path/to/algs/"), "U"], parts!("U"))
+        .search_with_goall("OLL", [include_str!("path/to/algs/"), "U"], parts!("U"))
         .finish("PLL", [include_str!("path/to/algs")]);
 }
