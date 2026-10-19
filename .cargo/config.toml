@@ -1,0 +1,2 @@
+[env]
+PYO3_BUILD_EXTENSION_MODULE = "1"
