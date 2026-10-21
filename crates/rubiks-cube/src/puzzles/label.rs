@@ -347,9 +347,7 @@ mod test {
     fn the_key_keeps_every_orientation_the_goal_moveset_preserves_wherever_the_piece_sits() {
         // `U R L` flips no edge, so every edge's flip decides whether the goal is met, including
         // a stray edge parked in DF or DB, the two edge slots where the goal names a piece.
-        let goal = PieceSet::from_algset(&AlgSet::from_parts(Algorithm::<Cube3x3>::from_static(
-            "U R L",
-        )));
+        let goal = PieceSet::from_algset(&AlgSet::from_static_parts("U R L"));
         for cube in random_states() {
             let key = Mask::filter_by_piece(&cube, &goal);
             for slot in Piece3x3::all() {
@@ -367,9 +365,7 @@ mod test {
     fn the_key_keeps_no_orientation_the_goal_moveset_changes() {
         // `U R M r` twists or flips every corner and edge it moves, so only the pieces it leaves
         // alone, which the key names, keep their orientation in it.
-        let goal = PieceSet::from_algset(&AlgSet::from_parts(Algorithm::<Cube3x3>::from_static(
-            "U R M r",
-        )));
+        let goal = PieceSet::from_algset(&AlgSet::from_static_parts("U R M r"));
         for cube in random_states() {
             let key = Mask::filter_by_piece(&cube, &goal);
             for slot in Piece3x3::all() {

@@ -95,7 +95,8 @@ pub struct SearchStep<P: Puzzle> {
 pub struct SearchStepBuilder<P: Puzzle> {
     name: Cow<'static, str>,
     before: PieceSet<P>,
-    /// `None` until [`goal`](Self::goal) is called; [`build`](Self::build) then solves every piece.
+    /// `None` until [`goal`](Self::goal) is called; [`build`](Self::build) then solves every
+    /// piece.
     after: Option<PieceSet<P>>,
     search_algs: AlgSet<P>,
     free_search_algs: AlgSet<P>,
@@ -338,11 +339,7 @@ mod tests {
     fn a_goal_mixing_named_and_orientation_only_slots_is_met() {
         let eo_line_moves = AlgSet::from_static_parts("F B U R L D");
         let step = SearchStep::builder("EO Line", eo_line_moves.clone())
-            .goal(PieceSet::from_algset(&AlgSet::from_parts(Algorithm::<
-                Cube3x3,
-            >::from_static(
-                "U R L"
-            ))))
+            .goal(PieceSet::from_algset(&AlgSet::from_static_parts("U R L")))
             .expect_solved(PieceSet::from_algset(&eo_line_moves))
             .build()
             .unwrap();

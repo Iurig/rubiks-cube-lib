@@ -149,16 +149,12 @@ static F2L_BLOCKS: LazyLock<[BlockGoal; 2]> = LazyLock::new(|| {
     [
         BlockGoal::new(
             &f2l,
-            &PieceSet::from_algset(&AlgSet::from_parts(Algorithm::<Cube3x3>::from_static(
-                "R U",
-            ))),
+            &PieceSet::from_algset(&AlgSet::from_static_parts("R U")),
             &F2L_MOVES,
         ),
         BlockGoal::new(
             &f2l,
-            &PieceSet::from_algset(&AlgSet::from_parts(Algorithm::<Cube3x3>::from_static(
-                "L U",
-            ))),
+            &PieceSet::from_algset(&AlgSet::from_static_parts("L U")),
             &F2L_MOVES,
         ),
     ]
