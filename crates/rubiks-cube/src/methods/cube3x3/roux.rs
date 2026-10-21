@@ -1,8 +1,9 @@
 use std::sync::{Arc, LazyLock};
 
-use super::helpers::{chain_steps, parts, set_options};
+use super::helpers::{chain_steps, set_options};
 use crate::{
-    AlgSet, Cube3x3, Indexed, Method, Piece3x3, PieceSet, SearchStep, Step, methods::Technique,
+    AlgSet, Algorithm, Cube3x3, Indexed, Method, Piece3x3, PieceSet, SearchStep, Step,
+    methods::Technique,
 };
 
 /// The Roux method for the 3x3 Rubik's Cube: first block, second block, CMLL, then the last six
@@ -80,12 +81,16 @@ pub enum Lse {
     //EO,
 }
 
-static FB_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("F U R L D B M r"));
-static SB_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U R M r"));
-static FREE_AUF: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U"));
+static FB_MOVES: LazyLock<AlgSet<Cube3x3>> =
+    LazyLock::new(|| AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("F U R L D B M r")));
+static SB_MOVES: LazyLock<AlgSet<Cube3x3>> =
+    LazyLock::new(|| AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U R M r")));
+static FREE_AUF: LazyLock<AlgSet<Cube3x3>> =
+    LazyLock::new(|| AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U")));
 static CMLL_ALGS: LazyLock<AlgSet<Cube3x3>> =
     LazyLock::new(|| AlgSet::from_static(include_str!("algsets/cmll/one_look.txt")));
-static LSE_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U M"));
+static LSE_MOVES: LazyLock<AlgSet<Cube3x3>> =
+    LazyLock::new(|| AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U M")));
 static LSE_KEEPING_CORNERS: LazyLock<AlgSet<Cube3x3>> =
     LazyLock::new(|| AlgSet::from_static("M\n U M U'"));
 
@@ -98,13 +103,13 @@ impl Method<Cube3x3> for Roux {
             ),
             FirstBlock::SquarePair => chain_steps!(
                 moves: &FB_MOVES, goal: &SB_MOVES,
-                "FB Square" => (parts!("B"), parts!("F")),
+                "FB Square" => (AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("B")), AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("F"))),
                 "FB Pair",
             ),
             FirstBlock::EdgePairPair => chain_steps!(
                 moves: &FB_MOVES, goal: &SB_MOVES,
-                "DL" => (parts!("F B")),
-                "FB Square" => (parts!("B"), parts!("F")),
+                "DL" => (AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("F B"))),
+                "FB Square" => (AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("B")), AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("F"))),
                 "FB Pair",
             ),
         };
@@ -208,7 +213,9 @@ mod test {
     fn rebuilt_roux_steps_share_their_memos() {
         let fb_start = PieceSet::from_algset(&FB_MOVES);
         let fb_goal = PieceSet::from_algset(&SB_MOVES);
-        let back_square = PieceSet::from_algset(&SB_MOVES.combined_with(&parts!("F")));
+        let back_square = PieceSet::from_algset(
+            &SB_MOVES.combined_with(&AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("F"))),
+        );
 
         let search = |name: &'static str, before: &PieceSet<Cube3x3>, after: &PieceSet<Cube3x3>| {
             SearchStep::builder(name, after.clone())

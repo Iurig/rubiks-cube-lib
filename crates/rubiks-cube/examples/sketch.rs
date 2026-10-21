@@ -46,6 +46,10 @@ fn main() {
                                                                    * pieces not touched by each
                                                                    * set of algs. */
         )
-        .search_with_goall("OLL", [include_str!("path/to/algs/"), "U"], parts!("U"))
+        .search_with_goall(
+            "OLL",
+            [include_str!("path/to/algs/"), "U"],
+            AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U")),
+        )
         .finish("PLL", [include_str!("path/to/algs")]);
 }

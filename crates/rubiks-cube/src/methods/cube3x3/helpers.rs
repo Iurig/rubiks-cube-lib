@@ -18,17 +18,6 @@ macro_rules! include_multiple_str {
 }
 pub(crate) use include_multiple_str;
 
-#[doc(hidden)]
-#[macro_export]
-macro_rules! __parts {
-    ($s:literal) => {
-        $crate::AlgSet::from_parts($crate::Algorithm::<Cube3x3>::from_static($s))
-    };
-}
-/// Converts a space separated `&str` literal of parts into and [`AlgSet`].
-#[doc(inline)]
-pub use crate::__parts as parts;
-
 pub(super) fn into_steps<P: Puzzle>(step: impl Step<P> + 'static) -> Vec<Arc<dyn Step<P>>> {
     vec![Arc::new(step)]
 }

@@ -4,10 +4,10 @@ use std::sync::{Arc, LazyLock};
 
 use super::helpers::{include_multiple_str, set_options};
 use crate::methods::cube3x3::helpers::{
-    BlockGoal, LastLayer, chain_steps, into_steps, parts, split_by_blocks,
+    BlockGoal, LastLayer, chain_steps, into_steps, split_by_blocks,
 };
 
-use crate::{AlgSet, Cube3x3, Method, PieceSet, Step, Technique};
+use crate::{AlgSet, Algorithm, Cube3x3, Method, PieceSet, Step, Technique};
 
 /// The ZZ method for the 3x3 Rubik's Cube: EO line, first two layers, then last layer.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
@@ -141,13 +141,27 @@ impl Method<Cube3x3> for ZZ {
     }
 }
 
-static EO_LINE_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("F B U R L D"));
-static F2L_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U R L"));
+static EO_LINE_MOVES: LazyLock<AlgSet<Cube3x3>> =
+    LazyLock::new(|| AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("F B U R L D")));
+static F2L_MOVES: LazyLock<AlgSet<Cube3x3>> =
+    LazyLock::new(|| AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U R L")));
 static F2L_BLOCKS: LazyLock<[BlockGoal; 2]> = LazyLock::new(|| {
     let f2l = PieceSet::from_algset(&ZBLL_ALGS);
     [
-        BlockGoal::new(&f2l, &PieceSet::from_algset(&parts!("R U")), &F2L_MOVES),
-        BlockGoal::new(&f2l, &PieceSet::from_algset(&parts!("L U")), &F2L_MOVES),
+        BlockGoal::new(
+            &f2l,
+            &PieceSet::from_algset(&AlgSet::from_parts(Algorithm::<Cube3x3>::from_static(
+                "R U",
+            ))),
+            &F2L_MOVES,
+        ),
+        BlockGoal::new(
+            &f2l,
+            &PieceSet::from_algset(&AlgSet::from_parts(Algorithm::<Cube3x3>::from_static(
+                "L U",
+            ))),
+            &F2L_MOVES,
+        ),
     ]
 });
 static ZBLL_ALGS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| {

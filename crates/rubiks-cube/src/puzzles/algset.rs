@@ -175,7 +175,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn combined_with_reconstructs_an_algset() -> Result<(), Box<dyn Error>> {
+    fn combined_with_reconstructs_an_algset() {
         let algset = AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("R U L F B D"));
 
         for splitpoint in 0..algset.algs().len() {
@@ -186,7 +186,6 @@ mod tests {
                     .combined_with(&AlgSet::from_iter(second.iter().cloned()))
             );
         }
-        Ok(())
     }
 
     #[test]
@@ -211,13 +210,11 @@ mod tests {
     }
 
     #[test]
-    fn from_parts_gives_every_modifier() -> Result<(), Box<dyn Error>> {
+    fn from_parts_gives_every_modifier() {
         let algset = AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U R M r"));
 
         assert_eq!(algset.algs().len(), 12);
         assert!(algset.algs().iter().all(|sequence| sequence.len() == 1));
-
-        Ok(())
     }
 
     #[test]
@@ -248,7 +245,7 @@ mod tests {
     #[test]
     fn an_invalid_move_names_its_line_and_position() {
         for result in [
-            Algorithm::<Cube3x3>::from_str("U R\nM Q2").map(|s| AlgSet::from_parts(s)),
+            Algorithm::<Cube3x3>::from_str("U R\nM Q2").map(AlgSet::from_parts),
             AlgSet::from_str("R U R'\nM Q2"),
             AlgSet::from_moves("U\nU2 Q2"),
         ] {

@@ -116,7 +116,7 @@ ALL.split_at_with_name(goal, name)
 
 ```rust
     let EOLR = SearchStep::builder("EOLR", PieceSet::from_algset(&AlgSet::from_static("M\n U2")))
-        .search_algs(parts!("M U"));
+        .search_algs(AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("M U")));
 
     let advanced_roux = Technique::<Cube3x3>::default()
         .add("FB", ["R", "U", "F", "B", "D", "M", "r"]) // Sets a step with no goal and the given moves.
@@ -147,6 +147,6 @@ ALL.split_at_with_name(goal, name)
                                                                    * pieces not touched by each
                                                                    * set of algs. */
         )
-        .add_with_goal("OLL", [include_str!("path/to/algs/"), "U"], parts!("U"))
+        .add_with_goal("OLL", [include_str!("path/to/algs/"), "U"], AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U")))
         .finish("PLL", [include_str!("path/to/algs")]);
 ```

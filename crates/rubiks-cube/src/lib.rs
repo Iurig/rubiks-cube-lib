@@ -105,7 +105,7 @@ pub use puzzles::{
 
 pub mod cube3x3_method_helpers {
     //! Tools for defining your own 3x3 method.
-    pub use crate::methods::cube3x3::helpers::{chain_steps, parts};
+    pub use crate::methods::cube3x3::helpers::chain_steps;
 }
 
 /// Runs the Rust examples in `README.md` as doc tests, so they cannot drift from the code.

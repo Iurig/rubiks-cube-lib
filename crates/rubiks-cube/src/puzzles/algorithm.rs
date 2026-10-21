@@ -167,6 +167,8 @@ impl<P: Puzzle> Algorithm<P> {
     ///
     /// # Panics
     /// Panics when [`FromStr`](core::str::FromStr) would error.
+    #[must_use]
+    #[track_caller]
     pub fn from_static(s: &'static str) -> Self {
         s.parse().expect("")
     }
