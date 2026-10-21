@@ -71,6 +71,7 @@ impl<P: Puzzle> AlgSet<P> {
     /// If `text` contains an invalid move.
     #[must_use]
     #[track_caller]
+    #[expect(clippy::panic, reason = "only usable on statics")]
     pub fn from_static(text: &'static str) -> Self {
         text.parse()
             .unwrap_or_else(|e| panic!("invalid algorithms {text:?}: {e:?}"))
