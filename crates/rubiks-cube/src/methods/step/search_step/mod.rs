@@ -329,7 +329,7 @@ impl<P: Puzzle> Step<P> for SearchStep<P> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Cube3x3, Edge, Piece3x3};
+    use crate::{Cube3x3, Edge};
 
     /// ZZ's EO Line: the goal names a piece in two edge slots and asks only for orientation in
     /// the other ten. When the search key left out the flip of a stray edge in a named slot, seed
@@ -357,7 +357,7 @@ mod tests {
     fn a_poisoned_memo_is_reported_as_memo_poisoned() {
         let u_turns = AlgSet::from_static_parts("U");
         let step = SearchStep::builder("UF", u_turns)
-            .goal(PieceSet::from_pieces([Piece3x3::Edge(Edge::Uf)]))
+            .goal(PieceSet::from_pieces([Edge::Uf]))
             .build_in(&MemoCache::new())
             .unwrap();
 

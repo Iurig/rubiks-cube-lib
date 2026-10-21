@@ -212,14 +212,14 @@ impl LastLayer {
             name: name.into(),
             algs,
             oriented: Mask::from_pieces_and_orientations(
-                [],
+                [] as [Piece3x3; 0],
                 pick(goal.corner_orientation, &LL_CORNERS)
                     .chain(pick(goal.edge_orientation, &LL_EDGES)),
             ),
             permuted: Mask::from_pieces_and_orientations(
                 pick(goal.corner_permutation, &LL_CORNERS)
                     .chain(pick(goal.edge_permutation, &LL_EDGES)),
-                [],
+                [] as [Piece3x3; 0],
             ),
         }
     }

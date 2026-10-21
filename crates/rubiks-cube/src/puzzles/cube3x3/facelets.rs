@@ -356,7 +356,7 @@ impl Display for Cube3x3 {
 /// ```
 /// use rubiks_cube::{Cube3x3, Edge, Mask, Piece3x3};
 ///
-/// let uf_solved = Mask::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Uf)]);
+/// let uf_solved = Mask::<Cube3x3>::from_pieces([Edge::Uf]);
 /// let expected = [
 ///     "    ...",
 ///     "    ...",
@@ -627,7 +627,7 @@ mod tests {
 
     #[test]
     fn piece_without_orientation_shows_question_marks() {
-        let mask = Mask::<Cube3x3>::from_pieces_and_orientations([Piece3x3::Edge(Edge::Fr)], []);
+        let mask = Mask::<Cube3x3>::from_pieces_and_orientations([Edge::Fr], [] as [Edge; 0]);
         assert_eq!(
             mask.to_string(),
             net([

@@ -77,26 +77,26 @@ fn masked_default_applies_to_default_and_r_if_mask_excludes_r() {
 
 #[test]
 fn masked_with_correct_permutation_but_wrong_orientation_parses_correctly() {
-    let pieces = [Piece3x3::Corner(Corner::Ufr)];
+    let pieces = [Corner::Ufr];
     assert!(
-        Mask::from_pieces_and_orientations(pieces, [])
+        Mask::from_pieces_and_orientations(pieces, [] as [Corner; 0])
             .applies_to(&Cube3x3::from_moves("R U").unwrap())
     );
     assert!(
-        !Mask::from_pieces_and_orientations([], pieces)
+        !Mask::from_pieces_and_orientations([] as [Corner; 0], pieces)
             .applies_to(&Cube3x3::from_moves("R U").unwrap())
     );
 }
 
 #[test]
 fn masked_with_correct_orientation_but_wrong_permutation_parses_correctly() {
-    let pieces = [Piece3x3::Corner(Corner::Ufr)];
+    let pieces = [Corner::Ufr];
     assert!(
-        !Mask::from_pieces_and_orientations(pieces, [])
+        !Mask::from_pieces_and_orientations(pieces, [] as [Corner; 0])
             .applies_to(&Cube3x3::from_moves("U").unwrap())
     );
     assert!(
-        Mask::from_pieces_and_orientations([], pieces)
+        Mask::from_pieces_and_orientations([] as [Corner; 0], pieces)
             .applies_to(&Cube3x3::from_moves("U").unwrap())
     );
 }

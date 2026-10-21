@@ -54,8 +54,9 @@ fn edges() -> impl Iterator<Item = Piece3x3> + Clone {
     Piece3x3::all().filter(|p| matches!(p, Piece3x3::Edge(_)))
 }
 
-static CORNERS_PHASE_1_GOAL: LazyLock<PieceSet<Cube3x3>> =
-    LazyLock::new(|| PieceSet::<Cube3x3>::from_pieces_and_orientations([], corners()));
+static CORNERS_PHASE_1_GOAL: LazyLock<PieceSet<Cube3x3>> = LazyLock::new(|| {
+    PieceSet::<Cube3x3>::from_pieces_and_orientations([] as [Piece3x3; 0], corners())
+});
 
 static CORNERS_PHASE_1_TABLE: LazyLock<PruneTable<PieceSet<Cube3x3>>> =
     LazyLock::new(|| PruneTable::from_goal(&CORNERS_PHASE_1_GOAL, &face_turns()));

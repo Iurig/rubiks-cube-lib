@@ -195,7 +195,7 @@ mod tests {
     /// The FR edge passes through UR on the way; the memo key must not keep UR's orientation.
     #[test]
     fn memo_keys_match_forward_masks_after_a_piece_leaves_home() {
-        let goal = PieceSet::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Fr)]);
+        let goal = PieceSet::<Cube3x3>::from_pieces([Edge::Fr]);
         let allowed = AlgSet::from_moves("R' U'").unwrap();
         let mut memo = BfsMemo::new(goal.clone());
         memo.search_to(1, &allowed, &AlgSet::new());

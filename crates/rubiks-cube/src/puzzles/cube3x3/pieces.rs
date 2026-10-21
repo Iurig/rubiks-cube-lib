@@ -44,9 +44,9 @@ macro_rules! new_piece {
                 i += 1;
             }
         };
-        impl Into<Piece3x3> for $type_name {
-            fn into(self) -> Piece3x3 {
-                Piece3x3::$type_name(self)
+        impl From<$type_name> for Piece3x3 {
+            fn from(piece: $type_name) -> Self {
+                Self::$type_name(piece)
             }
         }
     };

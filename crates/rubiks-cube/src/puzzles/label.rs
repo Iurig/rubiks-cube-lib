@@ -23,7 +23,7 @@ pub struct Labeled<P: Puzzle, L: Marker<P>>(Box<[SlotCondition<P, L>]>);
 /// use rubiks_cube::{Cube3x3, Edge, Mask, Piece3x3};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let uf_solved = Mask::from_pieces([Piece3x3::Edge(Edge::Uf)]);
+/// let uf_solved = Mask::from_pieces([Edge::Uf]);
 /// assert!(uf_solved.applies_to(&Cube3x3::from_moves("R")?));
 /// assert!(!uf_solved.applies_to(&Cube3x3::from_moves("U")?));
 /// # Ok(())
@@ -108,7 +108,7 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     /// pieces)</code>.
     pub fn from_pieces<I>(pieces: I) -> Self
     where
-        I: IntoIterator<Item = P::Piece> + Clone,
+        I: IntoIterator<Item: Into<P::Piece>> + Clone,
     {
         Self::from_pieces_and_orientations(pieces.clone(), pieces)
     }
@@ -121,11 +121,13 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     /// "orient the last-layer corners, in any order".
     pub fn from_pieces_and_orientations<I1, I2>(permutations: I1, orientations: I2) -> Self
     where
-        I1: IntoIterator<Item = P::Piece>,
-        I2: IntoIterator<Item = P::Piece>,
+        I1: IntoIterator<Item: Into<P::Piece>>,
+        I2: IntoIterator<Item: Into<P::Piece>>,
     {
-        let perm_iter: FxSet<<P as Puzzle>::Piece> = FxSet::from_iter(permutations);
-        let orient_iter: FxSet<<P as Puzzle>::Piece> = FxSet::from_iter(orientations);
+        let perm_iter: FxSet<<P as Puzzle>::Piece> =
+            permutations.into_iter().map(Into::into).collect();
+        let orient_iter: FxSet<<P as Puzzle>::Piece> =
+            orientations.into_iter().map(Into::into).collect();
         Self::from_fn(|slot| SlotCondition {
             label: perm_iter.contains(&slot).then_some(L::home(slot)),
             orient: orient_iter
