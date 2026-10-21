@@ -2,9 +2,9 @@
 use enum_iterator::{Sequence, all};
 use std::sync::{Arc, LazyLock};
 
-use super::helpers::set_options;
+use super::helpers::{include_multiple_str, set_options};
 use crate::methods::cube3x3::helpers::{
-    BlockGoal, LastLayer, chain_steps, include_algs, into_steps, parts, split_by_blocks,
+    BlockGoal, LastLayer, chain_steps, into_steps, parts, split_by_blocks,
 };
 
 use crate::{AlgSet, Cube3x3, Method, PieceSet, Step, Technique};
@@ -108,16 +108,24 @@ impl Method<Cube3x3> for ZZ {
                 second: pll,
             } => {
                 let oll_tech = match oll {
-                    FirstLook::Ocll => into_steps(LastLayer::ocll(&include_algs!("oll/ocll.txt"))),
-                    FirstLook::Coll => into_steps(LastLayer::coll(&include_algs!("oll/coll.txt"))),
+                    FirstLook::Ocll => into_steps(LastLayer::ocll(&AlgSet::from_static(
+                        include_str!("algsets/oll/ocll.txt"),
+                    ))),
+                    FirstLook::Coll => into_steps(LastLayer::coll(&AlgSet::from_static(
+                        include_str!("algsets/oll/coll.txt"),
+                    ))),
                 };
                 let pll_tech = match pll {
-                    SecondLook::OneLook => {
-                        into_steps(LastLayer::pll(&include_algs!("pll/one_look.txt")))
-                    }
+                    SecondLook::OneLook => into_steps(LastLayer::pll(&AlgSet::from_static(
+                        include_str!("algsets/pll/one_look.txt"),
+                    ))),
                     SecondLook::TwoLook => {
-                        let corners = into_steps(LastLayer::cpll(&include_algs!("pll/corner.txt")));
-                        let edges = into_steps(LastLayer::epll(&include_algs!("pll/edge.txt")));
+                        let corners = into_steps(LastLayer::cpll(&AlgSet::from_static(
+                            include_str!("algsets/pll/corner.txt"),
+                        )));
+                        let edges = into_steps(LastLayer::epll(&AlgSet::from_static(
+                            include_str!("algsets/pll/edge.txt"),
+                        )));
                         [corners, edges].concat()
                     }
                 };
@@ -143,15 +151,15 @@ static F2L_BLOCKS: LazyLock<[BlockGoal; 2]> = LazyLock::new(|| {
     ]
 });
 static ZBLL_ALGS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| {
-    include_algs!(
-        "zbll/t.txt",
-        "zbll/u.txt",
-        "zbll/l.txt",
-        "zbll/pi.txt",
-        "zbll/h.txt",
-        "zbll/sune.txt",
-        "zbll/anti_sune.txt"
-    )
+    AlgSet::from_static(include_multiple_str!(
+        "algsets/zbll/t.txt",
+        "algsets/zbll/u.txt",
+        "algsets/zbll/l.txt",
+        "algsets/zbll/pi.txt",
+        "algsets/zbll/h.txt",
+        "algsets/zbll/sune.txt",
+        "algsets/zbll/anti_sune.txt"
+    ))
     .or_skip()
 });
 

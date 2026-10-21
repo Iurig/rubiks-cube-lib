@@ -1,6 +1,6 @@
 use std::sync::{Arc, LazyLock};
 
-use super::helpers::{chain_steps, include_algs, parts, set_options};
+use super::helpers::{chain_steps, parts, set_options};
 use crate::{
     AlgSet, Cube3x3, Indexed, Method, Piece3x3, PieceSet, SearchStep, Step, methods::Technique,
 };
@@ -83,7 +83,8 @@ pub enum Lse {
 static FB_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("F U R L D B M r"));
 static SB_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U R M r"));
 static FREE_AUF: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U"));
-static CMLL_ALGS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| include_algs!("cmll/one_look.txt"));
+static CMLL_ALGS: LazyLock<AlgSet<Cube3x3>> =
+    LazyLock::new(|| AlgSet::from_static(include_str!("algsets/cmll/one_look.txt")));
 static LSE_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U M"));
 static LSE_KEEPING_CORNERS: LazyLock<AlgSet<Cube3x3>> =
     LazyLock::new(|| AlgSet::from_static("M\n U M U'"));
@@ -137,13 +138,13 @@ impl Method<Cube3x3> for Roux {
             ),
             Cmll::TwoLook => [
                 chain_steps!(
-                    moves: &include_algs!("cmll/co.txt").combined_with(&LSE_KEEPING_CORNERS),
+                    moves: &AlgSet::from_static(include_str!("algsets/cmll/co.txt")).combined_with(&LSE_KEEPING_CORNERS),
                     goal: &LSE_MOVES,
                     free: &FREE_AUF,
                     "CO",
                 ),
                 chain_steps!(
-                    moves: &include_algs!("cmll/cp.txt").combined_with(&LSE_KEEPING_CORNERS),
+                    moves: &AlgSet::from_static(include_str!("algsets/cmll/cp.txt")).combined_with(&LSE_KEEPING_CORNERS),
                     goal: &LSE_KEEPING_CORNERS,
                     "CP",
                 ),

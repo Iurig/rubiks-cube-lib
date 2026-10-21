@@ -11,19 +11,12 @@ use crate::{
     methods::step::combine_pruned::{PruneTable, PrunedCombine, PrunedGoal},
 };
 
-/// Converts a `\n` separated text file located at `/src/methods/cube3x3/algsets/` into and
-/// [`AlgSet`].
-macro_rules! include_algs {
-    ($($path:literal),+) => {
-        <$crate::AlgSet<_> as ::std::str::FromStr>::from_str(concat!($(include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/methods/cube3x3/algsets/",
-            $path
-        ))),+))
-        .expect(concat!("invalid algorithms in ", $($path),+))
+macro_rules! include_multiple_str {
+    ($($str:expr),+ $(,)?) => {
+        concat!($( include_str!($str)),+)
     };
 }
-pub(crate) use include_algs;
+pub(crate) use include_multiple_str;
 
 #[doc(hidden)]
 #[macro_export]
