@@ -141,6 +141,12 @@ impl AlgSet<Cube3x3> {
             .collect()
     }
 
+    #[must_use]
+    #[track_caller]
+    pub fn from_static_parts(parts: &'static str) -> Self {
+        Self::from_parts(Algorithm::<Cube3x3>::from_static(parts))
+    }
+
     /// Each move of `text` as its own sequence, keeping its modifier.
     ///
     /// A move written twice is listed once, and the order of the moves is not kept.
@@ -176,7 +182,7 @@ mod tests {
 
     #[test]
     fn combined_with_reconstructs_an_algset() {
-        let algset = AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("R U L F B D"));
+        let algset = AlgSet::from_static_parts("R U L F B D");
 
         for splitpoint in 0..algset.algs().len() {
             let (first, second) = algset.algs().split_at(splitpoint);
@@ -211,7 +217,7 @@ mod tests {
 
     #[test]
     fn from_parts_gives_every_modifier() {
-        let algset = AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U R M r"));
+        let algset = AlgSet::from_static_parts("U R M r");
 
         assert_eq!(algset.algs().len(), 12);
         assert!(algset.algs().iter().all(|sequence| sequence.len() == 1));

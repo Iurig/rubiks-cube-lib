@@ -7,13 +7,16 @@ use std::{
 
 use rayon::prelude::*;
 
-use crate::Puzzle;
 use crate::{
     AlgSet, Algorithm, Inv, Mask, PieceSet, Solution, Step, StepError,
     error::SearchStepError,
     fast_hash::FxMap,
-    methods::step::search_step::memorization::{BfsMemo, global_cache},
+    methods::step::{
+        StepBuilder,
+        search_step::memorization::{BfsMemo, global_cache},
+    },
 };
+use crate::{Indexed, Puzzle};
 
 /// The pieces a memo brings home, and the sequences it searches with: everything a memo's
 /// contents depend on.
@@ -88,34 +91,39 @@ pub struct SearchStep<P: Puzzle> {
 }
 
 /// Builder for [`SearchStep`].
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SearchStepBuilder<P: Puzzle> {
     name: Cow<'static, str>,
     before: PieceSet<P>,
-    after: PieceSet<P>,
+    /// `None` until [`goal`](Self::goal) is called; [`build`](Self::build) then solves every piece.
+    after: Option<PieceSet<P>>,
     search_algs: AlgSet<P>,
     free_search_algs: AlgSet<P>,
+}
+
+impl<P: Puzzle> From<SearchStepBuilder<P>> for StepBuilder<P> {
+    fn from(value: SearchStepBuilder<P>) -> Self {
+        Self::Search(value)
+    }
 }
 
 impl<P: Puzzle> SearchStepBuilder<P> {
     /// Sets a prerequisite to be checked before solving with the [`SearchStep`] being built.
     #[must_use]
-    pub fn expect_solved(mut self, pieces: PieceSet<P>) -> Self {
+    pub fn expect_solved(&mut self, pieces: PieceSet<P>) -> &mut Self {
         self.before = pieces;
-        self
-    }
-
-    /// Defines over which [`AlgSet`] the search should happen.
-    #[must_use]
-    pub fn search_algs(mut self, algs: AlgSet<P>) -> Self {
-        self.search_algs = algs;
         self
     }
 
     /// Defines an [`AlgSet`] of [`Algorithm`]s to be considered free when searching.
     #[must_use]
-    pub fn free_algs(mut self, algs: AlgSet<P>) -> Self {
+    pub fn free_algs(&mut self, algs: AlgSet<P>) -> &mut Self {
         self.free_search_algs = algs;
+        self
+    }
+
+    pub fn goal(&mut self, goal: PieceSet<P>) -> &mut Self {
+        self.after = Some(goal);
         self
     }
 
@@ -123,36 +131,34 @@ impl<P: Puzzle> SearchStepBuilder<P> {
     ///
     /// # Errors
     /// Errors if the goal doesn't guarantee the prerequisite.
-    pub fn build_in(self, cache: &MemoCache<P>) -> Result<SearchStep<P>, SearchStepError<P>> {
-        if self.before.is_subset(&self.after) {
-            let memo = cache.memo(
-                self.after.clone(),
-                &self.search_algs,
-                &self.free_search_algs,
-            );
+    pub fn build_in(&self, cache: &MemoCache<P>) -> Result<SearchStep<P>, SearchStepError<P>> {
+        let after = self
+            .after
+            .clone()
+            .unwrap_or_else(|| PieceSet::from_pieces(P::Piece::all()));
+        if self.before.is_subset(&after) {
+            let memo = cache.memo(after.clone(), &self.search_algs, &self.free_search_algs);
             Ok(SearchStep {
-                name: self.name,
-                before: self.before,
-                after: self.after,
-                search_algs: self.search_algs,
-                free_search_algs: self.free_search_algs,
+                name: self.name.clone(),
+                before: self.before.clone(),
+                after,
+                search_algs: self.search_algs.clone(),
+                free_search_algs: self.free_search_algs.clone(),
                 memo,
             })
         } else {
             Err(SearchStepError::InvalidPrerequisite {
-                before: self.before,
-                after: self.after,
+                before: self.before.clone(),
+                after,
             })
         }
     }
-}
 
-impl<P: Puzzle> SearchStepBuilder<P> {
     /// Builds the [`SearchStep`] using a global [`MemoCache`].
     ///
     /// # Errors
     /// Errors if the goal doesn't guarantee the prerequisite.
-    pub fn build(self) -> Result<SearchStep<P>, SearchStepError<P>> {
+    pub fn build(&self) -> Result<SearchStep<P>, SearchStepError<P>> {
         self.build_in(&global_cache::<P>())
     }
 }
@@ -161,12 +167,12 @@ impl<P: Puzzle> SearchStep<P> {
     /// Constructor for [`SearchStepBuilder`]. The constructed builder builds a [`SearchStep`] over
     /// all moves of the given [`Puzzle`].
     #[must_use]
-    pub fn builder(name: impl Into<Cow<'static, str>>, goal: PieceSet<P>) -> SearchStepBuilder<P> {
+    pub fn builder(name: impl Into<Cow<'static, str>>, algs: AlgSet<P>) -> SearchStepBuilder<P> {
         SearchStepBuilder {
             name: name.into(),
             before: PieceSet::default(),
-            after: goal,
-            search_algs: AlgSet::all_moves(),
+            after: None,
+            search_algs: algs,
             free_search_algs: AlgSet::new(),
         }
     }
@@ -330,17 +336,16 @@ mod tests {
     /// 2 ended this step with two edges flipped.
     #[test]
     fn a_goal_mixing_named_and_orientation_only_slots_is_met() {
-        let eo_line_moves = AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("F B U R L D"));
-        let step = SearchStep::builder(
-            "EO Line",
-            PieceSet::from_algset(&AlgSet::from_parts(Algorithm::<Cube3x3>::from_static(
-                "U R L",
-            ))),
-        )
-        .expect_solved(PieceSet::from_algset(&eo_line_moves))
-        .search_algs(eo_line_moves)
-        .build()
-        .unwrap();
+        let eo_line_moves = AlgSet::from_static_parts("F B U R L D");
+        let step = SearchStep::builder("EO Line", eo_line_moves.clone())
+            .goal(PieceSet::from_algset(&AlgSet::from_parts(Algorithm::<
+                Cube3x3,
+            >::from_static(
+                "U R L"
+            ))))
+            .expect_solved(PieceSet::from_algset(&eo_line_moves))
+            .build()
+            .unwrap();
         for seed in 0..4 {
             let mut cube = Cube3x3::scrambled_with_seed(seed);
             step.solve(&mut cube).unwrap();
@@ -350,9 +355,9 @@ mod tests {
 
     #[test]
     fn a_poisoned_memo_is_reported_as_memo_poisoned() {
-        let u_turns = AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U"));
-        let step = SearchStep::builder("UF", PieceSet::from_pieces([Piece3x3::Edge(Edge::Uf)]))
-            .search_algs(u_turns)
+        let u_turns = AlgSet::from_static_parts("U");
+        let step = SearchStep::builder("UF", u_turns)
+            .goal(PieceSet::from_pieces([Piece3x3::Edge(Edge::Uf)]))
             .build_in(&MemoCache::new())
             .unwrap();
 

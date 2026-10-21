@@ -99,6 +99,15 @@ pub enum SearchStepError<P: Puzzle> {
     },
 }
 
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+#[non_exhaustive]
+pub enum TechniqueError {
+    #[error("the first step should not have set requirements")]
+    InvalidFirstStep,
+    #[error("the last step should not have set goal")]
+    InvalidLastStep,
+}
+
 impl ParseSequenceError {
     /// The 1-based line of the invalid move.
     #[must_use]

@@ -9,7 +9,12 @@ pub use solution::{Segment, Solution};
 
 use std::{fmt::Debug, ops::Index, sync::Arc};
 
-use crate::{SolveError, methods::step::Step, puzzles::Puzzle};
+use crate::{
+    SolveError,
+    error::TechniqueError,
+    methods::step::{Step, StepBuilder},
+    puzzles::Puzzle,
+};
 
 /// The ordered list of [`Step`]s that a [`Method`] runs, built by
 /// [`to_technique`](Method::to_technique) from the method's options.
@@ -32,6 +37,21 @@ use crate::{SolveError, methods::step::Step, puzzles::Puzzle};
 pub struct Technique<P: Puzzle> {
     steps: Vec<Arc<dyn Step<P>>>,
     // neutrality: Neutrality<P>,
+}
+
+#[derive(Clone, Debug)]
+pub struct TechniqueBuilder<P: Puzzle> {
+    step_builders: Vec<StepBuilder<P>>,
+}
+
+impl<P: Puzzle> TechniqueBuilder<P> {
+    pub fn then(&mut self, step: impl Into<StepBuilder<P>>) -> &mut Self {
+        todo!()
+    }
+
+    pub fn finish(&self, step: impl Into<StepBuilder<P>>) -> Result<Technique<P>, TechniqueError> {
+        todo!()
+    }
 }
 
 impl<P: Puzzle> Index<usize> for Technique<P> {
@@ -69,6 +89,10 @@ impl<P: Puzzle> Technique<P> {
             steps: steps.into_iter().collect(),
             // neutrality: Neutrality::default(),
         }
+    }
+
+    pub fn start_with(step: impl Into<StepBuilder<P>>) -> TechniqueBuilder<P> {
+        todo!()
     }
 
     /// Solves the provided [`Puzzle`], returning the solution.
@@ -260,12 +284,13 @@ mod tests {
     -> Result<(), Box<dyn Error>> {
         let uf_solved = PieceSet::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Uf)]);
         // No moves: if the step searched, it could not move and would return `UnreachableGoal`.
-        let step = SearchStep::builder(
-            "UF then DF",
-            PieceSet::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Uf), Piece3x3::Edge(Edge::Df)]),
-        )
-        .expect_solved(uf_solved)
-        .build()?;
+        let step = SearchStep::builder("UF then DF", AlgSet::new())
+            .goal(PieceSet::<Cube3x3>::from_pieces([
+                Piece3x3::Edge(Edge::Uf),
+                Piece3x3::Edge(Edge::Df),
+            ]))
+            .expect_solved(uf_solved)
+            .build()?;
         let scrambled = Cube3x3::from_moves("U")?;
         let mut cube = scrambled;
 
@@ -318,9 +343,9 @@ mod tests {
     #[test]
     fn each_next_runs_one_step_and_leaves_the_cube_after_it() -> Result<(), Box<dyn Error>> {
         let uf_solved = PieceSet::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Uf)]);
-        let u_turns = AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U"));
-        let solve_uf = SearchStep::builder("UF", uf_solved.clone())
-            .search_algs(u_turns)
+        let u_turns = AlgSet::from_static_parts("U");
+        let solve_uf = SearchStep::builder("UF", u_turns)
+            .goal(uf_solved.clone())
             .build()?;
         let later = FixedStep::new("Later", "", true, true);
         let method = Technique::new([

@@ -142,9 +142,8 @@ impl Method<Cube3x3> for ZZ {
 }
 
 static EO_LINE_MOVES: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("F B U R L D")));
-static F2L_MOVES: LazyLock<AlgSet<Cube3x3>> =
-    LazyLock::new(|| AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U R L")));
+    LazyLock::new(|| AlgSet::from_static_parts("F B U R L D"));
+static F2L_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| AlgSet::from_static_parts("U R L"));
 static F2L_BLOCKS: LazyLock<[BlockGoal; 2]> = LazyLock::new(|| {
     let f2l = PieceSet::from_algset(&ZBLL_ALGS);
     [

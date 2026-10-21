@@ -1,4 +1,4 @@
-use crate::{Puzzle, Solution, StepError};
+use crate::{Puzzle, SearchStepBuilder, Solution, StepError};
 
 use std::fmt::Debug;
 
@@ -42,4 +42,9 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
             Err(_) => false,
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub enum StepBuilder<P: Puzzle> {
+    Search(SearchStepBuilder<P>),
 }

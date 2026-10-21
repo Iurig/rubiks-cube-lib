@@ -127,10 +127,10 @@ macro_rules! __chain_steps {
     (@row $moves:ident, $free:ident, $name:literal, $before:expr, ($($after:expr),+)) => {{
         let row: Vec<::std::sync::Arc<dyn $crate::Step<$crate::Cube3x3>>> = vec![$(
             ::std::sync::Arc::new(
-                $crate::SearchStep::builder($name, $after)
+                $crate::SearchStep::builder($name, $moves.clone())
                     .expect_solved($before)
-                    .search_algs($moves.clone())
                     .free_algs($free.clone())
+                    .goal($after)
                     .build()
                     .expect("each chain_steps stage keeps the stage before it solved"),
             )

@@ -170,7 +170,8 @@ impl<P: Puzzle> Algorithm<P> {
     #[must_use]
     #[track_caller]
     pub fn from_static(s: &'static str) -> Self {
-        s.parse().expect("")
+        s.parse()
+            .unwrap_or_else(|e| panic!("invalid static &str: {e}"))
     }
 }
 

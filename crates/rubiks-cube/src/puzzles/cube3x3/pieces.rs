@@ -44,6 +44,11 @@ macro_rules! new_piece {
                 i += 1;
             }
         };
+        impl Into<Piece3x3> for $type_name {
+            fn into(self) -> Piece3x3 {
+                Piece3x3::$type_name(self)
+            }
+        }
     };
 }
 // Center slots are in blind standard order, i.e. `[U, F, R, B, L, D]`
