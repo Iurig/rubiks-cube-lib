@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 
 use itertools::Itertools;
 
@@ -10,14 +10,16 @@ use crate::{
 /// A collection of move sequences, each applied as one unit: a single move, or a whole algorithm.
 ///
 /// For the cube, build one from notation text with [`from_parts`](Self::from_parts),
-/// [`from_algs_in_str`](Self::from_algs_in_str), or [`from_moves`](Self::from_moves), and join
+/// [`from_str`](std::str::FromStr), or [`from_moves`](Self::from_moves), and join
 /// several with [`combined_with`](Self::combined_with).
 ///
 /// ```
+/// use std::str::FromStr;
 /// use rubiks_cube::{Cube3x3, AlgSet};
+///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Two algorithms to search with, and the AUF to pass as the free sequences.
-/// let algorithms = AlgSet::<Cube3x3>::from_algs_in_str("R U R' U R U2 R'\nR U2 R' U' R U' R'")?;
+/// let algorithms = AlgSet::<Cube3x3>::from_str("R U R' U R U2 R'\nR U2 R' U' R U' R'")?;
 /// let auf = AlgSet::<Cube3x3>::from_moves("U U2 U'")?;
 /// # Ok(())
 /// # }
@@ -62,6 +64,17 @@ impl<P: Puzzle> AlgSet<P> {
     pub fn iter(&self) -> std::slice::Iter<'_, Algorithm<P>> {
         self.0.iter()
     }
+
+    /// Like [`from_str`](Self::from_str), for algorithms written in the source code.
+    ///
+    /// # Panics
+    /// If `text` contains an invalid move.
+    #[must_use]
+    #[track_caller]
+    pub fn from_static(text: &'static str) -> Self {
+        text.parse()
+            .unwrap_or_else(|e| panic!("invalid algorithms {text:?}: {e:?}"))
+    }
 }
 
 impl<P: Puzzle> FromIterator<Algorithm<P>> for AlgSet<P> {
@@ -78,6 +91,27 @@ impl<'a, P: Puzzle> IntoIterator for &'a AlgSet<P> {
     type IntoIter = std::slice::Iter<'a, Algorithm<P>>;
     fn into_iter(self) -> Self::IntoIter {
         self.0.iter()
+    }
+}
+
+/// One sequence per line of `text`, such as an algorithm set. Lines with no moves, such as
+/// blank or comment-only lines, are skipped. A line written twice is listed once, and the
+/// order of the lines is not kept.
+///
+/// # Errors
+/// If `text` contains an invalid move. The error's line counts lines of the whole `text`.
+impl<P: Puzzle> FromStr for AlgSet<P> {
+    type Err = ParseSequenceError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.lines()
+            .enumerate()
+            .filter_map(|(line_number, line)| {
+                line.parse::<Algorithm<P>>()
+                    .map(|moves| (!moves.is_empty()).then_some(moves))
+                    .map_err(|e| e.on_line(line_number + 1))
+                    .transpose()
+            })
+            .collect()
     }
 }
 
@@ -105,24 +139,6 @@ impl AlgSet<Cube3x3> {
                 .map(|modifier| Algorithm::from_iter([Move3x3::new(part, modifier)]))
             })
             .collect())
-    }
-
-    /// One sequence per line of `text`, such as an algorithm set. Lines with no moves, such as
-    /// blank or comment-only lines, are skipped. A line written twice is listed once, and the
-    /// order of the lines is not kept.
-    ///
-    /// # Errors
-    /// If `text` contains an invalid move. The error's line counts lines of the whole `text`.
-    pub fn from_algs_in_str(text: &str) -> Result<Self, ParseSequenceError> {
-        text.lines()
-            .enumerate()
-            .filter_map(|(line_number, line)| {
-                line.parse::<Algorithm<Cube3x3>>()
-                    .map(|moves| (!moves.is_empty()).then_some(moves))
-                    .map_err(|e| e.on_line(line_number + 1))
-                    .transpose()
-            })
-            .collect()
     }
 
     /// Each move of `text` as its own sequence, keeping its modifier.
@@ -175,18 +191,18 @@ mod tests {
 
     #[test]
     fn algsets_are_equal_when_they_hold_the_same_sequences() -> Result<(), Box<dyn Error>> {
-        let algset = AlgSet::<Cube3x3>::from_algs_in_str("R U\nF")?;
+        let algset = AlgSet::<Cube3x3>::from_str("R U\nF")?;
 
         // Order and repeats don't matter.
         for same in ["R U\nF", "F\nR U", "R U\nF\nR U"] {
-            let same = AlgSet::from_algs_in_str(same)?;
+            let same = AlgSet::from_str(same)?;
             assert_eq!(algset, same);
             assert_eq!(same, algset);
         }
 
         // A missing, extra, or different sequence does.
         for different in ["", "R U", "R U\nF\nF'", "U R\nF"] {
-            let different = AlgSet::from_algs_in_str(different)?;
+            let different = AlgSet::from_str(different)?;
             assert_ne!(algset, different);
             assert_ne!(different, algset);
         }
@@ -205,8 +221,8 @@ mod tests {
     }
 
     #[test]
-    fn from_algs_in_str_gives_one_sequence_per_line() -> Result<(), Box<dyn Error>> {
-        let algset = AlgSet::<Cube3x3>::from_algs_in_str("R U R' U'\n\nF R U R' U' F'\nM2 U2")?;
+    fn from_str_gives_one_sequence_per_line() -> Result<(), Box<dyn Error>> {
+        let algset = AlgSet::<Cube3x3>::from_str("R U R' U'\n\nF R U R' U' F'\nM2 U2")?;
 
         let mut lengths: Vec<usize> = algset.algs().iter().map(Algorithm::len).collect();
         lengths.sort_unstable();
@@ -233,7 +249,7 @@ mod tests {
     fn an_invalid_move_names_its_line_and_position() {
         for result in [
             AlgSet::<Cube3x3>::from_parts("U R\nM Q2"),
-            AlgSet::<Cube3x3>::from_algs_in_str("R U R'\nM Q2"),
+            AlgSet::<Cube3x3>::from_str("R U R'\nM Q2"),
             AlgSet::<Cube3x3>::from_moves("U\nU2 Q2"),
         ] {
             let Err(error) = result else {

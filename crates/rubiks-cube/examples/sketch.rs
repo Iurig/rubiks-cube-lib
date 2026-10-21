@@ -9,8 +9,11 @@
 use rubiks_cube::{cube3x3_method_helpers::*, *};
 
 fn main() {
-    let eolr = SearchStep::builder("EOLR", PieceSet::from_algset(&algs!("M\n U2")))
-        .search_algs(parts!("M U"));
+    let eolr = SearchStep::builder(
+        "EOLR",
+        PieceSet::from_algset(&AlgSet::from_static("M\n U2")),
+    )
+    .search_algs(parts!("M U"));
 
     let advanced_roux = Technique::<Cube3x3>::builder()
         .search("FB", ["R", "U", "F", "B", "D", "M", "r"]) // Sets a step with no goal and the given moves.
@@ -24,13 +27,15 @@ fn main() {
                                                    * their variants. This still sets
                                                    * previous step goal to whatever
                                                    * isn't touched by these. */
-            algs!(["U M' U'", "M"]), /* The goal: these algs don't move corners, so they enforce
-                                      * corners to be solved. */
+            AlgSet::from_static(["U M' U'", "M"]), /* The goal: these algs don't move corners,
+                                                    * so they enforce
+                                                    * corners to be solved. */
         )
         .then(eolr) // explicitly defined step, doesn't touch the previous step goal because it is defined
         .finish("LSE", ["M", "U"]); // goal: to solve the cube
 
-    let advanced_cfop = Technique::<Cube3x3>::builder().with_neutrality(["x2", "y"]) // white or yellow bottom
+    let advanced_cfop = Technique::<Cube3x3>::builder()
+        .with_neutrality(["x2", "y"]) // white or yellow bottom
         .search("Cross", ["R", "F", "U", "L", "D", "u"])
         .until_all(
             "F2L", // Solves many steps, always choosing the shortest to solve at every point.

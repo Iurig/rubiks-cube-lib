@@ -137,6 +137,8 @@ impl<P: Puzzle> BfsMemo<P> {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::*;
     use crate::*;
     use fastrand::Rng;
@@ -209,7 +211,7 @@ mod tests {
     fn memo_solutions_use_the_allowed_sequences_as_written() {
         let goal = PieceSet::<Cube3x3>::from_pieces(Piece3x3::all());
         let sune = "R U R' U R U2 R'";
-        let allowed = AlgSet::from_algs_in_str(sune).unwrap();
+        let allowed = AlgSet::from_str(sune).unwrap();
         let mut memo = BfsMemo::new(goal.clone());
         memo.search_to(0, &allowed, &AlgSet::new());
         let before_sune = Cube3x3::from_moves(sune).unwrap().inv();

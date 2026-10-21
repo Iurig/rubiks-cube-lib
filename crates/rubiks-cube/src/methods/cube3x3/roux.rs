@@ -1,6 +1,6 @@
 use std::sync::{Arc, LazyLock};
 
-use super::helpers::{algs, chain_steps, include_algs, parts, set_options};
+use super::helpers::{chain_steps, include_algs, parts, set_options};
 use crate::{
     AlgSet, Cube3x3, Indexed, Method, Piece3x3, PieceSet, SearchStep, Step, methods::Technique,
 };
@@ -85,7 +85,8 @@ static SB_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U R M r"))
 static FREE_AUF: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U"));
 static CMLL_ALGS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| include_algs!("cmll/one_look.txt"));
 static LSE_MOVES: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| parts!("U M"));
-static LSE_KEEPING_CORNERS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| algs!("M\n U M U'"));
+static LSE_KEEPING_CORNERS: LazyLock<AlgSet<Cube3x3>> =
+    LazyLock::new(|| AlgSet::from_static("M\n U M U'"));
 
 impl Method<Cube3x3> for Roux {
     fn to_technique(&self) -> Technique<Cube3x3> {
@@ -114,13 +115,13 @@ impl Method<Cube3x3> for Roux {
             ),
             SecondBlock::SquarePair => chain_steps!(
                 moves: &SB_MOVES, goal: &CMLL_ALGS,
-                "SB Square" => (algs!("r U r'"), algs!("r' U r")),
+                "SB Square" => (AlgSet::from_static("r U r'"), AlgSet::from_static("r' U r")),
                 "SB Pair"
             ),
             SecondBlock::EdgePairPair => chain_steps!(
                 moves: &SB_MOVES, goal: &CMLL_ALGS,
-                "DR" => (algs!("r U r'\n r' U r")),
-                "SB Square" => (algs!("r U r'"), algs!("r' U r")),
+                "DR" => (AlgSet::from_static("r U r'\n r' U r")),
+                "SB Square" => (AlgSet::from_static("r U r'"), AlgSet::from_static("r' U r")),
                 "SB Pair",
             ),
         };

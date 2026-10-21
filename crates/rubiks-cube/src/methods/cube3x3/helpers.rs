@@ -11,22 +11,11 @@ use crate::{
     methods::step::combine_pruned::{PruneTable, PrunedCombine, PrunedGoal},
 };
 
-#[doc(hidden)]
-#[macro_export]
-macro_rules! __algs {
-    ($($s:literal),+) => {
-        $crate::AlgSet::from_algs_in_str($($s),+).expect(concat!("invalid algorithms: ", $($s),+))
-    };
-}
-/// Converts a `\n` separated `&str` literal into and [`AlgSet`].
-#[doc(inline)]
-pub use crate::__algs as algs;
-
 /// Converts a `\n` separated text file located at `/src/methods/cube3x3/algsets/` into and
 /// [`AlgSet`].
 macro_rules! include_algs {
     ($($path:literal),+) => {
-        $crate::AlgSet::from_algs_in_str(concat!($(include_str!(concat!(
+        <$crate::AlgSet<_> as ::std::str::FromStr>::from_str(concat!($(include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/src/methods/cube3x3/algsets/",
             $path

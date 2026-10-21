@@ -115,7 +115,7 @@ ALL.split_at_with_name(goal, name)
 ### Attempt 2 - Method chain
 
 ```rust
-    let EOLR = SearchStep::builder("EOLR", PieceSet::from_algset(&algs!("M\n U2")))
+    let EOLR = SearchStep::builder("EOLR", PieceSet::from_algset(&AlgSet::from_static("M\n U2")))
         .search_algs(parts!("M U"));
 
     let advanced_roux = Technique::<Cube3x3>::default()
@@ -130,7 +130,7 @@ ALL.split_at_with_name(goal, name)
                                                    * their variants. This still sets
                                                    * previous step goal to whatever
                                                    * isn't touched by these. */
-            algs!(["U M' U'", "M"]), /* The goal: these algs don't move corners, so they enforce
+            AlgSet::from_static(["U M' U'", "M"]), /* The goal: these algs don't move corners, so they enforce
                                       * corners to be solved. */
         )
         .add_step(EOLR) // explicitly defined step, doesn't touch the previous step goal because it is defined
