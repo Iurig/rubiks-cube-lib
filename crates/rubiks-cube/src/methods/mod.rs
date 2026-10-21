@@ -208,7 +208,7 @@ mod tests {
 
     use std::error::Error;
 
-    use crate::{Cube3x3, Edge, Piece3x3, PieceSet, SearchStep, StepError};
+    use crate::{Algorithm, Cube3x3, Edge, Piece3x3, PieceSet, SearchStep, StepError};
 
     use super::{test_steps::FixedStep, *};
     use crate::AlgSet;
@@ -318,7 +318,7 @@ mod tests {
     #[test]
     fn each_next_runs_one_step_and_leaves_the_cube_after_it() -> Result<(), Box<dyn Error>> {
         let uf_solved = PieceSet::<Cube3x3>::from_pieces([Piece3x3::Edge(Edge::Uf)]);
-        let u_turns = AlgSet::from_parts("U")?;
+        let u_turns = AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U"));
         let solve_uf = SearchStep::builder("UF", uf_solved.clone())
             .search_algs(u_turns)
             .build()?;

@@ -13,7 +13,7 @@ fn main() {
         "EOLR",
         PieceSet::from_algset(&AlgSet::from_static("M\n U2")),
     )
-    .search_algs(parts!("M U"));
+    .search_algs(AlgSet::from_parts!(Algorithm::from_static("M U")));
 
     let advanced_roux = Technique::<Cube3x3>::builder()
         .search("FB", ["R", "U", "F", "B", "D", "M", "r"]) // Sets a step with no goal and the given moves.
@@ -27,9 +27,9 @@ fn main() {
                                                    * their variants. This still sets
                                                    * previous step goal to whatever
                                                    * isn't touched by these. */
-            AlgSet::from_static(["U M' U'", "M"]), /* The goal: these algs don't move corners,
-                                                    * so they enforce
-                                                    * corners to be solved. */
+            AlgSet::from_static("U M' U' \n M"), /* The goal: these algs don't move corners,
+                                                  * so they enforce
+                                                  * corners to be solved. */
         )
         .then(eolr) // explicitly defined step, doesn't touch the previous step goal because it is defined
         .finish("LSE", ["M", "U"]); // goal: to solve the cube

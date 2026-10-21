@@ -232,7 +232,7 @@ mod tests {
 
     /// Every face, clockwise, counterclockwise, and double: 18 single moves.
     fn face_turns() -> AlgSet<Cube3x3> {
-        AlgSet::from_parts("U D F B L R").unwrap()
+        AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U D F B L R"))
     }
 
     /// Whether `second` may follow `first` in the `may_follow` table of `moveset`, both written

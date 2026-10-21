@@ -162,6 +162,14 @@ impl<P: Puzzle> Algorithm<P> {
     pub fn truncate(&mut self, len: usize) {
         self.0.truncate(len);
     }
+
+    /// Same as [`FromStr`](core::str::FromStr), but for `'static` types.
+    ///
+    /// # Panics
+    /// Panics when [`FromStr`](core::str::FromStr) would error.
+    pub fn from_static(s: &'static str) -> Self {
+        s.parse().expect("")
+    }
 }
 
 #[cfg(test)]

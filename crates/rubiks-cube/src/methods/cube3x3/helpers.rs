@@ -22,7 +22,7 @@ pub(crate) use include_multiple_str;
 #[macro_export]
 macro_rules! __parts {
     ($s:literal) => {
-        $crate::AlgSet::from_parts($s).expect(concat!("invalid parts: ", $s))
+        $crate::AlgSet::from_parts($crate::Algorithm::<Cube3x3>::from_static($s))
     };
 }
 /// Converts a space separated `&str` literal of parts into and [`AlgSet`].

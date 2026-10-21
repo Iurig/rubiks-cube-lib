@@ -125,9 +125,8 @@ impl AlgSet<Cube3x3> {
     ///
     /// # Errors
     /// If `text` contains an invalid move.
-    pub fn from_parts(text: &str) -> Result<Self, ParseSequenceError> {
-        Ok(text
-            .parse::<Algorithm<Cube3x3>>()?
+    pub fn from_parts(moves: impl IntoIterator<Item = Move3x3>) -> Self {
+        moves
             .into_iter()
             .map(Move3x3::part)
             .unique()
@@ -139,7 +138,7 @@ impl AlgSet<Cube3x3> {
                 ]
                 .map(|modifier| Algorithm::from_iter([Move3x3::new(part, modifier)]))
             })
-            .collect())
+            .collect()
     }
 
     /// Each move of `text` as its own sequence, keeping its modifier.
@@ -177,7 +176,7 @@ mod tests {
 
     #[test]
     fn combined_with_reconstructs_an_algset() -> Result<(), Box<dyn Error>> {
-        let algset = AlgSet::from_parts("R U L F B D")?;
+        let algset = AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("R U L F B D"));
 
         for splitpoint in 0..algset.algs().len() {
             let (first, second) = algset.algs().split_at(splitpoint);
@@ -213,7 +212,7 @@ mod tests {
 
     #[test]
     fn from_parts_gives_every_modifier() -> Result<(), Box<dyn Error>> {
-        let algset = AlgSet::<Cube3x3>::from_parts("U R M r")?;
+        let algset = AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U R M r"));
 
         assert_eq!(algset.algs().len(), 12);
         assert!(algset.algs().iter().all(|sequence| sequence.len() == 1));
@@ -249,9 +248,9 @@ mod tests {
     #[test]
     fn an_invalid_move_names_its_line_and_position() {
         for result in [
-            AlgSet::<Cube3x3>::from_parts("U R\nM Q2"),
-            AlgSet::<Cube3x3>::from_str("R U R'\nM Q2"),
-            AlgSet::<Cube3x3>::from_moves("U\nU2 Q2"),
+            Algorithm::<Cube3x3>::from_str("U R\nM Q2").map(|s| AlgSet::from_parts(s)),
+            AlgSet::from_str("R U R'\nM Q2"),
+            AlgSet::from_moves("U\nU2 Q2"),
         ] {
             let Err(error) = result else {
                 panic!("`Q2` should not parse");

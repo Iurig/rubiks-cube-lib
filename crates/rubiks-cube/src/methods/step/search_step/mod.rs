@@ -330,10 +330,12 @@ mod tests {
     /// 2 ended this step with two edges flipped.
     #[test]
     fn a_goal_mixing_named_and_orientation_only_slots_is_met() {
-        let eo_line_moves = AlgSet::from_parts("F B U R L D").unwrap();
+        let eo_line_moves = AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("F B U R L D"));
         let step = SearchStep::builder(
             "EO Line",
-            PieceSet::from_algset(&AlgSet::from_parts("U R L").unwrap()),
+            PieceSet::from_algset(&AlgSet::from_parts(Algorithm::<Cube3x3>::from_static(
+                "U R L",
+            ))),
         )
         .expect_solved(PieceSet::from_algset(&eo_line_moves))
         .search_algs(eo_line_moves)
@@ -348,7 +350,7 @@ mod tests {
 
     #[test]
     fn a_poisoned_memo_is_reported_as_memo_poisoned() {
-        let u_turns = AlgSet::from_parts("U").unwrap();
+        let u_turns = AlgSet::from_parts(Algorithm::<Cube3x3>::from_static("U"));
         let step = SearchStep::builder("UF", PieceSet::from_pieces([Piece3x3::Edge(Edge::Uf)]))
             .search_algs(u_turns)
             .build_in(&MemoCache::new())
