@@ -322,7 +322,7 @@ impl<P: Puzzle> PieceSet<P> {
 
 #[cfg(test)]
 mod test {
-    use crate::{Algorithm, Cube3x3, Piece3x3};
+    use crate::{Cube3x3, Piece3x3};
 
     use super::*;
 

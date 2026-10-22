@@ -7,7 +7,7 @@ use crate::methods::cube3x3::helpers::{
     BlockGoal, LastLayer, chain_steps, into_steps, split_by_blocks,
 };
 
-use crate::{AlgSet, Algorithm, Cube3x3, Method, PieceSet, Step, Technique};
+use crate::{AlgSet, Cube3x3, Method, PieceSet, Step, Technique};
 
 /// The ZZ method for the 3x3 Rubik's Cube: EO line, first two layers, then last layer.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]

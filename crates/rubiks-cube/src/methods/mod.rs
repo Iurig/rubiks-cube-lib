@@ -232,7 +232,7 @@ mod tests {
 
     use std::error::Error;
 
-    use crate::{Algorithm, Cube3x3, Edge, PieceSet, SearchStep, StepError};
+    use crate::{Cube3x3, Edge, PieceSet, SearchStep, StepError};
 
     use super::{test_steps::FixedStep, *};
     use crate::AlgSet;

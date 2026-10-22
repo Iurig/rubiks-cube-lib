@@ -2,8 +2,7 @@ use std::sync::{Arc, LazyLock};
 
 use super::helpers::{chain_steps, set_options};
 use crate::{
-    AlgSet, Algorithm, Cube3x3, Indexed, Method, Piece3x3, PieceSet, SearchStep, Step,
-    methods::Technique,
+    AlgSet, Cube3x3, Indexed, Method, Piece3x3, PieceSet, SearchStep, Step, methods::Technique,
 };
 
 /// The Roux method for the 3x3 Rubik's Cube: first block, second block, CMLL, then the last six

@@ -15,26 +15,21 @@ fn main() {
     let advanced_roux = Technique::<Cube3x3>::start_with(SearchStep::builder(
         "FB",
         AlgSet::from_static_parts("R U F B D M r"),
-    )) // Sets a step with no goal and the given moves.
+    ))
     .then(SearchStep::builder(
         "SB",
         AlgSet::from_static_parts("R U r M"),
-    )) // Previous step goal: whatever isn't touched by the moves.
-    .search_with_goal(
-        // explicit goal defining
-        "CMLL",
-        [include_str!("path/to/algs/"), "U"], /* Algs to be used, isolated quarter
-                                               * turns are interpreted as multiple
-                                               * one move algorithms, given by all
-                                               * their variants. This still sets
-                                               * previous step goal to whatever
-                                               * isn't touched by these. */
-        AlgSet::from_static("U M' U' \n M"), /* The goal: these algs don't move corners,
-                                              * so they enforce
-                                              * corners to be solved. */
+    ))
+    .then(
+        SearchStep::builder(
+            "CMLL",
+            AlgSet::from_static_parts(concat!(include_str!("path/to/algs/"))),
+        )
+        .free_algs(AlgSet::from_static_parts("U"))
+        .goal(PieceSet::from_algset(&AlgSet::from_static("U M' U' \n M"))),
     )
-    .then(eolr) // explicitly defined step, doesn't touch the previous step goal because it is defined
-    .finish("LSE", ["M", "U"]); // goal: to solve the cube
+    .then_step(eolr)
+    .finish(SearchStep::builder("LSE", AlgSet::from_static("M U")));
 
     let advanced_cfop = Technique::<Cube3x3>::builder()
         .with_neutrality(["x2", "y"]) // white or yellow bottom

@@ -1,45 +1,45 @@
 [package]
-name = "rubiks-cube-cli"
-version = "0.1.0"
-description = "A command line interface for scrambling and solving a rubiks cube using human methods"
-categories = ["command-line-utilities", "games"]
-keywords = ["rubiks", "cube", "twisty-puzzle", "Roux", "CFOP"]
-edition.workspace = true
-license.workspace = true
+name                 = "rubiks-cube-cli"
+version              = "0.1.0"
+description          = "A command line interface for scrambling and solving a rubiks cube using human methods"
+categories           = ["command-line-utilities", "games"]
+keywords             = ["rubiks", "cube", "twisty-puzzle", "Roux", "CFOP"]
+edition.workspace    = true
+license.workspace    = true
 repository.workspace = true
-readme.workspace = true
+readme.workspace     = true
 
 [dependencies]
-anyhow = "1.0.104"
-clap = { version = "4.6.7", features = ["derive"] }
+anyhow      = "1.0.104"
+clap        = { version = "4.6.7", features = ["derive"] }
 rubiks-cube = { path = "../rubiks-cube" }
 
 [lints.clippy]
-pedantic = { level = "warn", priority = -1 }
-nursery = { level = "warn", priority = -1 }
-perf = { level = "warn", priority = -1 }
-style = { level = "warn", priority = -1 }
-unwrap_used = "warn"
-todo = "warn"
-indexing_slicing = "warn"
-string_slice = "warn"
-unreachable = "warn"
-get_unwrap = "warn"
-unimplemented = "warn"
-panic_in_result_fn = "warn"
-panic = "warn"
-dbg_macro = "warn"
+pedantic                        = { level = "warn", priority = -1 }
+nursery                         = { level = "warn", priority = -1 }
+perf                            = { level = "warn", priority = -1 }
+style                           = { level = "warn", priority = -1 }
+unwrap_used                     = "warn"
+todo                            = "warn"
+indexing_slicing                = "warn"
+string_slice                    = "warn"
+unreachable                     = "warn"
+get_unwrap                      = "warn"
+unimplemented                   = "warn"
+panic_in_result_fn              = "warn"
+panic                           = "warn"
+dbg_macro                       = "warn"
 allow_attributes_without_reason = "warn"
-let_underscore_must_use = "warn"
-unused_result_ok = "warn"
-map_err_ignore = "warn"
-assertions_on_result_states = "warn"
-mem_forget = "warn"
-undocumented_unsafe_blocks = "warn"
-multiple_unsafe_ops_per_block = "warn"
-unnecessary_safety_doc = "warn"
-unnecessary_safety_comment = "warn"
-rc_mutex = "warn"
+let_underscore_must_use         = "warn"
+unused_result_ok                = "warn"
+map_err_ignore                  = "warn"
+assertions_on_result_states     = "warn"
+mem_forget                      = "warn"
+undocumented_unsafe_blocks      = "warn"
+multiple_unsafe_ops_per_block   = "warn"
+unnecessary_safety_doc          = "warn"
+unnecessary_safety_comment      = "warn"
+rc_mutex                        = "warn"
 
 [lints.rust]
 unused_crate_dependencies = "warn"
