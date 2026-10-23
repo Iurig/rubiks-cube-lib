@@ -99,11 +99,42 @@ pub enum SearchStepError<P: Puzzle> {
     },
 }
 
-#[derive(Clone, Debug, Eq, Error, PartialEq)]
+/// Attempted to construct [`Step`](crate::Step) failed.
+#[derive(Debug, Error)]
+pub enum BuildStepError {
+    /// The step being built required a goal to be defined, but either the
+    /// [`StepBuilder`](crate::StepBuilder) or the [`TechniqueBuilder`](crate::TechniqueBuilder)
+    /// didn't provide one.
+    #[error("the step needs a goal to be built, but one wasn't available")]
+    GoalNeeded,
+    /// The step being built required a prerequisite to be defined, but either the
+    /// [`StepBuilder`](crate::StepBuilder) or the [`TechniqueBuilder`](crate::TechniqueBuilder)
+    /// didn't provide one.
+    #[error("the step needs a prerequisite to be built, but one wasn't available")]
+    RequisiteNeeded,
+    /// Error specific to this particular [StepBuilder](crate::StepBuilder).
+    #[error(transparent)]
+    Custom(Box<dyn Error + Send + Sync>),
+}
+
+#[derive(Debug, Error)]
+/// Attempted to construct a [`Technique`](crate::Technique) with invalid
+/// [`TechniqueBuilder`](crate::TechniqueBuilder).
 #[non_exhaustive]
 pub enum TechniqueError {
+    /// The first step had a prerequisite.
     #[error("the first step should not have set requirements")]
     InvalidFirstStep,
+    /// Any step failed to build.
+    #[error("the step in position {index} could not be built")]
+    CantConstructStep {
+        /// The failed step's position.
+        index: usize,
+        /// The reason it failed to build
+        #[source]
+        source: BuildStepError,
+    },
+    /// The last step had a goal.
     #[error("the last step should not have set goal")]
     InvalidLastStep,
 }

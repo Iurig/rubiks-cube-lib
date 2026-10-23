@@ -1,6 +1,6 @@
 pub mod cube3x3;
 //pub mod neutrality;
-mod context;
+pub mod context;
 mod solution;
 pub mod step;
 #[cfg(test)]
@@ -43,36 +43,89 @@ pub struct Technique<P: Puzzle> {
     // neutrality: Neutrality<P>,
 }
 
+/// Builder for [`Technique`].
+///
+/// Can be used to build a [`Technique`] from uncomplete [`StepBuilder`]s.
+///
+/// # Examples
+///
+/// ```ignore
+/// use rubiks_cube::{AlgSet, SearchStep, Technique, PieceSet};
+///
+/// let eolr = SearchStep::builder("EOLR", AlgSet::from_static_parts("M U"))
+///     .goal(PieceSet::from_algset(&AlgSet::from_static("M\n U2")));
+///
+/// let advanced_roux = Technique::<Cube3x3>::start_with(SearchStep::builder(
+///     "FB",
+///     AlgSet::from_static_parts("R U F B D M r"),
+/// ))
+/// .then(SearchStep::builder(
+///     "SB",
+///     AlgSet::from_static_parts("R U r M"),
+/// ))
+/// .then(
+///     SearchStep::builder(
+///        "CMLL",
+///         AlgSet::from_static_parts(concat!(include_str!("path/to/algs/"))),
+///     )
+///     .free_algs(AlgSet::from_static_parts("U"))
+///     .goal(PieceSet::from_algset(&AlgSet::from_static("U M' U' \n M"))),
+/// )
+/// .then(eolr)
+/// .finish(SearchStep::builder("LSE", AlgSet::from_static("M U")));
+/// ```
 #[derive(Clone, Debug)]
 pub struct TechniqueBuilder<P: Puzzle> {
     step_builders: Vec<Arc<dyn StepBuilder<P>>>,
 }
 
 impl<P: Puzzle> TechniqueBuilder<P> {
+    /// Adds a [`Step`] to the final technique, constructed from a [`StepBuilder`].
+    ///
+    /// It constructs the step's goal to be the next step's
+    /// [`assumed_solved`](StepBuilder::assumed_solved) and its own
+    /// [`assumed_solved`](StepBuilder::assumed_solved) based on
+    /// its [`allowed_sequences`](StepBuilder::allowed_sequences). If either can't be constructed
+    /// because the [`StepBuilder`] doesn't provide one, it must be provided.
     pub fn then(&mut self, step: impl StepBuilder<P> + 'static) -> &mut Self {
         self.step_builders.push(Arc::new(step));
         self
     }
 
+    /// Adds the final [`Step`] of a technique.
+    ///
+    /// It constructs its [`assumed_solved`](StepBuilder::assumed_solved) based on its
+    /// [`allowed_sequences`](StepBuilder::allowed_sequences).
+    ///
+    /// # Errors
+    ///
+    /// Errors if the provided `step`, or any before it, can't [`build`](StepBuilder::build) based
+    /// on the provided or constructed information. It also errors if the first step has a
+    /// requisite, or the last a goal.
     pub fn finish_in(
         &self,
         step: impl StepBuilder<P> + 'static,
         context: &BuildContext,
     ) -> Result<Technique<P>, TechniqueError> {
-        Ok(self
+        let mut clone = self.clone();
+        let with_last = clone.then(step);
+        Ok(with_last
             .step_builders
             .iter()
             .enumerate()
             .rev()
             .map(|(index, builder)| match index {
-                0 => todo!(),
-                last if last == self.step_builders.len() - 1 => todo!(),
-                _ => todo!(),
+                0 => todo!("build it with {builder:?} in {context:?}"),
+                last if last == self.step_builders.len() - 1 => {
+                    todo!("build it with {builder:?} in {context:?}")
+                }
+                _ => todo!("build it with {builder:?} in {context:?}"),
             })
             .rev()
             .collect())
     }
 
+    /// Builds the technique using [TechniqueBuilder::finish_in] in the global context.
     pub fn finish(
         &self,
         step: impl StepBuilder<P> + 'static,
@@ -118,6 +171,11 @@ impl<P: Puzzle> Technique<P> {
         }
     }
 
+    /// Creates a [`TechniqueBuilder`] with a starting given `step` given by [`StepBuilder`].
+    ///
+    /// It constructs [`assumed_solved`](StepBuilder::assumed_solved) to be empty. If
+    /// [`assumed_solved`](StepBuilder::assumed_solved) is given in the builder, it will fail to
+    /// construct the [`Technique`].
     pub fn start_with(step: impl StepBuilder<P> + 'static) -> TechniqueBuilder<P> {
         TechniqueBuilder {
             step_builders: vec![Arc::new(step)],

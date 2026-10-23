@@ -144,7 +144,7 @@ Clean-up to do at the same time:
 
 - The `SearchCache` doc comment ("Statics cannot be generic, so each puzzle type … keeps its own
   cache in a static") will be out of date.
-- The `MemoCache` name is still used in `global_cache`'s `expect` message and in the
+- The `BuildContext` name is still used in `global_cache`'s `expect` message and in the
   `SearchCache::new` doc comment.
 - Two bugs in the WIP `finish`: `last if last == self.step_builders.len()` never matches, and
   the `step` argument is never pushed.

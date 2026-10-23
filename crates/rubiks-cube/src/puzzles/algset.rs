@@ -141,6 +141,9 @@ impl AlgSet<Cube3x3> {
             .collect()
     }
 
+    /// Creates an [`AlgSet`] from a `\n` separated `&'static str`.
+    ///
+    /// Same as `from_parts(Algorithm::<Cube3x3>::from_static(parts))`.
     #[must_use]
     #[track_caller]
     pub fn from_static_parts(parts: &'static str) -> Self {

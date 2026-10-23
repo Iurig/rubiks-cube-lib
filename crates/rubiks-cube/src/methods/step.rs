@@ -1,6 +1,7 @@
 use crate::{
-    Piece, PieceSet, Puzzle, SearchCache, SearchStepBuilder, Solution, StepError,
-    methods::context::BuildContext,
+    AlgSet, PieceSet, Puzzle, Solution, StepError,
+    error::BuildStepError,
+    methods::context::{BuildContext, GLOBAL},
 };
 
 use std::{fmt::Debug, sync::Arc};
@@ -47,10 +48,37 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
     }
 }
 
+/// A type that can build a [`Step`].
+///
+/// This trait is also used to build techniques with [`TechniqueBuilder`](crate::TechniqueBuilder)
+/// on insufficient information that is deduceable in context of the build.
 pub trait StepBuilder<P: Puzzle>: Debug + Send + Sync {
-    fn goal(&mut self) -> Option<PieceSet<P>>;
-    fn assumed_solved(&mut self, pieces: PieceSet<P>) -> Option<PieceSet<P>>;
-    fn with_context(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, StepError>;
+    /// Used to read or write to a [`StepBuilder`]'s goal.
+    ///
+    /// Builders for [`Step`]s for which the goal cannot be represented as a [`PieceSet`] should
+    /// always return [`None`].
+    fn goal(&mut self) -> Option<&mut PieceSet<P>>;
 
-    fn build(&self) -> Result<Arc<dyn Step<P>>, StepError>;
+    /// Setter for the assumptions of the [`StepBuilder`].
+    fn assumed_solved(&mut self, pieces: PieceSet<P>);
+
+    /// Getter for the move sequences a built step might use.
+    fn allowed_sequences(&self) -> Option<AlgSet<P>>;
+
+    /// Builds the step within a given [`BuildContext`].
+    ///
+    /// # Errors
+    /// Errors if there is not enough information in the builder to build the step. The required
+    /// information depends on the step and its [`StepBuilder`]'s implementation.
+    fn build_in(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, BuildStepError>;
+
+    /// Builds the step in a global context.
+    ///
+    /// Steps built this way always share a cache.
+    ///
+    /// # Errors
+    /// Same as [`build_in`](Self::build_in).
+    fn build(&self) -> Result<Arc<dyn Step<P>>, BuildStepError> {
+        self.build_in(&GLOBAL)
+    }
 }

@@ -8,7 +8,8 @@ use std::{
 use rayon::prelude::*;
 
 use crate::{
-    AlgSet, Algorithm, Inv, Mask, PieceSet, Solution, Step, StepError,
+    AlgSet, Algorithm, BuildContext, BuildStepError, Inv, Mask, PieceSet, Solution, Step,
+    StepError,
     error::SearchStepError,
     fast_hash::FxMap,
     methods::{
@@ -36,7 +37,7 @@ pub struct SearchCache<P: Puzzle> {
 }
 
 impl<P: Puzzle> SearchCache<P> {
-    /// Builds an empty [`MemoCache`].
+    /// Builds an empty [`BuildContext`].
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -103,20 +104,21 @@ pub struct SearchStepBuilder<P: Puzzle> {
 }
 
 impl<P: Puzzle> StepBuilder<P> for SearchStepBuilder<P> {
-    fn assumed_solved(&mut self, pieces: PieceSet<P>) -> Option<PieceSet<P>> {
+    fn assumed_solved(&mut self, pieces: PieceSet<P>) {
+        todo!("make step assume that {pieces:?} are solved")
+    }
+    fn allowed_sequences(&self) -> Option<AlgSet<P>> {
         todo!()
     }
-    fn build(&self) -> Result<Arc<dyn Step<P>>, StepError> {
+
+    fn goal(&mut self) -> Option<&mut PieceSet<P>> {
         todo!()
     }
-    fn goal(&mut self) -> Option<PieceSet<P>> {
-        todo!()
-    }
-    fn with_context(
-        &self,
-        context: &crate::methods::context::BuildContext,
-    ) -> Result<Arc<dyn Step<P>>, StepError> {
-        todo!()
+
+    fn build_in(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, BuildStepError> {
+        Ok(Arc::new(
+            SearchStepBuilder::build_in(self, &context).map_err(|_| todo!())?,
+        ))
     }
 }
 
@@ -135,22 +137,27 @@ impl<P: Puzzle> SearchStepBuilder<P> {
         self
     }
 
+    /// Defines the goal of the [`SearchStep`].
     pub fn goal(&mut self, goal: PieceSet<P>) -> &mut Self {
         self.after = Some(goal);
         self
     }
 
-    /// Builds the [`SearchStep`] using a given [`MemoCache`].
+    /// Builds the [`SearchStep`] using a given [`BuildContext`].
     ///
     /// # Errors
     /// Errors if the goal doesn't guarantee the prerequisite.
-    pub fn build_in(&self, cache: &SearchCache<P>) -> Result<SearchStep<P>, SearchStepError<P>> {
+    pub fn build_in(&self, cache: &BuildContext) -> Result<SearchStep<P>, SearchStepError<P>> {
         let after = self
             .after
             .clone()
             .unwrap_or_else(|| PieceSet::from_pieces(P::Piece::all()));
         if self.before.is_subset(&after) {
-            let memo = cache.memo(after.clone(), &self.search_algs, &self.free_search_algs);
+            let memo = cache.get_or_create::<SearchCache<P>>().memo(
+                after.clone(),
+                &self.search_algs,
+                &self.free_search_algs,
+            );
             Ok(SearchStep {
                 name: self.name.clone(),
                 before: self.before.clone(),
@@ -167,12 +174,12 @@ impl<P: Puzzle> SearchStepBuilder<P> {
         }
     }
 
-    /// Builds the [`SearchStep`] using a global [`MemoCache`].
+    /// Builds the [`SearchStep`] using a global [`BuildContext`].
     ///
     /// # Errors
     /// Errors if the goal doesn't guarantee the prerequisite.
     pub fn build(&self) -> Result<SearchStep<P>, SearchStepError<P>> {
-        self.build_in(&*GLOBAL.get_or_create::<SearchCache<P>>())
+        self.build_in(&GLOBAL)
     }
 }
 
@@ -367,7 +374,7 @@ mod tests {
         let u_turns = AlgSet::from_static_parts("U");
         let step = SearchStep::builder("UF", u_turns)
             .goal(PieceSet::from_pieces([Edge::Uf]))
-            .build_in(&SearchCache::new())
+            .build_in(&BuildContext::new())
             .unwrap();
 
         let memo = Arc::clone(&step.memo);

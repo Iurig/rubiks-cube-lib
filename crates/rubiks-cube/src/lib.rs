@@ -77,13 +77,15 @@ mod puzzles;
 pub mod zn;
 
 pub use error::{
-    ParseMoveError, ParseSequenceError, SearchStepError, SolveError, StepError, TechniqueError,
+    BuildStepError, ParseMoveError, ParseSequenceError, SearchStepError, SolveError, StepError,
+    TechniqueError,
 };
 pub use indexed::Indexed;
 // Methods with options are re-exported as modules too (`roux::Cmll`), so the options need no method
 // prefix. `kociemba` has no options.
 pub use methods::{
     Method, Segment, Solution, Technique, TechniqueBuilder,
+    context::BuildContext,
     cube3x3::{kociemba::Kociemba, roux, roux::Roux, zz, zz::ZZ},
     step::{
         Step, StepBuilder,
