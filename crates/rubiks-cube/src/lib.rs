@@ -88,7 +88,7 @@ pub use methods::{
     step::{
         Step, StepBuilder,
         choose::Shortest,
-        search_step::{MemoCache, SearchStep, SearchStepBuilder},
+        search_step::{SearchCache, SearchStep, SearchStepBuilder},
     },
 };
 pub use ops::{Inv, Pow};

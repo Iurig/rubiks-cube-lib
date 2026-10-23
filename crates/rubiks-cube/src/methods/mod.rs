@@ -46,11 +46,23 @@ pub struct TechniqueBuilder<P: Puzzle> {
 
 impl<P: Puzzle> TechniqueBuilder<P> {
     pub fn then(&mut self, step: impl Into<StepBuilder<P>>) -> &mut Self {
-        todo!()
+        self.step_builders.push(step.into());
+        self
     }
 
     pub fn finish(&self, step: impl Into<StepBuilder<P>>) -> Result<Technique<P>, TechniqueError> {
-        todo!()
+        Ok(self
+            .step_builders
+            .iter()
+            .enumerate()
+            .rev()
+            .map(|(index, builder)| match index {
+                0 => todo!(),
+                last if last == self.step_builders.len() - 1 => todo!(),
+                _ => todo!(),
+            })
+            .rev()
+            .collect())
     }
 }
 
@@ -92,7 +104,9 @@ impl<P: Puzzle> Technique<P> {
     }
 
     pub fn start_with(step: impl Into<StepBuilder<P>>) -> TechniqueBuilder<P> {
-        todo!()
+        TechniqueBuilder {
+            step_builders: vec![step.into()],
+        }
     }
 
     /// Solves the provided [`Puzzle`], returning the solution.

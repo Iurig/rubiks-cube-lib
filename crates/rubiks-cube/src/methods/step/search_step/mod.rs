@@ -31,11 +31,11 @@ type SharedMemo<P> = Arc<Mutex<BfsMemo<P>>>;
 /// Statics cannot be generic, so each puzzle type that has methods keeps its own cache in a
 /// static.
 #[derive(Debug, Default)]
-pub struct MemoCache<P: Puzzle> {
+pub struct SearchCache<P: Puzzle> {
     memos: Mutex<FxMap<MemoKey<P>, SharedMemo<P>>>,
 }
 
-impl<P: Puzzle> MemoCache<P> {
+impl<P: Puzzle> SearchCache<P> {
     /// Builds an empty [`MemoCache`].
     #[must_use]
     pub fn new() -> Self {
@@ -132,7 +132,7 @@ impl<P: Puzzle> SearchStepBuilder<P> {
     ///
     /// # Errors
     /// Errors if the goal doesn't guarantee the prerequisite.
-    pub fn build_in(&self, cache: &MemoCache<P>) -> Result<SearchStep<P>, SearchStepError<P>> {
+    pub fn build_in(&self, cache: &SearchCache<P>) -> Result<SearchStep<P>, SearchStepError<P>> {
         let after = self
             .after
             .clone()
@@ -355,7 +355,7 @@ mod tests {
         let u_turns = AlgSet::from_static_parts("U");
         let step = SearchStep::builder("UF", u_turns)
             .goal(PieceSet::from_pieces([Edge::Uf]))
-            .build_in(&MemoCache::new())
+            .build_in(&SearchCache::new())
             .unwrap();
 
         let memo = Arc::clone(&step.memo);

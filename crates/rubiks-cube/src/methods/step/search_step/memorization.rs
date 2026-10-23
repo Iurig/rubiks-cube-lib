@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     AlgSet, Algorithm, Inv, Mask, PieceSet, Puzzle, fast_hash::FxMap,
-    methods::step::search_step::MemoCache,
+    methods::step::search_step::SearchCache,
 };
 
 type UntypedCache = Arc<dyn Any + Send + Sync>;
@@ -15,17 +15,17 @@ type UntypedCache = Arc<dyn Any + Send + Sync>;
 /// when different methods, or different options of one method, build them.
 static GLOBAL_MEMO: LazyLock<Mutex<FxMap<TypeId, UntypedCache>>> = LazyLock::new(Default::default);
 
-pub fn global_cache<P: Puzzle>() -> Arc<MemoCache<P>> {
+pub fn global_cache<P: Puzzle>() -> Arc<SearchCache<P>> {
     let type_erased = {
         let mut caches = GLOBAL_MEMO.lock().unwrap_or_else(PoisonError::into_inner);
         Arc::clone(
             caches
                 .entry(TypeId::of::<P>())
-                .or_insert_with(|| Arc::new(MemoCache::<P>::new())),
+                .or_insert_with(|| Arc::new(SearchCache::<P>::new())),
         )
     };
     type_erased
-        .downcast::<MemoCache<P>>()
+        .downcast::<SearchCache<P>>()
         .expect("global_cache stores only a MemoCache<P> under TypeId::of::<P>()")
 }
 
