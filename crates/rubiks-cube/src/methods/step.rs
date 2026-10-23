@@ -1,6 +1,9 @@
-use crate::{Puzzle, SearchCache, SearchStepBuilder, Solution, StepError};
+use crate::{
+    Piece, PieceSet, Puzzle, SearchCache, SearchStepBuilder, Solution, StepError,
+    methods::context::BuildContext,
+};
 
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 
 pub mod choose;
 pub mod combine_pruned;
@@ -44,12 +47,10 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
     }
 }
 
-#[derive(Debug, Clone)]
-pub enum StepBuilder<P: Puzzle> {
-    Search(SearchStepBuilder<P>),
-}
+pub trait StepBuilder<P: Puzzle>: Debug + Send + Sync {
+    fn goal(&mut self) -> Option<PieceSet<P>>;
+    fn assumed_solved(&mut self, pieces: PieceSet<P>) -> Option<PieceSet<P>>;
+    fn with_context(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, StepError>;
 
-pub enum StepCache<P: Puzzle> {
-    Search(SearchCache<P>),
-    None,
+    fn build(&self) -> Result<Arc<dyn Step<P>>, StepError>;
 }

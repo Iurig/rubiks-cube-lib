@@ -1,5 +1,6 @@
 pub mod cube3x3;
 //pub mod neutrality;
+mod context;
 mod solution;
 pub mod step;
 #[cfg(test)]
@@ -12,7 +13,10 @@ use std::{fmt::Debug, ops::Index, sync::Arc};
 use crate::{
     SolveError,
     error::TechniqueError,
-    methods::step::{Step, StepBuilder},
+    methods::{
+        context::{BuildContext, GLOBAL},
+        step::{Step, StepBuilder},
+    },
     puzzles::Puzzle,
 };
 
@@ -41,16 +45,20 @@ pub struct Technique<P: Puzzle> {
 
 #[derive(Clone, Debug)]
 pub struct TechniqueBuilder<P: Puzzle> {
-    step_builders: Vec<StepBuilder<P>>,
+    step_builders: Vec<Arc<dyn StepBuilder<P>>>,
 }
 
 impl<P: Puzzle> TechniqueBuilder<P> {
-    pub fn then(&mut self, step: impl Into<StepBuilder<P>>) -> &mut Self {
-        self.step_builders.push(step.into());
+    pub fn then(&mut self, step: impl StepBuilder<P> + 'static) -> &mut Self {
+        self.step_builders.push(Arc::new(step));
         self
     }
 
-    pub fn finish(&self, step: impl Into<StepBuilder<P>>) -> Result<Technique<P>, TechniqueError> {
+    pub fn finish_in(
+        &self,
+        step: impl StepBuilder<P> + 'static,
+        context: &BuildContext,
+    ) -> Result<Technique<P>, TechniqueError> {
         Ok(self
             .step_builders
             .iter()
@@ -63,6 +71,13 @@ impl<P: Puzzle> TechniqueBuilder<P> {
             })
             .rev()
             .collect())
+    }
+
+    pub fn finish(
+        &self,
+        step: impl StepBuilder<P> + 'static,
+    ) -> Result<Technique<P>, TechniqueError> {
+        self.finish_in(step, &*GLOBAL)
     }
 }
 
@@ -103,9 +118,9 @@ impl<P: Puzzle> Technique<P> {
         }
     }
 
-    pub fn start_with(step: impl Into<StepBuilder<P>>) -> TechniqueBuilder<P> {
+    pub fn start_with(step: impl StepBuilder<P> + 'static) -> TechniqueBuilder<P> {
         TechniqueBuilder {
-            step_builders: vec![step.into()],
+            step_builders: vec![Arc::new(step)],
         }
     }
 

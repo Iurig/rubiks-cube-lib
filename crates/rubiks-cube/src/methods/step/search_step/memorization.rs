@@ -1,33 +1,4 @@
-use std::{
-    any::{Any, TypeId},
-    sync::{Arc, LazyLock, Mutex, PoisonError},
-};
-
-use crate::{
-    AlgSet, Algorithm, Inv, Mask, PieceSet, Puzzle, fast_hash::FxMap,
-    methods::step::search_step::SearchCache,
-};
-
-type UntypedCache = Arc<dyn Any + Send + Sync>;
-
-/// The search memos of every [`Method`](crate::Method) of every [`Puzzle`], shared for the whole
-/// program. Two steps that bring the same pieces home with the same sequences grow one memo, even
-/// when different methods, or different options of one method, build them.
-static GLOBAL_MEMO: LazyLock<Mutex<FxMap<TypeId, UntypedCache>>> = LazyLock::new(Default::default);
-
-pub fn global_cache<P: Puzzle>() -> Arc<SearchCache<P>> {
-    let type_erased = {
-        let mut caches = GLOBAL_MEMO.lock().unwrap_or_else(PoisonError::into_inner);
-        Arc::clone(
-            caches
-                .entry(TypeId::of::<P>())
-                .or_insert_with(|| Arc::new(SearchCache::<P>::new())),
-        )
-    };
-    type_erased
-        .downcast::<SearchCache<P>>()
-        .expect("global_cache stores only a MemoCache<P> under TypeId::of::<P>()")
-}
+use crate::{AlgSet, Algorithm, Inv, Mask, PieceSet, Puzzle, fast_hash::FxMap};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct BfsMemo<P: Puzzle> {

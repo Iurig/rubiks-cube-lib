@@ -11,9 +11,9 @@ use crate::{
     AlgSet, Algorithm, Inv, Mask, PieceSet, Solution, Step, StepError,
     error::SearchStepError,
     fast_hash::FxMap,
-    methods::step::{
-        StepBuilder,
-        search_step::memorization::{BfsMemo, global_cache},
+    methods::{
+        context::GLOBAL,
+        step::{StepBuilder, search_step::memorization::BfsMemo},
     },
 };
 use crate::{Indexed, Puzzle};
@@ -102,9 +102,21 @@ pub struct SearchStepBuilder<P: Puzzle> {
     free_search_algs: AlgSet<P>,
 }
 
-impl<P: Puzzle> From<SearchStepBuilder<P>> for StepBuilder<P> {
-    fn from(value: SearchStepBuilder<P>) -> Self {
-        Self::Search(value)
+impl<P: Puzzle> StepBuilder<P> for SearchStepBuilder<P> {
+    fn assumed_solved(&mut self, pieces: PieceSet<P>) -> Option<PieceSet<P>> {
+        todo!()
+    }
+    fn build(&self) -> Result<Arc<dyn Step<P>>, StepError> {
+        todo!()
+    }
+    fn goal(&mut self) -> Option<PieceSet<P>> {
+        todo!()
+    }
+    fn with_context(
+        &self,
+        context: &crate::methods::context::BuildContext,
+    ) -> Result<Arc<dyn Step<P>>, StepError> {
+        todo!()
     }
 }
 
@@ -160,7 +172,7 @@ impl<P: Puzzle> SearchStepBuilder<P> {
     /// # Errors
     /// Errors if the goal doesn't guarantee the prerequisite.
     pub fn build(&self) -> Result<SearchStep<P>, SearchStepError<P>> {
-        self.build_in(&global_cache::<P>())
+        self.build_in(&*GLOBAL.get_or_create::<SearchCache<P>>())
     }
 }
 
