@@ -103,6 +103,10 @@ impl<P: Puzzle> TechniqueBuilder<P> {
     /// Errors if the provided `step`, or any before it, can't [`build`](StepBuilder::build) based
     /// on the provided or constructed information. It also errors if the first step has a
     /// requisite, or the last a goal.
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "directly related to split points - if it fails, it should do so loudly."
+    )]
     pub fn finish_in(
         &self,
         step: impl StepBuilder<P> + 'static,
