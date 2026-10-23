@@ -25,10 +25,19 @@ mod twisty_puzzles_py {
         }
 
         fn apply(&mut self, moves: &str) -> PyResult<()> {
+            use std::error::Error;
+
+            fn report(err: &dyn Error) -> String {
+                std::iter::successors(Some(err), |&e| e.source())
+                    .map(ToString::to_string)
+                    .collect::<Vec<_>>()
+                    .join(": ")
+            }
+
             self.0 = self
                 .0
                 .apply_moves(moves)
-                .map_err(|e| PyValueError::new_err(e.to_string()))?;
+                .map_err(|e| PyValueError::new_err(report(&e)))?;
 
             Ok(())
         }
