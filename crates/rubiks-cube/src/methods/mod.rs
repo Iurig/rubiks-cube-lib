@@ -128,13 +128,13 @@ impl<P: Puzzle> TechniqueBuilder<P> {
                 return Err(TechniqueError::InvalidFirstStep);
             }
 
-            if index == last && builder.goal().is_some() {
-                return Err(TechniqueError::InvalidLastStep);
+            if index == last {
+                if builder.goal().is_some() {
+                    return Err(TechniqueError::InvalidLastStep);
+                }
             } else {
                 let goal = builder.goal();
-                *goal = arc_make_mut(&mut builder_second[0])
-                    .assumed_solved()
-                    .clone();
+                goal.clone_from(arc_make_mut(&mut builder_second[0]).assumed_solved());
             }
 
             steps.push(
