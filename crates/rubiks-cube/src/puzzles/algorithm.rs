@@ -168,6 +168,10 @@ impl<P: Puzzle> Algorithm<P> {
     /// # Panics
     /// Panics when [`FromStr`](core::str::FromStr) would error.
     #[must_use]
+    #[expect(
+        clippy::panic,
+        reason = "since the input is static, validation only needs to happen once."
+    )]
     #[track_caller]
     pub fn from_static(s: &'static str) -> Self {
         s.parse()

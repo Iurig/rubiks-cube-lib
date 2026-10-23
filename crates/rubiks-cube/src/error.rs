@@ -112,7 +112,7 @@ pub enum BuildStepError {
     /// didn't provide one.
     #[error("the step needs a prerequisite to be built, but one wasn't available")]
     RequisiteNeeded,
-    /// Error specific to this particular [StepBuilder](crate::StepBuilder).
+    /// Error specific to this particular [`StepBuilder`](crate::StepBuilder).
     #[error(transparent)]
     Custom(Box<dyn Error + Send + Sync>),
 }
@@ -127,7 +127,7 @@ pub enum TechniqueError {
     InvalidFirstStep,
     /// Any step failed to build.
     #[error("the step in position {index} could not be built")]
-    CantConstructStep {
+    CantConstruct {
         /// The failed step's position.
         index: usize,
         /// The reason it failed to build

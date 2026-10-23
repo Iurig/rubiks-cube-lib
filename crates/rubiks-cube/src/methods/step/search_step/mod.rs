@@ -117,7 +117,7 @@ impl<P: Puzzle> StepBuilder<P> for SearchStepBuilder<P> {
 
     fn build_in(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, BuildStepError> {
         Ok(Arc::new(
-            SearchStepBuilder::build_in(self, &context).map_err(|_| todo!())?,
+            Self::build_in(self, context).map_err(|_| todo!())?,
         ))
     }
 }

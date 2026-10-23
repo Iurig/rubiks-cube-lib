@@ -125,12 +125,15 @@ impl<P: Puzzle> TechniqueBuilder<P> {
             .collect())
     }
 
-    /// Builds the technique using [TechniqueBuilder::finish_in] in the global context.
+    /// Builds the technique using [`TechniqueBuilder::finish_in`] in the global context.
+    ///
+    /// # Errors
+    /// Same as [`finish_in`](Self::finish_in)
     pub fn finish(
         &self,
         step: impl StepBuilder<P> + 'static,
     ) -> Result<Technique<P>, TechniqueError> {
-        self.finish_in(step, &*GLOBAL)
+        self.finish_in(step, &GLOBAL)
     }
 }
 

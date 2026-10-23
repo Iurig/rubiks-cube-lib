@@ -44,11 +44,15 @@ pub struct BuildContext {
 
 impl BuildContext {
     /// Creates a new empty [`BuildContext`].
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Used to create a cache in a given [BuildContext].
+    /// Used to create a cache in a given [`BuildContext`].
+    ///
+    /// # Panics
+    /// Panics if the [`Mutex`] is poisoned.
     pub fn get_or_create<C: Any + Default + Send + Sync>(&self) -> Arc<C> {
         let mut map = self
             .caches
@@ -67,4 +71,4 @@ impl BuildContext {
 ///
 /// Two steps of the same type share a cache, even if used by different methods. Is used by default
 /// for all methods that don't ask for a cache, but might need it.
-pub(crate) static GLOBAL: LazyLock<BuildContext> = LazyLock::new(Default::default);
+pub static GLOBAL: LazyLock<BuildContext> = LazyLock::new(Default::default);
