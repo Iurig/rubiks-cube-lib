@@ -6,12 +6,13 @@ pub mod step;
 #[cfg(test)]
 mod test_steps;
 
+use dyn_clone::arc_make_mut;
 pub use solution::{Segment, Solution};
 
 use std::{fmt::Debug, ops::Index, sync::Arc};
 
 use crate::{
-    SolveError,
+    PieceSet, SolveError,
     error::TechniqueError,
     methods::{
         context::{BuildContext, GLOBAL},
@@ -107,22 +108,42 @@ impl<P: Puzzle> TechniqueBuilder<P> {
         step: impl StepBuilder<P> + 'static,
         context: &BuildContext,
     ) -> Result<Technique<P>, TechniqueError> {
-        let mut clone = self.clone();
-        let with_last = clone.then(step);
-        Ok(with_last
-            .step_builders
-            .iter()
-            .enumerate()
-            .rev()
-            .map(|(index, builder)| match index {
-                0 => todo!("build it with {builder:?} in {context:?}"),
-                last if last == self.step_builders.len() - 1 => {
-                    todo!("build it with {builder:?} in {context:?}")
-                }
-                _ => todo!("build it with {builder:?} in {context:?}"),
-            })
-            .rev()
-            .collect())
+        let mut builders = self.step_builders.clone();
+        builders.push(Arc::new(step));
+        let last = builders.len() - 1;
+
+        let mut steps = Vec::with_capacity(builders.len());
+        for index in (0..builders.len()).rev() {
+            let (builder_first, builder_second) = &mut builders.split_at_mut(index + 1);
+
+            let builder = arc_make_mut(&mut builder_first[index]);
+
+            if builder.assumed_solved().is_none() {
+                *builder.assumed_solved() = builder
+                    .allowed_sequences()
+                    .map(|algs| PieceSet::from_algset(&algs));
+            }
+
+            if index == 0 && builder.assumed_solved().is_some() {
+                return Err(TechniqueError::InvalidFirstStep);
+            }
+
+            if index == last && builder.goal().is_some() {
+                return Err(TechniqueError::InvalidLastStep);
+            } else {
+                let goal = builder.goal();
+                *goal = arc_make_mut(&mut builder_second[0])
+                    .assumed_solved()
+                    .clone();
+            }
+
+            steps.push(
+                builder
+                    .build_in(context)
+                    .map_err(|source| TechniqueError::CantConstruct { index, source })?,
+            );
+        }
+        Ok(steps.into_iter().collect())
     }
 
     /// Builds the technique using [`TechniqueBuilder::finish_in`] in the global context.

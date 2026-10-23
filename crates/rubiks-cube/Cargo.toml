@@ -10,6 +10,7 @@ repository.workspace = true
 version              = "0.1.0"
 
 [dependencies]
+dyn-clone = "1.0.20"
 fastrand  = "2.5.0"
 itertools = "0.15.0"
 log       = "0.4.34"

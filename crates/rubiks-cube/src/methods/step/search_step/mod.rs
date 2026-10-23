@@ -95,7 +95,7 @@ pub struct SearchStep<P: Puzzle> {
 #[derive(Debug, Clone)]
 pub struct SearchStepBuilder<P: Puzzle> {
     name: Cow<'static, str>,
-    before: PieceSet<P>,
+    before: Option<PieceSet<P>>,
     /// `None` until [`goal`](Self::goal) is called; [`build`](Self::build) then solves every
     /// piece.
     after: Option<PieceSet<P>>,
@@ -104,29 +104,34 @@ pub struct SearchStepBuilder<P: Puzzle> {
 }
 
 impl<P: Puzzle> StepBuilder<P> for SearchStepBuilder<P> {
-    fn assumed_solved(&mut self, pieces: PieceSet<P>) {
-        todo!("make step assume that {pieces:?} are solved")
+    fn assumed_solved(&mut self) -> &mut Option<PieceSet<P>> {
+        &mut self.before
     }
-    fn allowed_sequences(&self) -> Option<AlgSet<P>> {
-        todo!()
+    fn allowed_sequences(&mut self) -> Option<AlgSet<P>> {
+        Some(
+            self.search_algs
+                .iter()
+                .chain(self.free_search_algs.iter())
+                .cloned()
+                .collect(),
+        )
     }
 
-    fn goal(&mut self) -> Option<&mut PieceSet<P>> {
-        todo!()
+    fn goal(&mut self) -> &mut Option<PieceSet<P>> {
+        &mut self.after
     }
 
     fn build_in(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, BuildStepError> {
         Ok(Arc::new(
-            Self::build_in(self, context).map_err(|_| todo!())?,
+            Self::build_in(self, context).map_err(|e| BuildStepError::Custom(Box::new(e)))?,
         ))
     }
 }
 
 impl<P: Puzzle> SearchStepBuilder<P> {
     /// Sets a prerequisite to be checked before solving with the [`SearchStep`] being built.
-    #[must_use]
     pub fn expect_solved(&mut self, pieces: PieceSet<P>) -> &mut Self {
-        self.before = pieces;
+        self.before = Some(pieces);
         self
     }
 
@@ -152,7 +157,7 @@ impl<P: Puzzle> SearchStepBuilder<P> {
             .after
             .clone()
             .unwrap_or_else(|| PieceSet::from_pieces(P::Piece::all()));
-        if self.before.is_subset(&after) {
+        if self.before.as_ref().is_none_or(|b| b.is_subset(&after)) {
             let memo = cache.get_or_create::<SearchCache<P>>().memo(
                 after.clone(),
                 &self.search_algs,
@@ -160,7 +165,7 @@ impl<P: Puzzle> SearchStepBuilder<P> {
             );
             Ok(SearchStep {
                 name: self.name.clone(),
-                before: self.before.clone(),
+                before: self.before.clone().unwrap_or_default(),
                 after,
                 search_algs: self.search_algs.clone(),
                 free_search_algs: self.free_search_algs.clone(),
@@ -168,7 +173,7 @@ impl<P: Puzzle> SearchStepBuilder<P> {
             })
         } else {
             Err(SearchStepError::InvalidPrerequisite {
-                before: self.before.clone(),
+                before: self.before.clone().unwrap_or_default(),
                 after,
             })
         }
@@ -190,7 +195,7 @@ impl<P: Puzzle> SearchStep<P> {
     pub fn builder(name: impl Into<Cow<'static, str>>, algs: AlgSet<P>) -> SearchStepBuilder<P> {
         SearchStepBuilder {
             name: name.into(),
-            before: PieceSet::default(),
+            before: None,
             after: None,
             search_algs: algs,
             free_search_algs: AlgSet::new(),

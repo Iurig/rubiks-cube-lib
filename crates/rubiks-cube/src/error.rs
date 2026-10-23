@@ -97,6 +97,9 @@ pub enum SearchStepError<P: Puzzle> {
         /// The goal
         after: PieceSet<P>,
     },
+    /// Prerequisite missing.
+    #[error("the builder had no prerequisite")]
+    MissingPrerequisite,
 }
 
 /// Attempted to construct [`Step`](crate::Step) failed.

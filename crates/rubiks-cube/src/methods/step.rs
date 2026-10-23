@@ -4,6 +4,8 @@ use crate::{
     methods::context::{BuildContext, GLOBAL},
 };
 
+use dyn_clone::DynClone;
+
 use std::{fmt::Debug, sync::Arc};
 
 pub mod choose;
@@ -52,18 +54,18 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
 ///
 /// This trait is also used to build techniques with [`TechniqueBuilder`](crate::TechniqueBuilder)
 /// on insufficient information that is deduceable in context of the build.
-pub trait StepBuilder<P: Puzzle>: Debug + Send + Sync {
+pub trait StepBuilder<P: Puzzle>: DynClone + Debug + Send + Sync {
     /// Used to read or write to a [`StepBuilder`]'s goal.
     ///
     /// Builders for [`Step`]s for which the goal cannot be represented as a [`PieceSet`] should
     /// always return [`None`].
-    fn goal(&mut self) -> Option<&mut PieceSet<P>>;
+    fn goal(&mut self) -> &mut Option<PieceSet<P>>;
 
     /// Setter for the assumptions of the [`StepBuilder`].
-    fn assumed_solved(&mut self, pieces: PieceSet<P>);
+    fn assumed_solved(&mut self) -> &mut Option<PieceSet<P>>;
 
     /// Getter for the move sequences a built step might use.
-    fn allowed_sequences(&self) -> Option<AlgSet<P>>;
+    fn allowed_sequences(&mut self) -> Option<AlgSet<P>>;
 
     /// Builds the step within a given [`BuildContext`].
     ///
