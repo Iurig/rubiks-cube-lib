@@ -77,7 +77,7 @@ pub enum ParseMoveError {
 
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 /// A move in a sequence failed to parse; `line` and `position` count from 1.
-#[error("at line {line}, position {position}")]
+#[error("failed to parse move at line {line}, position {position}")]
 pub struct ParseSequenceError {
     pub(crate) source: ParseMoveError,
     pub(crate) line: usize,
