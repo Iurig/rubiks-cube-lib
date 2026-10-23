@@ -101,9 +101,9 @@ pub enum SearchStepError<P: Puzzle> {
     #[error("the builder had no prerequisite")]
     MissingPrerequisite,
 }
-
-/// Attempted to construct [`Step`](crate::Step) failed.
 #[derive(Debug, Error)]
+/// Attempted to construct [`Step`](crate::Step) failed.
+#[non_exhaustive]
 pub enum BuildStepError {
     /// The step being built required a goal to be defined, but either the
     /// [`StepBuilder`](crate::StepBuilder) or the [`TechniqueBuilder`](crate::TechniqueBuilder)
