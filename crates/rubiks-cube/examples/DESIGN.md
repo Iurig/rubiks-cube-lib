@@ -24,7 +24,7 @@ Roux(Roux::Options): Technique;
 Memos should be, in some way, global, so that when a technique goes out of scope, the memo of its
 steps shouldn't.
 
-Unclear if trait or type.
+It is a trait.
 
 ### Trait Method
 

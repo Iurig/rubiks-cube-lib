@@ -113,9 +113,9 @@ U2 M' U M' U2 M U2 M' U' M' U2 M'	//LSE
 ```
 
 `Roux`'s builder methods pick how each stage is split. `first_block` and `second_block` choose
-between one search, a square plus a pair, or an edge, then a square, then a pair. `cmll` chooses
-between one algorithm and two. With a split block the solver tries both the front and the back
-square and keeps the shorter:
+between one search, a square plus a pair, or an edge, then a square, then a pair, `cmll` chooses
+between one algorithm and two, and lse between one-look and eolr. With a split block the solver
+tries both the front and the back square and keeps the shorter:
 
 ```rust
 use rubiks_cube::{Roux, roux};
@@ -125,10 +125,10 @@ let roux = Roux::default()
     .cmll(roux::Cmll::TwoLook);
 ```
 
-A method is a list of steps. The crate has two step types: `SearchStep`, which searches for a goal
-within a fixed set of moves or algorithms, and `Shortest`, which keeps the shortest of several
-steps. Any type that implements the `Step` trait can join them. The
-[API documentation](#api-documentation) describes each type.
+A `Method` is a builder for a `Technique`, which is a list of steps. The crate has three step types:
+`SearchStep`, which searches for a goal within a fixed set of moves or algorithms, and `Shortest`,
+which keeps the shortest of several steps. Any type that implements the `Step` trait can join them.
+The [API documentation](#api-documentation) describes each type.
 
 `cargo bench --bench solves` times two passes of 1000 seeded Roux solves and reports time, moves,
 and heap use per step.
@@ -182,24 +182,25 @@ The main entry points:
 
 - **`Cube3x3`** is a cube state. `from_moves` and `apply_moves` apply notation, `*` composes states,
   and `corners()`, `edges()`, and `centers()` give the pieces for queries such as `piece_at`.
-- **`Puzzle`** is the trait the solver works through. Import it to call `is_solved` or
-  `random_state_with_seed`.
+- **`Puzzle`** is the trait the solver works through. Import it to call `scramble` or
+  `scramble_with_seed`.
 - **`Method`** is the trait of a solving method, such as **`Roux`** or **`Kociemba`**. It turns the
   method's options into a list of steps, and `solve` or `solve_steps` runs them.
 - **`Step`**, **`SearchStep`**, and **`Shortest`** are the steps a method is built from, and
   **`Mask`** says what a step needs and what it solves.
-- **`Solution`**, **`StepError`**, and **`SolveError`** are what a solve returns.
+- **`Solution`**, and **`SolveError`** are what a solve returns.
 
 ## Project layout
 
 The repository is a Cargo workspace. Commands run from the root cover every crate.
 
 ```text
-Cargo.toml                    the workspace: its members and the shared test profile
+Cargo.toml                    the workspace: its members and the shared dev profile
 crates/
   rubiks-cube/                the library
     src/
       lib.rs                  public exports
+      error.rs                all error types
       ops.rs                  Inv and Pow traits
       zn.rs                   Zn<N>
       piece.rs                sealed Piece trait, PieceConfiguration with the piece_at /
@@ -223,9 +224,11 @@ crates/
             table.rs          ALL_MOVES table: 9 hand-written face and slice moves, rotations
                               and wide moves derived from them, then inverses and doubles of
                               everything; its tests pin the derivations only
+      indexed.rs
       methods/
-        mod.rs                the Step and Method traits, Technique and its solve loop
-        error.rs              StepError, SolveError
+        mod.rs                the Method trait, Technique and its solve loop
+        context.rs            the cache context definition and a global context to be shared
+        step.rs               the Step trait
         solution.rs           Solution, Segment
         step/
           search_step/
@@ -241,39 +244,58 @@ crates/
         test_steps.rs         FixedStep, a hand-written step for tests (compiled only in tests)
         cube3x3.rs            the search memos shared by every Cube3x3 method
         cube3x3/
-          roux/               Roux, its options, and its CMLL algorithm lists
-          zz/                 ZZ, its options, and its OLL and PLL algorithm lists
-          kociemba/           Kociemba's two-phase method
-          algsets/            algorithm lists shared between methods (ZBLL)
+          roux.rs             Roux and its options
+          zz.rs               ZZ and its options
+          kociemba.rs         Kociemba's two-phase method
+          helpers.rs          helpers for defining methods and steps
+          algsets/            algorithm lists shared between methods
+            cmll/             CMLL 
+            oll/              OLL
+            pll/              PLL
+            zbll/             ZBLL
     tests/
       api/                    integration tests, one binary with a module per concern:
-                              mask, states (reachability, rotation-aware is_solved), algebra
-                              (group laws), moves (handedness pins for each base move, move
-                              orders), notation (parsing and its errors), reconstructions
-                              (real solves), solving (every Roux option combination on
-                              seeded random scrambles), scramble, and kociemba
+                              mask, algebra (group laws), moves (handedness pins for each
+                              base move, move orders), notation (parsing and its errors),
+                              reconstructions (real solves), solving (every Roux option
+                              combination on seeded random scrambles), scramble, kociemba,
+                              and stats
     benches/
       solves.rs               two passes of 1000 seeded Roux solves, timed and heap-counted per
                               step
     examples/
       main.rs                 solves one scramble with two option sets and prints the solutions
-  rubiks-cube-cli/            the command-line tool (a placeholder for now)
+      sketch.rs               a design sketch
+      DESIGN.md               a document for writing things down while writing to sketch.rs
+    docs/                     
+      design/                 settled designs
+        step-builders.md      the "Technique builds from StepBuilders" design
+  rubiks-cube-cli/            the command-line tool
     src/
       main.rs
+  twisty-puzzles-py/          exported python library 
+    src/
+      lib.rs
+    python/
+tools/
+  cargo-bin/                  tool for automatically downloading and executing formatting bins
 ```
 
 ## Building and testing
 
-Requires a Rust toolchain with the 2024 edition (Rust 1.85 or newer). The library depends on
-`fastrand` for random cube states, and no public function takes or returns a `fastrand` type. It
-also depends on `log`, through which the solver reports each step at the `debug` level. It never
-prints. `rayon` runs the searches and the prune-table builds in parallel.
+Requires a Rust toolchain with the 2024 edition. The library depends on `fastrand` for random cube
+states, and no public function takes or returns a `fastrand` type. It also depends on `log`, through
+which the solver reports each step at the `debug` level. It never prints. `rayon` runs the searches
+and the prune-table builds in parallel. `thiserror`helps define errors. `itertools`makes some
+iterator method chains less verbose. `dyn-clone` allows for cloning dyn types internally. None of
+their types are ever returned.
 
 ```sh
 cargo build
 cargo test
 cargo bench --bench solves
 RUST_LOG=rubiks_cube=debug cargo run --example main
+cargo run -p rubiks-cube-cli -- --method roux --number 3
 ```
 
 ## Current state
@@ -295,22 +317,24 @@ What works today:
   these queries, from outside the crate.
 - `is_reachable` checks the twist, flip, and permutation-parity invariants, plus that the centers
   form a whole-cube rotation, so a state no move sequence can produce is rejected.
-- The Roux solver works with every combination of its options. A test runs all eight combinations on
-  four seeded random scrambles and replays each solution, and the benchmark solves 2000 more.
+- The Roux solver works with every combination of its options. A test runs all 18 combinations of
+  first block, second block, and CMLL on four seeded random scrambles and replays each solution, and
+  the benchmark solves 2000 more.
 - ZZ solves with an EO line, F2L, then the last layer as OCLL and PLL, or in one look with ZBLL. A
   test runs every option combination on seeded random scrambles.
 - Kociemba's two-phase method solves scrambles: phase 1 brings the cube into the domino subgroup
   with face turns, and phase 2 solves it with moves that stay there. Both phases are searches guided
   by prune tables, which the first solve builds in a few seconds.
-- A solve fails with a typed error that names the step: the step's own `StepError`, or `NotDone`
-  when the step returned without meeting its goal.
+- A solve fails with a `SolveError` naming the step it stopped at. Its kind says why: the step's
+  requirements weren't met, the step reported its own `StepError`, or the step returned without
+  meeting its goal.
 - A method can mix step types, and `Shortest` picks between alternatives by move count.
 
 ## Roadmap
 
 - Fingertrick-aware output. A solution already prints as notation; this is why `2'` is kept distinct
   from `2` in the `Move` label even though they share a cube state.
-- More methods (CFOP, Petrus) and a command-line solver that prints a reconstruction.
+- More methods (CFOP, Petrus), and Kociemba in the command-line solver.
 - Reuse `PieceConfiguration` / `Piece` for other puzzles.
 
 ## License
