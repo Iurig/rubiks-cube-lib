@@ -19,6 +19,11 @@ use crate::{
 };
 use crate::{Indexed, Puzzle};
 
+/// Another thread panicked while deepening the step's memo, so the memo may be inconsistent.
+#[derive(Debug, thiserror::Error)]
+#[error("the step's memo is unusable: another solve panicked while deepening it")]
+struct MemoPoisoned;
+
 /// The pieces a memo brings home, and the sequences it searches with: everything a memo's
 /// contents depend on.
 type MemoKey<P> = (PieceSet<P>, AlgSet<P>, AlgSet<P>);
@@ -218,7 +223,7 @@ impl<P: Puzzle> SearchStep<P> {
         let mut memo = self
             .memo
             .lock()
-            .map_err(|_memo_error| StepError::MemoPoisoned)?;
+            .map_err(|_memo_error| StepError::Custom(Box::new(MemoPoisoned)))?;
         let mut investigated = FxMap::from_iter([(self.mask(p), None)]);
         let mut level = vec![p.clone()];
         self.close_under_free_sequences(&mut level, &mut investigated);
@@ -393,6 +398,9 @@ mod tests {
 
         let result = step.solve(&mut Cube3x3::default());
 
-        assert!(matches!(result, Err(StepError::MemoPoisoned)), "{result:?}");
+        assert!(
+            matches!(&result, Err(StepError::Custom(e)) if e.downcast_ref::<MemoPoisoned>().is_some()),
+            "{result:?}"
+        );
     }
 }

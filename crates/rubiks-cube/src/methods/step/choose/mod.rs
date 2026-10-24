@@ -85,11 +85,7 @@ impl<P: Puzzle> Step<P> for Shortest<P> {
                 None,
                 |best: Option<(Solution<P>, P)>, candidate| match candidate {
                     Err(StepError::InvalidStartingState) => Ok(best),
-                    Err(
-                        e @ (StepError::MemoPoisoned
-                        | StepError::UnreachableGoal
-                        | StepError::Custom(_)),
-                    ) => Err(e),
+                    Err(e @ (StepError::UnreachableGoal | StepError::Custom(_))) => Err(e),
                     // On a tie the earlier alternative stays.
                     Ok(candidate) => Ok(match best {
                         Some(best) if best.0.move_count() <= candidate.0.move_count() => Some(best),

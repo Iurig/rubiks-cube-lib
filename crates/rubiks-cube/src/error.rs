@@ -16,11 +16,8 @@ pub enum StepError {
     /// alternative that returns this.
     #[error("starting state doesn't fit expected properties")]
     InvalidStartingState,
-    /// Another thread panicked while deepening the step's memo, so the memo may be inconsistent.
-    #[error("the step's memo is unusable: another solve panicked while deepening it")]
-    MemoPoisoned,
     #[error(transparent)]
-    /// Any other error, for steps written outside the crate.
+    /// Any other error specific to the step type.
     Custom(Box<dyn Error + Send + Sync>),
 }
 
@@ -223,13 +220,13 @@ mod test {
 
     #[test]
     fn solve_error_source_works() {
-        let solve_error = SolveError::couldnt_solve("name".into(), StepError::MemoPoisoned);
+        let solve_error = SolveError::couldnt_solve("name".into(), StepError::UnreachableGoal);
 
         let source = solve_error.source().expect("a step error has a source");
 
         assert!(matches!(
             source.downcast_ref::<StepError>(),
-            Some(StepError::MemoPoisoned)
+            Some(StepError::UnreachableGoal)
         ));
     }
 }
