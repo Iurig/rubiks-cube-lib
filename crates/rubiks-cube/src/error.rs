@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, fmt::Display};
 
 use thiserror::Error;
 
@@ -16,37 +16,92 @@ pub enum StepError {
     /// alternative that returns this.
     #[error("starting state doesn't fit expected properties")]
     InvalidStartingState,
-    /// Another thread panicked while deepening the step's memo, so the memo may be inconsistent.
-    #[error("the step's memo is unusable: another solve panicked while deepening it")]
-    MemoPoisoned,
     #[error(transparent)]
-    /// Any other error, for steps written outside the crate.
+    /// Any other error specific to the step type.
     Custom(Box<dyn Error + Send + Sync>),
 }
-/// Why a method's solve stopped, naming the step it stopped at.
-#[derive(Debug, Error)]
+
+/// Reasons a method's solve could've stopped.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
-pub enum SolveError {
-    /// A step's requirement isn't met when it should be solved.
-    #[error("step {step} couldn't start solving because its requirements were not met")]
-    Requirements {
-        /// The step's name.
-        step: String,
-    },
-    /// The step reported an error.
-    #[error("step {step} could not finish")]
-    Step {
-        /// The step's name.
-        step: String,
-        /// What the step reported.
-        source: StepError,
-    },
-    /// The step returned a solution, but its `is_done` check failed.
-    #[error("step {step} returned a solution, but its goal is not met")]
-    NotDone {
-        /// The step's name.
-        step: String,
-    },
+pub enum SolveErrorKind {
+    /// The step's [`can_solve`](crate::Step::can_solve) returned false, so it never ran.
+    Requirements,
+    /// The step reported an error, available through [`inner`](SolveError::inner).
+    CouldntSolve,
+    /// The step returned a solution, but its [`is_done`](crate::Step::is_done) check failed.
+    NotDone,
+}
+
+impl Display for SolveErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Requirements => {
+                write!(f, "couldn't start because its requirements weren't met")
+            }
+            Self::CouldntSolve => write!(f, "couldn't be solved"),
+            Self::NotDone => {
+                write!(f, "finished, but its goal wasn't met")
+            }
+        }
+    }
+}
+
+/// Why a method's solve stopped.
+#[derive(Debug, Error)]
+#[error("step {step:?} {kind}")]
+pub struct SolveError {
+    kind: SolveErrorKind,
+    step: String,
+    source: Option<StepError>,
+}
+
+impl SolveError {
+    /// The reason the solve stopped.
+    #[must_use]
+    pub const fn kind(&self) -> SolveErrorKind {
+        self.kind
+    }
+    /// Which step stopped.
+    #[must_use]
+    pub fn step(&self) -> &str {
+        &self.step
+    }
+    /// What the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].
+    #[must_use]
+    pub const fn inner(&self) -> Option<&StepError> {
+        self.source.as_ref()
+    }
+    /// Takes what the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].
+    #[must_use]
+    pub fn into_inner(self) -> Option<StepError> {
+        self.source
+    }
+
+    /// The step's requirements weren't met, so it never ran.
+    pub(crate) const fn requirements(step: String) -> Self {
+        Self {
+            kind: SolveErrorKind::Requirements,
+            step,
+            source: None,
+        }
+    }
+    /// The step ran and reported `source`.
+    pub(crate) const fn couldnt_solve(step: String, source: StepError) -> Self {
+        Self {
+            kind: SolveErrorKind::CouldntSolve,
+            step,
+            source: Some(source),
+        }
+    }
+    /// The step returned a solution, but its goal isn't met.
+    pub(crate) const fn not_done(step: String) -> Self {
+        Self {
+            kind: SolveErrorKind::NotDone,
+            step,
+            source: None,
+        }
+    }
 }
 
 /// Why one move failed to parse.
@@ -159,34 +214,19 @@ impl ParseSequenceError {
     }
 }
 
-impl SolveError {
-    /// The name of the step the solve stopped at.
-    #[must_use]
-    pub const fn step(&self) -> &str {
-        match self {
-            Self::Step { step, .. } | Self::NotDone { step } | Self::Requirements { step } => {
-                step.as_str()
-            }
-        }
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn solve_error_source_works() {
-        let solve_error = SolveError::Step {
-            step: "name".into(),
-            source: StepError::MemoPoisoned,
-        };
+        let solve_error = SolveError::couldnt_solve("name".into(), StepError::UnreachableGoal);
 
         let source = solve_error.source().expect("a step error has a source");
 
         assert!(matches!(
             source.downcast_ref::<StepError>(),
-            Some(StepError::MemoPoisoned)
+            Some(StepError::UnreachableGoal)
         ));
     }
 }
