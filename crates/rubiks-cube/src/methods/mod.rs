@@ -12,8 +12,7 @@ pub use solution::{Segment, Solution};
 use std::{fmt::Debug, ops::Index, sync::Arc};
 
 use crate::{
-    PieceSet, SolveError,
-    error::TechniqueError,
+    PieceSet, SolveError, TechniqueError,
     methods::{
         context::{BuildContext, GLOBAL},
         step::{Step, StepBuilder},
@@ -267,18 +266,11 @@ fn run_steps<P: Puzzle>(
         }
         if !step.can_solve(puzzle) {
             failed = true;
-            return Some(Err(SolveError::Requirements {
-                step: step.name().to_string(),
-            }));
+            return Some(Err(SolveError::requirements(step.name().to_string())));
         }
         let result = match step.solve(puzzle) {
-            Err(error) => Err(SolveError::Step {
-                step: step.name().to_string(),
-                source: error,
-            }),
-            Ok(_) if !step.is_done(puzzle) => Err(SolveError::NotDone {
-                step: step.name().to_string(),
-            }),
+            Err(error) => Err(SolveError::couldnt_solve(step.name().to_string(), error)),
+            Ok(_) if !step.is_done(puzzle) => Err(SolveError::not_done(step.name().to_string())),
             Ok(solution) => Ok(solution),
         };
         failed = result.is_err();
@@ -347,7 +339,7 @@ mod tests {
 
     use std::error::Error;
 
-    use crate::{Cube3x3, Edge, PieceSet, SearchStep, StepError};
+    use crate::{Cube3x3, Edge, PieceSet, SearchStep, SolveErrorKind, StepError};
 
     use super::{test_steps::FixedStep, *};
     use crate::AlgSet;
@@ -364,13 +356,12 @@ mod tests {
 
         let result = method.solve(&mut Cube3x3::default());
 
-        assert!(
-            matches!(
-                &result,
-                Err(SolveError::NotDone { step }) if step == "Never done"
-            ),
-            "{result:?}"
-        );
+        let Err(err) = result else {
+            panic!("expected the solve to fail, got {result:?}");
+        };
+        assert_eq!(err.kind(), SolveErrorKind::NotDone);
+        assert_eq!(err.step(), "Never done");
+        assert!(err.source().is_none());
     }
 
     #[test]
@@ -383,13 +374,14 @@ mod tests {
         let mut cube = Cube3x3::default();
         let mut steps = method.solve_steps(&mut cube);
 
-        assert!(
-            matches!(
-                steps.next(),
-                Some(Err(SolveError::Requirements { step })) if step == "Cannot start"
-            ),
-            "the step that cannot start is reported"
-        );
+        let Err(err) = steps.next().unwrap() else {
+            panic!("there should be one step")
+        };
+
+        assert_eq!(err.kind(), SolveErrorKind::Requirements);
+        assert_eq!(err.step(), "Cannot start");
+        assert!(err.source().is_none());
+
         assert!(steps.next().is_none());
         assert_eq!(later.runs(), 0, "no step runs after an error");
     }
@@ -424,13 +416,12 @@ mod tests {
 
         let result = method.solve(&mut Cube3x3::default());
 
-        assert!(
-            matches!(
-                &result,
-                Err(SolveError::NotDone { step }) if step == "Never done"
-            ),
-            "{result:?}"
-        );
+        let Err(err) = result else {
+            panic!("expected the solve to fail, got {result:?}");
+        };
+        assert_eq!(err.kind(), SolveErrorKind::NotDone);
+        assert_eq!(err.step(), "Never done");
+        assert!(err.source().is_none());
     }
 
     #[test]
@@ -441,14 +432,14 @@ mod tests {
 
         let result = method.solve(&mut Cube3x3::default());
 
-        let Err(SolveError::Step {
-            step,
-            source: StepError::Custom(custom),
-        }) = result
-        else {
-            panic!("expected a wrapped custom error, got {result:?}");
+        let Err(err) = result else {
+            panic!("expected the solve to fail, got {result:?}");
         };
-        assert_eq!(step, "Always fails");
+        assert_eq!(err.kind(), SolveErrorKind::CouldntSolve);
+        assert_eq!(err.step(), "Always fails");
+        let Some(StepError::Custom(custom)) = err.inner() else {
+            panic!("expected a wrapped custom error, got {err:?}");
+        };
         assert_eq!(custom.to_string(), "fixed failure");
     }
 

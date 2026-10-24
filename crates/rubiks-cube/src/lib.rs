@@ -59,8 +59,10 @@
 //!
 //! # Errors
 //!
-//! A solve that fails returns a [`SolveError`] naming the step it stopped at. It wraps the
-//! step's [`StepError`], or says the step returned without meeting its goal.
+//! A solve that fails returns a [`SolveError`] naming the step it stopped at. Its
+//! [`kind`](SolveError::kind) says why: the step's requirements weren't met, the step reported a
+//! [`StepError`], or the step returned without meeting its goal. When the step reported one,
+//! [`inner`](SolveError::inner) returns the [`StepError`].
 //!
 //! # Lower levels
 //!
@@ -77,8 +79,8 @@ mod puzzles;
 pub mod zn;
 
 pub use error::{
-    BuildStepError, ParseMoveError, ParseSequenceError, SearchStepError, SolveError, StepError,
-    TechniqueError,
+    BuildStepError, ParseMoveError, ParseSequenceError, SearchStepError, SolveError,
+    SolveErrorKind, StepError, TechniqueError,
 };
 pub use indexed::Indexed;
 // Methods with options are re-exported as modules too (`roux::Cmll`), so the options need no method
