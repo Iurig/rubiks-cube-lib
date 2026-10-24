@@ -1,60 +1,60 @@
 exclude_globs = ["crates/twisty-puzzles-py/**"]
 exclude_re = [
-    "impl Debug",
-    "impl Display",
-    "name",
-    "::moves",
-    "replace FxHasher::step with ()",
-    "FxHasher::step",
-    # Error messages are for people to read; their wording isn't pinned.
-    'replace <impl std::fmt::Display for ParseMoveError>::fmt',
-    'replace <impl std::fmt::Display for ParseSequenceError>::fmt',
-    # Hash quality, not correctness: a weaker hash is slower, never wrong.
-    'replace >> with << in <impl Hasher for FxHasher>::write_u128',
-    'replace <impl Hasher for FxHasher>::write_u64 with \(\)',
-    # Equivalent mutants: the mutated code computes the same result.
-    # `cycle_size - 1` and `cycle_size + 1` are equal mod 2.
-    'replace - with \+ in PieceConfiguration<P, N, O>::parity',
-    # Flipping which order of a commuting pair is kept still loses no state.
-    'replace < with > in may_follow',
-    # `Default for Labeled` calls `empty`, which calls `from_fn`: replacing either body
-    # with `Default::default()` recurses forever.
-    'replace Labeled<P, L>::from_fn -> Self with Default::default\(\)',
-    'replace Labeled<P, L>::empty -> Self with Default::default\(\)',
-    # `identity` already returns `Self::default()`.
-    'replace <impl Pow for Cube3x3>::identity -> Self with Default::default\(\)',
-    # Goal masks store orientation 0, so the output is unchanged.
-    'replace orientation_position -> Option<usize> with Some\(0\)',
-    # Log only: `forward_depth` is read by a `trace!` line and nothing else.
-    'replace \+= with (-=|\*=) in SearchStep<P>::solve_bfs',
-    # Weakened checks in `facelets.rs`'s `const _` block can't fail while `NET` is correct.
-    'replace same_slot -> bool with false',
-    'delete match arm .* in same_slot',
-    'replace slot_has -> bool with true',
-    'facelets\.rs:\d+:\d+: replace < with (==|>)$',
-    # The CLI's interface is not settled (plan topic 15). Remove these once it is.
-    'rubiks-cube-cli/src/main\.rs:.*replace main -> anyhow::Result<\(\)> with Ok\(\(\)\)',
-    'rubiks-cube-cli/src/main\.rs:.*replace match guard m == "roux" with (true|false) in main',
-    'rubiks-cube-cli/src/main\.rs:.*replace == with != in main',
-    # Hang-only: the IDA* estimate never reaches 0, so every `PrunedCombine::solve` runs
-    # forever. Non-termination is the only way these can show.
-    'replace <impl DistanceStep<P> for T>::distance_from_moves -> Option<u8> with Some\(1\)',
-    'replace PruneTable<K>::get_distance -> Option<u8> with Some\(1\)',
-    'replace <impl Step<P> for PrunedCombine<.*>>::solve::estimate -> Option<u8> with Some\(1\)',
-    'replace Labeled<P, L>::composed_with -> Self with Default::default\(\)',
-    # Hang-only: a loop counter starting at 0 never advances. In `deepen` this also covers
-    # `self.depth += 1`, which only the test helper `search_to` reads.
-    'replace \+= with \*= in SearchStep<P>::close_under_free_sequences',
-    'replace \+= with \*= in BfsMemo<P>::deepen',
-    # Hang-only: a memo that never grows can give no answer, never a wrong one.
-    'replace BfsMemo<P>::deepen with \(\)',
-    # Performance only: the two-ended search still finds a shortest answer, growing the wrong
-    # side. The solve benches are where a regression here shows.
-    'replace != with == in SearchStep<P>::solve_bfs',
-    'replace <= with > in SearchStep<P>::solve_bfs',
-    'replace BfsMemo<P>::frontier_len -> usize with 0',
-    # Hang-only, mostly: phase 1 takes every slice and rotation move too, and the kociemba solves
-    # crawl past the timeout. When a random scramble finishes, `phase_2_solves_what_phase_1_leaves`
-    # catches it.
-    'replace && with \|\| in face_turns',
+  "impl Debug",
+  "impl Display",
+  "name",
+  "::moves",
+  "replace FxHasher::step with ()",
+  "FxHasher::step",
+  # Error messages are for people to read; their wording isn't pinned.
+  'replace <impl std::fmt::Display for ParseMoveError>::fmt',
+  'replace <impl std::fmt::Display for ParseSequenceError>::fmt',
+  # Hash quality, not correctness: a weaker hash is slower, never wrong.
+  'replace >> with << in <impl Hasher for FxHasher>::write_u128',
+  'replace <impl Hasher for FxHasher>::write_u64 with \(\)',
+  # Equivalent mutants: the mutated code computes the same result.
+  # `cycle_size - 1` and `cycle_size + 1` are equal mod 2.
+  'replace - with \+ in PieceConfiguration<P, N, O>::parity',
+  # Flipping which order of a commuting pair is kept still loses no state.
+  'replace < with > in may_follow',
+  # `Default for Labeled` calls `empty`, which calls `from_fn`: replacing either body
+  # with `Default::default()` recurses forever.
+  'replace Labeled<P, L>::from_fn -> Self with Default::default\(\)',
+  'replace Labeled<P, L>::empty -> Self with Default::default\(\)',
+  # `identity` already returns `Self::default()`.
+  'replace <impl Pow for Cube3x3>::identity -> Self with Default::default\(\)',
+  # Goal masks store orientation 0, so the output is unchanged.
+  'replace orientation_position -> Option<usize> with Some\(0\)',
+  # Log only: `forward_depth` is read by a `trace!` line and nothing else.
+  'replace \+= with (-=|\*=) in SearchStep<P>::solve_bfs',
+  # Weakened checks in `facelets.rs`'s `const _` block can't fail while `NET` is correct.
+  'replace same_slot -> bool with false',
+  'delete match arm .* in same_slot',
+  'replace slot_has -> bool with true',
+  'facelets\.rs:\d+:\d+: replace < with (==|>)$',
+  # The CLI's interface is not settled (plan topic 15). Remove these once it is.
+  'rubiks-cube-cli/src/main\.rs:.*replace main -> anyhow::Result<\(\)> with Ok\(\(\)\)',
+  'rubiks-cube-cli/src/main\.rs:.*replace match guard m == "roux" with (true|false) in main',
+  'rubiks-cube-cli/src/main\.rs:.*replace == with != in main',
+  # Hang-only: the IDA* estimate never reaches 0, so every `PrunedCombine::solve` runs
+  # forever. Non-termination is the only way these can show.
+  'replace <impl DistanceStep<P> for T>::distance_from_moves -> Option<u8> with Some\(1\)',
+  'replace PruneTable<K>::get_distance -> Option<u8> with Some\(1\)',
+  'replace <impl Step<P> for PrunedCombine<.*>>::solve::estimate -> Option<u8> with Some\(1\)',
+  'replace Labeled<P, L>::composed_with -> Self with Default::default\(\)',
+  # Hang-only: a loop counter starting at 0 never advances. In `deepen` this also covers
+  # `self.depth += 1`, which only the test helper `search_to` reads.
+  'replace \+= with \*= in SearchStep<P>::close_under_free_sequences',
+  'replace \+= with \*= in BfsMemo<P>::deepen',
+  # Hang-only: a memo that never grows can give no answer, never a wrong one.
+  'replace BfsMemo<P>::deepen with \(\)',
+  # Performance only: the two-ended search still finds a shortest answer, growing the wrong
+  # side. The solve benches are where a regression here shows.
+  'replace != with == in SearchStep<P>::solve_bfs',
+  'replace <= with > in SearchStep<P>::solve_bfs',
+  'replace BfsMemo<P>::frontier_len -> usize with 0',
+  # Hang-only, mostly: phase 1 takes every slice and rotation move too, and the kociemba solves
+  # crawl past the timeout. When a random scramble finishes, `phase_2_solves_what_phase_1_leaves`
+  # catches it.
+  'replace && with \|\| in face_turns',
 ]

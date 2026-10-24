@@ -1,14 +1,18 @@
 [build-system]
-requires      = ["maturin>=1.15,<2.0"]
 build-backend = "maturin"
+requires      = ["maturin>=1.15,<2.0"]
 
 [project]
-name            = "twisty-puzzles-py"
+classifiers = [
+  "Programming Language :: Rust",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dynamic = ["version"]
+name = "twisty-puzzles-py"
 requires-python = ">=3.10"
-classifiers     = ["Programming Language :: Rust", "Programming Language :: Python :: Implementation :: CPython", "Programming Language :: Python :: Implementation :: PyPy"]
-dynamic         = ["version"]
 [project.optional-dependencies]
 tests = ["pytest"]
 [tool.maturin]
-python-source = "python"
 exclude       = ["**/__pycache__", "**/*.pyc", "**/*.pyo"]
+python-source = "python"

@@ -3,18 +3,16 @@
 ![CI](https://github.com/Iurig/rubiks/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/github/license/Iurig/rubiks)
 
-
-A Rust library that models the 3×3×3 Rubik's Cube and solves it the way a person would, one
-named step at a time. Its solving methods are Roux, ZZ, and Kociemba. More methods and other
-cube types are planned.
+A Rust library that models the 3×3×3 Rubik's Cube and solves it the way a person would, one named
+step at a time. Its solving methods are Roux, ZZ, and Kociemba. More methods and other cube types
+are planned.
 
 A cube state is a value of type `Cube3x3`. Moves are cube states too, and applying a move is just
 group multiplication. Everything is `Copy`, and the move table is built on first use.
 
-> **Status: early work in progress.** The core group structure and every move in standard
-> notation (faces, slices, rotations, wide moves) work and are tested against real
-> reconstructions. The Roux solver works, and its public API is still changing.
-> See [Current state](#current-state).
+> **Status: early work in progress.** The core group structure and every move in standard notation
+> (faces, slices, rotations, wide moves) work and are tested against real reconstructions. The Roux
+> solver works, and its public API is still changing. See [Current state](#current-state).
 
 ## Quick example
 
@@ -45,8 +43,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Notation
 
-Move strings use standard cube notation. Whitespace and newlines separate moves, and anything
-after `//` on a line is a comment, so you can paste annotated reconstructions directly:
+Move strings use standard cube notation. Whitespace and newlines separate moves, and anything after
+`//` on a line is a comment, so you can paste annotated reconstructions directly:
 
 ```rust
 let solved = rubiks_cube::Cube3x3::from_moves("
@@ -57,20 +55,20 @@ let solved = rubiks_cube::Cube3x3::from_moves("
 ");
 ```
 
-| Kind        | Tokens                       | Implemented           |
-| ----------- | ---------------------------- | --------------------- |
-| Face turns  | `R` `L` `U` `D` `F` `B`      | Yes                   |
-| Slice moves | `M` `E` `S`                  | Yes                   |
-| Rotations   | `x` `y` `z`                  | Yes                   |
-| Wide moves  | `Rw` … or lowercase `r` …    | Yes                   |
+| Kind        | Tokens                    | Implemented |
+| ----------- | ------------------------- | ----------- |
+| Face turns  | `R` `L` `U` `D` `F` `B`   | Yes         |
+| Slice moves | `M` `E` `S`               | Yes         |
+| Rotations   | `x` `y` `z`               | Yes         |
+| Wide moves  | `Rw` … or lowercase `r` … | Yes         |
 
 All these work with the following 4 modifiers: ` `(none), `'`, `2` and `2'`
 
 A lowercase face letter (`r`, `l`, `u`, `d`, `f`, `b`) is the wide move of that face, so `r` and
-`Rw` are the same move. Every token goes through the same path, so a lone `r` or a line that is
-only a comment behaves the same as it would inside a longer sequence. A string with no moves in it, such as an empty string or
-a comment on its own, leaves the cube unchanged. A token that is not a move makes the whole call
-return an `Err` naming that token.
+`Rw` are the same move. Every token goes through the same path, so a lone `r` or a line that is only
+a comment behaves the same as it would inside a longer sequence. A string with no moves in it, such
+as an empty string or a comment on its own, leaves the cube unchanged. A token that is not a move
+makes the whole call return an `Err` naming that token.
 
 ## Solving
 
@@ -114,9 +112,9 @@ U2 M' U M' U2 M U2 M' U' M' U2 M'	//LSE
 ```
 
 `Roux`'s builder methods pick how each stage is split. `first_block` and `second_block` choose
-between one search, a square plus a pair, or an edge, then a square, then a pair. `cmll`
-chooses between one algorithm and two. With a split block the solver tries both the front and
-the back square and keeps the shorter:
+between one search, a square plus a pair, or an edge, then a square, then a pair. `cmll` chooses
+between one algorithm and two. With a split block the solver tries both the front and the back
+square and keeps the shorter:
 
 ```rust
 use rubiks_cube::{Roux, roux};
@@ -126,19 +124,21 @@ let roux = Roux::default()
     .cmll(roux::Cmll::TwoLook);
 ```
 
-A method is a list of steps. The crate has two step types: `SearchStep`, which searches for a
-goal within a fixed set of moves or algorithms, and `Shortest`, which keeps the shortest of
-several steps. Any type that implements the `Step` trait can join them. The
+A method is a list of steps. The crate has two step types: `SearchStep`, which searches for a goal
+within a fixed set of moves or algorithms, and `Shortest`, which keeps the shortest of several
+steps. Any type that implements the `Step` trait can join them. The
 [API documentation](#api-documentation) describes each type.
 
-`cargo bench --bench solves` times two passes of 1000 seeded Roux solves and reports time,
-moves, and heap use per step.
+`cargo bench --bench solves` times two passes of 1000 seeded Roux solves and reports time, moves,
+and heap use per step.
 
 ## How it works
 
 The cube is the direct product of three independent piece groups:
 
-- **Centers**: 6 pieces, no orientation. Only slice moves and rotations move them. The other pieces are expressed as if these were not moved (i.e. moves that move them will be translated to face turns).
+- **Centers**: 6 pieces, no orientation. Only slice moves and rotations move them. The other pieces
+  are expressed as if these were not moved (i.e. moves that move them will be translated to face
+  turns).
 - **Corners**: 8 pieces, orientation in ℤ/3ℤ.
 - **Edges**: 12 pieces, orientation in ℤ/2ℤ.
 
@@ -146,17 +146,17 @@ Each is a `PieceConfiguration<P, N, O>`: a permutation array of `N` pieces of ty
 orientation array of `N` values in `Zn<O>`. Composition (`then`) permutes and adds orientations;
 inversion negates them. `Cube3x3` just composes its three configurations component-wise.
 
-Piece types are fieldless `#[repr(u8)]` enums implementing the `Piece` trait, which lets the
-library index arrays by piece at zero cost (a compile-time assertion checks that each enum's
-discriminants match its `ALL` order). Ordering conventions follow blindfolded-solving
-standard memorization order, except for edges which are clockwise by layer, starting on the last and going to the first:
+Piece types are fieldless `#[repr(u8)]` enums implementing the `Piece` trait, which lets the library
+index arrays by piece at zero cost (a compile-time assertion checks that each enum's discriminants
+match its `ALL` order). Ordering conventions follow blindfolded-solving standard memorization order,
+except for edges which are clockwise by layer, starting on the last and going to the first:
 
 - Centers: `U F R B L D`
 - Corners: `UBL UBR UFR UFL DFL DFR DBR DBL`
 - Edges: `UB UR UF UL FL FR BR BL DF DR DB DL`
 
-Corner orientation counts clockwise twists relative to the U/D sticker being in the U or D layer; edge orientation is 0 for
-oriented, 1 for flipped.
+Corner orientation counts clockwise twists relative to the U/D sticker being in the U or D layer;
+edge orientation is 0 for oriented, 1 for flipped.
 
 `Cube3x3` implements `Display` as the unfolded sticker net, each facelet lettered by the face its
 sticker belongs to when solved (`println!("{cube}")`); `cube.facelets()` gives the same data as a
@@ -166,8 +166,8 @@ physical cube would look like, so a wrong twist or flip convention is visible at
 Only the nine base moves (six faces, three slices) are written by hand, as explicit cycles in
 [moves/table.rs](crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs). Rotations (`x = R M' L'`,
 `y = U E' D'`, `z = F S B'`), wide moves (a face turn followed by its parallel slice), and every
-inverse and double are derived from those nine, on first use, into a single `ALL_MOVES` table
-that string parsing looks up. A derived move therefore cannot drift from its base moves.
+inverse and double are derived from those nine, on first use, into a single `ALL_MOVES` table that
+string parsing looks up. A derived move therefore cannot drift from its base moves.
 
 ## API documentation
 
@@ -179,13 +179,12 @@ cargo doc --open
 
 The main entry points:
 
-- **`Cube3x3`** is a cube state. `from_moves` and `apply_moves` apply notation, `*` composes
-  states, and `corners()`, `edges()`, and `centers()` give the pieces for queries such as
-  `piece_at`.
+- **`Cube3x3`** is a cube state. `from_moves` and `apply_moves` apply notation, `*` composes states,
+  and `corners()`, `edges()`, and `centers()` give the pieces for queries such as `piece_at`.
 - **`Puzzle`** is the trait the solver works through. Import it to call `is_solved` or
   `random_state_with_seed`.
-- **`Method`** is the trait of a solving method, such as **`Roux`** or **`Kociemba`**. It turns
-  the method's options into a list of steps, and `solve` or `solve_steps` runs them.
+- **`Method`** is the trait of a solving method, such as **`Roux`** or **`Kociemba`**. It turns the
+  method's options into a list of steps, and `solve` or `solve_steps` runs them.
 - **`Step`**, **`SearchStep`**, and **`Shortest`** are the steps a method is built from, and
   **`Mask`** says what a step needs and what it solves.
 - **`Solution`**, **`StepError`**, and **`SolveError`** are what a solve returns.
@@ -265,9 +264,9 @@ crates/
 ## Building and testing
 
 Requires a Rust toolchain with the 2024 edition (Rust 1.85 or newer). The library depends on
-`fastrand` for random cube states, and no public function takes or returns a `fastrand` type.
-It also depends on `log`, through which the solver reports each step at the `debug` level. It
-never prints. `rayon` runs the searches and the prune-table builds in parallel.
+`fastrand` for random cube states, and no public function takes or returns a `fastrand` type. It
+also depends on `log`, through which the solver reports each step at the `debug` level. It never
+prints. `rayon` runs the searches and the prune-table builds in parallel.
 
 ```sh
 cargo build
@@ -282,35 +281,34 @@ All unit, integration, and doc tests pass; none are `#[ignore]`d.
 
 What works today:
 
-- All six face turns, the three slice moves `M`, `E`, `S`, the three rotations `x`, `y`, `z`,
-  and the six wide moves `Rw` ... `Bw` (also as lowercase `r` ... `b`), each with the `'`, `2`,
-  and `2'` modifiers. Rotations and wide moves are derived on first use from the face and
-  slice moves, so they cannot drift out of sync with them. The base moves are pinned by
-  handedness tests, and the whole notation is exercised by CFOP and Roux reconstructions.
+- All six face turns, the three slice moves `M`, `E`, `S`, the three rotations `x`, `y`, `z`, and
+  the six wide moves `Rw` ... `Bw` (also as lowercase `r` ... `b`), each with the `'`, `2`, and `2'`
+  modifiers. Rotations and wide moves are derived on first use from the face and slice moves, so
+  they cannot drift out of sync with them. The base moves are pinned by handedness tests, and the
+  whole notation is exercised by CFOP and Roux reconstructions.
 - Move strings return `Result`: an unknown token is an `Err` naming it, never a panic.
-- `is_solved` is rotation-aware: it re-orients the cube by its centers before comparing with
-  the identity, so `Cube3x3::from_moves("x y2 z'")` reports solved.
-- A cube state can be queried: `cube.corners().piece_at(Corner::Ubr)` says which piece sits in
-  the UBR slot, and `orientation_at` reads its twist or flip. The handedness tests are written
-  against these queries, from outside the crate.
+- `is_solved` is rotation-aware: it re-orients the cube by its centers before comparing with the
+  identity, so `Cube3x3::from_moves("x y2 z'")` reports solved.
+- A cube state can be queried: `cube.corners().piece_at(Corner::Ubr)` says which piece sits in the
+  UBR slot, and `orientation_at` reads its twist or flip. The handedness tests are written against
+  these queries, from outside the crate.
 - `is_reachable` checks the twist, flip, and permutation-parity invariants, plus that the centers
   form a whole-cube rotation, so a state no move sequence can produce is rejected.
-- The Roux solver works with every combination of its options. A test runs all eight
-  combinations on four seeded random scrambles and replays each solution, and the benchmark
-  solves 2000 more.
-- ZZ solves with an EO line, F2L, then the last layer as OCLL and PLL, or in one look with
-  ZBLL. A test runs every option combination on seeded random scrambles.
-- Kociemba's two-phase method solves scrambles: phase 1 brings the cube into the
-  domino subgroup with face turns, and phase 2 solves it with moves that stay there. Both
-  phases are searches guided by prune tables, which the first solve builds in a few seconds.
-- A solve fails with a typed error that names the step: the step's own `StepError`, or
-  `NotDone` when the step returned without meeting its goal.
+- The Roux solver works with every combination of its options. A test runs all eight combinations on
+  four seeded random scrambles and replays each solution, and the benchmark solves 2000 more.
+- ZZ solves with an EO line, F2L, then the last layer as OCLL and PLL, or in one look with ZBLL. A
+  test runs every option combination on seeded random scrambles.
+- Kociemba's two-phase method solves scrambles: phase 1 brings the cube into the domino subgroup
+  with face turns, and phase 2 solves it with moves that stay there. Both phases are searches guided
+  by prune tables, which the first solve builds in a few seconds.
+- A solve fails with a typed error that names the step: the step's own `StepError`, or `NotDone`
+  when the step returned without meeting its goal.
 - A method can mix step types, and `Shortest` picks between alternatives by move count.
 
 ## Roadmap
 
-- Fingertrick-aware output. A solution already prints as notation; this is why `2'` is kept
-  distinct from `2` in the `Move` label even though they share a cube state.
+- Fingertrick-aware output. A solution already prints as notation; this is why `2'` is kept distinct
+  from `2` in the `Move` label even though they share a cube state.
 - More methods (CFOP, Petrus) and a command-line solver that prints a reconstruction.
 - Reuse `PieceConfiguration` / `Piece` for other puzzles.
 
