@@ -11,8 +11,9 @@ A cube state is a value of type `Cube3x3`. Moves are cube states too, and applyi
 group multiplication. Everything is `Copy`, and the move table is built on first use.
 
 > **Status: early work in progress.** The core group structure and every move in standard notation
-> (faces, slices, rotations, wide moves) work and are tested against real reconstructions. The Roux
-> solver works, and its public API is still changing. See [Current state](#current-state).
+> (faces, slices, rotations, wide moves) work and are tested against real reconstructions. The Roux,
+> ZZ, and Kociemba solvers work, and their public APIs are still changing. See
+> [Current state](#current-state).
 
 ## Quick example
 

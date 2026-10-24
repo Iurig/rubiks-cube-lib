@@ -7,19 +7,16 @@ members = [
 resolver = "3"
 
 [workspace.package]
-edition    = "2024"
-license    = "MIT"
-readme     = "README.md"
+edition = "2024"
+license = "MIT"
+readme = "README.md"
 repository = "https://github.com/Iurig/rubiks"
 
-
 [workspace.metadata.bin]
-dprint    = { version = "0.64.3" }
-taplo-cli = { version = "0.10.0", bins = ["taplo"] }
-
+dprint = { version = "0.64.3" }
 
 [profile.dev]
 debug-assertions = true
-incremental      = true
-opt-level        = 1
-overflow-checks  = true
+incremental = true
+opt-level = 1
+overflow-checks = true

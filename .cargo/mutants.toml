@@ -7,16 +7,16 @@ exclude_re = [
   "replace FxHasher::step with ()",
   "FxHasher::step",
   # Error messages are for people to read; their wording isn't pinned.
-  'replace <impl std::fmt::Display for ParseMoveError>::fmt',
-  'replace <impl std::fmt::Display for ParseSequenceError>::fmt',
+  "replace <impl std::fmt::Display for ParseMoveError>::fmt",
+  "replace <impl std::fmt::Display for ParseSequenceError>::fmt",
   # Hash quality, not correctness: a weaker hash is slower, never wrong.
-  'replace >> with << in <impl Hasher for FxHasher>::write_u128',
+  "replace >> with << in <impl Hasher for FxHasher>::write_u128",
   'replace <impl Hasher for FxHasher>::write_u64 with \(\)',
   # Equivalent mutants: the mutated code computes the same result.
   # `cycle_size - 1` and `cycle_size + 1` are equal mod 2.
   'replace - with \+ in PieceConfiguration<P, N, O>::parity',
   # Flipping which order of a commuting pair is kept still loses no state.
-  'replace < with > in may_follow',
+  "replace < with > in may_follow",
   # `Default for Labeled` calls `empty`, which calls `from_fn`: replacing either body
   # with `Default::default()` recurses forever.
   'replace Labeled<P, L>::from_fn -> Self with Default::default\(\)',
@@ -28,9 +28,9 @@ exclude_re = [
   # Log only: `forward_depth` is read by a `trace!` line and nothing else.
   'replace \+= with (-=|\*=) in SearchStep<P>::solve_bfs',
   # Weakened checks in `facelets.rs`'s `const _` block can't fail while `NET` is correct.
-  'replace same_slot -> bool with false',
-  'delete match arm .* in same_slot',
-  'replace slot_has -> bool with true',
+  "replace same_slot -> bool with false",
+  "delete match arm .* in same_slot",
+  "replace slot_has -> bool with true",
   'facelets\.rs:\d+:\d+: replace < with (==|>)$',
   # The CLI's interface is not settled (plan topic 15). Remove these once it is.
   'rubiks-cube-cli/src/main\.rs:.*replace main -> anyhow::Result<\(\)> with Ok\(\(\)\)',
@@ -50,9 +50,9 @@ exclude_re = [
   'replace BfsMemo<P>::deepen with \(\)',
   # Performance only: the two-ended search still finds a shortest answer, growing the wrong
   # side. The solve benches are where a regression here shows.
-  'replace != with == in SearchStep<P>::solve_bfs',
-  'replace <= with > in SearchStep<P>::solve_bfs',
-  'replace BfsMemo<P>::frontier_len -> usize with 0',
+  "replace != with == in SearchStep<P>::solve_bfs",
+  "replace <= with > in SearchStep<P>::solve_bfs",
+  "replace BfsMemo<P>::frontier_len -> usize with 0",
   # Hang-only, mostly: phase 1 takes every slice and rotation move too, and the kociemba solves
   # crawl past the timeout. When a random scramble finishes, `phase_2_solves_what_phase_1_leaves`
   # catches it.
