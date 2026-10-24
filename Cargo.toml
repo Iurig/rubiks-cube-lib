@@ -3,6 +3,7 @@ members = [
   "crates/rubiks-cube",
   "crates/rubiks-cube-cli",
   "crates/twisty-puzzles-py",
+  "tools/cargo-bin",
 ]
 resolver = "3"
 
@@ -13,6 +14,7 @@ readme = "README.md"
 repository = "https://github.com/Iurig/rubiks"
 
 [workspace.metadata.bin]
+cargo-binstall = { version = "1.26.1" }
 dprint = { version = "0.64.3" }
 
 [profile.dev]
