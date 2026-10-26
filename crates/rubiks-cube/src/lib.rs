@@ -1,8 +1,8 @@
-//! A model of the 3×3×3 Rubik's Cube, and a solver that solves it the way a person would, one
-//! named step at a time.
+//! A model of the 3×3×3 Rubik's Cube, and a solver that solves it the way a person would, one named
+//! step at a time.
 //!
-//! A cube state is a [`Cube3x3`]. Moves are cube states too, and `a * b` applies `a` and then
-//! `b`, in the same order as notation reads:
+//! A cube state is a [`Cube3x3`]. Moves are cube states too, and `a * b` applies `a` and then `b`,
+//! in the same order as notation reads:
 //!
 //! ```
 //! use rubiks_cube::{Cube3x3, Inv, Pow, Puzzle};
@@ -20,16 +20,16 @@
 //!
 //! Move strings use standard notation: the face turns `R L U D F B`, the slices `M E S`, the
 //! rotations `x y z`, and the wide moves `Rw` or `r`, each with no modifier, `'`, `2`, or `2'`.
-//! Whitespace separates moves, and `//` starts a comment that runs to the end of the line. A
-//! string that is not valid notation returns a [`ParseSequenceError`] naming the line and
-//! position of the bad move.
+//! Whitespace separates moves, and `//` starts a comment that runs to the end of the line. A string
+//! that is not valid notation returns a [`ParseSequenceError`] naming the line and position of the
+//! bad move.
 //!
 //! # Solving
 //!
 //! A [`Method`], such as [`Roux`] or [`Kociemba`], turns its options into a [`Technique`]: an
-//! ordered list of [`Step`]s. Roux's builder methods, such as [`Roux::first_block`], choose
-//! between its step variants. Solving returns a [`Solution`], which prints as notation with
-//! one line per step:
+//! ordered list of [`Step`]s. Roux's builder methods, such as [`Roux::first_block`], choose between
+//! its step variants. Solving returns a [`Solution`], which prints as notation with one line per
+//! step:
 //!
 //! ```rust
 //! use rubiks_cube::{Cube3x3, Method, Puzzle, Roux};
@@ -52,10 +52,10 @@
 //! U2 M' U M' U2 M U2 M' U' M' U2 M'    //LSE
 //! ```
 //!
-//! To build other methods, combine [`SearchStep`]s, which search for a goal given as a
-//! [`Mask`], and [`Shortest`], which keeps the shortest of several alternatives. Any type that
-//! implements [`Step`] can join them. [`Method::solve_steps`] runs a method one step per
-//! iteration, for timing or progress reports.
+//! To build other methods, combine [`SearchStep`]s, which search for a goal given as a [`Mask`],
+//! and [`Shortest`], which keeps the shortest of several alternatives. Any type that implements
+//! [`Step`] can join them. [`Method::solve_steps`] runs a method one step per iteration, for timing
+//! or progress reports.
 //!
 //! # Errors
 //!
@@ -67,8 +67,8 @@
 //! # Lower levels
 //!
 //! [`Cube3x3`] is built from three [`PieceConfiguration`]s (centers, corners, and edges), each a
-//! permutation of [`Piece`]s with an orientation per piece in [`zn::Zn`]. The [`Puzzle`] trait
-//! is what the solver needs from a puzzle, and [`Facelets`] shows a cube as a sticker net.
+//! permutation of [`Piece`]s with an orientation per piece in [`zn::Zn`]. The [`Puzzle`] trait is
+//! what the solver needs from a puzzle, and [`Facelets`] shows a cube as a sticker net.
 mod error;
 mod fast_hash;
 mod indexed;
@@ -115,6 +115,7 @@ pub mod cube3x3_method_helpers {
 }
 
 /// Runs the Rust examples in `README.md` as doc tests, so they cannot drift from the code.
+///
 /// This item exists only while doc tests run and never appears in the docs.
 #[cfg(doctest)]
 #[doc = include_str!("../../../README.md")]

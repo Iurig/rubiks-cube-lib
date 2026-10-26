@@ -24,18 +24,17 @@ use crate::{Indexed, Puzzle};
 #[error("the step's memo is unusable: another solve panicked while deepening it")]
 struct MemoPoisoned;
 
-/// The pieces a memo brings home, and the sequences it searches with: everything a memo's
-/// contents depend on.
+/// The pieces a memo brings home, and the sequences it searches with: everything a memo's contents
+/// depend on.
 type MemoKey<P> = (PieceSet<P>, AlgSet<P>, AlgSet<P>);
 
 /// A memo that several steps can grow, one search at a time.
 type SharedMemo<P> = Arc<Mutex<BfsMemo<P>>>;
 
-/// One shared memo per memo key, so steps that search for the same thing with the same
-/// sequences grow the same memo, even when built at different times by different methods.
+/// One shared memo per memo key, so steps that search for the same thing with the same sequences
+/// grow the same memo, even when built at different times by different methods.
 ///
-/// Statics cannot be generic, so each puzzle type that has methods keeps its own cache in a
-/// static.
+/// Statics cannot be generic, so each puzzle type that has methods keeps its own cache in a static.
 #[derive(Debug, Default)]
 pub struct SearchCache<P: Puzzle> {
     memos: Mutex<FxMap<MemoKey<P>, SharedMemo<P>>>,
@@ -75,17 +74,16 @@ impl<P: Puzzle> SearchCache<P> {
     }
 }
 
-/// A step that searches for the cheapest way to bring a set of pieces home, using only the
-/// move sequences it was given.
+/// A step that searches for the cheapest way to bring a set of pieces home, using only the move
+/// sequences it was given.
 ///
-/// The goal is the `after` [`Mask`]: the pieces that must end in place, and those that must
-/// also be oriented. Pieces outside the mask may end anywhere. Before it searches, the step
-/// checks its `before` mask and returns [`StepError::InvalidStartingState`] if the puzzle does
-/// not meet it.
+/// The goal is the `after` [`Mask`]: the pieces that must end in place, and those that must also be
+/// oriented. Pieces outside the mask may end anywhere. Before it searches, the step checks its
+/// `before` mask and returns [`StepError::InvalidStartingState`] if the puzzle does not meet it.
 ///
-/// The search meets in the middle. A forward search from the puzzle meets a backward search
-/// from the goal, which the step keeps in a memo. The memo keeps growing across solves, so
-/// later solves are faster, and methods that share this step through an `Arc` share its memo.
+/// The search meets in the middle. A forward search from the puzzle meets a backward search from
+/// the goal, which the step keeps in a memo. The memo keeps growing across solves, so later solves
+/// are faster, and methods that share this step through an `Arc` share its memo.
 #[derive(Debug)]
 pub struct SearchStep<P: Puzzle> {
     name: Cow<'static, str>,
@@ -361,9 +359,9 @@ mod tests {
     use super::*;
     use crate::{Cube3x3, Edge};
 
-    /// ZZ's EO Line: the goal names a piece in two edge slots and asks only for orientation in
-    /// the other ten. When the search key left out the flip of a stray edge in a named slot, seed
-    /// 2 ended this step with two edges flipped.
+    /// ZZ's EO Line: the goal names a piece in two edge slots and asks only for orientation in the
+    /// other ten. When the search key left out the flip of a stray edge in a named slot, seed 2
+    /// ended this step with two edges flipped.
     #[test]
     fn a_goal_mixing_named_and_orientation_only_slots_is_met() {
         let eo_line_moves = AlgSet::from_static_parts("F B U R L D");

@@ -1,8 +1,8 @@
 //! The table of every implemented move, built once on first use.
 //!
-//! The nine face and slice moves are written out by hand as a `const`; the
-//! rotations and wide moves are derived from them, and every move's inverse and
-//! double are then generated, all inside the [`LazyLock`] behind [`cube_state`].
+//! The nine face and slice moves are written out by hand as a `const`; the rotations and wide moves
+//! are derived from them, and every move's inverse and double are then generated, all inside the
+//! [`LazyLock`] behind [`cube_state`].
 
 use std::sync::LazyLock;
 
@@ -373,18 +373,17 @@ fn all_moves() -> [MoveInformation; 3 * CLOCKWISE_MOVE_COUNT] {
 
 #[cfg(test)]
 mod tests {
-    //! Tests of the table's own construction: derivation identities and
-    //! modifier consistency. Handedness pins, the facts from the physical cube
-    //! that catch a mirrored base move, live in `tests/api/moves.rs` and go
-    //! through the public queries.
+    //! Tests of the table's own construction: derivation identities and modifier consistency.
+    //! Handedness pins, the facts from the physical cube that catch a mirrored base move, live in
+    //! `tests/api/moves.rs` and go through the public queries.
     use super::*;
 
     fn clockwise(part: MovablePart) -> Cube3x3 {
         cube_state(part, Clockwise)
     }
 
-    // Derivation identities: these pin the derivation, not the base moves.
-    // A mirrored slice mirrors its rotation with it and still passes here.
+    // Derivation identities: these pin the derivation, not the base moves. A mirrored slice mirrors
+    // its rotation with it and still passes here.
 
     fn seq(parts: &[(MovablePart, MoveModifier)]) -> Cube3x3 {
         parts.iter().fold(Cube3x3::default(), |cube, &(p, m)| {
@@ -422,8 +421,8 @@ mod tests {
 
     #[test]
     fn wide_moves_equal_opposite_face_plus_rotation() {
-        // Rw = L x, Uw = D y, Fw = B z: reaches each wide move by a different
-        // route than the table's own derivation (face then parallel slice).
+        // Rw = L x, Uw = D y, Fw = B z: reaches each wide move by a different route than the
+        // table's own derivation (face then parallel slice).
         for (wide, opposite, rotation) in [
             (Face::R, Face::L, Rotation::X),
             (Face::U, Face::D, Rotation::Y),

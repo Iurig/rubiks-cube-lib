@@ -36,14 +36,13 @@ impl<P: Puzzle> Debug for PrunedCombine<P> {
 
 /// One goal of a [`PrunedCombine`]: how many moveset sequences a puzzle is from it.
 pub trait DistanceStep<P: Puzzle>: Debug + Send + Sync {
-    /// How many moveset sequences `puzzle` is from the goal, or `None` if no sequence reaches
-    /// it.
+    /// How many moveset sequences `puzzle` is from the goal, or `None` if no sequence reaches it.
     fn distance_from_moves(&self, puzzle: &P) -> Option<u8>;
 }
 
-/// A goal with a table of how far each state is from it. Every `PrunedGoal` is a
-/// [`DistanceStep`] through the impl below, which is the only code that reads the table, so the
-/// table is always read with the same key it was filled with.
+/// A goal with a table of how far each state is from it. Every `PrunedGoal` is a [`DistanceStep`]
+/// through the impl below, which is the only code that reads the table, so the table is always read
+/// with the same key it was filled with.
 pub trait PrunedGoal<P: Puzzle>: Debug + Send + Sync {
     /// The labels the goal uses: [`ByIdentity`](crate::ByIdentity) when the table must tell pieces
     /// apart, [`ByMembership`](crate::ByMembership) when it only needs to know which slots hold
@@ -88,8 +87,8 @@ impl<P: Puzzle> PrunedCombine<P> {
 }
 
 /// For each pair of sequences `(a, b)` of `moveset`, whether a search should try `b` right after
-/// `a`. It should not when `a b` does no more than something shorter, or than the same pair in
-/// the other order:
+/// `a`. It should not when `a b` does no more than something shorter, or than the same pair in the
+/// other order:
 ///
 /// - `a b` leaves the puzzle as it was (`U U'`), or as one sequence of the moveset does (`U U` is
 ///   `U2`): the shorter path reaches the same state, at a smaller depth.
@@ -97,8 +96,8 @@ impl<P: Puzzle> PrunedCombine<P> {
 ///   with the earlier sequence first is tried.
 ///
 /// Neither rule loses a state. Among the shortest paths to a state, the one that comes first in
-/// moveset order has no pair either rule rejects: the first rule would give a shorter path, and
-/// the second the same path with an earlier sequence first.
+/// moveset order has no pair either rule rejects: the first rule would give a shorter path, and the
+/// second the same path with an earlier sequence first.
 fn may_follow<P: Puzzle>(moveset: &AlgSet<P>) -> Vec<Vec<bool>> {
     let algs = moveset.algs();
     let alone: Vec<P> = algs.iter().map(|alg| P::default().apply(alg)).collect();
@@ -143,8 +142,8 @@ impl<P: Puzzle> Step<P> for PrunedCombine<P> {
         reason = "panics only on a broken invariant, errors only on unsolvable input"
     )]
     fn solve(&self, puzzle: &mut P) -> Result<crate::Solution<P>, crate::StepError> {
-        /// The largest distance any step reports: a lower bound on the moves left, because
-        /// every step must be done at the end. `None` when some step cannot reach its goal.
+        /// The largest distance any step reports: a lower bound on the moves left, because every
+        /// step must be done at the end. `None` when some step cannot reach its goal.
         fn estimate<P: Puzzle>(steps: &[Box<dyn DistanceStep<P>>], puzzle: &P) -> Option<u8> {
             steps.iter().try_fold(0, |max, s| {
                 s.distance_from_moves(puzzle).map(|d| max.max(d))
@@ -153,10 +152,9 @@ impl<P: Puzzle> Step<P> for PrunedCombine<P> {
 
         /// One depth-first pass that never goes past `bound`, counting the sequences already
         /// applied (`depth`) plus the estimate. `last` is the index of the sequence applied just
-        /// before, and `path` holds every move applied so far. `Break` means `path` now
-        /// solves every step. `Continue(Some(f))` is the smallest total over `bound` it
-        /// saw, the next bound to try; `Continue(None)` means no branch can lead to the
-        /// goal.
+        /// before, and `path` holds every move applied so far. `Break` means `path` now solves
+        /// every step. `Continue(Some(f))` is the smallest total over `bound` it saw, the next
+        /// bound to try; `Continue(None)` means no branch can lead to the goal.
         fn search<P: Puzzle>(
             combine: &PrunedCombine<P>,
             last: Option<usize>,
@@ -235,8 +233,8 @@ mod tests {
         AlgSet::from_static_parts("U D F B L R")
     }
 
-    /// Whether `second` may follow `first` in the `may_follow` table of `moveset`, both written
-    /// as one move.
+    /// Whether `second` may follow `first` in the `may_follow` table of `moveset`, both written as
+    /// one move.
     fn follows(moveset: &AlgSet<Cube3x3>, first: &str, second: &str) -> bool {
         let index = |name: &str| {
             moveset

@@ -8,8 +8,8 @@ use crate::{
 /// The Roux method for the 3x3 Rubik's Cube: first block, second block, CMLL, then the last six
 /// edges.
 ///
-/// Each stage can be split into smaller steps. Start from `Roux::default()` and pick the
-/// split of a stage with its method:
+/// Each stage can be split into smaller steps. Start from `Roux::default()` and pick the split of a
+/// stage with its method:
 ///
 /// ```rust
 /// use rubiks_cube::{Roux, roux};
@@ -230,8 +230,8 @@ mod test {
         assert!(!fb.shares_memo_with(&fb_square));
     }
 
-    /// R, U, and F turns never touch the L center, DBL, BL, or DL, so the back square stays
-    /// solved and costs nothing, while F breaks the front square.
+    /// R, U, and F turns never touch the L center, DBL, BL, or DL, so the back square stays solved
+    /// and costs nothing, while F breaks the front square.
     #[test]
     fn split_fb_builds_the_back_square_when_it_is_cheaper() -> Result<(), Box<dyn Error>> {
         let roux = Roux {
@@ -254,9 +254,9 @@ mod test {
         Ok(())
     }
 
-    /// `R U R'` displaces the FR edge and DFR corner but returns DR, BR, and DBR home, and
-    /// neither R nor U touches the first block. So the second block's back square is solved
-    /// and its front square is not.
+    /// `R U R'` displaces the FR edge and DFR corner but returns DR, BR, and DBR home, and neither
+    /// R nor U touches the first block. So the second block's back square is solved and its front
+    /// square is not.
     #[test]
     fn split_sb_builds_the_back_square_when_it_is_cheaper() -> Result<(), Box<dyn Error>> {
         let roux = Roux {
@@ -297,8 +297,8 @@ mod test {
         })
     }
 
-    /// `Method` relies on `is_done` to catch a step that returns without meeting its goal, so
-    /// every step must tell its goal apart from a cube that misses it.
+    /// `Method` relies on `is_done` to catch a step that returns without meeting its goal, so every
+    /// step must tell its goal apart from a cube that misses it.
     #[test]
     fn every_roux_step_is_done_on_a_solved_cube_and_not_on_a_scrambled_one()
     -> Result<(), Box<dyn Error>> {
@@ -319,8 +319,8 @@ mod test {
         Ok(())
     }
 
-    /// Each switch picks its own steps, independently of the others, and the steps stay in
-    /// solving order.
+    /// Each switch picks its own steps, independently of the others, and the steps stay in solving
+    /// order.
     #[test]
     fn options_pick_the_steps_in_solving_order() {
         for options in every_options() {

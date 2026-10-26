@@ -209,10 +209,10 @@ impl FromStr for Move3x3 {
     type Err = ParseMoveError;
     /// One move in notation: a part, then a modifier.
     ///
-    /// The part is an uppercase face letter (`R`), a face letter followed by
-    /// `w` for the wide move (`Rw`), a lowercase face letter meaning the same
-    /// wide move (`r`), a slice (`M E S`), or a rotation (`x y z`). Whatever
-    /// follows the part must be a modifier: nothing, `'`, `2`, or `2'`.
+    /// The part is an uppercase face letter (`R`), a face letter followed by `w` for the wide move
+    /// (`Rw`), a lowercase face letter meaning the same wide move (`r`), a slice (`M E S`), or a
+    /// rotation (`x y z`). Whatever follows the part must be a modifier: nothing, `'`, `2`, or
+    /// `2'`.
     fn from_str(token: &str) -> Result<Self, Self::Err> {
         let mut chars = token.chars();
         let first = chars.next().ok_or(ParseMoveError::EmptyString)?;
@@ -276,8 +276,8 @@ impl From<Move3x3> for Cube3x3 {
     reason = "tests should panic if failed, and return result for `?` convenience"
 )]
 mod tests {
-    //! `Move3x3::ALL` lists every move independently of `Indexed`, so tests can check one
-    //! against the other.
+    //! `Move3x3::ALL` lists every move independently of `Indexed`, so tests can check one against
+    //! the other.
     use super::*;
     use crate::{Algorithm, ParseSequenceError, indexed::assert_round_trips};
     use std::error::Error;

@@ -1,10 +1,9 @@
 use rubiks_cube::{zn::Zn, *};
 use std::error::Error;
 
-// Handedness pins: one fact from the physical cube per base move, stated as
-// "after the move, the piece now at slot X came from Y". These are the only
-// tests that do not depend on how the move table derives one move from
-// another, so they are the ones that catch a mirrored base move.
+// Handedness pins: one fact from the physical cube per base move, stated as "after the move, the
+// piece now at slot X came from Y". These are the only tests that do not depend on how the move
+// table derives one move from another, so they are the ones that catch a mirrored base move.
 
 // Faces: clockwise when looking at that face.
 #[test]

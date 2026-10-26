@@ -1,16 +1,15 @@
-//! Benchmark: two passes of 1000 seeded random solves with default Roux, timed and
-//! memory-tracked per step.
+//! Benchmark: two passes of 1000 seeded random solves with default Roux, timed and memory-tracked
+//! per step.
 //!
 //! Run with `cargo bench --bench solves`; results go to stderr. No logger is installed, so the
 //! solver's log calls print nothing and cost only a level check. The first solve of each pass is
-//! reported apart for timing and memory, but included in move counts. `harness = false`
-//! in `Cargo.toml` makes this file a plain program, so
-//! `cargo bench` works on stable.
+//! reported apart for timing and memory, but included in move counts. `harness = false` in
+//! `Cargo.toml` makes this file a plain program, so `cargo bench` works on stable.
 //!
-//! Memory is heap bytes requested through the global allocator, not what the OS reports.
-//! "Peak" for a step is the highest heap in use during the step, minus the heap in use when it
-//! started: the search's working memory plus whatever the memo grew. "Live" at the end of a
-//! pass is what stays allocated between solves, which is mostly the memos.
+//! Memory is heap bytes requested through the global allocator, not what the OS reports. "Peak" for
+//! a step is the highest heap in use during the step, minus the heap in use when it started: the
+//! search's working memory plus whatever the memo grew. "Live" at the end of a pass is what stays
+//! allocated between solves, which is mostly the memos.
 #![expect(
     clippy::print_stderr,
     reason = "the benchmark reports its results on stderr"
@@ -86,8 +85,8 @@ struct Measured {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let roux = Roux::default();
-    // Pass 2 gets new scrambles but keeps the memos pass 1 grew, so what pass 2 no longer
-    // pays for is memo growth.
+    // Pass 2 gets new scrambles but keeps the memos pass 1 grew, so what pass 2 no longer pays for
+    // is memo growth.
     for (pass, seed) in [(1, 2026), (2, 2027)] {
         eprintln!("pass {pass} (seed {seed}):");
         bench(roux, seed)?;
@@ -151,8 +150,8 @@ fn bench(roux: Roux, seed: u64) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Drives `Method::solve_steps`, timing each `next()` and recording its peak extra heap.
-/// Each `next()` runs exactly one step.
+/// Drives `Method::solve_steps`, timing each `next()` and recording its peak extra heap. Each
+/// `next()` runs exactly one step.
 fn solve_measured(
     roux: Roux,
     cube: &mut Cube3x3,

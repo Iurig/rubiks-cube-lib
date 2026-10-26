@@ -22,8 +22,8 @@ pub mod search_step;
 ///
 /// The crate has two step types: [`SearchStep`](crate::SearchStep) searches for its goal, and
 /// [`Shortest`](crate::Shortest) runs several steps and keeps the shortest result. Implement this
-/// trait to write another kind, such as a step that follows hand-written rules. A step is
-/// `Send + Sync` so that one built step can be shared by many methods through an `Arc`.
+/// trait to write another kind, such as a step that follows hand-written rules. A step is `Send +
+/// Sync` so that one built step can be shared by many methods through an `Arc`.
 pub trait Step<P: Puzzle>: Send + Sync + Debug {
     /// The step's name, as it appears in errors and in the [`Solution`] it returns.
     fn name(&self) -> &str;
@@ -37,8 +37,8 @@ pub trait Step<P: Puzzle>: Send + Sync + Debug {
     /// leaves it. A printed [`Solution`] replays only if every step keeps this promise.
     ///
     /// # Errors
-    /// A [`StepError`] when the step cannot start on `puzzle` or cannot reach its goal. The
-    /// step may leave `puzzle` changed when it fails.
+    /// A [`StepError`] when the step cannot start on `puzzle` or cannot reach its goal. The step
+    /// may leave `puzzle` changed when it fails.
     fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, StepError>;
 
     /// Whether `puzzle` meets this step's pre-requisites. Expensive for expensive-to-solve steps -

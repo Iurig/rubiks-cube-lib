@@ -36,8 +36,8 @@ impl<K: Clone + Eq + Hash> PruneTable<K> {
         self.table.get(state).copied()
     }
 
-    /// Fills the table outward from the keys already in it. Each sequence of `moveset` is one
-    /// step of distance, the same unit [`PrunedCombine`](super::PrunedCombine) searches in.
+    /// Fills the table outward from the keys already in it. Each sequence of `moveset` is one step
+    /// of distance, the same unit [`PrunedCombine`](super::PrunedCombine) searches in.
     pub(crate) fn populate<P: Puzzle>(&mut self, algset: &AlgSet<P>)
     where
         K: Mul<P::Move, Output = K> + Send + Sync,

@@ -5,13 +5,13 @@ use crate::{Puzzle, Solution, Step, StepError};
 /// A step that tries several steps and keeps the shortest working solution.
 ///
 /// Each alternative solves its own copy of the puzzle. Alternatives returning
-/// [`StepError::InvalidStartingState`] are skipped, so `Shortest` also picks whichever
-/// alternatives can start at all. Any other error ends the whole choice. On a tie, the earlier
-/// alternative wins. The solution keeps the name of the alternative that ran, and the puzzle is
-/// left as that alternative left it.
+/// [`StepError::InvalidStartingState`] are skipped, so `Shortest` also picks whichever alternatives
+/// can start at all. Any other error ends the whole choice. On a tie, the earlier alternative wins.
+/// The solution keeps the name of the alternative that ran, and the puzzle is left as that
+/// alternative left it.
 ///
-/// Roux uses it to build either the front or the back square of a block, and then the pair
-/// that square leaves.
+/// Roux uses it to build either the front or the back square of a block, and then the pair that
+/// square leaves.
 ///
 /// [`is_done`](Step::is_done) holds when any alternative's `is_done` holds.
 #[derive(Debug)]
@@ -22,8 +22,8 @@ pub struct Shortest<P: Puzzle> {
 
 impl<P: Puzzle> Shortest<P> {
     /// A choice between `steps`, its name is a simple direct reference to the steps it chooses,
-    /// e.g. `"step1 or step2 or step3"`. The name appears in errors about the choice itself.
-    /// When an alternative runs, the solution names that alternative instead.
+    /// e.g. `"step1 or step2 or step3"`. The name appears in errors about the choice itself. When
+    /// an alternative runs, the solution names that alternative instead.
     #[must_use]
     pub fn new(steps: impl IntoIterator<Item = Arc<dyn Step<P>>>) -> Self {
         let (steps_collected, name) = steps.into_iter().fold(

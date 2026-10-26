@@ -1,11 +1,10 @@
-//! The sticker view of a cube state: which colour shows on each of the 54
-//! facelets, printed as the usual unfolded net.
+//! The sticker view of a cube state: which colour shows on each of the 54 facelets, printed as the
+//! usual unfolded net.
 //!
-//! A facelet is one square on the surface of the cube; a sticker is one face
-//! of a piece. A cube state says which piece sits in each slot and how it is
-//! turned, so it also says which sticker covers each facelet. A sticker is
-//! named by the face it belongs to when solved, so every facelet reads as one
-//! of `U F R B L D`.
+//! A facelet is one square on the surface of the cube; a sticker is one face of a piece. A cube
+//! state says which piece sits in each slot and how it is turned, so it also says which sticker
+//! covers each facelet. A sticker is named by the face it belongs to when solved, so every facelet
+//! reads as one of `U F R B L D`.
 
 use std::fmt::{self, Display};
 
@@ -17,8 +16,8 @@ use super::{
 };
 use crate::{Mask, Piece, Puzzle, piece::index};
 
-/// The colour on each facelet of a [`Cube3x3`], one `[Center; 9]` per face
-/// in [`Center::ALL`] order, each read row by row as in [`Display`].
+/// The colour on each facelet of a [`Cube3x3`], one `[Center; 9]` per face in [`Center::ALL`]
+/// order, each read row by row as in [`Display`].
 ///
 /// ```
 /// use rubiks_cube::Cube3x3;
@@ -44,12 +43,11 @@ pub struct Facelets {
     faces: [[Center; 9]; 6],
 }
 
-/// Which slot and which of its faces each facelet belongs to, one `[_; 9]`
-/// per face in [`Center::ALL`] order, `[U, F, R, B, L, D]`.
+/// Which slot and which of its faces each facelet belongs to, one `[_; 9]` per face in
+/// [`Center::ALL`] order, `[U, F, R, B, L, D]`.
 ///
-/// Each face is read as it is seen in the net below: `U` and `D` with `F`
-/// toward the reader, the four side faces with `U` on top and unfolded left
-/// to right as `L F R B`.
+/// Each face is read as it is seen in the net below: `U` and `D` with `F` toward the reader, the
+/// four side faces with `U` on top and unfolded left to right as `L F R B`.
 ///
 /// ```text
 ///     UUU
@@ -135,12 +133,12 @@ const NET: [[(Piece3x3, Center); 9]; 6] = {
     ]
 };
 
-/// The three faces of a corner slot, clockwise as seen from outside the cube,
-/// starting from its U or D face.
+/// The three faces of a corner slot, clockwise as seen from outside the cube, starting from its U
+/// or D face.
 ///
-/// A piece is named by its home slot, so this is also the order of a corner
-/// piece's stickers, starting from its U or D sticker. A twist of `t` puts
-/// that sticker `t` steps clockwise from the slot's U or D face.
+/// A piece is named by its home slot, so this is also the order of a corner piece's stickers,
+/// starting from its U or D sticker. A twist of `t` puts that sticker `t` steps clockwise from the
+/// slot's U or D face.
 const fn corner_faces(corner: Corner) -> [Center; 3] {
     use Center::{B, D, F, L, R, U};
     match corner {
@@ -155,11 +153,11 @@ const fn corner_faces(corner: Corner) -> [Center; 3] {
     }
 }
 
-/// The two faces of an edge slot, the one that defines its flip first: U or
-/// D when the slot has one, otherwise F or B.
+/// The two faces of an edge slot, the one that defines its flip first: U or D when the slot has
+/// one, otherwise F or B.
 ///
-/// As with corners this is also the sticker order of the edge piece. An edge
-/// is oriented when its first sticker is on the slot's first face.
+/// As with corners this is also the sticker order of the edge piece. An edge is oriented when its
+/// first sticker is on the slot's first face.
 const fn edge_faces(edge: Edge) -> [Center; 2] {
     use Center::{B, D, F, L, R, U};
     match edge {
@@ -187,9 +185,8 @@ fn slot_faces(slot: Piece3x3) -> Vec<Center> {
     }
 }
 
-/// The stickers `piece` shows when it sits in a slot with `orientation`, in
-/// the same order as [`slot_faces`]. `None` when the orientation belongs to
-/// another kind of piece.
+/// The stickers `piece` shows when it sits in a slot with `orientation`, in the same order as
+/// [`slot_faces`]. `None` when the orientation belongs to another kind of piece.
 fn stickers(piece: Piece3x3, orientation: Orientation3x3) -> Option<Vec<Center>> {
     match (piece, orientation) {
         (Piece3x3::Center(c), Orientation3x3::Fixed) => Some(vec![c]),
@@ -207,14 +204,12 @@ fn stickers(piece: Piece3x3, orientation: Orientation3x3) -> Option<Vec<Center>>
     }
 }
 
-/// Where `facelet` falls in [`slot_faces`], or `None` when the slot has no
-/// face there.
+/// Where `facelet` falls in [`slot_faces`], or `None` when the slot has no face there.
 fn facelet_position(slot: Piece3x3, facelet: Center) -> Option<usize> {
     slot_faces(slot).iter().position(|&f| f == facelet)
 }
 
-/// The sticker showing on the `facelet` face of `slot`, or `None` when the
-/// slot has no face there.
+/// The sticker showing on the `facelet` face of `slot`, or `None` when the slot has no face there.
 fn sticker(cube: &Cube3x3, slot: Piece3x3, facelet: Center) -> Option<Center> {
     let position = facelet_position(slot, facelet)?;
     stickers(cube.piece_at(slot), cube.orientation_at(slot))?
@@ -222,12 +217,12 @@ fn sticker(cube: &Cube3x3, slot: Piece3x3, facelet: Center) -> Option<Center> {
         .copied()
 }
 
-/// The facelet position, as in [`slot_faces`], that holds a piece's first
-/// sticker (its U or D sticker for corners, the flip-defining one for edges)
-/// under `orientation`. `None` for centers, which have no orientation.
+/// The facelet position, as in [`slot_faces`], that holds a piece's first sticker (its U or D
+/// sticker for corners, the flip-defining one for edges) under `orientation`. `None` for centers,
+/// which have no orientation.
 ///
-/// Both [`stickers`] rotations move the first sticker to the position equal
-/// to the orientation's value.
+/// Both [`stickers`] rotations move the first sticker to the position equal to the orientation's
+/// value.
 const fn orientation_position(orientation: Orientation3x3) -> Option<usize> {
     match orientation {
         Orientation3x3::Fixed => None,
@@ -236,8 +231,8 @@ const fn orientation_position(orientation: Orientation3x3) -> Option<usize> {
     }
 }
 
-/// The character a [`Mask`] shows on the `facelet` face of `slot`; see
-/// [`Display for Mask<Cube3x3>`](Mask#impl-Display-for-Mask<Cube3x3>).
+/// The character a [`Mask`] shows on the `facelet` face of `slot`; see [`Display for
+/// Mask<Cube3x3>`](Mask#impl-Display-for-Mask<Cube3x3>).
 fn mask_char(mask: &Mask<Cube3x3>, slot: Piece3x3, facelet: Center) -> char {
     let position = facelet_position(slot, facelet)
         .expect("the `const _` block below checks every entry of `NET`");
@@ -291,8 +286,8 @@ impl Cube3x3 {
     }
 }
 
-/// Writes one character per facelet as the unfolded net, `faces` in
-/// [`Center::ALL`] order like [`NET`].
+/// Writes one character per facelet as the unfolded net, `faces` in [`Center::ALL`] order like
+/// [`NET`].
 #[expect(
     clippy::indexing_slicing,
     reason = "`index` of a `Center` is below 6, the length of `faces`"
@@ -380,8 +375,8 @@ impl Display for Mask<Cube3x3> {
     }
 }
 
-/// Every entry of [`NET`] names a face its slot has, sits on the face its row
-/// belongs to, and appears once.
+/// Every entry of [`NET`] names a face its slot has, sits on the face its row belongs to, and
+/// appears once.
 const _: () = {
     const fn same_face(a: Center, b: Center) -> bool {
         a as u8 == b as u8
@@ -511,8 +506,8 @@ mod tests {
         Ok(())
     }
 
-    // `F` carries U stickers to R, R to D, D to L, L to U. It twists the four
-    // F corners and flips the four F edges, so this pins both conventions.
+    // `F` carries U stickers to R, R to D, D to L, L to U. It twists the four F corners and flips
+    // the four F edges, so this pins both conventions.
     #[test]
     fn f_moves_the_ring_around_the_front_face() -> Result<(), Box<dyn Error>> {
         assert_eq!(
@@ -613,8 +608,8 @@ mod tests {
         assert_eq!(goal.to_string(), Cube3x3::default().to_string());
     }
 
-    // Roux's CO asks only that the U corners be oriented: an `o` on the U
-    // facelet of each U corner, nothing anywhere else.
+    // Roux's CO asks only that the U corners be oriented: an `o` on the U facelet of each U corner,
+    // nothing anywhere else.
     #[test]
     fn orientation_only_mask_marks_the_u_facelet_of_each_corner() {
         let u_corners = [Corner::Ubl, Corner::Ubr, Corner::Ufr, Corner::Ufl].map(Piece3x3::Corner);

@@ -13,8 +13,8 @@ use crate::{AlgSet, Indexed, Puzzle, fast_hash::FxSet};
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Labeled<P: Puzzle, L: Marker<P>>(Box<[SlotCondition<P, L>]>);
 
-/// A partly defined puzzle state, usually read as a condition: which pieces must sit in their
-/// home slots, and which slots must hold an oriented piece.
+/// A partly defined puzzle state, usually read as a condition: which pieces must sit in their home
+/// slots, and which slots must hold an oriented piece.
 ///
 /// [`SearchStep`](crate::SearchStep)s use masks for where they start and what they solve. A mask
 /// ignores every piece it does not name.
@@ -116,9 +116,9 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     /// A mask where each piece in `permutations` must sit in its home slot, and the home slot of
     /// each piece in `orientations` must hold an oriented piece.
     ///
-    /// The two lists are independent. A piece only in `orientations` asks that whatever piece
-    /// sits in its slot be oriented, which is how Roux's corner orientation step (`CO`) says
-    /// "orient the last-layer corners, in any order".
+    /// The two lists are independent. A piece only in `orientations` asks that whatever piece sits
+    /// in its slot be oriented, which is how Roux's corner orientation step (`CO`) says "orient the
+    /// last-layer corners, in any order".
     pub fn from_pieces_and_orientations<I1, I2>(permutations: I1, orientations: I2) -> Self
     where
         I1: IntoIterator<Item: Into<P::Piece>>,
@@ -144,10 +144,10 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
             SlotCondition {
                 label: tracked.then_some(L::home(piece)),
                 // A goal built by `from_algset` asks for orientation at a slot exactly when every
-                // piece the moveset carries through it keeps its orientation, so the condition at
-                // a piece's home says whether that piece's orientation matters, wherever it sits.
-                // This holds as long as the search moveset never carries a piece whose
-                // orientation is free into a slot that asks for one.
+                // piece the moveset carries through it keeps its orientation, so the condition at a
+                // piece's home says whether that piece's orientation matters, wherever it sits.
+                // This holds as long as the search moveset never carries a piece whose orientation
+                // is free into a slot that asks for one.
                 orient: (tracked || goal.condition(piece).orient.is_some())
                     .then(|| puzzle.orientation_at(slot)),
             }
@@ -164,8 +164,8 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
     }
 
     /// This mask carried along by `puzzle`: each slot takes the condition of the slot its piece
-    /// came from, so labels and orientation requirements travel with the pieces. Applying moves
-    /// one at a time with `*` gives the same result as composing once with their product.
+    /// came from, so labels and orientation requirements travel with the pieces. Applying moves one
+    /// at a time with `*` gives the same result as composing once with their product.
     pub(crate) fn composed_with(&self, puzzle: &P) -> Self {
         Self::from_fn(|slot| {
             let source = self.condition(puzzle.piece_at(slot));
@@ -176,12 +176,12 @@ impl<P: Puzzle, L: Marker<P>> Labeled<P, L> {
         })
     }
 
-    /// A mask where each `(slot, label)` in `labels` asks for that label in that slot, and the
-    /// home slot of each piece in `orientations` must hold an oriented piece.
+    /// A mask where each `(slot, label)` in `labels` asks for that label in that slot, and the home
+    /// slot of each piece in `orientations` must hold an oriented piece.
     ///
-    /// The two lists are independent. A piece only in `orientations` asks that whatever piece
-    /// sits in its slot be oriented, which is how Roux's corner orientation step (`CO`) says
-    /// "orient the last-layer corners, in any order".
+    /// The two lists are independent. A piece only in `orientations` asks that whatever piece sits
+    /// in its slot be oriented, which is how Roux's corner orientation step (`CO`) says "orient the
+    /// last-layer corners, in any order".
     pub fn from_labels_and_orientations<I1, I2>(labels: I1, orientations: I2) -> Self
     where
         I1: IntoIterator<Item = (P::Piece, L::Label)>,
@@ -345,8 +345,8 @@ mod test {
 
     #[test]
     fn the_key_keeps_every_orientation_the_goal_moveset_preserves_wherever_the_piece_sits() {
-        // `U R L` flips no edge, so every edge's flip decides whether the goal is met, including
-        // a stray edge parked in DF or DB, the two edge slots where the goal names a piece.
+        // `U R L` flips no edge, so every edge's flip decides whether the goal is met, including a
+        // stray edge parked in DF or DB, the two edge slots where the goal names a piece.
         let goal = PieceSet::from_algset(&AlgSet::from_static_parts("U R L"));
         for cube in random_states() {
             let key = Mask::filter_by_piece(&cube, &goal);

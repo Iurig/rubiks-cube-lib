@@ -10,8 +10,8 @@ use crate::{
 /// A collection of move sequences, each applied as one unit: a single move, or a whole algorithm.
 ///
 /// For the cube, build one from notation text with [`from_parts`](Self::from_parts),
-/// [`from_str`](std::str::FromStr), or [`from_moves`](Self::from_moves), and join
-/// several with [`combined_with`](Self::combined_with).
+/// [`from_str`](std::str::FromStr), or [`from_moves`](Self::from_moves), and join several with
+/// [`combined_with`](Self::combined_with).
 ///
 /// ```
 /// use std::str::FromStr;
@@ -25,10 +25,10 @@ use crate::{
 /// # }
 /// ```
 ///
-/// Two collections with the same sequences are equal and hash alike, whatever order the
-/// sequences were given in and however often each was repeated.
-// Every constructor goes through `FromIterator`, which sorts and dedups, so the derived
-// `PartialEq` and `Hash` compare the sequences as a set.
+/// Two collections with the same sequences are equal and hash alike, whatever order the sequences
+/// were given in and however often each was repeated.
+// Every constructor goes through `FromIterator`, which sorts and dedups, so the derived `PartialEq`
+// and `Hash` compare the sequences as a set.
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct AlgSet<P: Puzzle>(Arc<[Algorithm<P>]>);
 
@@ -48,8 +48,8 @@ impl<P: Puzzle> AlgSet<P> {
     }
     /// Every sequence of either collection, each listed once.
     ///
-    /// The order of the sequences is not kept, and a sequence in both collections, or twice in
-    /// one, appears once.
+    /// The order of the sequences is not kept, and a sequence in both collections, or twice in one,
+    /// appears once.
     #[must_use]
     pub fn combined_with(&self, other: &Self) -> Self {
         self.0.iter().chain(other.0.iter()).cloned().collect()
@@ -95,9 +95,9 @@ impl<'a, P: Puzzle> IntoIterator for &'a AlgSet<P> {
     }
 }
 
-/// One sequence per line of `text`, such as an algorithm set. Lines with no moves, such as
-/// blank or comment-only lines, are skipped. A line written twice is listed once, and the
-/// order of the lines is not kept.
+/// One sequence per line of `text`, such as an algorithm set. Lines with no moves, such as blank or
+/// comment-only lines, are skipped. A line written twice is listed once, and the order of the lines
+/// is not kept.
 ///
 /// # Errors
 /// If `text` contains an invalid move. The error's line counts lines of the whole `text`.
@@ -120,8 +120,8 @@ impl AlgSet<Cube3x3> {
     /// Every modifier of each part named in `text`, one move per sequence.
     ///
     /// The modifier in the text does not matter: `"U R M r"` and `"U' R2 M r'"` both give the
-    /// clockwise, counterclockwise, and double turn of `U`, `R`, `M`, and `r`, twelve moves.
-    /// A part named twice is listed once, and the order of the parts is not kept.
+    /// clockwise, counterclockwise, and double turn of `U`, `R`, `M`, and `r`, twelve moves. A part
+    /// named twice is listed once, and the order of the parts is not kept.
     ///
     /// # Errors
     /// If `text` contains an invalid move.

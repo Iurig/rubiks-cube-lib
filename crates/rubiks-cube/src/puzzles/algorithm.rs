@@ -28,8 +28,8 @@ use crate::{Inv, ParseSequenceError, Puzzle};
 #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct Algorithm<P: Puzzle>(Vec<P::Move>);
 
-/// The moves in reverse order, each inverted: applying an algorithm and then its inverse leaves
-/// any state unchanged.
+/// The moves in reverse order, each inverted: applying an algorithm and then its inverse leaves any
+/// state unchanged.
 impl<P: Puzzle> Inv for Algorithm<P> {
     fn inv(self) -> Self {
         self.into_iter().rev().map(Inv::inv).collect()

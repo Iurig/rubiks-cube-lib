@@ -51,8 +51,8 @@ impl<P: Puzzle> BfsMemo<P> {
         free_possible_sequences: &AlgSet<P>,
     ) {
         // Close the level under the free sequences before any costly one runs: a state a free
-        // sequence reaches costs the same as the level, and a costly sequence that reached it
-        // first would memorize it, and everything after it, one level too deep.
+        // sequence reaches costs the same as the level, and a costly sequence that reached it first
+        // would memorize it, and everything after it, one level too deep.
         let mut i = 0;
         while let Some((mask, p)) = self.to_deepen.get(i).cloned() {
             i += 1;
@@ -209,8 +209,8 @@ mod tests {
         );
     }
 
-    /// The goal tracks the FR edge wherever it goes, orientation included. After `F` another
-    /// edge sits in the FR slot, and its orientation is not part of the goal.
+    /// The goal tracks the FR edge wherever it goes, orientation included. After `F` another edge
+    /// sits in the FR slot, and its orientation is not part of the goal.
     #[test]
     fn mask_ignores_orientation_of_other_pieces_in_a_goal_pieces_home_slot() {
         let fr = Piece3x3::Edge(Edge::Fr);

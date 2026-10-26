@@ -180,9 +180,9 @@ impl Cube3x3 {
     ///
     /// # Errors
     ///
-    /// Errors when a whitespace separated &str outside of comments is not parseable
-    /// as a move; the error names that &str and its line and position, both counted
-    /// from 1, using the type [`ParseSequenceError`]
+    /// Errors when a whitespace separated &str outside of comments is not parseable as a move; the
+    /// error names that &str and its line and position, both counted from 1, using the type
+    /// [`ParseSequenceError`]
     pub fn apply_moves(&self, moves: &str) -> Result<Self, ParseSequenceError> {
         Ok(self.apply(&moves.parse()?))
     }
@@ -228,8 +228,8 @@ impl Cube3x3 {
     /// Whether some move sequence produces this state from the solved cube.
     ///
     /// Checks for four invariants: that centers are solved with respect to each other, that edge
-    /// flips are even, that corner twists are divisible by 3, and that an even number of
-    /// 2-swaps reaches the permutation of the pieces.
+    /// flips are even, that corner twists are divisible by 3, and that an even number of 2-swaps
+    /// reaches the permutation of the pieces.
     #[must_use]
     pub fn is_reachable(&self) -> bool {
         self.twists_cancel()
@@ -238,29 +238,28 @@ impl Cube3x3 {
             && self.centers_form_a_rotation()
     }
 
-    /// Corner twists sum to zero mod 3: a face turn twists corners by amounts
-    /// that cancel, so a lone twisted corner is unreachable.
+    /// Corner twists sum to zero mod 3: a face turn twists corners by amounts that cancel, so a
+    /// lone twisted corner is unreachable.
     fn twists_cancel(&self) -> bool {
         self.corners().orientation_sum() == Zn::ZERO
     }
 
-    /// Edge flips sum to zero mod 2: a face turn flips an even number of
-    /// edges, so a lone flipped edge is unreachable.
+    /// Edge flips sum to zero mod 2: a face turn flips an even number of edges, so a lone flipped
+    /// edge is unreachable.
     fn flips_cancel(&self) -> bool {
         self.edges().orientation_sum() == Zn::ZERO
     }
 
-    /// The permutation parities of corners, edges, and centers sum to zero
-    /// mod 2. A face turn is odd on corners and edges; a slice turn is odd on
-    /// edges and centers. Every move flips exactly two of the three, so the
-    /// sum stays zero. A two-way corner/edge check would reject a lone `M`.
+    /// The permutation parities of corners, edges, and centers sum to zero mod 2. A face turn is
+    /// odd on corners and edges; a slice turn is odd on edges and centers. Every move flips exactly
+    /// two of the three, so the sum stays zero. A two-way corner/edge check would reject a lone
+    /// `M`.
     fn parities_cancel(&self) -> bool {
         self.corners().parity() + self.edges().parity() + self.centers().parity() == Zn::ZERO
     }
 
-    /// The centers sit as one of the 24 whole-cube rotations. A 3-cycle of
-    /// centers is an even permutation, so the parity sum accepts it, yet no
-    /// move sequence produces it.
+    /// The centers sit as one of the 24 whole-cube rotations. A 3-cycle of centers is an even
+    /// permutation, so the parity sum accepts it, yet no move sequence produces it.
     fn centers_form_a_rotation(&self) -> bool {
         self.rotated_until_solved_centers().is_some()
     }
@@ -338,8 +337,8 @@ mod tests {
 
     #[test]
     fn mul_carries_orientation_along_with_the_piece() -> Result<(), Box<dyn Error>> {
-        // Pre-twist the piece at UFR, then apply R: that piece lands at UBR and
-        // its twist is added to the twist R gives the UBR slot.
+        // Pre-twist the piece at UFR, then apply R: that piece lands at UBR and its twist is added
+        // to the twist R gives the UBR slot.
         let r = Cube3x3::from_moves("R")?;
         let mut twisted = Cube3x3::default();
         twisted.corners.orientation[Corner::Ufr as usize] = Zn::new(1);

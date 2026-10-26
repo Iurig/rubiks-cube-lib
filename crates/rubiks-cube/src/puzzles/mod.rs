@@ -14,8 +14,8 @@ pub mod label;
 
 /// A twisty puzzle the solver can work on. [`Cube3x3`](crate::Cube3x3) is the only one so far.
 ///
-/// Import this trait to call its methods on a cube, such as [`is_solved`](Puzzle::is_solved).
-/// A puzzle state is a value; applying a move with `*` returns the new state.
+/// Import this trait to call its methods on a cube, such as [`is_solved`](Puzzle::is_solved). A
+/// puzzle state is a value; applying a move with `*` returns the new state.
 ///
 /// # Laws
 ///
@@ -68,8 +68,8 @@ pub trait Puzzle:
     /// The piece sitting in `slot` now. `piece_at(slot) == slot` when that piece is home.
     fn piece_at(&self, slot: Self::Piece) -> Self::Piece;
 
-    /// The orientation of the piece in `slot`. It is oriented when this equals the solved
-    /// state's orientation at `slot`.
+    /// The orientation of the piece in `slot`. It is oriented when this equals the solved state's
+    /// orientation at `slot`.
     fn orientation_at(&self, slot: Self::Piece) -> Self::Orientation;
 
     /// A random scrambled state. The same seed always gives the same state.

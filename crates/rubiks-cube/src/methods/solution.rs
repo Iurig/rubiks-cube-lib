@@ -4,8 +4,8 @@ use crate::{Algorithm, ParseSequenceError, puzzles::Puzzle};
 
 /// The moves a method found, as one segment per step, in solving order.
 ///
-/// Each segment is the moves a step applied and the name of the step. `Display` prints one line
-/// per segment: the moves in notation, then a tab, `//`, and the step name. That text is valid
+/// Each segment is the moves a step applied and the name of the step. `Display` prints one line per
+/// segment: the moves in notation, then a tab, `//`, and the step name. That text is valid
 /// notation, so a scramble followed by its printed solution replays to the solved state:
 ///
 /// ```text
@@ -84,8 +84,8 @@ impl<P: Puzzle> Solution<P> {
         self.step_solutions.iter()
     }
 
-    /// The number of moves in every segment, each move counting one whatever its part or
-    /// modifier (slice turn metric). `M`, `Rw`, `y`, and `U2` each count one.
+    /// The number of moves in every segment, each move counting one whatever its part or modifier
+    /// (slice turn metric). `M`, `Rw`, `y`, and `U2` each count one.
     #[must_use]
     pub fn move_count(&self) -> usize {
         self.step_solutions

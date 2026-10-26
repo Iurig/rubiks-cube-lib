@@ -1,6 +1,6 @@
 //! The kociemba solves. They build the prune tables, so they live here rather than in the lib's
-//! unit tests: a broken hash then fails the fast unit tests first, and cargo stops before any
-//! table is built.
+//! unit tests: a broken hash then fails the fast unit tests first, and cargo stops before any table
+//! is built.
 
 use rubiks_cube::zn::Zn;
 use rubiks_cube::*;
@@ -22,8 +22,8 @@ fn phase<'a>(technique: &'a Technique<Cube3x3>, name: &str) -> &'a dyn Step<Cube
         .unwrap_or_else(|| panic!("kociemba has no step called {name}"))
 }
 
-/// Phase 1's goal written from the definition, independent of the prune tables: every
-/// corner twist and edge flip is zero, and the four E-slice edges sit in E-slice slots.
+/// Phase 1's goal written from the definition, independent of the prune tables: every corner twist
+/// and edge flip is zero, and the four E-slice edges sit in E-slice slots.
 fn in_domino_subgroup(puzzle: &Cube3x3) -> bool {
     Piece3x3::all()
         .filter(|p| matches!(p, Piece3x3::Corner(_)))
@@ -62,8 +62,8 @@ fn phase_2_leaves_a_solved_cube_alone() {
     assert_eq!(cube, Cube3x3::default());
 }
 
-/// The search is iterative deepening with lower bounds, so it never returns more moves than
-/// the sequence that made the state.
+/// The search is iterative deepening with lower bounds, so it never returns more moves than the
+/// sequence that made the state.
 #[test]
 fn phase_2_solves_a_domino_state_in_at_most_its_length() {
     let start = Cube3x3::from_moves("R2 U F2 D' L2 U2 B2 D R2 U'").unwrap();

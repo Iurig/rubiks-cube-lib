@@ -1,8 +1,8 @@
 use rubiks_cube::*;
 use std::error::Error;
 
-/// A reconstruction is a scramble followed by a solution. The scrambled state
-/// must be reachable, and the final state must be reachable and solved.
+/// A reconstruction is a scramble followed by a solution. The scrambled state must be reachable,
+/// and the final state must be reachable and solved.
 fn assert_reconstruction(scramble: &str, solution: &str) -> Result<(), Box<dyn Error>> {
     let scrambled = Cube3x3::from_moves(scramble)?;
     assert!(

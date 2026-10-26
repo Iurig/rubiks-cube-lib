@@ -2,8 +2,8 @@ use crate::IMPLEMENTED_MOVES;
 use rubiks_cube::*;
 use std::error::Error;
 
-/// `Puzzle`'s composition law: a move does the same thing to every state, so what it does to
-/// the solved state says where every piece of any state goes, and how it turns.
+/// `Puzzle`'s composition law: a move does the same thing to every state, so what it does to the
+/// solved state says where every piece of any state goes, and how it turns.
 #[test]
 fn every_move_acts_on_any_state_as_it_acts_on_the_solved_state() {
     for seed in 0..20 {
@@ -90,8 +90,8 @@ fn inverse_of_product_reverses_order() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn random_words_stay_reachable_and_undo_cleanly() -> Result<(), Box<dyn Error>> {
-    // Each pair is a modifier and its inverse; `2` and `2'` reach the same
-    // state, so inverting a double is the other spelling of it.
+    // Each pair is a modifier and its inverse; `2` and `2'` reach the same state, so inverting a
+    // double is the other spelling of it.
     const MODIFIER_PAIRS: [(&str, &str); 2] = [("", "'"), ("2", "2'")];
     fastrand::seed(11);
     for _ in 0..50 {

@@ -83,10 +83,10 @@ pub(crate) use set_options;
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __chain_steps {
-    // The chain starts from the pieces `moves` cannot touch, which must already be solved.
-    // `free` sequences, such as an AUF, may be added to every step's solution without counting
-    // toward its depth. This rule must come before the one without `free`, whose `$stages` would
-    // otherwise swallow `free: ...` as a stage.
+    // The chain starts from the pieces `moves` cannot touch, which must already be solved. `free`
+    // sequences, such as an AUF, may be added to every step's solution without counting toward its
+    // depth. This rule must come before the one without `free`, whose `$stages` would otherwise
+    // swallow `free: ...` as a stage.
     (moves: $moves:expr, goal: $goal:expr, free: $free:expr, $($stages:tt)+) => {{
         let moves: &$crate::AlgSet<$crate::Cube3x3> = $moves;
         let goal: &$crate::AlgSet<$crate::Cube3x3> = $goal;
@@ -268,8 +268,8 @@ impl Step<Cube3x3> for LastLayer {
     }
 
     fn is_done(&self, puzzle: &Cube3x3) -> bool {
-        // U moves never change the orientation of U-layer pieces, so only the
-        // permutation needs an AUF.
+        // U moves never change the orientation of U-layer pieces, so only the permutation needs an
+        // AUF.
         self.oriented.applies_to(puzzle) && self.post_auf(puzzle).is_some()
     }
 

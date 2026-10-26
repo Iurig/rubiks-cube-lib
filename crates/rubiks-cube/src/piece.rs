@@ -38,11 +38,11 @@ where
     const {
         assert!(std::mem::size_of::<P>() == 1);
     }
-    // SAFETY: `Piece` is sealed, and the only implementations come from `new_piece!`, which
-    // makes a fieldless `#[repr(u8)]` enum. Such an enum is one byte holding its discriminant,
-    // so reading that byte is in bounds and gives an initialized `u8`. `Sealed` alone does not
-    // check the layout; the macro does, and the size assertion above catches a non-macro impl
-    // whose type is not one byte.
+    // SAFETY: `Piece` is sealed, and the only implementations come from `new_piece!`, which makes a
+    // fieldless `#[repr(u8)]` enum. Such an enum is one byte holding its discriminant, so reading
+    // that byte is in bounds and gives an initialized `u8`. `Sealed` alone does not check the
+    // layout; the macro does, and the size assertion above catches a non-macro impl whose type is
+    // not one byte.
     unsafe { (&raw const piece).cast::<u8>().read() as usize }
 }
 
@@ -99,20 +99,18 @@ where
 
     /// The piece now sitting in `slot`.
     ///
-    /// Slots and pieces share a type: a piece is named by its home slot. So
-    /// `piece_at(Ubr) == Ufr` reads "the UFR piece sits in the UBR slot", and
-    /// the returned piece can be fed back in as the next slot when tracing a
-    /// cycle, the way blind memorization does.
+    /// Slots and pieces share a type: a piece is named by its home slot. So `piece_at(Ubr) == Ufr`
+    /// reads "the UFR piece sits in the UBR slot", and the returned piece can be fed back in as the
+    /// next slot when tracing a cycle, the way blind memorization does.
     #[must_use]
     pub const fn piece_at(&self, slot: P) -> P {
         self.permutation[index(slot)]
     }
 
-    /// The orientation held at `slot`: the twist or flip of the piece sitting
-    /// there, relative to the slot.
+    /// The orientation held at `slot`: the twist or flip of the piece sitting there, relative to
+    /// the slot.
     ///
-    /// Centers have no orientation, so on a center configuration this always
-    /// returns zero.
+    /// Centers have no orientation, so on a center configuration this always returns zero.
     #[must_use]
     pub const fn orientation_at(&self, slot: P) -> Zn<O> {
         self.orientation[index(slot)]
@@ -184,8 +182,8 @@ where
         resp
     }
 
-    /// A random permutation with random orientations. The orientations may not sum to zero and
-    /// the permutation parity is not fixed, so the caller repairs both.
+    /// A random permutation with random orientations. The orientations may not sum to zero and the
+    /// permutation parity is not fixed, so the caller repairs both.
     pub(crate) fn random_state(rng: &mut fastrand::Rng) -> Self {
         Self {
             permutation: random_permutation(rng),

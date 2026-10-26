@@ -7,10 +7,9 @@ use std::sync::{
 
 use crate::{Algorithm, Cube3x3, Puzzle, Solution, Step, StepError};
 
-/// A step whose result is fixed in advance. `solve` either returns the error from `error`,
-/// or applies `moves` to the cube and returns them as one segment named after the step.
-/// `is_done` reports `done`, whatever the cube. It counts how many times `solve` ran; clones
-/// share the count.
+/// A step whose result is fixed in advance. `solve` either returns the error from `error`, or
+/// applies `moves` to the cube and returns them as one segment named after the step. `is_done`
+/// reports `done`, whatever the cube. It counts how many times `solve` ran; clones share the count.
 #[derive(Clone, Debug)]
 pub struct FixedStep {
     name: &'static str,

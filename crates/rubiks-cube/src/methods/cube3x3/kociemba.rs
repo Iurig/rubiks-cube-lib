@@ -33,8 +33,8 @@ fn face_turns() -> AlgSet<Cube3x3> {
         .collect()
 }
 
-/// Phase 2's moveset, the moves that keep a cube in the domino subgroup: any turn of U or D,
-/// and half turns of the other faces.
+/// Phase 2's moveset, the moves that keep a cube in the domino subgroup: any turn of U or D, and
+/// half turns of the other faces.
 fn domino_turns() -> AlgSet<Cube3x3> {
     Move3x3::all()
         .filter(|m| match m.part() {
@@ -159,8 +159,8 @@ fn phase_2() -> PrunedCombine<Cube3x3> {
     )
 }
 
-/// Kociemba's two-phase method.
-/// The first call builds the pruning tables, which takes a few seconds.
+/// Kociemba's two-phase method. The first call builds the pruning tables, which takes a few
+/// seconds.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub struct Kociemba;
 
@@ -178,8 +178,8 @@ mod tests {
     use super::*;
     use crate::{Orientation3x3, Puzzle, zn::Zn};
 
-    /// Phase 1's goal written from the definition, independent of the prune tables: every
-    /// corner twist and edge flip is zero, and the four E-slice edges sit in E-slice slots.
+    /// Phase 1's goal written from the definition, independent of the prune tables: every corner
+    /// twist and edge flip is zero, and the four E-slice edges sit in E-slice slots.
     fn in_domino_subgroup(puzzle: &Cube3x3) -> bool {
         Piece3x3::all()
             .filter(|p| matches!(p, Piece3x3::Corner(_)))

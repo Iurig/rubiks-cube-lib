@@ -45,8 +45,8 @@ impl Hasher for FxHasher {
 pub type FxMap<K, V> = std::collections::HashMap<K, V, BuildHasherDefault<FxHasher>>;
 pub type FxSet<K> = std::collections::HashSet<K, BuildHasherDefault<FxHasher>>;
 
-/// Equal keys must hash equally. Hash values are not portable, so these compare two hashes
-/// with each other and look keys up in a map, never against a constant.
+/// Equal keys must hash equally. Hash values are not portable, so these compare two hashes with
+/// each other and look keys up in a map, never against a constant.
 #[cfg(test)]
 mod tests {
     use std::hash::BuildHasher;

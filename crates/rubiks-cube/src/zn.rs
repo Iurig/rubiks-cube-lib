@@ -7,9 +7,9 @@ use std::{
 
 /// Integers mod `N`, stored as the representative in `0..N`.
 ///
-/// The representative fits a byte: a twist is at most 2 and a flip at most
-/// 1, and `N` is capped at 256 so any modulus this crate could want still
-/// fits. The public face works in `usize`; the byte never leaks.
+/// The representative fits a byte: a twist is at most 2 and a flip at most 1, and `N` is capped at
+/// 256 so any modulus this crate could want still fits. The public face works in `usize`; the byte
+/// never leaks.
 #[derive(Clone, Copy, Default, Eq, Hash, PartialEq)]
 pub struct Zn<const N: usize>(u8);
 

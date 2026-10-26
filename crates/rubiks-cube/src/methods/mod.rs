@@ -23,8 +23,8 @@ use crate::{
 /// The ordered list of [`Step`]s that a [`Method`] runs, built by
 /// [`to_technique`](Method::to_technique) from the method's options.
 ///
-/// [`Roux`](crate::Roux) gives the Roux steps for [`Cube3x3`](crate::Cube3x3). Any other list
-/// of steps works too, and the steps can be of different types.
+/// [`Roux`](crate::Roux) gives the Roux steps for [`Cube3x3`](crate::Cube3x3). Any other list of
+/// steps works too, and the steps can be of different types.
 ///
 /// ```rust
 /// use rubiks_cube::{Cube3x3, Method, Puzzle, Roux};
@@ -84,8 +84,8 @@ impl<P: Puzzle> TechniqueBuilder<P> {
     ///
     /// It constructs the step's goal to be the next step's
     /// [`assumed_solved`](StepBuilder::assumed_solved) and its own
-    /// [`assumed_solved`](StepBuilder::assumed_solved) based on
-    /// its [`allowed_sequences`](StepBuilder::allowed_sequences). If either can't be constructed
+    /// [`assumed_solved`](StepBuilder::assumed_solved) based on its
+    /// [`allowed_sequences`](StepBuilder::allowed_sequences). If either can't be constructed
     /// because the [`StepBuilder`] doesn't provide one, it must be provided.
     pub fn then(&mut self, step: impl StepBuilder<P> + 'static) -> &mut Self {
         self.step_builders.push(Arc::new(step));
@@ -253,8 +253,8 @@ impl<P: Puzzle> Technique<P> {
 }
 
 /// Runs `steps` in order on `puzzle`, one per `next()`. Before each step it checks
-/// [`can_solve`](Step::can_solve), after it [`is_done`](Step::is_done), and it yields nothing
-/// after the first error.
+/// [`can_solve`](Step::can_solve), after it [`is_done`](Step::is_done), and it yields nothing after
+/// the first error.
 fn run_steps<P: Puzzle>(
     steps: impl IntoIterator<Item = Arc<dyn Step<P>>>,
     puzzle: &mut P,
@@ -294,8 +294,8 @@ pub trait Method<P: Puzzle>: Debug {
     /// collected.
     ///
     /// # Errors
-    /// The first [`SolveError`]. No later step runs, and `puzzle` is left as the failing step
-    /// left it.
+    /// The first [`SolveError`]. No later step runs, and `puzzle` is left as the failing step left
+    /// it.
     fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, SolveError>
     where
         Self: Sized,
@@ -303,12 +303,12 @@ pub trait Method<P: Puzzle>: Debug {
         self.solve_steps(puzzle).collect()
     }
 
-    /// Solves `puzzle` one step at a time. Each call to `next()` runs the next step and yields
-    /// its solution, so a caller can time a step or report progress before the next one runs.
+    /// Solves `puzzle` one step at a time. Each call to `next()` runs the next step and yields its
+    /// solution, so a caller can time a step or report progress before the next one runs.
     ///
-    /// After each step the iterator checks the step's [`is_done`](Step::is_done). The first
-    /// failure is yielded as an `Err`, and the iterator yields nothing after it. `puzzle` is
-    /// left as the last step that ran left it.
+    /// After each step the iterator checks the step's [`is_done`](Step::is_done). The first failure
+    /// is yielded as an `Err`, and the iterator yields nothing after it. `puzzle` is left as the
+    /// last step that ran left it.
     ///
     /// ```rust
     /// use rubiks_cube::{Cube3x3, Method, Roux};
