@@ -1,9 +1,8 @@
 [workspace]
 members = [
-  "crates/rubiks-cube",
-  "crates/rubiks-cube-cli",
-  "crates/twisty-puzzles-py",
-  "tools/cargo-bin",
+    "crates/rubiks-cube",
+    "crates/rubiks-cube-cli",
+    "crates/twisty-puzzles-py",
 ]
 resolver = "3"
 
@@ -12,10 +11,6 @@ edition = "2024"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/Iurig/rubiks"
-
-[workspace.metadata.bin]
-cargo-binstall = { version = "1.26.1" }
-dprint = { version = "0.64.3" }
 
 [profile.dev]
 debug-assertions = true
