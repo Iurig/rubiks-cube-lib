@@ -69,4 +69,4 @@ unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
 unnameable_types = "warn"
 
 [target.'cfg(kani_ra)'.dependencies]
-kani = { git = "https://github.com/model-checking/kani" }
+kani = { git = "https://github.com/model-checking/kani", tag = "kani-0.68.0" }

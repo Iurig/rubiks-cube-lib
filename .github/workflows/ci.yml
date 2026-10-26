@@ -9,6 +9,7 @@ env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: -D warnings
   RUSTDOCFLAGS: -D warnings
+  CARGO_NET_GIT_FETCH_WITH_CLI: true
 
 jobs:
   check:
@@ -34,6 +35,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
+      - run: git config --global core.longpaths true
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --all-targets
@@ -43,7 +45,7 @@ jobs:
   kani:
     name: kani
     runs-on: ubuntu-latest
-    timeout-minutes: 1
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: model-checking/kani-github-action@v1

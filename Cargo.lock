@@ -350,7 +350,7 @@ dependencies = [
 [[package]]
 name = "kani"
 version = "0.68.0"
-source = "git+https://github.com/model-checking/kani#72e1f2a7f707002271fec0790334d2c9f2d44429"
+source = "git+https://github.com/model-checking/kani?tag=kani-0.68.0#0d2328a93f0e0ff66132d6bfa1a7d884877cf862"
 dependencies = [
  "kani_core",
  "kani_macros",
@@ -359,7 +359,7 @@ dependencies = [
 [[package]]
 name = "kani_core"
 version = "0.68.0"
-source = "git+https://github.com/model-checking/kani#72e1f2a7f707002271fec0790334d2c9f2d44429"
+source = "git+https://github.com/model-checking/kani?tag=kani-0.68.0#0d2328a93f0e0ff66132d6bfa1a7d884877cf862"
 dependencies = [
  "kani_macros",
 ]
@@ -367,7 +367,7 @@ dependencies = [
 [[package]]
 name = "kani_macros"
 version = "0.68.0"
-source = "git+https://github.com/model-checking/kani#72e1f2a7f707002271fec0790334d2c9f2d44429"
+source = "git+https://github.com/model-checking/kani?tag=kani-0.68.0#0d2328a93f0e0ff66132d6bfa1a7d884877cf862"
 dependencies = [
  "proc-macro2",
  "proc-macro2-diagnostics",
