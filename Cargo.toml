@@ -22,3 +22,10 @@ debug-assertions = true
 incremental = true
 opt-level = 1
 overflow-checks = true
+
+[workspace.metadata.kani.flags]
+fail-fast = true
+output-format = "terse"
+
+[workspace.metadata.kani.unstable]
+uninit-checks = true

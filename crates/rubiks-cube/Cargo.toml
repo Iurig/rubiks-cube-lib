@@ -1,13 +1,13 @@
 [package]
-name = "rubiks-cube"
-version = "0.1.0"
 categories = ["games", "simulation"]
+description = "A twisty puzzle library that supports human solving methods"
 edition.workspace = true
 keywords = ["CFOP", "Roux", "cube", "rubiks", "twisty-puzzle"]
 license.workspace = true
+name = "rubiks-cube"
 readme.workspace = true
 repository.workspace = true
-description = "A twisty puzzle library that supports human solving methods"
+version = "0.1.0"
 
 [dependencies]
 dyn-clone = "1.0.20"
@@ -65,4 +65,8 @@ unwrap_used = "warn"
 [lints.rust]
 missing_debug_implementations = "warn"
 missing_docs = "warn"
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
 unnameable_types = "warn"
+
+[target.'cfg(kani_ra)'.dependencies]
+kani = { git = "https://github.com/model-checking/kani" }

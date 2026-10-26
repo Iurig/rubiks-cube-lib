@@ -17,6 +17,7 @@ macro_rules! new_piece {
         $(#[$attr])*
         #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
         #[repr(u8)]
+        #[cfg_attr(kani, derive(kani::Arbitrary))]
         pub enum $type_name {
             $(
                 #[doc = concat!("The `", stringify!($p), "` piece, and the slot it is solved in.")]
@@ -26,7 +27,7 @@ macro_rules! new_piece {
         impl Indexed for $type_name {
             const COUNT: usize = $amount;
             fn index(self) -> usize {
-                const { assert!(std::mem::size_of::<Self>() == 1) }
+                const { assert!(std::mem::size_of::<Self>() == 1); }
                 self as usize
             }
             fn from_index(index: usize) -> Self {
@@ -81,6 +82,7 @@ pub type Face = Center;
 /// Any piece of the 3×3 cube: the cube's [`Puzzle::Piece`](crate::Puzzle::Piece) type. Masks and
 /// piece queries on a [`Cube3x3`](crate::Cube3x3) take this type.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(kani, derive(kani::Arbitrary))]
 pub enum Piece3x3 {
     /// A center piece.
     Center(Center),
@@ -142,4 +144,51 @@ impl std::ops::Add for Orientation3x3 {
             (_, _) => unreachable!("You should never add the orientation of different piece types"),
         }
     }
+}
+
+#[cfg(kani)]
+mod verification {
+
+    use crate::piece::index;
+
+    use super::*;
+
+    #[kani::proof]
+    fn round_trips() {
+        let piece: Piece3x3 = kani::any();
+        let count = CENTERS_COUNT + CORNERS_COUNT + EDGES_COUNT;
+        let piece_index: usize = kani::any_where(|i| *i < count);
+
+        assert!(piece.index() < count);
+        assert_eq!(Piece3x3::from_index(piece.index()), piece);
+        assert_eq!((Piece3x3::from_index(piece_index)).index(), piece_index);
+    }
+
+    macro_rules! free_index {
+        ($test:ident, $type:ident) => {
+            #[kani::proof]
+            fn $test() {
+                let piece: $type = kani::any();
+                assert_eq!(piece.index(), index(piece));
+            }
+        };
+    }
+
+    free_index!(corner_trait, Corner);
+    free_index!(center_trait, Center);
+    free_index!(edge_trait, Edge);
+
+    macro_rules! repr_u8 {
+        ($test:ident, $type:ident, $count: ident) => {
+            #[kani::proof]
+            fn $test() {
+                let index: usize = kani::any_where(|i| *i < $count);
+                assert_eq!($type::ALL[index] as usize, index);
+            }
+        };
+    }
+
+    repr_u8!(corners_repr, Corner, CORNERS_COUNT);
+    repr_u8!(centers_repr, Center, CENTERS_COUNT);
+    repr_u8!(edges_repr, Edge, EDGES_COUNT);
 }

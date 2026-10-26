@@ -35,7 +35,9 @@ pub(crate) const fn index<P, const N: usize>(piece: P) -> usize
 where
     P: Piece<N>,
 {
-    const { assert!(std::mem::size_of::<P>() == 1) }
+    const {
+        assert!(std::mem::size_of::<P>() == 1);
+    }
     // SAFETY: `Piece` is sealed, and the only implementations come from `new_piece!`, which
     // makes a fieldless `#[repr(u8)]` enum. Such an enum is one byte holding its discriminant,
     // so reading that byte is in bounds and gives an initialized `u8`. `Sealed` alone does not
@@ -86,7 +88,9 @@ where
 {
     /// The solved state for a given piece type
     pub const IDENTITY: Self = {
-        const { assert!(N == P::COUNT) };
+        const {
+            assert!(N == P::COUNT);
+        };
         Self {
             permutation: P::ALL,
             orientation: [Zn::ZERO; N],
@@ -200,17 +204,6 @@ where
 mod tests {
     use super::*;
     use crate::puzzles::cube3x3::pieces::*;
-    #[test]
-    fn corner_and_edge_all_match_discriminants() {
-        for (i, c) in Corner::ALL.iter().enumerate() {
-            assert_eq!(*c as usize, i);
-            assert_eq!(Corner::from_index(i), *c);
-        }
-        for (i, e) in Edge::ALL.iter().enumerate() {
-            assert_eq!(*e as usize, i);
-            assert_eq!(Edge::from_index(i), *e);
-        }
-    }
 
     #[test]
     fn cycle_is_a_permutation_and_moves_pieces_forward_and_leaves_rest() {

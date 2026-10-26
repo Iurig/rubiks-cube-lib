@@ -13,6 +13,14 @@ use std::{
 #[derive(Clone, Copy, Default, Eq, Hash, PartialEq)]
 pub struct Zn<const N: usize>(u8);
 
+#[cfg(kani)]
+impl<const N: usize> kani::Arbitrary for Zn<N> {
+    fn any() -> Self {
+        let usize_any: usize = kani::any();
+        Zn::<N>::new(usize_any)
+    }
+}
+
 impl<const N: usize> Debug for Zn<N> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.value())
@@ -103,6 +111,34 @@ impl<const N: usize> Zn<N> {
         final_array
     }
 }
+
+#[cfg(kani)]
+mod verification {
+    use super::*;
+
+    macro_rules! basic_checks {
+        ($name: ident, $modulo: literal) => {
+            #[kani::proof]
+            fn $name() {
+                let element_1: Zn<$modulo> = kani::any();
+                let element_2: Zn<$modulo> = kani::any();
+                assert!(element_1.value() < $modulo);
+                assert_eq!(element_1 - element_1, Zn::<$modulo>::new(0));
+                assert_eq!(element_1 - element_2, element_1 + (-element_2));
+                assert_eq!(-(-element_1), element_1);
+            }
+        };
+    }
+
+    basic_checks!(checks_modulo_1, 1);
+    basic_checks!(checks_modulo_2, 2);
+    basic_checks!(checks_modulo_3, 3);
+    basic_checks!(checks_modulo_4, 4);
+    basic_checks!(checks_modulo_5, 5);
+    basic_checks!(checks_modulo_255, 255);
+    basic_checks!(checks_modulo_256, 256);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -150,16 +186,6 @@ mod tests {
                 let (x, y) = (Zn::<5>::new(a), Zn::<5>::new(b));
                 assert_eq!(x - y, Zn::new(a + 5 - b), "{a} - {b}");
                 assert_eq!(x * y, Zn::new(a * b), "{a} * {b}");
-            }
-        }
-    }
-
-    #[test]
-    fn sub_is_adding_the_negation() {
-        for a in 0..3 {
-            for b in 0..3 {
-                let (x, y) = (Zn::<3>::new(a), Zn::<3>::new(b));
-                assert_eq!(x - y, x + (-y), "{a} - {b}");
             }
         }
     }
