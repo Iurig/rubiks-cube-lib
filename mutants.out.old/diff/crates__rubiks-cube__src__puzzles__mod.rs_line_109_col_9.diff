@@ -1,0 +1,15 @@
+--- crates/rubiks-cube/src/puzzles/mod.rs
++++ replace <impl Mul<Algorithm<Self>> for Cube3x3>::mul -> Self::Output with Default::default()
+@@ -101,11 +101,11 @@
+     fn apply(&self, alg: &Algorithm<Self>) -> Self {
+         alg.iter().fold(self.clone(), |p, &m| p * m)
+     }
+ }
+ 
+ impl Mul<Algorithm<Self>> for Cube3x3 {
+     type Output = Self;
+     fn mul(self, rhs: Algorithm<Self>) -> Self::Output {
+-        rhs.iter().fold(self, |p, &m| p * m)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }

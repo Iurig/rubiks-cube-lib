@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/algset.rs
++++ delete ! in <impl FromStr for AlgSet<P>>::from_str
+@@ -103,17 +103,17 @@
+ /// If `text` contains an invalid move. The error's line counts lines of the whole `text`.
+ impl<P: Puzzle> FromStr for AlgSet<P> {
+     type Err = ParseSequenceError;
+     fn from_str(s: &str) -> Result<Self, Self::Err> {
+         s.lines()
+             .enumerate()
+             .filter_map(|(line_number, line)| {
+                 line.parse::<Algorithm<P>>()
+-                    .map(|moves| (!moves.is_empty()).then_some(moves))
++                    .map(|moves| ( /* ~ changed by cargo-mutants ~ */moves.is_empty()).then_some(moves))
+                     .map_err(|e| e.on_line(line_number + 1))
+                     .transpose()
+             })
+             .collect()
+     }
+ }
+ 
+ impl AlgSet<Cube3x3> {

@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/piece.rs
++++ replace % with / in PieceConfiguration<P, N, O>::cycle
+@@ -169,17 +169,17 @@
+     pub(crate) const fn cycle<const CYCLE_SIZE: usize, const CYCLE_AMOUNT: usize>(
+         to_cycle: [[P; CYCLE_SIZE]; CYCLE_AMOUNT],
+     ) -> Self {
+         let mut resp = Self::IDENTITY;
+         let mut i = 0;
+         while i < CYCLE_AMOUNT {
+             let mut j = 0;
+             while j < CYCLE_SIZE {
+-                resp.permutation[index(to_cycle[i][(j + 1) % CYCLE_SIZE])] = to_cycle[i][j];
++                resp.permutation[index(to_cycle[i][(j + 1) / /* ~ changed by cargo-mutants ~ */ CYCLE_SIZE])] = to_cycle[i][j];
+                 j += 1;
+             }
+             i += 1;
+         }
+         resp
+     }
+ 
+     /// A random permutation with random orientations. The orientations may not sum to zero and the

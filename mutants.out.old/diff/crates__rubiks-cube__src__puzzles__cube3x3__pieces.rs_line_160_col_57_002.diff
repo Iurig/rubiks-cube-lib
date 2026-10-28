@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs
++++ replace < with <= in verification::round_trips
+@@ -152,17 +152,17 @@
+     use crate::piece::index;
+ 
+     use super::*;
+ 
+     #[kani::proof]
+     fn round_trips() {
+         let piece: Piece3x3 = kani::any();
+         let count = CENTERS_COUNT + CORNERS_COUNT + EDGES_COUNT;
+-        let piece_index: usize = kani::any_where(|i| *i < count);
++        let piece_index: usize = kani::any_where(|i| *i <= /* ~ changed by cargo-mutants ~ */ count);
+ 
+         assert!(piece.index() < count);
+         assert_eq!(Piece3x3::from_index(piece.index()), piece);
+         assert_eq!((Piece3x3::from_index(piece_index)).index(), piece_index);
+     }
+ 
+     macro_rules! free_index {
+         ($test:ident, $type:ident) => {

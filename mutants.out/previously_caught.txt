@@ -1,0 +1,773 @@
+crates/rubiks-cube/src/methods/mod.rs:188:9: replace <impl IntoIterator for Technique<P>>::into_iter -> Self::IntoIter with Default::default()
+crates/rubiks-cube/src/methods/mod.rs:218:9: replace Technique<P>::solve -> Result<Solution<P>, SolveError> with Ok(Solution::new())
+crates/rubiks-cube/src/methods/mod.rs:218:9: replace Technique<P>::solve -> Result<Solution<P>, SolveError> with Ok(Solution::from(Default::default()))
+crates/rubiks-cube/src/methods/mod.rs:223:9: replace Technique<P>::steps -> impl Iterator<Item =&dyn Step<P>> with ::std::iter::empty()
+crates/rubiks-cube/src/methods/mod.rs:232:9: replace Technique<P>::solve_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::empty()
+crates/rubiks-cube/src/methods/mod.rs:232:9: replace Technique<P>::solve_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::once(Ok(Solution::new()))
+crates/rubiks-cube/src/methods/mod.rs:232:9: replace Technique<P>::solve_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::once(Ok(Solution::from(Default::default())))
+crates/rubiks-cube/src/methods/mod.rs:262:5: replace run_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::empty()
+crates/rubiks-cube/src/methods/mod.rs:262:5: replace run_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::once(Ok(Solution::new()))
+crates/rubiks-cube/src/methods/mod.rs:262:5: replace run_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::once(Ok(Solution::from(Default::default())))
+crates/rubiks-cube/src/methods/mod.rs:267:12: delete ! in run_steps
+crates/rubiks-cube/src/methods/mod.rs:273:22: replace match guard !step.is_done(puzzle) with true in run_steps
+crates/rubiks-cube/src/methods/mod.rs:273:22: replace match guard !step.is_done(puzzle) with false in run_steps
+crates/rubiks-cube/src/methods/mod.rs:273:22: delete ! in run_steps
+crates/rubiks-cube/src/methods/mod.rs:303:9: replace Method::solve -> Result<Solution<P>, SolveError> with Ok(Solution::new())
+crates/rubiks-cube/src/methods/mod.rs:303:9: replace Method::solve -> Result<Solution<P>, SolveError> with Ok(Solution::from(Default::default()))
+crates/rubiks-cube/src/methods/mod.rs:329:9: replace Method::solve_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::empty()
+crates/rubiks-cube/src/methods/mod.rs:329:9: replace Method::solve_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::once(Ok(Solution::new()))
+crates/rubiks-cube/src/methods/mod.rs:329:9: replace Method::solve_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::once(Ok(Solution::from(Default::default())))
+crates/rubiks-cube/src/ops.rs:77:13: delete match arm 0 in Pow::pow
+crates/rubiks-cube/src/ops.rs:78:13: delete match arm 1 in Pow::pow
+crates/rubiks-cube/src/ops.rs:79:13: delete match arm 2 in Pow::pow
+crates/rubiks-cube/src/ops.rs:80:44: replace % with / in Pow::pow
+crates/rubiks-cube/src/ops.rs:80:44: replace % with + in Pow::pow
+crates/rubiks-cube/src/ops.rs:80:69: replace / with % in Pow::pow
+crates/rubiks-cube/src/ops.rs:80:69: replace / with * in Pow::pow
+crates/rubiks-cube/src/piece.rs:79:45: delete - in <impl Inv for PieceConfiguration<P, N, O>>::inv
+crates/rubiks-cube/src/piece.rs:124:9: replace PieceConfiguration<P, N, O>::parity -> Zn<2> with Default::default()
+crates/rubiks-cube/src/piece.rs:127:16: delete ! in PieceConfiguration<P, N, O>::parity
+crates/rubiks-cube/src/piece.rs:136:32: replace += with -= in PieceConfiguration<P, N, O>::parity
+crates/rubiks-cube/src/piece.rs:136:32: replace += with *= in PieceConfiguration<P, N, O>::parity
+crates/rubiks-cube/src/piece.rs:142:21: replace += with *= in PieceConfiguration<P, N, O>::parity
+crates/rubiks-cube/src/piece.rs:142:43: replace - with / in PieceConfiguration<P, N, O>::parity
+crates/rubiks-cube/src/piece.rs:150:9: replace PieceConfiguration<P, N, O>::orientation_sum -> Zn<O> with Zn::new(Default::default())
+crates/rubiks-cube/src/piece.rs:150:9: replace PieceConfiguration<P, N, O>::orientation_sum -> Zn<O> with Zn::from(Default::default())
+crates/rubiks-cube/src/piece.rs:160:9: replace PieceConfiguration<P, N, O>::then -> Self with Default::default()
+crates/rubiks-cube/src/piece.rs:164:63: replace + with - in PieceConfiguration<P, N, O>::then
+crates/rubiks-cube/src/piece.rs:164:63: replace + with * in PieceConfiguration<P, N, O>::then
+crates/rubiks-cube/src/piece.rs:174:17: replace < with == in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/piece.rs:174:17: replace < with > in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/piece.rs:176:21: replace < with == in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/piece.rs:176:21: replace < with > in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/piece.rs:177:55: replace + with * in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/piece.rs:188:9: replace PieceConfiguration<P, N, O>::random_state -> Self with Default::default()
+crates/rubiks-cube/src/zn.rs:33:21: replace - with + in <impl Neg for Zn<N>>::neg
+crates/rubiks-cube/src/zn.rs:33:21: replace - with / in <impl Neg for Zn<N>>::neg
+crates/rubiks-cube/src/zn.rs:39:9: replace <impl Add for Zn<N>>::add -> Self with Default::default()
+crates/rubiks-cube/src/zn.rs:39:32: replace + with - in <impl Add for Zn<N>>::add
+crates/rubiks-cube/src/zn.rs:39:32: replace + with * in <impl Add for Zn<N>>::add
+crates/rubiks-cube/src/zn.rs:45:9: replace <impl Sub for Zn<N>>::sub -> Self::Output with Default::default()
+crates/rubiks-cube/src/zn.rs:45:36: replace - with + in <impl Sub for Zn<N>>::sub
+crates/rubiks-cube/src/zn.rs:45:36: replace - with / in <impl Sub for Zn<N>>::sub
+crates/rubiks-cube/src/zn.rs:45:21: replace + with - in <impl Sub for Zn<N>>::sub
+crates/rubiks-cube/src/zn.rs:45:21: replace + with * in <impl Sub for Zn<N>>::sub
+crates/rubiks-cube/src/zn.rs:51:9: replace <impl Mul for Zn<N>>::mul -> Self::Output with Default::default()
+crates/rubiks-cube/src/zn.rs:51:32: replace * with + in <impl Mul for Zn<N>>::mul
+crates/rubiks-cube/src/zn.rs:51:32: replace * with / in <impl Mul for Zn<N>>::mul
+crates/rubiks-cube/src/zn.rs:56:9: replace <impl AddAssign for Zn<N>>::add_assign with ()
+crates/rubiks-cube/src/zn.rs:56:23: replace + with - in <impl AddAssign for Zn<N>>::add_assign
+crates/rubiks-cube/src/zn.rs:56:23: replace + with * in <impl AddAssign for Zn<N>>::add_assign
+crates/rubiks-cube/src/zn.rs:61:9: replace <impl SubAssign for Zn<N>>::sub_assign with ()
+crates/rubiks-cube/src/zn.rs:61:15: replace += with *= in <impl SubAssign for Zn<N>>::sub_assign
+crates/rubiks-cube/src/zn.rs:61:18: delete - in <impl SubAssign for Zn<N>>::sub_assign
+crates/rubiks-cube/src/zn.rs:66:9: replace <impl MulAssign for Zn<N>>::mul_assign with ()
+crates/rubiks-cube/src/zn.rs:66:23: replace * with + in <impl MulAssign for Zn<N>>::mul_assign
+crates/rubiks-cube/src/zn.rs:71:9: replace <impl Sum for Zn<N>>::sum -> Self with Default::default()
+crates/rubiks-cube/src/zn.rs:71:49: replace + with - in <impl Sum for Zn<N>>::sum
+crates/rubiks-cube/src/zn.rs:71:49: replace + with * in <impl Sum for Zn<N>>::sum
+crates/rubiks-cube/src/zn.rs:76:9: replace <impl Product for Zn<N>>::product -> Self with Default::default()
+crates/rubiks-cube/src/zn.rs:76:51: replace * with + in <impl Product for Zn<N>>::product
+crates/rubiks-cube/src/zn.rs:99:9: replace Zn<N>::value -> usize with 0
+crates/rubiks-cube/src/zn.rs:99:9: replace Zn<N>::value -> usize with 1
+crates/rubiks-cube/src/zn.rs:107:17: replace < with == in Zn<N>::array
+crates/rubiks-cube/src/zn.rs:107:17: replace < with > in Zn<N>::array
+crates/rubiks-cube/src/methods/context.rs:57:9: replace BuildContext::get_or_create -> Arc<C> with Arc::new(Default::default())
+crates/rubiks-cube/src/methods/solution.rs:32:9: replace <impl FromStr for Solution<P>>::from_str -> Result<Self, Self::Err> with Ok(Default::default())
+crates/rubiks-cube/src/methods/solution.rs:35:18: delete ! in <impl FromStr for Solution<P>>::from_str
+crates/rubiks-cube/src/methods/solution.rs:36:87: replace + with - in <impl FromStr for Solution<P>>::from_str
+crates/rubiks-cube/src/methods/solution.rs:36:87: replace + with * in <impl FromStr for Solution<P>>::from_str
+crates/rubiks-cube/src/methods/solution.rs:76:9: replace Solution<P>::single_segment -> Self with Default::default()
+crates/rubiks-cube/src/methods/solution.rs:91:9: replace Solution<P>::move_count -> usize with 0
+crates/rubiks-cube/src/methods/solution.rs:91:9: replace Solution<P>::move_count -> usize with 1
+crates/rubiks-cube/src/methods/solution.rs:101:9: replace <impl FromIterator<Segment<P>> for Solution<P>>::from_iter -> Self with Default::default()
+crates/rubiks-cube/src/methods/solution.rs:110:9: replace <impl FromIterator<Self> for Solution<P>>::from_iter -> Self with Default::default()
+crates/rubiks-cube/src/methods/solution.rs:120:9: replace <impl IntoIterator for &'a Solution<P>>::into_iter -> Self::IntoIter with Default::default()
+crates/rubiks-cube/src/methods/solution.rs:125:9: replace <impl Extend<Segment<P>> for Solution<P>>::extend with ()
+crates/rubiks-cube/src/methods/solution.rs:132:9: replace <impl IntoIterator for Solution<P>>::into_iter -> Self::IntoIter with Default::default()
+crates/rubiks-cube/src/methods/step.rs:47:9: replace Step::can_solve -> bool with false
+crates/rubiks-cube/src/puzzles/algorithm.rs:52:46: replace + with - in <impl FromStr for Algorithm<P>>::from_str
+crates/rubiks-cube/src/puzzles/algorithm.rs:52:46: replace + with * in <impl FromStr for Algorithm<P>>::from_str
+crates/rubiks-cube/src/puzzles/algorithm.rs:53:50: replace + with - in <impl FromStr for Algorithm<P>>::from_str
+crates/rubiks-cube/src/puzzles/algorithm.rs:53:50: replace + with * in <impl FromStr for Algorithm<P>>::from_str
+crates/rubiks-cube/src/puzzles/algorithm.rs:63:9: replace <impl AsRef<[P::Move]> for Algorithm<P>>::as_ref -> &[P::Move] with Vec::leak(Vec::new())
+crates/rubiks-cube/src/puzzles/algorithm.rs:83:9: replace <impl PartialOrd for Algorithm<P>>::partial_cmp -> Option<std::cmp::Ordering> with None
+crates/rubiks-cube/src/puzzles/algorithm.rs:101:9: replace <impl Extend<P::Move> for Algorithm<P>>::extend with ()
+crates/rubiks-cube/src/puzzles/algorithm.rs:109:9: replace <impl IntoIterator for Algorithm<P>>::into_iter -> Self::IntoIter with Default::default()
+crates/rubiks-cube/src/puzzles/algorithm.rs:117:9: replace <impl IntoIterator for &'a Algorithm<P>>::into_iter -> Self::IntoIter with Default::default()
+crates/rubiks-cube/src/puzzles/algorithm.rs:147:9: replace Algorithm<P>::len -> usize with 0
+crates/rubiks-cube/src/puzzles/algorithm.rs:147:9: replace Algorithm<P>::len -> usize with 1
+crates/rubiks-cube/src/puzzles/algorithm.rs:153:9: replace Algorithm<P>::is_empty -> bool with false
+crates/rubiks-cube/src/puzzles/algorithm.rs:158:9: replace Algorithm<P>::extend_from with ()
+crates/rubiks-cube/src/puzzles/algset.rs:55:9: replace AlgSet<P>::combined_with -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/algset.rs:60:9: replace AlgSet<P>::algs -> &[Algorithm<P>] with Vec::leak(Vec::new())
+crates/rubiks-cube/src/puzzles/algset.rs:60:9: replace AlgSet<P>::algs -> &[Algorithm<P>] with Vec::leak(vec![Algorithm::new()])
+crates/rubiks-cube/src/puzzles/algset.rs:83:9: replace <impl FromIterator<Algorithm<P>> for AlgSet<P>>::from_iter -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/algset.rs:112:56: replace + with - in <impl FromStr for AlgSet<P>>::from_str
+crates/rubiks-cube/src/puzzles/algset.rs:112:56: replace + with * in <impl FromStr for AlgSet<P>>::from_str
+crates/rubiks-cube/src/puzzles/algset.rs:129:9: replace AlgSet<Cube3x3>::from_parts -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/algset.rs:150:9: replace AlgSet<Cube3x3>::from_static_parts -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/algset.rs:160:9: replace AlgSet<Cube3x3>::from_moves -> Result<Self, ParseSequenceError> with Ok(Default::default())
+crates/rubiks-cube/src/puzzles/algset.rs:170:9: replace AlgSet<Cube3x3>::or_skip -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:45:9: replace <impl Puzzle for Cube3x3>::is_solved -> bool with true
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:45:9: replace <impl Puzzle for Cube3x3>::is_solved -> bool with false
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:45:45: replace == with != in <impl Puzzle for Cube3x3>::is_solved
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:50:47: replace == with != in <impl Puzzle for Cube3x3>::slot_of
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:71:9: replace <impl Puzzle for Cube3x3>::scrambled_with_seed -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:73:13: delete field corners from struct Self expression in <impl Puzzle for Cube3x3>::scrambled_with_seed
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:74:13: delete field edges from struct Self expression in <impl Puzzle for Cube3x3>::scrambled_with_seed
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:77:40: replace -= with += in <impl Puzzle for Cube3x3>::scrambled_with_seed
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:79:12: delete ! in <impl Puzzle for Cube3x3>::scrambled_with_seed
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:99:9: replace <impl Indexed for Piece3x3>::index -> usize with 0
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:99:9: replace <impl Indexed for Piece3x3>::index -> usize with 1
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:101:50: replace + with - in <impl Indexed for Piece3x3>::index
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:101:50: replace + with * in <impl Indexed for Piece3x3>::index
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:102:68: replace + with - in <impl Indexed for Piece3x3>::index
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:102:68: replace + with * in <impl Indexed for Piece3x3>::index
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:102:48: replace + with - in <impl Indexed for Piece3x3>::index
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:102:48: replace + with * in <impl Indexed for Piece3x3>::index
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:117:9: replace <impl std::ops::Mul for Cube3x3>::mul -> Self::Output with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:128:9: replace <impl std::ops::Mul<Move3x3> for Cube3x3>::mul -> Self::Output with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:187:9: replace Cube3x3::apply_moves -> Result<Self, ParseSequenceError> with Ok(Default::default())
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:196:9: replace Cube3x3::from_moves -> Result<Self, ParseSequenceError> with Ok(Default::default())
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:200:9: replace Cube3x3::rotated_until_solved_centers -> Option<Self> with None
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:200:9: replace Cube3x3::rotated_until_solved_centers -> Option<Self> with Some(Default::default())
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:201:12: delete ! in Cube3x3::rotated_until_solved_centers
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:213:57: replace != with == in Cube3x3::rotated_until_solved_centers
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:219:57: replace != with == in Cube3x3::rotated_until_solved_centers
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:225:31: replace == with != in Cube3x3::rotated_until_solved_centers
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:235:9: replace Cube3x3::is_reachable -> bool with true
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:235:9: replace Cube3x3::is_reachable -> bool with false
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:238:13: replace && with || in Cube3x3::is_reachable
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:237:13: replace && with || in Cube3x3::is_reachable
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:236:13: replace && with || in Cube3x3::is_reachable
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:244:9: replace Cube3x3::twists_cancel -> bool with true
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:244:9: replace Cube3x3::twists_cancel -> bool with false
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:244:42: replace == with != in Cube3x3::twists_cancel
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:250:9: replace Cube3x3::flips_cancel -> bool with true
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:250:9: replace Cube3x3::flips_cancel -> bool with false
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:250:40: replace == with != in Cube3x3::flips_cancel
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:258:9: replace Cube3x3::parities_cancel -> bool with true
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:258:9: replace Cube3x3::parities_cancel -> bool with false
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:258:83: replace == with != in Cube3x3::parities_cancel
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:258:57: replace + with * in Cube3x3::parities_cancel
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:258:33: replace + with * in Cube3x3::parities_cancel
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:264:9: replace Cube3x3::centers_form_a_rotation -> bool with true
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:264:9: replace Cube3x3::centers_form_a_rotation -> bool with false
+crates/rubiks-cube/src/puzzles/label.rs:88:9: replace <impl Mul<P::Move> for Labeled<P, L>>::mul -> Self::Output with Default::default()
+crates/rubiks-cube/src/puzzles/label.rs:113:9: replace Labeled<P, L>::from_pieces -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/label.rs:127:9: replace Labeled<P, L>::from_pieces_and_orientations -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/label.rs:141:9: replace Labeled<P, L>::filter_by_piece -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/label.rs:151:34: replace || with && in Labeled<P, L>::filter_by_piece
+crates/rubiks-cube/src/puzzles/label.rs:190:9: replace Labeled<P, L>::from_labels_and_orientations -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/label.rs:207:9: replace Mask<P>::applies_to -> bool with true
+crates/rubiks-cube/src/puzzles/label.rs:207:9: replace Mask<P>::applies_to -> bool with false
+crates/rubiks-cube/src/puzzles/label.rs:211:17: replace && with || in Mask<P>::applies_to
+crates/rubiks-cube/src/puzzles/label.rs:210:59: replace == with != in Mask<P>::applies_to
+crates/rubiks-cube/src/puzzles/label.rs:213:70: replace == with != in Mask<P>::applies_to
+crates/rubiks-cube/src/puzzles/label.rs:221:9: replace Mask<P>::and -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/label.rs:263:9: replace PieceSet<P>::is_subset -> bool with false
+crates/rubiks-cube/src/puzzles/label.rs:267:43: replace || with && in PieceSet<P>::is_subset
+crates/rubiks-cube/src/puzzles/label.rs:268:51: replace || with && in PieceSet<P>::is_subset
+crates/rubiks-cube/src/puzzles/label.rs:275:9: replace PieceSet<P>::applies_to -> bool with true
+crates/rubiks-cube/src/puzzles/label.rs:275:9: replace PieceSet<P>::applies_to -> bool with false
+crates/rubiks-cube/src/puzzles/label.rs:279:17: replace && with || in PieceSet<P>::applies_to
+crates/rubiks-cube/src/puzzles/label.rs:278:56: replace == with != in PieceSet<P>::applies_to
+crates/rubiks-cube/src/puzzles/label.rs:281:70: replace == with != in PieceSet<P>::applies_to
+crates/rubiks-cube/src/puzzles/label.rs:293:9: replace PieceSet<P>::from_algset -> Self with Default::default()
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:22:5: replace into_steps -> Vec<Arc<dyn Step<P>>> with vec![]
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:54:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::goal -> &Mask<Cube3x3> with Box::leak(Box::new(Mask::new()))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:54:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::goal -> &Mask<Cube3x3> with Box::leak(Box::new(Mask::from(Default::default())))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:202:9: delete field edge_permutation from struct Self expression
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:227:9: replace LastLayer::post_auf -> Option<Algorithm<Cube3x3>> with None
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:227:9: replace LastLayer::post_auf -> Option<Algorithm<Cube3x3>> with Some(Algorithm::new())
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:235:9: replace LastLayer::coll -> Self with Default::default()
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:239:9: replace LastLayer::ocll -> Self with Default::default()
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:249:9: replace LastLayer::pll -> Self with Default::default()
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:253:9: replace LastLayer::cpll -> Self with Default::default()
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:257:9: replace LastLayer::epll -> Self with Default::default()
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:261:9: replace LastLayer::zbll -> Self with Default::default()
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:273:9: replace <impl Step<Cube3x3> for LastLayer>::is_done -> bool with true
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:273:9: replace <impl Step<Cube3x3> for LastLayer>::is_done -> bool with false
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:273:42: replace && with || in <impl Step<Cube3x3> for LastLayer>::is_done
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:277:9: replace <impl Step<Cube3x3> for LastLayer>::solve -> Result<Solution<Cube3x3>, StepError> with Ok(Solution::new())
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:277:9: replace <impl Step<Cube3x3> for LastLayer>::solve -> Result<Solution<Cube3x3>, StepError> with Ok(Solution::from(Default::default()))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:28:5: replace face_turns -> AlgSet<Cube3x3> with AlgSet::new()
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:28:5: replace face_turns -> AlgSet<Cube3x3> with AlgSet::from(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:30:70: replace != with == in face_turns
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:39:5: replace domino_turns -> AlgSet<Cube3x3> with AlgSet::new()
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:39:5: replace domino_turns -> AlgSet<Cube3x3> with AlgSet::from(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:41:13: delete match arm MovablePart::Face(Face::U | Face::D) in domino_turns
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:42:13: delete match arm MovablePart::Face(_) in domino_turns
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:41:66: replace != with == in domino_turns
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:42:50: replace == with != in domino_turns
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:50:5: replace corners -> impl Iterator<Item = Piece3x3>+Clone with ::std::iter::empty()
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:54:5: replace edges -> impl Iterator<Item = Piece3x3>+Clone with ::std::iter::empty()
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:78:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::goal -> &PieceSet<Cube3x3> with Box::leak(Box::new(PieceSet::new()))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:78:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::goal -> &PieceSet<Cube3x3> with Box::leak(Box::new(PieceSet::from(Default::default())))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:128:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::goal -> &Mask<Cube3x3> with Box::leak(Box::new(Mask::new()))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:128:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::goal -> &Mask<Cube3x3> with Box::leak(Box::new(Mask::from(Default::default())))
+crates/rubiks-cube/src/methods/step/choose/mod.rs:72:9: replace <impl Step<P> for Shortest<P>>::can_solve -> bool with false
+crates/rubiks-cube/src/methods/step/choose/mod.rs:76:9: replace <impl Step<P> for Shortest<P>>::solve -> Result<Solution<P>, StepError> with Ok(Solution::new())
+crates/rubiks-cube/src/methods/step/choose/mod.rs:76:9: replace <impl Step<P> for Shortest<P>>::solve -> Result<Solution<P>, StepError> with Ok(Solution::from(Default::default()))
+crates/rubiks-cube/src/methods/step/choose/mod.rs:91:39: replace match guard best.0.move_count() <= candidate.0.move_count() with true in <impl Step<P> for Shortest<P>>::solve
+crates/rubiks-cube/src/methods/step/choose/mod.rs:91:39: replace match guard best.0.move_count() <= candidate.0.move_count() with false in <impl Step<P> for Shortest<P>>::solve
+crates/rubiks-cube/src/methods/step/choose/mod.rs:91:59: replace <= with > in <impl Step<P> for Shortest<P>>::solve
+crates/rubiks-cube/src/methods/step/choose/mod.rs:102:9: replace <impl Step<P> for Shortest<P>>::is_done -> bool with true
+crates/rubiks-cube/src/methods/step/choose/mod.rs:102:9: replace <impl Step<P> for Shortest<P>>::is_done -> bool with false
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:64:9: replace <impl DistanceStep<P> for T>::distance_from_moves -> Option<u8> with None
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:64:9: replace <impl DistanceStep<P> for T>::distance_from_moves -> Option<u8> with Some(0)
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:102:5: replace may_follow -> Vec<Vec<bool>> with vec![]
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:102:5: replace may_follow -> Vec<Vec<bool>> with vec![vec![]]
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:102:5: replace may_follow -> Vec<Vec<bool>> with vec![vec![true]]
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:102:5: replace may_follow -> Vec<Vec<bool>> with vec![vec![false]]
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:116:61: replace || with && in may_follow
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:116:45: replace == with != in may_follow
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:117:67: replace && with || in may_follow
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:117:57: replace < with == in may_follow
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:118:31: replace && with || in may_follow
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:118:21: delete ! in may_follow
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:118:34: delete ! in may_follow
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:131:9: replace <impl Step<P> for PrunedCombine<P>>::can_solve -> bool with false
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:135:9: replace <impl Step<P> for PrunedCombine<P>>::is_done -> bool with false
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:137:52: replace == with != in <impl Step<P> for PrunedCombine<P>>::is_done
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:145:9: replace <impl Step<P> for PrunedCombine<P>>::solve -> Result<crate::Solution<P>, crate::StepError> with Ok(Solution::new())
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:145:9: replace <impl Step<P> for PrunedCombine<P>>::solve -> Result<crate::Solution<P>, crate::StepError> with Ok(Solution::from(Default::default()))
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:148:13: replace <impl Step<P> for PrunedCombine<P>>::solve::estimate -> Option<u8> with None
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:148:13: replace <impl Step<P> for PrunedCombine<P>>::solve::estimate -> Option<u8> with Some(0)
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:171:22: replace > with == in <impl Step<P> for PrunedCombine<P>>::solve::search
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:171:22: replace > with >= in <impl Step<P> for PrunedCombine<P>>::solve::search
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:174:25: replace == with != in <impl Step<P> for PrunedCombine<P>>::solve::search
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:221:9: replace SearchStep<P>::solve_bfs -> Result<Algorithm<P>, StepError> with Ok(Algorithm::new())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:270:9: replace SearchStep<P>::next_level -> Vec<P> with vec![]
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:270:9: replace SearchStep<P>::next_level -> Vec<P> with vec![Default::default()]
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:276:22: delete ! in SearchStep<P>::next_level
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:302:15: replace += with -= in SearchStep<P>::close_under_free_sequences
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:319:9: replace SearchStep<P>::path_to -> Algorithm<P> with Algorithm::new()
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:332:9: replace SearchStep<P>::mask -> Mask<P> with Mask::new()
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:332:9: replace SearchStep<P>::mask -> Mask<P> with Mask::from(Default::default())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:342:9: replace <impl Step<P> for SearchStep<P>>::can_solve -> bool with true
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:342:9: replace <impl Step<P> for SearchStep<P>>::can_solve -> bool with false
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:346:9: replace <impl Step<P> for SearchStep<P>>::is_done -> bool with true
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:346:9: replace <impl Step<P> for SearchStep<P>>::is_done -> bool with false
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:346:40: replace && with || in <impl Step<P> for SearchStep<P>>::is_done
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:350:9: replace <impl Step<P> for SearchStep<P>>::solve -> Result<Solution<P>, StepError> with Ok(Solution::new())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:350:9: replace <impl Step<P> for SearchStep<P>>::solve -> Result<Solution<P>, StepError> with Ok(Solution::from(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:350:12: delete ! in <impl Step<P> for SearchStep<P>>::solve
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:181:5: replace slot_faces -> Vec<Center> with vec![]
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:191:5: replace stickers -> Option<Vec<Center>> with None
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:191:5: replace stickers -> Option<Vec<Center>> with Some(vec![])
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:192:9: delete match arm (Piece3x3::Center(c), Orientation3x3::Fixed) in stickers
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:193:9: delete match arm (Piece3x3::Edge(e), Orientation3x3::Flip(flip)) in stickers
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:198:9: delete match arm (Piece3x3::Corner(c), Orientation3x3::Twist(twist)) in stickers
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:209:5: replace facelet_position -> Option<usize> with None
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:209:5: replace facelet_position -> Option<usize> with Some(0)
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:209:5: replace facelet_position -> Option<usize> with Some(1)
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:209:45: replace == with != in facelet_position
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:214:5: replace sticker -> Option<Center> with None
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:227:5: replace orientation_position -> Option<usize> with None
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:227:5: replace orientation_position -> Option<usize> with Some(1)
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:237:5: replace mask_char -> char with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:246:38: replace match guard orientation_position(orientation) == Some(position) with true in mask_char
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:246:38: replace match guard orientation_position(orientation) == Some(position) with false in mask_char
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:246:72: replace == with != in mask_char
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:296:5: replace write_net -> fmt::Result with Ok(Default::default())
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:320:14: replace > with == in write_net
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:320:14: replace > with < in write_net
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:320:14: replace > with >= in write_net
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:129:9: replace <impl Indexed for MovablePart>::index -> usize with 0
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:129:9: replace <impl Indexed for MovablePart>::index -> usize with 1
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:131:47: replace + with - in <impl Indexed for MovablePart>::index
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:131:47: replace + with * in <impl Indexed for MovablePart>::index
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:132:69: replace + with - in <impl Indexed for MovablePart>::index
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:132:69: replace + with * in <impl Indexed for MovablePart>::index
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:132:50: replace + with - in <impl Indexed for MovablePart>::index
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:132:50: replace + with * in <impl Indexed for MovablePart>::index
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:133:87: replace + with - in <impl Indexed for MovablePart>::index
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:133:87: replace + with * in <impl Indexed for MovablePart>::index
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:133:65: replace + with - in <impl Indexed for MovablePart>::index
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:133:65: replace + with * in <impl Indexed for MovablePart>::index
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:133:46: replace + with - in <impl Indexed for MovablePart>::index
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:133:46: replace + with * in <impl Indexed for MovablePart>::index
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:144:9: replace <impl Indexed for MoveModifier>::index -> usize with 0
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:144:9: replace <impl Indexed for MoveModifier>::index -> usize with 1
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:154:9: replace <impl Indexed for Move3x3>::index -> usize with 0
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:154:9: replace <impl Indexed for Move3x3>::index -> usize with 1
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:164:9: replace <impl std::fmt::Display for MovablePart>::fmt -> std::fmt::Result with Ok(Default::default())
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:184:9: replace <impl std::fmt::Display for MoveModifier>::fmt -> std::fmt::Result with Ok(Default::default())
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:195:9: replace <impl std::fmt::Display for Move3x3>::fmt -> std::fmt::Result with Ok(Default::default())
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:221:13: delete match arm 'R' in <impl FromStr for Move3x3>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:222:13: delete match arm 'L' in <impl FromStr for Move3x3>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:223:13: delete match arm 'U' in <impl FromStr for Move3x3>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:224:13: delete match arm 'D' in <impl FromStr for Move3x3>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:225:13: delete match arm 'F' in <impl FromStr for Move3x3>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:226:13: delete match arm 'B' in <impl FromStr for Move3x3>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:230:13: delete match arm 'x' in <impl FromStr for Move3x3>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:231:13: delete match arm 'y' in <impl FromStr for Move3x3>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:232:13: delete match arm 'z' in <impl FromStr for Move3x3>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:233:13: delete match arm 'M' in <impl FromStr for Move3x3>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:234:13: delete match arm 'E' in <impl FromStr for Move3x3>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:235:13: delete match arm 'S' in <impl FromStr for Move3x3>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:269:9: replace <impl From<Move3x3> for Cube3x3>::from -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:142:51: replace + with - in <impl std::ops::Add for Orientation3x3>::add
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:142:51: replace + with * in <impl std::ops::Add for Orientation3x3>::add
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:143:48: replace + with * in <impl std::ops::Add for Orientation3x3>::add
+crates/rubiks-cube/src/methods/step/combine_pruned/prune_table.rs:36:9: replace PruneTable<K>::get_distance -> Option<u8> with None
+crates/rubiks-cube/src/methods/step/combine_pruned/prune_table.rs:36:9: replace PruneTable<K>::get_distance -> Option<u8> with Some(0)
+crates/rubiks-cube/src/methods/step/combine_pruned/prune_table.rs:46:9: replace PruneTable<K>::populate with ()
+crates/rubiks-cube/src/methods/step/combine_pruned/prune_table.rs:56:15: delete ! in PruneTable<K>::populate
+crates/rubiks-cube/src/methods/step/combine_pruned/prune_table.rs:58:19: replace += with -= in PruneTable<K>::populate
+crates/rubiks-cube/src/methods/step/combine_pruned/prune_table.rs:58:19: replace += with *= in PruneTable<K>::populate
+crates/rubiks-cube/src/methods/step/combine_pruned/prune_table.rs:67:41: delete ! in PruneTable<K>::populate
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:24:9: replace BfsMemo<P>::solution -> Option<&Algorithm<P>> with Some(Box::leak(Box::new(Algorithm::new())))
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:58:15: replace += with -= in BfsMemo<P>::deepen
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:75:20: replace += with -= in BfsMemo<P>::deepen
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:87:9: replace BfsMemo<P>::memorize -> Option<(Mask<P>, P)> with None
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:32:5: replace table_index_clockwise -> usize with 0
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:32:5: replace table_index_clockwise -> usize with 1
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:34:50: replace + with - in table_index_clockwise
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:34:50: replace + with * in table_index_clockwise
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:35:72: replace + with - in table_index_clockwise
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:35:72: replace + with * in table_index_clockwise
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:35:53: replace + with - in table_index_clockwise
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:35:53: replace + with * in table_index_clockwise
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:40:17: replace + with - in table_index_clockwise
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:40:17: replace + with * in table_index_clockwise
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:39:17: replace + with - in table_index_clockwise
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:39:17: replace + with * in table_index_clockwise
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:38:17: replace + with - in table_index_clockwise
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:38:17: replace + with * in table_index_clockwise
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:46:5: replace table_index -> usize with 0
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:46:5: replace table_index -> usize with 1
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:47:9: replace + with - in table_index
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:47:9: replace + with * in table_index
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:46:7: replace * with + in table_index
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:46:7: replace * with / in table_index
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:58:5: replace cube_state -> Cube3x3 with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:89:21: delete match arm Clockwise | Prime in MoveInformation::double
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:296:5: replace slice_along -> Cube3x3 with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:297:24: replace == with != in slice_along
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:299:42: replace == with != in slice_along
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:309:60: replace + with -
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:309:60: replace + with *
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:309:42: replace + with -
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:309:42: replace + with *
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:364:21: replace * with + in all_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:364:21: replace * with / in all_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:365:25: replace + with - in all_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:365:25: replace + with * in all_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:365:21: replace * with + in all_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:365:21: replace * with / in all_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:366:25: replace + with - in all_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:366:25: replace + with * in all_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:366:21: replace * with + in all_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:366:21: replace * with / in all_moves
+crates/rubiks-cube/src/methods/mod.rs:160:9: replace TechniqueBuilder<P>::finish -> Result<Technique<P>, TechniqueError> with Ok(Technique::new())
+crates/rubiks-cube/src/methods/mod.rs:160:9: replace TechniqueBuilder<P>::finish -> Result<Technique<P>, TechniqueError> with Ok(Technique::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/mod.rs:160:9: replace TechniqueBuilder<P>::finish -> Result<Technique<P>, TechniqueError> with Ok(Technique::new(Default::default()))
+crates/rubiks-cube/src/methods/mod.rs:160:9: replace TechniqueBuilder<P>::finish -> Result<Technique<P>, TechniqueError> with Ok(Technique::from(Default::default()))
+crates/rubiks-cube/src/methods/mod.rs:171:9: replace <impl Index<usize> for Technique<P>>::index -> &Self::Output with Box::leak(Box::new(Default::default()))
+crates/rubiks-cube/src/methods/mod.rs:177:9: replace <impl FromIterator<Arc<dyn Step<P>>> for Technique<P>>::from_iter -> Self with Default::default()
+crates/rubiks-cube/src/methods/mod.rs:207:9: replace Technique<P>::start_with -> TechniqueBuilder<P> with TechniqueBuilder::new()
+crates/rubiks-cube/src/methods/mod.rs:207:9: replace Technique<P>::start_with -> TechniqueBuilder<P> with TechniqueBuilder::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/mod.rs:207:9: replace Technique<P>::start_with -> TechniqueBuilder<P> with TechniqueBuilder::new(Default::default())
+crates/rubiks-cube/src/methods/mod.rs:207:9: replace Technique<P>::start_with -> TechniqueBuilder<P> with TechniqueBuilder::from(Default::default())
+crates/rubiks-cube/src/methods/mod.rs:218:9: replace Technique<P>::solve -> Result<Solution<P>, SolveError> with Ok(Solution::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/mod.rs:218:9: replace Technique<P>::solve -> Result<Solution<P>, SolveError> with Ok(Solution::new(Default::default()))
+crates/rubiks-cube/src/methods/mod.rs:223:9: replace Technique<P>::steps -> impl Iterator<Item =&dyn Step<P>> with ::std::iter::once(Box::leak(Box::new(Default::default())))
+crates/rubiks-cube/src/methods/mod.rs:232:9: replace Technique<P>::solve_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::once(Ok(Solution::from_iter([Default::default()])))
+crates/rubiks-cube/src/methods/mod.rs:232:9: replace Technique<P>::solve_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::once(Ok(Solution::new(Default::default())))
+crates/rubiks-cube/src/methods/mod.rs:241:9: replace Technique<P>::with_neutrality -> Self with Default::default()
+crates/rubiks-cube/src/methods/mod.rs:262:5: replace run_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::once(Ok(Solution::from_iter([Default::default()])))
+crates/rubiks-cube/src/methods/mod.rs:262:5: replace run_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::once(Ok(Solution::new(Default::default())))
+crates/rubiks-cube/src/methods/mod.rs:303:9: replace Method::solve -> Result<Solution<P>, SolveError> with Ok(Solution::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/mod.rs:303:9: replace Method::solve -> Result<Solution<P>, SolveError> with Ok(Solution::new(Default::default()))
+crates/rubiks-cube/src/methods/mod.rs:329:9: replace Method::solve_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::once(Ok(Solution::from_iter([Default::default()])))
+crates/rubiks-cube/src/methods/mod.rs:329:9: replace Method::solve_steps -> impl Iterator<Item = Result<Solution<P>, SolveError>> with ::std::iter::once(Ok(Solution::new(Default::default())))
+crates/rubiks-cube/src/ops.rs:76:9: replace Pow::pow -> Self with Default::default()
+crates/rubiks-cube/src/ops.rs:79:31: replace * with + in Pow::pow
+crates/rubiks-cube/src/ops.rs:79:31: replace * with / in Pow::pow
+crates/rubiks-cube/src/ops.rs:80:49: replace * with + in Pow::pow
+crates/rubiks-cube/src/ops.rs:80:49: replace * with / in Pow::pow
+crates/rubiks-cube/src/piece.rs:22:5: replace random_permutation -> [P; N] with [Default::default(); N]
+crates/rubiks-cube/src/piece.rs:107:9: replace PieceConfiguration<P, N, O>::piece_at -> P with Default::default()
+crates/rubiks-cube/src/piece.rs:116:9: replace PieceConfiguration<P, N, O>::orientation_at -> Zn<O> with Zn::new()
+crates/rubiks-cube/src/piece.rs:116:9: replace PieceConfiguration<P, N, O>::orientation_at -> Zn<O> with Zn::from_iter([Default::default()])
+crates/rubiks-cube/src/piece.rs:116:9: replace PieceConfiguration<P, N, O>::orientation_at -> Zn<O> with Zn::new(Default::default())
+crates/rubiks-cube/src/piece.rs:116:9: replace PieceConfiguration<P, N, O>::orientation_at -> Zn<O> with Zn::from(Default::default())
+crates/rubiks-cube/src/piece.rs:150:9: replace PieceConfiguration<P, N, O>::orientation_sum -> Zn<O> with Zn::new()
+crates/rubiks-cube/src/piece.rs:150:9: replace PieceConfiguration<P, N, O>::orientation_sum -> Zn<O> with Zn::from_iter([Default::default()])
+crates/rubiks-cube/src/piece.rs:172:9: replace PieceConfiguration<P, N, O>::cycle -> Self with Default::default()
+crates/rubiks-cube/src/piece.rs:174:17: replace < with <= in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/piece.rs:176:21: replace < with <= in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/piece.rs:177:60: replace % with + in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/piece.rs:177:55: replace + with - in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/piece.rs:178:19: replace += with -= in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/piece.rs:178:19: replace += with *= in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/piece.rs:180:15: replace += with -= in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/piece.rs:180:15: replace += with *= in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/puzzles/mod.rs:96:9: replace Puzzle::scramble -> Result<Algorithm<Self>, SolveError> with Ok(Algorithm::from_iter([Default::default()]))
+crates/rubiks-cube/src/puzzles/mod.rs:96:9: replace Puzzle::scramble -> Result<Algorithm<Self>, SolveError> with Ok(Algorithm::new(Default::default()))
+crates/rubiks-cube/src/puzzles/mod.rs:96:9: replace Puzzle::scramble -> Result<Algorithm<Self>, SolveError> with Ok(Algorithm::from(Default::default()))
+crates/rubiks-cube/src/puzzles/mod.rs:102:49: replace * with + in Puzzle::apply
+crates/rubiks-cube/src/puzzles/mod.rs:102:49: replace * with / in Puzzle::apply
+crates/rubiks-cube/src/puzzles/mod.rs:109:41: replace * with + in <impl Mul<Algorithm<Self>> for Cube3x3>::mul
+crates/rubiks-cube/src/puzzles/mod.rs:109:41: replace * with / in <impl Mul<Algorithm<Self>> for Cube3x3>::mul
+crates/rubiks-cube/src/zn.rs:66:23: replace * with / in <impl MulAssign for Zn<N>>::mul_assign
+crates/rubiks-cube/src/zn.rs:76:51: replace * with / in <impl Product for Zn<N>>::product
+crates/rubiks-cube/src/zn.rs:105:9: replace Zn<N>::array -> [Self; L] with [Default::default(); L]
+crates/rubiks-cube/src/zn.rs:107:17: replace < with <= in Zn<N>::array
+crates/rubiks-cube/src/zn.rs:109:15: replace += with -= in Zn<N>::array
+crates/rubiks-cube/src/zn.rs:109:15: replace += with *= in Zn<N>::array
+crates/rubiks-cube/src/methods/solution.rs:45:9: replace <impl FromStr for Segment<P>>::from_str -> Result<Self, Self::Err> with Ok(Default::default())
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::new()
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::from_iter([Segment::new()])
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::new(Segment::new())
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::from(Segment::new())
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::from_iter([Segment::from_iter([Default::default()])])
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::new(Segment::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::from(Segment::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::from_iter([Segment::new(Default::default())])
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::new(Segment::new(Default::default()))
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::from(Segment::new(Default::default()))
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::from_iter([Segment::from(Default::default())])
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::new(Segment::from(Default::default()))
+crates/rubiks-cube/src/methods/solution.rs:84:9: replace Solution<P>::iter -> std::slice::Iter<'_, Segment<P>> with Iter::from(Segment::from(Default::default()))
+crates/rubiks-cube/src/methods/step.rs:86:9: replace StepBuilder::build -> Result<Arc<dyn Step<P>>, BuildStepError> with Ok(Arc::new(Default::default()))
+crates/rubiks-cube/src/puzzles/algorithm.rs:35:9: replace <impl Inv for Algorithm<P>>::inv -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/algorithm.rs:42:9: replace <impl FromStr for Algorithm<P>>::from_str -> Result<Self, Self::Err> with Ok(Default::default())
+crates/rubiks-cube/src/puzzles/algorithm.rs:63:9: replace <impl AsRef<[P::Move]> for Algorithm<P>>::as_ref -> &[P::Move] with Vec::leak(vec![Default::default()])
+crates/rubiks-cube/src/puzzles/algorithm.rs:83:9: replace <impl PartialOrd for Algorithm<P>>::partial_cmp -> Option<std::cmp::Ordering> with Some(Default::default())
+crates/rubiks-cube/src/puzzles/algorithm.rs:89:9: replace <impl Ord for Algorithm<P>>::cmp -> std::cmp::Ordering with Default::default()
+crates/rubiks-cube/src/puzzles/algorithm.rs:95:9: replace <impl FromIterator<P::Move> for Algorithm<P>>::from_iter -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/algorithm.rs:128:9: replace <impl Index<usize> for Algorithm<P>>::index -> &Self::Output with Box::leak(Box::new(Default::default()))
+crates/rubiks-cube/src/puzzles/algorithm.rs:141:9: replace Algorithm<P>::iter -> std::slice::Iter<'_, P::Move> with Iter::new()
+crates/rubiks-cube/src/puzzles/algorithm.rs:141:9: replace Algorithm<P>::iter -> std::slice::Iter<'_, P::Move> with Iter::from_iter([Default::default()])
+crates/rubiks-cube/src/puzzles/algorithm.rs:141:9: replace Algorithm<P>::iter -> std::slice::Iter<'_, P::Move> with Iter::new(Default::default())
+crates/rubiks-cube/src/puzzles/algorithm.rs:141:9: replace Algorithm<P>::iter -> std::slice::Iter<'_, P::Move> with Iter::from(Default::default())
+crates/rubiks-cube/src/puzzles/algorithm.rs:177:9: replace Algorithm<P>::from_static -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/algset.rs:60:9: replace AlgSet<P>::algs -> &[Algorithm<P>] with Vec::leak(vec![Algorithm::from_iter([Default::default()])])
+crates/rubiks-cube/src/puzzles/algset.rs:60:9: replace AlgSet<P>::algs -> &[Algorithm<P>] with Vec::leak(vec![Algorithm::new(Default::default())])
+crates/rubiks-cube/src/puzzles/algset.rs:60:9: replace AlgSet<P>::algs -> &[Algorithm<P>] with Vec::leak(vec![Algorithm::from(Default::default())])
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::new()
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::from_iter([Algorithm::new()])
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::new(Algorithm::new())
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::from(Algorithm::new())
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::from_iter([Algorithm::from_iter([Default::default()])])
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::new(Algorithm::from_iter([Default::default()]))
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::from(Algorithm::from_iter([Default::default()]))
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::from_iter([Algorithm::new(Default::default())])
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::new(Algorithm::new(Default::default()))
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::from(Algorithm::new(Default::default()))
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::from_iter([Algorithm::from(Default::default())])
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::new(Algorithm::from(Default::default()))
+crates/rubiks-cube/src/puzzles/algset.rs:65:9: replace AlgSet<P>::iter -> std::slice::Iter<'_, Algorithm<P>> with Iter::from(Algorithm::from(Default::default()))
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:49:9: replace <impl Puzzle for Cube3x3>::slot_of -> Self::Piece with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:55:9: replace <impl Puzzle for Cube3x3>::piece_at -> Self::Piece with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:63:9: replace <impl Puzzle for Cube3x3>::orientation_at -> Self::Orientation with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:77:40: replace -= with /= in <impl Puzzle for Cube3x3>::scrambled_with_seed
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:78:38: replace -= with /= in <impl Puzzle for Cube3x3>::scrambled_with_seed
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:86:9: replace <impl Puzzle for Cube3x3>::scramble_with_seed -> Result<Algorithm<Self>, SolveError> with Ok(Algorithm::from_iter([Default::default()]))
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:86:9: replace <impl Puzzle for Cube3x3>::scramble_with_seed -> Result<Algorithm<Self>, SolveError> with Ok(Algorithm::new(Default::default()))
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:86:9: replace <impl Puzzle for Cube3x3>::scramble_with_seed -> Result<Algorithm<Self>, SolveError> with Ok(Algorithm::from(Default::default()))
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:106:9: replace <impl Indexed for Piece3x3>::from_index -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:128:14: replace * with + in <impl std::ops::Mul<Move3x3> for Cube3x3>::mul
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:128:14: replace * with / in <impl std::ops::Mul<Move3x3> for Cube3x3>::mul
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:166:9: replace Cube3x3::corners -> &CornerConfiguration with Box::leak(Box::new(Default::default()))
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:171:9: replace Cube3x3::edges -> &EdgeConfiguration with Box::leak(Box::new(Default::default()))
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:176:9: replace Cube3x3::centers -> &CenterConfiguration with Box::leak(Box::new(Default::default()))
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:210:17: replace * with + in Cube3x3::rotated_until_solved_centers
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:210:17: replace * with / in Cube3x3::rotated_until_solved_centers
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:215:21: replace * with + in Cube3x3::rotated_until_solved_centers
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:215:21: replace * with / in Cube3x3::rotated_until_solved_centers
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:221:21: replace * with + in Cube3x3::rotated_until_solved_centers
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:221:21: replace * with / in Cube3x3::rotated_until_solved_centers
+crates/rubiks-cube/src/puzzles/label.rs:70:9: replace <impl Marker<P> for ByIdentity>::home -> Self::Label with Default::default()
+crates/rubiks-cube/src/puzzles/label.rs:88:43: replace * with + in <impl Mul<P::Move> for Labeled<P, L>>::mul
+crates/rubiks-cube/src/puzzles/label.rs:88:43: replace * with / in <impl Mul<P::Move> for Labeled<P, L>>::mul
+crates/rubiks-cube/src/puzzles/label.rs:163:9: replace Labeled<P, L>::condition -> &SlotCondition<P, L> with Box::leak(Box::new(Default::default()))
+crates/rubiks-cube/src/puzzles/label.rs:174:49: replace + with - in Labeled<P, L>::composed_with
+crates/rubiks-cube/src/puzzles/label.rs:174:49: replace + with * in Labeled<P, L>::composed_with
+crates/rubiks-cube/src/puzzles/label.rs:298:68: replace * with + in PieceSet<P>::from_algset
+crates/rubiks-cube/src/puzzles/label.rs:298:68: replace * with / in PieceSet<P>::from_algset
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:22:5: replace into_steps -> Vec<Arc<dyn Step<P>>> with vec![Arc::new(Default::default())]
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:54:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::goal -> &Mask<Cube3x3> with Box::leak(Box::new(Mask::from_iter([Default::default()])))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:54:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::goal -> &Mask<Cube3x3> with Box::leak(Box::new(Mask::new(Default::default())))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::new()))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from_iter([Mask::new()])))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::new(Mask::new())))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from(Mask::new())))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from_iter([Mask::from_iter([Default::default()])])))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::new(Mask::from_iter([Default::default()]))))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from(Mask::from_iter([Default::default()]))))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from_iter([Mask::new(Default::default())])))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::new(Mask::new(Default::default()))))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from(Mask::new(Default::default()))))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from_iter([Mask::from(Default::default())])))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::new(Mask::from(Default::default()))))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:58:9: replace <impl PrunedGoal<Cube3x3> for &'static BlockGoal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from(Mask::from(Default::default()))))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:68:5: replace split_by_blocks -> PrunedCombine<Cube3x3> with PrunedCombine::new()
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:68:5: replace split_by_blocks -> PrunedCombine<Cube3x3> with PrunedCombine::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:68:5: replace split_by_blocks -> PrunedCombine<Cube3x3> with PrunedCombine::new(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:68:5: replace split_by_blocks -> PrunedCombine<Cube3x3> with PrunedCombine::from(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:179:5: replace aufs -> &'static[Algorithm<Cube3x3>; 4] with Box::leak(Box::new([Algorithm::new(); 4]))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:179:5: replace aufs -> &'static[Algorithm<Cube3x3>; 4] with Box::leak(Box::new([Algorithm::from_iter([Default::default()]); 4]))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:179:5: replace aufs -> &'static[Algorithm<Cube3x3>; 4] with Box::leak(Box::new([Algorithm::new(Default::default()); 4]))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:179:5: replace aufs -> &'static[Algorithm<Cube3x3>; 4] with Box::leak(Box::new([Algorithm::from(Default::default()); 4]))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:227:9: replace LastLayer::post_auf -> Option<Algorithm<Cube3x3>> with Some(Algorithm::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:227:9: replace LastLayer::post_auf -> Option<Algorithm<Cube3x3>> with Some(Algorithm::new(Default::default()))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:227:9: replace LastLayer::post_auf -> Option<Algorithm<Cube3x3>> with Some(Algorithm::from(Default::default()))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:277:9: replace <impl Step<Cube3x3> for LastLayer>::solve -> Result<Solution<Cube3x3>, StepError> with Ok(Solution::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/cube3x3/helpers.rs:277:9: replace <impl Step<Cube3x3> for LastLayer>::solve -> Result<Solution<Cube3x3>, StepError> with Ok(Solution::new(Default::default()))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:28:5: replace face_turns -> AlgSet<Cube3x3> with AlgSet::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:28:5: replace face_turns -> AlgSet<Cube3x3> with AlgSet::new(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:39:5: replace domino_turns -> AlgSet<Cube3x3> with AlgSet::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:39:5: replace domino_turns -> AlgSet<Cube3x3> with AlgSet::new(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:50:5: replace corners -> impl Iterator<Item = Piece3x3>+Clone with ::std::iter::once(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:54:5: replace edges -> impl Iterator<Item = Piece3x3>+Clone with ::std::iter::once(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:78:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::goal -> &PieceSet<Cube3x3> with Box::leak(Box::new(PieceSet::from_iter([Default::default()])))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:78:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::goal -> &PieceSet<Cube3x3> with Box::leak(Box::new(PieceSet::new(Default::default())))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::new()))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::from_iter([PieceSet::new()])))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::new(PieceSet::new())))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::from(PieceSet::new())))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::from_iter([PieceSet::from_iter([Default::default()])])))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::new(PieceSet::from_iter([Default::default()]))))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::from(PieceSet::from_iter([Default::default()]))))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::from_iter([PieceSet::new(Default::default())])))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::new(PieceSet::new(Default::default()))))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::from(PieceSet::new(Default::default()))))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::from_iter([PieceSet::from(Default::default())])))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::new(PieceSet::from(Default::default()))))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:84:9: replace <impl PrunedGoal<Cube3x3> for Phase1Goal>::table -> &PruneTable<PieceSet<Cube3x3>> with Box::leak(Box::new(PruneTable::from(PieceSet::from(Default::default()))))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:93:5: replace phase_1 -> PrunedCombine<Cube3x3> with PrunedCombine::new()
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:93:5: replace phase_1 -> PrunedCombine<Cube3x3> with PrunedCombine::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:93:5: replace phase_1 -> PrunedCombine<Cube3x3> with PrunedCombine::new(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:93:5: replace phase_1 -> PrunedCombine<Cube3x3> with PrunedCombine::from(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:128:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::goal -> &Mask<Cube3x3> with Box::leak(Box::new(Mask::from_iter([Default::default()])))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:128:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::goal -> &Mask<Cube3x3> with Box::leak(Box::new(Mask::new(Default::default())))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::new()))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from_iter([Mask::new()])))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::new(Mask::new())))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from(Mask::new())))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from_iter([Mask::from_iter([Default::default()])])))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::new(Mask::from_iter([Default::default()]))))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from(Mask::from_iter([Default::default()]))))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from_iter([Mask::new(Default::default())])))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::new(Mask::new(Default::default()))))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from(Mask::new(Default::default()))))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from_iter([Mask::from(Default::default())])))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::new(Mask::from(Default::default()))))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:134:9: replace <impl PrunedGoal<Cube3x3> for Phase2Goal>::table -> &PruneTable<Mask<Cube3x3>> with Box::leak(Box::new(PruneTable::from(Mask::from(Default::default()))))
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:145:5: replace phase_2 -> PrunedCombine<Cube3x3> with PrunedCombine::new()
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:145:5: replace phase_2 -> PrunedCombine<Cube3x3> with PrunedCombine::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:145:5: replace phase_2 -> PrunedCombine<Cube3x3> with PrunedCombine::new(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:145:5: replace phase_2 -> PrunedCombine<Cube3x3> with PrunedCombine::from(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:169:9: replace <impl Method<Cube3x3> for Kociemba>::to_technique -> Technique<Cube3x3> with Technique::new()
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:169:9: replace <impl Method<Cube3x3> for Kociemba>::to_technique -> Technique<Cube3x3> with Technique::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:169:9: replace <impl Method<Cube3x3> for Kociemba>::to_technique -> Technique<Cube3x3> with Technique::new(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:169:9: replace <impl Method<Cube3x3> for Kociemba>::to_technique -> Technique<Cube3x3> with Technique::from(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/roux.rs:95:9: replace <impl Method<Cube3x3> for Roux>::to_technique -> Technique<Cube3x3> with Technique::new()
+crates/rubiks-cube/src/methods/cube3x3/roux.rs:95:9: replace <impl Method<Cube3x3> for Roux>::to_technique -> Technique<Cube3x3> with Technique::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/cube3x3/roux.rs:95:9: replace <impl Method<Cube3x3> for Roux>::to_technique -> Technique<Cube3x3> with Technique::new(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/roux.rs:95:9: replace <impl Method<Cube3x3> for Roux>::to_technique -> Technique<Cube3x3> with Technique::from(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/zz.rs:92:9: replace <impl Method<Cube3x3> for ZZ>::to_technique -> Technique<Cube3x3> with Technique::new()
+crates/rubiks-cube/src/methods/cube3x3/zz.rs:92:9: replace <impl Method<Cube3x3> for ZZ>::to_technique -> Technique<Cube3x3> with Technique::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/cube3x3/zz.rs:92:9: replace <impl Method<Cube3x3> for ZZ>::to_technique -> Technique<Cube3x3> with Technique::new(Default::default())
+crates/rubiks-cube/src/methods/cube3x3/zz.rs:92:9: replace <impl Method<Cube3x3> for ZZ>::to_technique -> Technique<Cube3x3> with Technique::from(Default::default())
+crates/rubiks-cube/src/methods/step/choose/mod.rs:62:9: replace <impl FromIterator<Arc<dyn Step<P>>> for Shortest<P>>::from_iter -> Self with Default::default()
+crates/rubiks-cube/src/methods/step/choose/mod.rs:76:9: replace <impl Step<P> for Shortest<P>>::solve -> Result<Solution<P>, StepError> with Ok(Solution::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/step/choose/mod.rs:76:9: replace <impl Step<P> for Shortest<P>>::solve -> Result<Solution<P>, StepError> with Ok(Solution::new(Default::default()))
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:145:9: replace <impl Step<P> for PrunedCombine<P>>::solve -> Result<crate::Solution<P>, crate::StepError> with Ok(Solution::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:145:9: replace <impl Step<P> for PrunedCombine<P>>::solve -> Result<crate::Solution<P>, crate::StepError> with Ok(Solution::new(Default::default()))
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:165:13: replace <impl Step<P> for PrunedCombine<P>>::solve::search -> ControlFlow<Algorithm<P>, Option<u8>> with Default::default()
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:61:9: replace SearchCache<P>::memo -> SharedMemo<P> with SharedMemo::new()
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:61:9: replace SearchCache<P>::memo -> SharedMemo<P> with SharedMemo::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:61:9: replace SearchCache<P>::memo -> SharedMemo<P> with SharedMemo::new(Default::default())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:61:9: replace SearchCache<P>::memo -> SharedMemo<P> with SharedMemo::from(Default::default())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:111:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::from_iter([Default::default()]))))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:111:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::new(Default::default()))))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:114:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with Some(AlgSet::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:114:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with Some(AlgSet::new(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:124:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::from_iter([Default::default()]))))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:124:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::new(Default::default()))))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:128:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::build_in -> Result<Arc<dyn Step<P>>, BuildStepError> with Ok(Arc::new(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:137:9: replace SearchStepBuilder<P>::expect_solved -> &mut Self with Box::leak(Box::new(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:144:9: replace SearchStepBuilder<P>::free_algs -> &mut Self with Box::leak(Box::new(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:150:9: replace SearchStepBuilder<P>::goal -> &mut Self with Box::leak(Box::new(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:159:9: replace SearchStepBuilder<P>::build_in -> Result<SearchStep<P>, SearchStepError<P>> with Ok(SearchStep::new())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:159:9: replace SearchStepBuilder<P>::build_in -> Result<SearchStep<P>, SearchStepError<P>> with Ok(SearchStep::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:159:9: replace SearchStepBuilder<P>::build_in -> Result<SearchStep<P>, SearchStepError<P>> with Ok(SearchStep::new(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:159:9: replace SearchStepBuilder<P>::build_in -> Result<SearchStep<P>, SearchStepError<P>> with Ok(SearchStep::from(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:190:9: replace SearchStepBuilder<P>::build -> Result<SearchStep<P>, SearchStepError<P>> with Ok(SearchStep::new())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:190:9: replace SearchStepBuilder<P>::build -> Result<SearchStep<P>, SearchStepError<P>> with Ok(SearchStep::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:190:9: replace SearchStepBuilder<P>::build -> Result<SearchStep<P>, SearchStepError<P>> with Ok(SearchStep::new(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:190:9: replace SearchStepBuilder<P>::build -> Result<SearchStep<P>, SearchStepError<P>> with Ok(SearchStep::from(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:199:9: replace SearchStep<P>::builder -> SearchStepBuilder<P> with SearchStepBuilder::new()
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:199:9: replace SearchStep<P>::builder -> SearchStepBuilder<P> with SearchStepBuilder::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:199:9: replace SearchStep<P>::builder -> SearchStepBuilder<P> with SearchStepBuilder::new(Default::default())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:199:9: replace SearchStep<P>::builder -> SearchStepBuilder<P> with SearchStepBuilder::from(Default::default())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:221:9: replace SearchStep<P>::solve_bfs -> Result<Algorithm<P>, StepError> with Ok(Algorithm::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:221:9: replace SearchStep<P>::solve_bfs -> Result<Algorithm<P>, StepError> with Ok(Algorithm::new(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:221:9: replace SearchStep<P>::solve_bfs -> Result<Algorithm<P>, StepError> with Ok(Algorithm::from(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:319:9: replace SearchStep<P>::path_to -> Algorithm<P> with Algorithm::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:319:9: replace SearchStep<P>::path_to -> Algorithm<P> with Algorithm::new(Default::default())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:319:9: replace SearchStep<P>::path_to -> Algorithm<P> with Algorithm::from(Default::default())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:332:9: replace SearchStep<P>::mask -> Mask<P> with Mask::from_iter([Default::default()])
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:332:9: replace SearchStep<P>::mask -> Mask<P> with Mask::new(Default::default())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:350:9: replace <impl Step<P> for SearchStep<P>>::solve -> Result<Solution<P>, StepError> with Ok(Solution::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:350:9: replace <impl Step<P> for SearchStep<P>>::solve -> Result<Solution<P>, StepError> with Ok(Solution::new(Default::default()))
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:143:5: replace corner_faces -> [Center; 3] with [Default::default(); 3]
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:162:5: replace edge_faces -> [Center; 2] with [Default::default(); 2]
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:181:5: replace slot_faces -> Vec<Center> with vec![Default::default()]
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:191:5: replace stickers -> Option<Vec<Center>> with Some(vec![Default::default()])
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:214:5: replace sticker -> Option<Center> with Some(Default::default())
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:252:5: replace letter -> char with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:266:9: replace Facelets::face -> &[Center; 9] with Box::leak(Box::new([Default::default(); 9]))
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:278:9: replace Cube3x3::facelets -> Facelets with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:382:9: replace same_face -> bool with true
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:382:9: replace same_face -> bool with false
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:382:17: replace == with != in same_face
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:385:9: replace same_slot -> bool with true
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:387:63: replace == with != in same_slot
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:388:67: replace == with != in same_slot
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:393:9: replace slot_has -> bool with false
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:397:43: replace || with && in slot_has
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:401:72: replace || with && in slot_has
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:401:43: replace || with && in slot_has
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:406:16: replace < with <=
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:408:17: replace < with <=
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:416:30: replace < with <=
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:418:25: replace < with <=
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:425:23: replace += with -=
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:425:23: replace += with *=
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:427:28: replace += with -=
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:427:28: replace += with *=
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:429:15: replace += with -=
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:429:15: replace += with *=
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:431:14: replace += with -=
+crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs:431:14: replace += with *=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:62:9: replace Move3x3::part -> MovablePart with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:68:9: replace Move3x3::modifier -> MoveModifier with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:73:62: replace + with -
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:73:62: replace + with *
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:73:43: replace + with -
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:73:43: replace + with *
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:73:25: replace * with +
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:73:25: replace * with /
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:75:74: replace + with -
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:75:74: replace + with *
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:75:55: replace + with -
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:75:55: replace + with *
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:75:37: replace * with +
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:75:37: replace * with /
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:79:17: replace < with ==
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:79:17: replace < with >
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:79:17: replace < with <=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:81:18: replace += with -=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:81:18: replace += with *=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:82:15: replace += with -=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:82:15: replace += with *=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:85:17: replace < with ==
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:85:17: replace < with >
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:85:17: replace < with <=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:87:18: replace += with -=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:87:18: replace += with *=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:88:15: replace += with -=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:88:15: replace += with *=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:91:17: replace < with ==
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:91:17: replace < with >
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:91:17: replace < with <=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:93:18: replace += with -=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:93:18: replace += with *=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:94:15: replace += with -=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:94:15: replace += with *=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:97:17: replace < with ==
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:97:17: replace < with >
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:97:17: replace < with <=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:99:18: replace += with -=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:99:18: replace += with *=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:100:15: replace += with -=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:100:15: replace += with *=
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:117:9: replace MoveModifier::inverse -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:137:9: replace <impl Indexed for MovablePart>::from_index -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:147:9: replace <impl Indexed for MoveModifier>::from_index -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:157:9: replace <impl Indexed for Move3x3>::from_index -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:201:9: replace <impl ops::Inv for Move3x3>::inv -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves.rs:217:9: replace <impl FromStr for Move3x3>::from_str -> Result<Self, Self::Err> with Ok(Default::default())
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:140:9: replace <impl std::ops::Add for Orientation3x3>::add -> Self::Output with Default::default()
+crates/rubiks-cube/src/methods/step/combine_pruned/prune_table.rs:17:9: replace <impl FromIterator<(K, u8)> for PruneTable<K>>::from_iter -> Self with Default::default()
+crates/rubiks-cube/src/methods/step/combine_pruned/prune_table.rs:28:9: replace PruneTable<Labeled<P, L>>::from_goal -> Self with Default::default()
+crates/rubiks-cube/src/methods/step/combine_pruned/prune_table.rs:66:89: replace * with + in PruneTable<K>::populate
+crates/rubiks-cube/src/methods/step/combine_pruned/prune_table.rs:66:89: replace * with / in PruneTable<K>::populate
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:24:9: replace BfsMemo<P>::solution -> Option<&Algorithm<P>> with Some(Box::leak(Box::new(Algorithm::from_iter([Default::default()]))))
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:24:9: replace BfsMemo<P>::solution -> Option<&Algorithm<P>> with Some(Box::leak(Box::new(Algorithm::new(Default::default()))))
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:24:9: replace BfsMemo<P>::solution -> Option<&Algorithm<P>> with Some(Box::leak(Box::new(Algorithm::from(Default::default()))))
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:87:9: replace BfsMemo<P>::memorize -> Option<(Mask<P>, P)> with Some((Mask::from_iter([Default::default()]), Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:87:9: replace BfsMemo<P>::memorize -> Option<(Mask<P>, P)> with Some((Mask::new(Default::default()), Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:90:54: replace * with + in BfsMemo<P>::memorize
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:90:54: replace * with / in BfsMemo<P>::memorize
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:63:9: replace <impl Inv for MoveInformation>::inv -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:84:9: replace MoveInformation::double -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:85:41: replace * with + in MoveInformation::double
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:85:41: replace * with / in MoveInformation::double
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:99:9: replace Slice::follows -> Face with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:108:9: replace Rotation::follows -> Face with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:117:9: replace Face::opposite -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:128:69: replace + with -
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:128:69: replace + with *
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:315:5: replace all_clockwise_moves -> [MoveInformation; CLOCKWISE_MOVE_COUNT] with [Default::default(); CLOCKWISE_MOVE_COUNT]
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:333:21: replace * with + in all_clockwise_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:333:21: replace * with / in all_clockwise_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:328:21: replace * with + in all_clockwise_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:328:21: replace * with / in all_clockwise_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:343:17: replace * with + in all_clockwise_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:343:17: replace * with / in all_clockwise_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:352:48: replace * with +
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:352:48: replace * with /
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:360:5: replace all_moves -> [MoveInformation; 3 *CLOCKWISE_MOVE_COUNT] with [Default::default(); 3 *CLOCKWISE_MOVE_COUNT]
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:359:39: replace * with + in all_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:359:39: replace * with / in all_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:361:55: replace * with + in all_moves
+crates/rubiks-cube/src/puzzles/cube3x3/moves/table.rs:361:55: replace * with / in all_moves
+crates/rubiks-cube/src/error.rs:68:9: replace SolveError::step -> &str with ""
+crates/rubiks-cube/src/error.rs:68:9: replace SolveError::step -> &str with "xyzzy"
+crates/rubiks-cube/src/error.rs:73:9: replace SolveError::inner -> Option<&StepError> with None
+crates/rubiks-cube/src/error.rs:204:9: replace ParseSequenceError::line -> usize with 0
+crates/rubiks-cube/src/error.rs:204:9: replace ParseSequenceError::line -> usize with 1
+crates/rubiks-cube/src/error.rs:209:9: replace ParseSequenceError::position -> usize with 0
+crates/rubiks-cube/src/error.rs:209:9: replace ParseSequenceError::position -> usize with 1
+crates/rubiks-cube/src/error.rs:213:16: delete field line from struct Self expression in ParseSequenceError::on_line
+crates/rubiks-cube/src/fast_hash.rs:16:9: replace <impl Hasher for FxHasher>::write with ()
+crates/rubiks-cube/src/fast_hash.rs:24:9: replace <impl Hasher for FxHasher>::write_u8 with ()
+crates/rubiks-cube/src/fast_hash.rs:27:9: replace <impl Hasher for FxHasher>::write_u16 with ()
+crates/rubiks-cube/src/fast_hash.rs:30:9: replace <impl Hasher for FxHasher>::write_u32 with ()
+crates/rubiks-cube/src/fast_hash.rs:37:9: replace <impl Hasher for FxHasher>::write_u128 with ()
+crates/rubiks-cube/src/fast_hash.rs:41:9: replace <impl Hasher for FxHasher>::write_usize with ()
+crates/rubiks-cube/src/indexed.rs:16:9: replace Indexed::all -> impl Iterator<Item = Self>+Clone with ::std::iter::empty()
+crates/rubiks-cube/src/indexed.rs:21:35: replace * with +
+crates/rubiks-cube/src/indexed.rs:21:35: replace * with /
+crates/rubiks-cube/src/indexed.rs:23:9: replace <impl Indexed for (A, B)>::index -> usize with 0
+crates/rubiks-cube/src/indexed.rs:23:9: replace <impl Indexed for (A, B)>::index -> usize with 1
+crates/rubiks-cube/src/indexed.rs:23:35: replace + with - in <impl Indexed for (A, B)>::index
+crates/rubiks-cube/src/indexed.rs:23:35: replace + with * in <impl Indexed for (A, B)>::index
+crates/rubiks-cube/src/indexed.rs:23:24: replace * with + in <impl Indexed for (A, B)>::index
+crates/rubiks-cube/src/indexed.rs:23:24: replace * with / in <impl Indexed for (A, B)>::index
+crates/rubiks-cube/src/indexed.rs:27:33: replace / with % in <impl Indexed for (A, B)>::from_index
+crates/rubiks-cube/src/indexed.rs:27:33: replace / with * in <impl Indexed for (A, B)>::from_index
+crates/rubiks-cube/src/indexed.rs:28:33: replace % with / in <impl Indexed for (A, B)>::from_index
+crates/rubiks-cube/src/indexed.rs:28:33: replace % with + in <impl Indexed for (A, B)>::from_index
+crates/rubiks-cube/src/error.rs:63:9: replace SolveError::kind -> SolveErrorKind with Default::default()
+crates/rubiks-cube/src/error.rs:73:9: replace SolveError::inner -> Option<&StepError> with Some(Box::leak(Box::new(Default::default())))
+crates/rubiks-cube/src/error.rs:78:9: replace SolveError::into_inner -> Option<StepError> with Some(Default::default())
+crates/rubiks-cube/src/error.rs:83:9: replace SolveError::requirements -> Self with Default::default()
+crates/rubiks-cube/src/error.rs:91:9: replace SolveError::couldnt_solve -> Self with Default::default()
+crates/rubiks-cube/src/error.rs:99:9: replace SolveError::not_done -> Self with Default::default()
+crates/rubiks-cube/src/error.rs:213:9: replace ParseSequenceError::on_line -> Self with Default::default()
+crates/rubiks-cube/src/indexed.rs:16:9: replace Indexed::all -> impl Iterator<Item = Self>+Clone with ::std::iter::once(Default::default())
+crates/rubiks-cube/src/indexed.rs:26:9: replace <impl Indexed for (A, B)>::from_index -> Self with Default::default()
+crates/rubiks-cube/src/methods/mod.rs:91:9: replace TechniqueBuilder<P>::then -> &mut Self with Box::leak(Box::new(Default::default()))
+crates/rubiks-cube/src/methods/mod.rs:114:9: replace TechniqueBuilder<P>::finish_in -> Result<Technique<P>, TechniqueError> with Ok(Technique::new())
+crates/rubiks-cube/src/methods/mod.rs:114:9: replace TechniqueBuilder<P>::finish_in -> Result<Technique<P>, TechniqueError> with Ok(Technique::from_iter([Default::default()]))
+crates/rubiks-cube/src/methods/mod.rs:114:9: replace TechniqueBuilder<P>::finish_in -> Result<Technique<P>, TechniqueError> with Ok(Technique::new(Default::default()))
+crates/rubiks-cube/src/methods/mod.rs:114:9: replace TechniqueBuilder<P>::finish_in -> Result<Technique<P>, TechniqueError> with Ok(Technique::from(Default::default()))

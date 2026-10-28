@@ -1,0 +1,25 @@
+crates/rubiks-cube/src/piece.rs:38:5: replace index -> usize with 0
+crates/rubiks-cube/src/piece.rs:38:5: replace index -> usize with 1
+crates/rubiks-cube/src/piece.rs:74:9: replace <impl Inv for PieceConfiguration<P, N, O>>::inv -> Self with Default::default()
+crates/rubiks-cube/src/piece.rs:134:30: replace != with == in PieceConfiguration<P, N, O>::parity
+crates/rubiks-cube/src/piece.rs:177:60: replace % with / in PieceConfiguration<P, N, O>::cycle
+crates/rubiks-cube/src/puzzles/mod.rs:102:9: replace Puzzle::apply -> Self with Default::default()
+crates/rubiks-cube/src/zn.rs:33:9: replace <impl Neg for Zn<N>>::neg -> Self::Output with Default::default()
+crates/rubiks-cube/src/zn.rs:61:15: replace += with -= in <impl SubAssign for Zn<N>>::sub_assign
+crates/rubiks-cube/src/puzzles/algorithm.rs:153:9: replace Algorithm<P>::is_empty -> bool with true
+crates/rubiks-cube/src/puzzles/algset.rs:76:9: replace AlgSet<P>::from_static -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/algset.rs:107:9: replace <impl FromStr for AlgSet<P>>::from_str -> Result<Self, Self::Err> with Ok(Default::default())
+crates/rubiks-cube/src/puzzles/algset.rs:111:35: delete ! in <impl FromStr for AlgSet<P>>::from_str
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:140:9: replace <impl Inv for Cube3x3>::inv -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/label.rs:225:46: replace && with || in Mask<P>::and
+crates/rubiks-cube/src/puzzles/label.rs:231:47: replace && with || in Mask<P>::and
+crates/rubiks-cube/src/puzzles/label.rs:300:48: replace != with == in PieceSet<P>::from_algset
+crates/rubiks-cube/src/puzzles/label.rs:304:49: replace != with == in PieceSet<P>::from_algset
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:117:79: replace == with != in may_follow
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:171:22: replace > with < in <impl Step<P> for PrunedCombine<P>>::solve::search
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:187:79: replace != with == in <impl Step<P> for PrunedCombine<P>>::solve::search
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:246:35: replace && with || in SearchStep<P>::solve_bfs
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:24:9: replace BfsMemo<P>::solution -> Option<&Algorithm<P>> with None
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:30:9: replace BfsMemo<P>::frontier_len -> usize with 1
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:87:9: replace BfsMemo<P>::memorize -> Option<(Mask<P>, P)> with Some((Mask::new(), Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/memorization.rs:87:9: replace BfsMemo<P>::memorize -> Option<(Mask<P>, P)> with Some((Mask::from(Default::default()), Default::default()))

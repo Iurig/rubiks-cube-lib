@@ -1,0 +1,35 @@
+--- crates/rubiks-cube-cli/src/main.rs
++++ replace reconstruct_n -> anyhow::Result<()> with Ok(())
+@@ -8,31 +8,17 @@
+     #[arg(short, long)]
+     method: String,
+ 
+     #[arg(long)]
+     number: u32,
+ }
+ 
+ fn reconstruct_n<P: Puzzle, T: Method<P>>(n: u32, technique: &T) -> anyhow::Result<()> {
+-    for count in 1..=n {
+-        let scramble = P::scramble()?;
+-
+-        let mut puzzle = P::default().apply(&scramble);
+-
+-        let solution = technique.solve(&mut puzzle)?;
+-
+-        ensure!(
+-            puzzle.is_solved(),
+-            "scramble:\n {scramble} \n and solve:\n {solution} \n did not solve the cube"
+-        );
+-
+-        println!("{count}. {scramble} {solution}");
+-    }
+-    Ok(())
++    Ok(()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ fn main() -> anyhow::Result<()> {
+     let args = Args::parse();
+     match args.method.as_str() {
+         "roux" => {
+             reconstruct_n(args.number, &Roux::default())?;
+         }

@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/piece.rs
++++ replace != with == in PieceConfiguration<P, N, O>::parity
+@@ -126,17 +126,17 @@
+         for p in self.permutation {
+             if !visited.contains(&p) {
+                 visited.push(p);
+                 let mut travel = self
+                     .permutation
+                     .get(index(p))
+                     .expect("self.permutation must be a valid permutation");
+                 let mut cycle_size = 1;
+-                while travel != &p {
++                while travel == /* ~ changed by cargo-mutants ~ */ &p {
+                     visited.push(*travel);
+                     cycle_size += 1;
+                     travel = self
+                         .permutation
+                         .get(index(*travel))
+                         .expect("self.permutation must be a valid permutation");
+                 }
+                 par += Zn::new(cycle_size - 1);

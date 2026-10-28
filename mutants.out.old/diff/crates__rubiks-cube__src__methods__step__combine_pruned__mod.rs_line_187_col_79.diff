@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs
++++ replace != with == in <impl Step<P> for PrunedCombine<P>>::solve::search
+@@ -179,17 +179,17 @@
+             };
+             let next_bound = AtomicU16::new(u16::MAX);
+             let allowed = last.and_then(|l| combine.may_follow.get(l));
+             let path = combine
+                 .moveset
+                 .algs()
+                 .par_iter()
+                 .enumerate()
+-                .filter(|(index, _)| allowed.is_none_or(|row| row.get(*index) != Some(&false)))
++                .filter(|(index, _)| allowed.is_none_or(|row| row.get(*index) == /* ~ changed by cargo-mutants ~ */ Some(&false)))
+                 .find_map_first(|(index, alg)| {
+                     match search(combine, Some(index), &puzzle.apply(alg), next_depth, bound) {
+                         ControlFlow::Break(rest) => {
+                             let mut path = Algorithm::new();
+                             path.extend_from(alg);
+                             path.extend_from(&rest);
+                             Some(path)
+                         }

@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs
++++ replace == with != in may_follow
+@@ -109,17 +109,17 @@
+         .map(|(a_index, (after_a, a))| {
+             alone
+                 .iter()
+                 .zip(algs)
+                 .enumerate()
+                 .map(|(b_index, (after_b, b))| {
+                     let a_then_b = after_a.apply(b);
+                     let shortens = a_then_b == P::default() || alone.contains(&a_then_b);
+-                    let commutes_out_of_order = b_index < a_index && a_then_b == after_b.apply(a);
++                    let commutes_out_of_order = b_index < a_index && a_then_b != /* ~ changed by cargo-mutants ~ */ after_b.apply(a);
+                     !shortens && !commutes_out_of_order
+                 })
+                 .collect()
+         })
+         .collect()
+ }
+ 
+ impl<P: Puzzle> Step<P> for PrunedCombine<P> {

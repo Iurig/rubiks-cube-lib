@@ -1,0 +1,29 @@
+--- crates/rubiks-cube/src/piece.rs
++++ replace index -> usize with 0
+@@ -30,25 +30,17 @@
+ #[expect(
+     clippy::redundant_pub_crate,
+     reason = "`pub(crate)` says `index` is internal even if this module becomes public"
+ )]
+ pub(crate) const fn index<P, const N: usize>(piece: P) -> usize
+ where
+     P: Piece<N>,
+ {
+-    const {
+-        assert!(std::mem::size_of::<P>() == 1);
+-    }
+-    // SAFETY: `Piece` is sealed, and the only implementations come from `new_piece!`, which makes a
+-    // fieldless `#[repr(u8)]` enum. Such an enum is one byte holding its discriminant, so reading
+-    // that byte is in bounds and gives an initialized `u8`. `Sealed` alone does not check the
+-    // layout; the macro does, and the size assertion above catches a non-macro impl whose type is
+-    // not one byte.
+-    unsafe { (&raw const piece).cast::<u8>().read() as usize }
++    0 /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ /// Where each of `N` pieces sits and how it is oriented, mod `O`.
+ #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+ pub struct PieceConfiguration<P, const N: usize, const O: usize> {
+     pub(crate) permutation: [P; N],
+     pub(crate) orientation: [Zn<O>; N],
+ }

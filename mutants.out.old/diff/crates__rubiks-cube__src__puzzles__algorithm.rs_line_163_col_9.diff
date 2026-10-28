@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/algorithm.rs
++++ replace Algorithm<P>::truncate with ()
+@@ -155,17 +155,17 @@
+ 
+     /// Adds the moves of `other` after the last move.
+     pub fn extend_from(&mut self, other: &Self) {
+         self.0.extend_from_slice(&other.0);
+     }
+ 
+     /// Keeps the first `len` moves and drops the rest.
+     pub fn truncate(&mut self, len: usize) {
+-        self.0.truncate(len);
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Same as [`FromStr`](core::str::FromStr), but for `'static` types.
+     ///
+     /// # Panics
+     /// Panics when [`FromStr`](core::str::FromStr) would error.
+     #[must_use]
+     #[expect(

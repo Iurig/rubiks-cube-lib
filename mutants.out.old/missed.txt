@@ -1,0 +1,55 @@
+crates/rubiks-cube/src/error.rs:78:9: replace SolveError::into_inner -> Option<StepError> with None
+crates/rubiks-cube/src/methods/mod.rs:116:35: replace - with + in TechniqueBuilder<P>::finish_in
+crates/rubiks-cube/src/methods/mod.rs:116:35: replace - with / in TechniqueBuilder<P>::finish_in
+crates/rubiks-cube/src/methods/mod.rs:120:84: replace + with - in TechniqueBuilder<P>::finish_in
+crates/rubiks-cube/src/methods/mod.rs:120:84: replace + with * in TechniqueBuilder<P>::finish_in
+crates/rubiks-cube/src/methods/mod.rs:130:27: replace && with || in TechniqueBuilder<P>::finish_in
+crates/rubiks-cube/src/methods/mod.rs:130:22: replace == with != in TechniqueBuilder<P>::finish_in
+crates/rubiks-cube/src/methods/mod.rs:134:22: replace == with != in TechniqueBuilder<P>::finish_in
+crates/rubiks-cube/src/ops.rs:38:9: replace <impl Inv for Vec<M>>::inv -> Self with Default::default()
+crates/rubiks-cube/src/piece.rs:142:21: replace += with -= in PieceConfiguration<P, N, O>::parity
+crates/rubiks-cube/src/puzzles/mod.rs:82:9: replace Puzzle::scrambled -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/mod.rs:96:9: replace Puzzle::scramble -> Result<Algorithm<Self>, SolveError> with Ok(Algorithm::new())
+crates/rubiks-cube/src/puzzles/mod.rs:109:9: replace <impl Mul<Algorithm<Self>> for Cube3x3>::mul -> Self::Output with Default::default()
+crates/rubiks-cube/src/zn.rs:19:9: replace <impl kani::Arbitrary for Zn<N>>::any -> Self with Default::default()
+crates/rubiks-cube/src/methods/step.rs:47:9: replace Step::can_solve -> bool with true
+crates/rubiks-cube/src/puzzles/algorithm.rs:163:9: replace Algorithm<P>::truncate with ()
+crates/rubiks-cube/src/puzzles/algset.rs:45:9: replace AlgSet<P>::all_moves -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/algset.rs:94:9: replace <impl IntoIterator for &'a AlgSet<P>>::into_iter -> Self::IntoIter with Default::default()
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:78:38: replace -= with += in <impl Puzzle for Cube3x3>::scrambled_with_seed
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:86:9: replace <impl Puzzle for Cube3x3>::scramble_with_seed -> Result<Algorithm<Self>, SolveError> with Ok(Algorithm::new())
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:258:57: replace + with - in Cube3x3::parities_cancel
+crates/rubiks-cube/src/puzzles/cube3x3/mod.rs:258:33: replace + with - in Cube3x3::parities_cancel
+crates/rubiks-cube/src/puzzles/label.rs:195:60: replace == with != in Labeled<P, L>::from_labels_and_orientations
+crates/rubiks-cube/src/puzzles/label.rs:244:9: replace PieceSet<P>::or -> Self with Default::default()
+crates/rubiks-cube/src/puzzles/label.rs:248:46: replace || with && in PieceSet<P>::or
+crates/rubiks-cube/src/puzzles/label.rs:254:47: replace || with && in PieceSet<P>::or
+crates/rubiks-cube/src/puzzles/label.rs:263:9: replace PieceSet<P>::is_subset -> bool with true
+crates/rubiks-cube/src/puzzles/label.rs:268:21: replace && with || in PieceSet<P>::is_subset
+crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:155:16: replace && with || in phase_2
+crates/rubiks-cube/src/methods/step/choose/mod.rs:72:9: replace <impl Step<P> for Shortest<P>>::can_solve -> bool with true
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:117:57: replace < with <= in may_follow
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:131:9: replace <impl Step<P> for PrunedCombine<P>>::can_solve -> bool with true
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:135:9: replace <impl Step<P> for PrunedCombine<P>>::is_done -> bool with true
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:111:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(None))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:111:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::new())))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:111:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::from(Default::default()))))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:114:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with None
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:114:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with Some(AlgSet::new())
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:114:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with Some(AlgSet::from(Default::default()))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:124:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(None))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:124:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::new())))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:124:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::from(Default::default()))))
+crates/rubiks-cube/src/methods/step/search_step/mod.rs:300:9: replace SearchStep<P>::close_under_free_sequences with ()
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:143:48: replace + with - in <impl std::ops::Add for Orientation3x3>::add
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:158:9: replace verification::round_trips with ()
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:159:51: replace + with - in verification::round_trips
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:159:51: replace + with * in verification::round_trips
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:159:35: replace + with - in verification::round_trips
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:159:35: replace + with * in verification::round_trips
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:160:57: replace < with == in verification::round_trips
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:160:57: replace < with > in verification::round_trips
+crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:160:57: replace < with <= in verification::round_trips
+crates/rubiks-cube-cli/src/main.rs:16:5: replace reconstruct_n -> anyhow::Result<()> with Ok(())
+crates/rubiks-cube-cli/src/main.rs:36:9: delete match arm "roux" in main
+crates/rubiks-cube-cli/src/main.rs:39:9: delete match arm "zz" in main

@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/label.rs
++++ replace && with || in PieceSet<P>::is_subset
+@@ -260,17 +260,17 @@
+     /// Whether every slot this marks, for its piece or its orientation, `other` marks too.
+     #[must_use]
+     pub fn is_subset(&self, other: &Self) -> bool {
+         self.0
+             .iter()
+             .zip(other.0.iter())
+             .all(|(con_self, con_other)| {
+                 (con_self.label.is_none() || con_other.label.is_some())
+-                    && (con_self.orient.is_none() || con_other.orient.is_some())
++                    || /* ~ changed by cargo-mutants ~ */ (con_self.orient.is_none() || con_other.orient.is_some())
+             })
+     }
+ 
+     /// Whether `puzzle` has the slots marked by tracked solved.
+     #[must_use]
+     pub fn applies_to(&self, puzzle: &P) -> bool {
+         self.0.iter().zip(P::Piece::all()).all(|(condition, slot)| {
+             condition

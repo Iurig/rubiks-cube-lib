@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs
++++ replace + with - in <impl std::ops::Add for Orientation3x3>::add
+@@ -135,17 +135,17 @@
+     #[expect(
+         clippy::unreachable,
+         reason = "if this arm is ever reached, the state of puzzle is absolutely unrecoverable"
+     )]
+     fn add(self, rhs: Self) -> Self::Output {
+         match (self, rhs) {
+             (Fixed, Fixed) => Fixed,
+             (Twist(lhs), Twist(rhs)) => Twist(lhs + rhs),
+-            (Flip(lhs), Flip(rhs)) => Flip(lhs + rhs),
++            (Flip(lhs), Flip(rhs)) => Flip(lhs - /* ~ changed by cargo-mutants ~ */ rhs),
+             (_, _) => unreachable!("You should never add the orientation of different piece types"),
+         }
+     }
+ }
+ 
+ #[cfg(kani)]
+ mod verification {
+ 

@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/zn.rs
++++ replace <impl Neg for Zn<N>>::neg -> Self::Output with Default::default()
+@@ -25,17 +25,17 @@
+     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+         write!(f, "{}", self.value())
+     }
+ }
+ 
+ impl<const N: usize> Neg for Zn<N> {
+     type Output = Self;
+     fn neg(self) -> Self::Output {
+-        Self::new(N - self.value())
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ impl<const N: usize> Add for Zn<N> {
+     type Output = Self;
+     fn add(self, rhs: Self) -> Self {
+         Self::new(self.value() + rhs.value())
+     }
+ }

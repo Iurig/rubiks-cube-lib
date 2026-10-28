@@ -1,0 +1,22 @@
+--- crates/rubiks-cube/src/zn.rs
++++ replace <impl kani::Arbitrary for Zn<N>>::any -> Self with Default::default()
+@@ -11,18 +11,17 @@
+ /// 256 so any modulus this crate could want still fits. The public face works in `usize`; the byte
+ /// never leaks.
+ #[derive(Clone, Copy, Default, Eq, Hash, PartialEq)]
+ pub struct Zn<const N: usize>(u8);
+ 
+ #[cfg(kani)]
+ impl<const N: usize> kani::Arbitrary for Zn<N> {
+     fn any() -> Self {
+-        let usize_any: usize = kani::any();
+-        Zn::<N>::new(usize_any)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl<const N: usize> Debug for Zn<N> {
+     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+         write!(f, "{}", self.value())
+     }
+ }

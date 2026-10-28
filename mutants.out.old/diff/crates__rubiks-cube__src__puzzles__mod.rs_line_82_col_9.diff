@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/mod.rs
++++ replace Puzzle::scrambled -> Self with Default::default()
+@@ -74,17 +74,17 @@
+ 
+     /// A random scrambled state. The same seed always gives the same state.
+     #[must_use]
+     fn scrambled_with_seed(seed: u64) -> Self;
+ 
+     /// A random scrambled state from a random seed.
+     #[must_use]
+     fn scrambled() -> Self {
+-        Self::scrambled_with_seed(fastrand::u64(..))
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// The scramble itself in algorithm form. The same seed always returns the same scramble.
+     ///
+     /// # Errors
+     /// Errors if the method for finding a scramble from a random state fails.
+     fn scramble_with_seed(seed: u64) -> Result<Algorithm<Self>, SolveError>;
+ 

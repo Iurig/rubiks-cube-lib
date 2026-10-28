@@ -1,0 +1,25 @@
+--- crates/rubiks-cube/src/puzzles/cube3x3/mod.rs
++++ replace <impl Inv for Cube3x3>::inv -> Self with Default::default()
+@@ -132,21 +132,17 @@
+ impl Pow for Cube3x3 {
+     fn identity() -> Self {
+         Self::default()
+     }
+ }
+ 
+ impl Inv for Cube3x3 {
+     fn inv(self) -> Self {
+-        Self {
+-            centers: self.centers.inv(),
+-            corners: self.corners.inv(),
+-            edges: self.edges.inv(),
+-        }
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl Cube3x3 {
+     /// The multiplicative identity of the cube group: the solved cube
+     pub const IDENTITY: Self = Self {
+         centers: CenterConfiguration::IDENTITY,
+         corners: CornerConfiguration::IDENTITY,

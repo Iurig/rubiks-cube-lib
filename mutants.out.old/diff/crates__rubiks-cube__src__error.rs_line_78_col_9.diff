@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/error.rs
++++ replace SolveError::into_inner -> Option<StepError> with None
+@@ -70,17 +70,17 @@
+     /// What the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].
+     #[must_use]
+     pub const fn inner(&self) -> Option<&StepError> {
+         self.source.as_ref()
+     }
+     /// Takes what the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].
+     #[must_use]
+     pub fn into_inner(self) -> Option<StepError> {
+-        self.source
++        None /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// The step's requirements weren't met, so it never ran.
+     pub(crate) const fn requirements(step: String) -> Self {
+         Self {
+             kind: SolveErrorKind::Requirements,
+             step,
+             source: None,

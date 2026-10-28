@@ -1,0 +1,194 @@
+[
+  {
+    "diff": "--- crates/rubiks-cube/src/piece.rs\n+++ replace index -> usize with 0\n@@ -30,25 +30,17 @@\n #[expect(\n     clippy::redundant_pub_crate,\n     reason = \"`pub(crate)` says `index` is internal even if this module becomes public\"\n )]\n pub(crate) const fn index<P, const N: usize>(piece: P) -> usize\n where\n     P: Piece<N>,\n {\n-    const {\n-        assert!(std::mem::size_of::<P>() == 1);\n-    }\n-    // SAFETY: `Piece` is sealed, and the only implementations come from `new_piece!`, which makes a\n-    // fieldless `#[repr(u8)]` enum. Such an enum is one byte holding its discriminant, so reading\n-    // that byte is in bounds and gives an initialized `u8`. `Sealed` alone does not check the\n-    // layout; the macro does, and the size assertion above catches a non-macro impl whose type is\n-    // not one byte.\n-    unsafe { (&raw const piece).cast::<u8>().read() as usize }\n+    0 /* ~ changed by cargo-mutants ~ */\n }\n \n /// Where each of `N` pieces sits and how it is oriented, mod `O`.\n #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]\n pub struct PieceConfiguration<P, const N: usize, const O: usize> {\n     pub(crate) permutation: [P; N],\n     pub(crate) orientation: [Zn<O>; N],\n }\n",
+    "file": "crates/rubiks-cube/src/piece.rs",
+    "function": {
+      "function_name": "index",
+      "return_type": "-> usize",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 47
+        },
+        "start": {
+          "column": 1,
+          "line": 29
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/piece.rs:38:5: replace index -> usize with 0",
+    "package": "rubiks-cube",
+    "replacement": "0",
+    "span": {
+      "end": {
+        "column": 63,
+        "line": 46
+      },
+      "start": {
+        "column": 5,
+        "line": 38
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/piece.rs\n+++ replace index -> usize with 1\n@@ -30,25 +30,17 @@\n #[expect(\n     clippy::redundant_pub_crate,\n     reason = \"`pub(crate)` says `index` is internal even if this module becomes public\"\n )]\n pub(crate) const fn index<P, const N: usize>(piece: P) -> usize\n where\n     P: Piece<N>,\n {\n-    const {\n-        assert!(std::mem::size_of::<P>() == 1);\n-    }\n-    // SAFETY: `Piece` is sealed, and the only implementations come from `new_piece!`, which makes a\n-    // fieldless `#[repr(u8)]` enum. Such an enum is one byte holding its discriminant, so reading\n-    // that byte is in bounds and gives an initialized `u8`. `Sealed` alone does not check the\n-    // layout; the macro does, and the size assertion above catches a non-macro impl whose type is\n-    // not one byte.\n-    unsafe { (&raw const piece).cast::<u8>().read() as usize }\n+    1 /* ~ changed by cargo-mutants ~ */\n }\n \n /// Where each of `N` pieces sits and how it is oriented, mod `O`.\n #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]\n pub struct PieceConfiguration<P, const N: usize, const O: usize> {\n     pub(crate) permutation: [P; N],\n     pub(crate) orientation: [Zn<O>; N],\n }\n",
+    "file": "crates/rubiks-cube/src/piece.rs",
+    "function": {
+      "function_name": "index",
+      "return_type": "-> usize",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 47
+        },
+        "start": {
+          "column": 1,
+          "line": 29
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/piece.rs:38:5: replace index -> usize with 1",
+    "package": "rubiks-cube",
+    "replacement": "1",
+    "span": {
+      "end": {
+        "column": 63,
+        "line": 46
+      },
+      "start": {
+        "column": 5,
+        "line": 38
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/piece.rs\n+++ replace <impl Inv for PieceConfiguration<P, N, O>>::inv -> Self with Default::default()\n@@ -66,24 +66,17 @@\n where\n     P: Piece<N>,\n {\n     #[expect(\n         clippy::indexing_slicing,\n         reason = \"wrong indexing should panic instead of failing silently\"\n     )]\n     fn inv(self) -> Self {\n-        let mut inv = Self::IDENTITY;\n-        for ((&piece, orientation), home) in\n-            self.permutation.iter().zip(&self.orientation).zip(P::ALL)\n-        {\n-            inv.permutation[index(piece)] = home;\n-            inv.orientation[index(piece)] = -*orientation;\n-        }\n-        inv\n+        Default::default() /* ~ changed by cargo-mutants ~ */\n     }\n }\n \n impl<P, const N: usize, const O: usize> PieceConfiguration<P, N, O>\n where\n     P: Piece<N>,\n {\n     /// The solved state for a given piece type\n",
+    "file": "crates/rubiks-cube/src/piece.rs",
+    "function": {
+      "function_name": "<impl Inv for PieceConfiguration<P, N, O>>::inv",
+      "return_type": "-> Self",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 82
+        },
+        "start": {
+          "column": 5,
+          "line": 69
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/piece.rs:74:9: replace <impl Inv for PieceConfiguration<P, N, O>>::inv -> Self with Default::default()",
+    "package": "rubiks-cube",
+    "replacement": "Default::default()",
+    "span": {
+      "end": {
+        "column": 12,
+        "line": 81
+      },
+      "start": {
+        "column": 9,
+        "line": 74
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/piece.rs\n+++ replace != with == in PieceConfiguration<P, N, O>::parity\n@@ -126,17 +126,17 @@\n         for p in self.permutation {\n             if !visited.contains(&p) {\n                 visited.push(p);\n                 let mut travel = self\n                     .permutation\n                     .get(index(p))\n                     .expect(\"self.permutation must be a valid permutation\");\n                 let mut cycle_size = 1;\n-                while travel != &p {\n+                while travel == /* ~ changed by cargo-mutants ~ */ &p {\n                     visited.push(*travel);\n                     cycle_size += 1;\n                     travel = self\n                         .permutation\n                         .get(index(*travel))\n                         .expect(\"self.permutation must be a valid permutation\");\n                 }\n                 par += Zn::new(cycle_size - 1);\n",
+    "file": "crates/rubiks-cube/src/piece.rs",
+    "function": {
+      "function_name": "PieceConfiguration<P, N, O>::parity",
+      "return_type": "-> Zn<2>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 146
+        },
+        "start": {
+          "column": 5,
+          "line": 119
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/piece.rs:134:30: replace != with == in PieceConfiguration<P, N, O>::parity",
+    "package": "rubiks-cube",
+    "replacement": "==",
+    "span": {
+      "end": {
+        "column": 32,
+        "line": 134
+      },
+      "start": {
+        "column": 30,
+        "line": 134
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/piece.rs\n+++ replace += with -= in PieceConfiguration<P, N, O>::parity\n@@ -134,17 +134,17 @@\n                 while travel != &p {\n                     visited.push(*travel);\n                     cycle_size += 1;\n                     travel = self\n                         .permutation\n                         .get(index(*travel))\n                         .expect(\"self.permutation must be a valid permutation\");\n                 }\n-                par += Zn::new(cycle_size - 1);\n+                par -= /* ~ changed by cargo-mutants ~ */ Zn::new(cycle_size - 1);\n             }\n         }\n         par\n     }\n \n     #[must_use]\n     pub(crate) fn orientation_sum(&self) -> Zn<O> {\n         self.orientation.iter().copied().sum()\n",
+    "file": "crates/rubiks-cube/src/piece.rs",
+    "function": {
+      "function_name": "PieceConfiguration<P, N, O>::parity",
+      "return_type": "-> Zn<2>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 146
+        },
+        "start": {
+          "column": 5,
+          "line": 119
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/piece.rs:142:21: replace += with -= in PieceConfiguration<P, N, O>::parity",
+    "package": "rubiks-cube",
+    "replacement": "-=",
+    "span": {
+      "end": {
+        "column": 23,
+        "line": 142
+      },
+      "start": {
+        "column": 21,
+        "line": 142
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/piece.rs\n+++ replace % with / in PieceConfiguration<P, N, O>::cycle\n@@ -169,17 +169,17 @@\n     pub(crate) const fn cycle<const CYCLE_SIZE: usize, const CYCLE_AMOUNT: usize>(\n         to_cycle: [[P; CYCLE_SIZE]; CYCLE_AMOUNT],\n     ) -> Self {\n         let mut resp = Self::IDENTITY;\n         let mut i = 0;\n         while i < CYCLE_AMOUNT {\n             let mut j = 0;\n             while j < CYCLE_SIZE {\n-                resp.permutation[index(to_cycle[i][(j + 1) % CYCLE_SIZE])] = to_cycle[i][j];\n+                resp.permutation[index(to_cycle[i][(j + 1) / /* ~ changed by cargo-mutants ~ */ CYCLE_SIZE])] = to_cycle[i][j];\n                 j += 1;\n             }\n             i += 1;\n         }\n         resp\n     }\n \n     /// A random permutation with random orientations. The orientations may not sum to zero and the\n",
+    "file": "crates/rubiks-cube/src/piece.rs",
+    "function": {
+      "function_name": "PieceConfiguration<P, N, O>::cycle",
+      "return_type": "-> Self",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 183
+        },
+        "start": {
+          "column": 5,
+          "line": 169
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/piece.rs:177:60: replace % with / in PieceConfiguration<P, N, O>::cycle",
+    "package": "rubiks-cube",
+    "replacement": "/",
+    "span": {
+      "end": {
+        "column": 61,
+        "line": 177
+      },
+      "start": {
+        "column": 60,
+        "line": 177
+      }
+    }
+  }
+]

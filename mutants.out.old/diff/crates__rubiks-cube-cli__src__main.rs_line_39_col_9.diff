@@ -1,0 +1,20 @@
+--- crates/rubiks-cube-cli/src/main.rs
++++ delete match arm "zz" in main
+@@ -31,16 +31,14 @@
+ }
+ 
+ fn main() -> anyhow::Result<()> {
+     let args = Args::parse();
+     match args.method.as_str() {
+         "roux" => {
+             reconstruct_n(args.number, &Roux::default())?;
+         }
+-        "zz" => {
+-            reconstruct_n(args.number, &ZZ::default())?;
+-        }
++         /* ~ changed by cargo-mutants ~ */
+         _ => println!("invalid method"),
+     }
+ 
+     Ok(())
+ }

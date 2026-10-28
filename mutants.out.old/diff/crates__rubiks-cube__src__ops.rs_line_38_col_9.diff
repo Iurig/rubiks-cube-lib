@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/ops.rs
++++ replace <impl Inv for Vec<M>>::inv -> Self with Default::default()
+@@ -30,17 +30,17 @@
+     #[must_use = "this returns the inverse of a state, without modifying the original state"]
+     fn inv(self) -> Self;
+ }
+ 
+ /// The inverse of a move sequence, such as an [`Algorithm`](crate::Algorithm): the moves in reverse
+ /// order, each one inverted. `R U` gives `U' R'`.
+ impl<M: Inv> Inv for Vec<M> {
+     fn inv(self) -> Self {
+-        self.into_iter().rev().map(Inv::inv).collect()
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ /// Repeated multiplication by fast exponentiation.
+ pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
+     /// The result of an empty product.
+     fn identity() -> Self;
+ 

@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/cube3x3/mod.rs
++++ replace + with - in Cube3x3::parities_cancel
+@@ -250,17 +250,17 @@
+         self.edges().orientation_sum() == Zn::ZERO
+     }
+ 
+     /// The permutation parities of corners, edges, and centers sum to zero mod 2. A face turn is
+     /// odd on corners and edges; a slice turn is odd on edges and centers. Every move flips exactly
+     /// two of the three, so the sum stays zero. A two-way corner/edge check would reject a lone
+     /// `M`.
+     fn parities_cancel(&self) -> bool {
+-        self.corners().parity() + self.edges().parity() + self.centers().parity() == Zn::ZERO
++        self.corners().parity() + self.edges().parity() - /* ~ changed by cargo-mutants ~ */ self.centers().parity() == Zn::ZERO
+     }
+ 
+     /// The centers sit as one of the 24 whole-cube rotations. A 3-cycle of centers is an even
+     /// permutation, so the parity sum accepts it, yet no move sequence produces it.
+     fn centers_form_a_rotation(&self) -> bool {
+         self.rotated_until_solved_centers().is_some()
+     }
+ }

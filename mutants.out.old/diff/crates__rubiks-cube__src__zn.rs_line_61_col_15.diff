@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/zn.rs
++++ replace += with -= in <impl SubAssign for Zn<N>>::sub_assign
+@@ -53,17 +53,17 @@
+ }
+ impl<const N: usize> AddAssign for Zn<N> {
+     fn add_assign(&mut self, rhs: Self) {
+         *self = *self + rhs;
+     }
+ }
+ impl<const N: usize> SubAssign for Zn<N> {
+     fn sub_assign(&mut self, rhs: Self) {
+-        *self += -rhs;
++        *self -= /* ~ changed by cargo-mutants ~ */ -rhs;
+     }
+ }
+ impl<const N: usize> MulAssign for Zn<N> {
+     fn mul_assign(&mut self, rhs: Self) {
+         *self = *self * rhs;
+     }
+ }
+ impl<const N: usize> Sum for Zn<N> {

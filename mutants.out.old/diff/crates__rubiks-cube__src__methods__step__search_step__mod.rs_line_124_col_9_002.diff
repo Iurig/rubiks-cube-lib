@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/methods/step/search_step/mod.rs
++++ replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::from(Default::default()))))
+@@ -116,17 +116,17 @@
+                 .iter()
+                 .chain(self.free_search_algs.iter())
+                 .cloned()
+                 .collect(),
+         )
+     }
+ 
+     fn goal(&mut self) -> &mut Option<PieceSet<P>> {
+-        &mut self.after
++        Box::leak(Box::new(Some(PieceSet::from(Default::default())))) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     fn build_in(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, BuildStepError> {
+         Ok(Arc::new(
+             Self::build_in(self, context).map_err(|e| BuildStepError::Custom(Box::new(e)))?,
+         ))
+     }
+ }

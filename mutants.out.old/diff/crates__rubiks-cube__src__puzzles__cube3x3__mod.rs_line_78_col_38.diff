@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/cube3x3/mod.rs
++++ replace -= with += in <impl Puzzle for Cube3x3>::scrambled_with_seed
+@@ -70,17 +70,17 @@
+     fn scrambled_with_seed(seed: u64) -> Self {
+         let mut rng = fastrand::Rng::with_seed(seed);
+         let mut attempt = Self {
+             corners: CornerConfiguration::random_state(&mut rng),
+             edges: EdgeConfiguration::random_state(&mut rng),
+             ..Default::default()
+         };
+         attempt.corners.orientation[0] -= attempt.corners.orientation_sum();
+-        attempt.edges.orientation[0] -= attempt.edges.orientation_sum();
++        attempt.edges.orientation[0] += /* ~ changed by cargo-mutants ~ */ attempt.edges.orientation_sum();
+         if !(attempt.is_reachable()) {
+             attempt.edges.permutation.swap(0, 1);
+         }
+         attempt
+     }
+ 
+     fn scramble_with_seed(seed: u64) -> Result<Algorithm<Self>, SolveError> {
+         let mut cube = Self::scrambled_with_seed(seed);

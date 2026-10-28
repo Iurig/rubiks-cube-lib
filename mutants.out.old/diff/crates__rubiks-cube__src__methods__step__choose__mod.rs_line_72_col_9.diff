@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/methods/step/choose/mod.rs
++++ replace <impl Step<P> for Shortest<P>>::can_solve -> bool with true
+@@ -64,17 +64,17 @@
+ }
+ 
+ impl<P: Puzzle> Step<P> for Shortest<P> {
+     fn name(&self) -> &str {
+         &self.name
+     }
+ 
+     fn can_solve(&self, puzzle: &P) -> bool {
+-        self.steps.iter().any(|s| s.can_solve(puzzle))
++        true /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, StepError> {
+         let best = self
+             .steps
+             .iter()
+             .map(|s| {
+                 let mut candidate = puzzle.clone();

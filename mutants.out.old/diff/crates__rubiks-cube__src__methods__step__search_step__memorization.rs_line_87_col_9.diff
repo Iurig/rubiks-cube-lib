@@ -1,0 +1,39 @@
+--- crates/rubiks-cube/src/methods/step/search_step/memorization.rs
++++ replace BfsMemo<P>::memorize -> Option<(Mask<P>, P)> with Some((Mask::new(), Default::default()))
+@@ -79,35 +79,17 @@
+     fn memorize(
+         &mut self,
+         parent_mask: &Mask<P>,
+         parent: &P,
+         sequence: &Algorithm<P>,
+     ) -> Option<(Mask<P>, P)> {
+         // Walk away from the goal by undoing `sequence`, so the way back applies `sequence` as
+         // written, then the parent's path.
+-        let moved = sequence
+-            .iter()
+-            .rev()
+-            .fold(parent.clone(), |puzzle, m| puzzle * m.inv());
+-        let mask = Mask::filter_by_piece(&moved, &self.goal);
+-        if self.memorization.contains_key(&mask) {
+-            return None;
+-        }
+-        let solution = sequence
+-            .iter()
+-            .chain(
+-                self.memorization
+-                    .get(parent_mask)
+-                    .expect("a parent is memorized before its children"),
+-            )
+-            .copied()
+-            .collect();
+-        self.memorization.insert(mask.clone(), solution);
+-        Some((mask, moved))
++        Some((Mask::new(), Default::default())) /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ #[cfg(test)]
+ mod tests {
+     use std::str::FromStr;
+ 
+     use super::*;

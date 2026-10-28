@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/label.rs
++++ replace == with != in Labeled<P, L>::from_labels_and_orientations
+@@ -187,17 +187,17 @@
+         I1: IntoIterator<Item = (P::Piece, L::Label)>,
+         I2: IntoIterator<Item = P::Piece>,
+     {
+         let perm_iter = FxSet::from_iter(labels);
+         let orient_iter: FxSet<<P as Puzzle>::Piece> = FxSet::from_iter(orientations);
+         Self::from_fn(|slot| SlotCondition {
+             label: perm_iter
+                 .iter()
+-                .find_map(|(curr_slot, label)| (*curr_slot == slot).then_some(*label)),
++                .find_map(|(curr_slot, label)| (*curr_slot != /* ~ changed by cargo-mutants ~ */ slot).then_some(*label)),
+             orient: orient_iter
+                 .contains(&slot)
+                 .then_some(P::default().orientation_at(slot)),
+         })
+     }
+ }
+ 
+ impl<P: Puzzle> Mask<P> {

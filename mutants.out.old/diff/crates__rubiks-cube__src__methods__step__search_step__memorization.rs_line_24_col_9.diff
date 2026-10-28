@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/methods/step/search_step/memorization.rs
++++ replace BfsMemo<P>::solution -> Option<&Algorithm<P>> with None
+@@ -16,17 +16,17 @@
+             goal,
+             memorization: FxMap::from_iter([(mask.clone(), Algorithm::new())]),
+             to_deepen: vec![(mask, P::default())],
+             depth: 0,
+         }
+     }
+ 
+     pub fn solution(&self, mask: &Mask<P>) -> Option<&Algorithm<P>> {
+-        self.memorization.get(mask)
++        None /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Number of states the next [`Self::deepen`] starts from; 0 once every reachable state is
+     /// memorized.
+     pub(crate) const fn frontier_len(&self) -> usize {
+         self.to_deepen.len()
+     }
+ 

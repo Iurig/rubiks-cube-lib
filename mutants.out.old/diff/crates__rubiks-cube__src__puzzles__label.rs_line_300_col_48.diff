@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/label.rs
++++ replace != with == in PieceSet<P>::from_algset
+@@ -292,17 +292,17 @@
+     pub fn from_algset(algset: &AlgSet<P>) -> Self {
+         let mut mask = Mask::<P>::from_pieces(P::Piece::all());
+         let mut changed = true;
+         while changed {
+             changed = false;
+             for alg in algset.algs() {
+                 let moved = alg.iter().fold(mask.clone(), |p, m| p * *m);
+                 for p in P::Piece::all() {
+-                    if mask.condition(p).label != moved.condition(p).label {
++                    if mask.condition(p).label == /* ~ changed by cargo-mutants ~ */ moved.condition(p).label {
+                         mask.0[p.index()].label = None;
+                         changed = true;
+                     }
+                     if mask.condition(p).orient != moved.condition(p).orient {
+                         mask.0[p.index()].orient = None;
+                         changed = true;
+                     }
+                 }

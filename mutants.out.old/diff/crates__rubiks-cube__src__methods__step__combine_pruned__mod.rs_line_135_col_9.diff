@@ -1,0 +1,23 @@
+--- crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs
++++ replace <impl Step<P> for PrunedCombine<P>>::is_done -> bool with true
+@@ -127,19 +127,17 @@
+         &self.name
+     }
+ 
+     fn can_solve(&self, puzzle: &P) -> bool {
+         (self.ready_to_solve)(puzzle)
+     }
+ 
+     fn is_done(&self, puzzle: &P) -> bool {
+-        self.steps
+-            .iter()
+-            .all(|s| s.distance_from_moves(puzzle) == Some(0))
++        true /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     #[expect(
+         clippy::panic_in_result_fn,
+         reason = "panics only on a broken invariant, errors only on unsolvable input"
+     )]
+     fn solve(&self, puzzle: &mut P) -> Result<crate::Solution<P>, crate::StepError> {
+         /// The largest distance any step reports: a lower bound on the moves left, because every

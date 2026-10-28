@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/algset.rs
++++ replace <impl IntoIterator for &'a AlgSet<P>>::into_iter -> Self::IntoIter with Default::default()
+@@ -86,17 +86,17 @@
+         Self(algs.into())
+     }
+ }
+ 
+ impl<'a, P: Puzzle> IntoIterator for &'a AlgSet<P> {
+     type Item = &'a Algorithm<P>;
+     type IntoIter = std::slice::Iter<'a, Algorithm<P>>;
+     fn into_iter(self) -> Self::IntoIter {
+-        self.0.iter()
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ /// One sequence per line of `text`, such as an algorithm set. Lines with no moves, such as blank or
+ /// comment-only lines, are skipped. A line written twice is listed once, and the order of the lines
+ /// is not kept.
+ ///
+ /// # Errors

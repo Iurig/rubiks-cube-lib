@@ -1,0 +1,172 @@
+
+*** crates/rubiks-cube-cli/src/main.rs:16:5: replace reconstruct_n -> anyhow::Result<()> with Ok(())
+
+*** mutation diff:
+--- crates/rubiks-cube-cli/src/main.rs
++++ replace reconstruct_n -> anyhow::Result<()> with Ok(())
+@@ -8,31 +8,17 @@
+     #[arg(short, long)]
+     method: String,
+ 
+     #[arg(long)]
+     number: u32,
+ }
+ 
+ fn reconstruct_n<P: Puzzle, T: Method<P>>(n: u32, technique: &T) -> anyhow::Result<()> {
+-    for count in 1..=n {
+-        let scramble = P::scramble()?;
+-
+-        let mut puzzle = P::default().apply(&scramble);
+-
+-        let solution = technique.solve(&mut puzzle)?;
+-
+-        ensure!(
+-            puzzle.is_solved(),
+-            "scramble:\n {scramble} \n and solve:\n {solution} \n did not solve the cube"
+-        );
+-
+-        println!("{count}. {scramble} {solution}");
+-    }
+-    Ok(())
++    Ok(()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ fn main() -> anyhow::Result<()> {
+     let args = Args::parse();
+     match args.method.as_str() {
+         "roux" => {
+             reconstruct_n(args.number, &Roux::default())?;
+         }
+
+
+*** /home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=rubiks-cube-cli@0.1.0
+       Fresh unicode-ident v1.0.27
+       Fresh utf8parse v0.2.2
+       Fresh anstyle-query v1.1.5
+       Fresh anstyle v1.0.14
+       Fresh either v1.19.0
+       Fresh is_terminal_polyfill v1.70.2
+       Fresh proc-macro2 v1.0.107
+       Fresh anstyle-parse v1.0.0
+       Fresh colorchoice v1.0.5
+       Fresh clap_lex v1.1.1
+       Fresh heck v0.5.0
+       Fresh strsim v0.11.1
+       Fresh quote v1.0.47
+       Fresh crossbeam-utils v0.8.23
+       Fresh anstream v1.0.0
+       Fresh itertools v0.15.0
+       Fresh dyn-clone v1.0.20
+       Fresh fastrand v2.5.0
+   Compiling log v0.4.34
+       Fresh syn v3.0.9
+       Fresh crossbeam-epoch v0.9.21
+   Compiling clap_builder v4.6.7
+       Fresh anyhow v1.0.104
+     Running `/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name log --edition=2021 /home/iurig/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.34/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=1 -C embed-bitcode=no -C debuginfo=2 -C debug-assertions=on --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("alloc", "kv", "kv_serde", "kv_std", "kv_sval", "kv_unstable", "kv_unstable_serde", "kv_unstable_std", "kv_unstable_sval", "max_level_debug", "max_level_error", "max_level_info", "max_level_off", "max_level_trace", "max_level_warn", "release_max_level_debug", "release_max_level_error", "release_max_level_info", "release_max_level_off", "release_max_level_trace", "release_max_level_warn", "serde", "serde_core", "std", "sval", "sval_ref", "value-bag"))' -C metadata=7f03cb0e3279126e -C extra-filename=-3d1d248f73c87e6e --out-dir /tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps -L dependency=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps --cap-lints allow`
+       Fresh crossbeam-deque v0.8.8
+       Fresh thiserror-impl v2.0.21
+       Fresh clap_derive v4.6.7
+     Running `/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name clap_builder --edition=2024 /home/iurig/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_builder-4.6.7/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=1 -C embed-bitcode=no -C debuginfo=2 -C debug-assertions=on --cfg 'feature="color"' --cfg 'feature="error-context"' --cfg 'feature="help"' --cfg 'feature="std"' --cfg 'feature="suggestions"' --cfg 'feature="usage"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("cargo", "color", "debug", "default", "deprecated", "env", "error-context", "help", "std", "string", "suggestions", "unicode", "unstable-doc", "unstable-ext", "unstable-styles", "unstable-v5", "usage", "wrap_help"))' -C metadata=d9cefefd53450d7c -C extra-filename=-2f868d9c5fa424d0 --out-dir /tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps -L dependency=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps --extern anstream=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/libanstream-11a0e79471b2eadd.rmeta --extern anstyle=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/libanstyle-da2890176efd2c43.rmeta --extern clap_lex=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/libclap_lex-2d5ce29e8ea79d71.rmeta --extern strsim=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/libstrsim-864e1f22e77d59f9.rmeta --cap-lints allow`
+       Fresh rayon-core v1.13.0
+       Fresh thiserror v2.0.21
+       Fresh rayon v1.12.0
+   Compiling rubiks-cube v0.1.0 (/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/crates/rubiks-cube)
+     Running `/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name rubiks_cube --edition=2024 crates/rubiks-cube/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=1 -C embed-bitcode=no -C debuginfo=2 '--warn=clippy::pedantic' '--warn=clippy::nursery' '--warn=clippy::unwrap_used' '--warn=clippy::unused_result_ok' '--warn=clippy::unreachable' '--warn=clippy::unnecessary_safety_doc' '--warn=clippy::unnecessary_safety_comment' --warn=unnameable_types '--warn=clippy::unimplemented' --warn=unexpected_cfgs '--warn=clippy::undocumented_unsafe_blocks' '--warn=clippy::todo' '--warn=clippy::string_slice' '--warn=clippy::rc_mutex' '--warn=clippy::print_stdout' '--warn=clippy::print_stderr' '--warn=clippy::panic_in_result_fn' '--warn=clippy::panic' '--warn=clippy::multiple_unsafe_ops_per_block' --warn=missing_docs --warn=missing_debug_implementations '--warn=clippy::mem_forget' '--warn=clippy::map_err_ignore' '--warn=clippy::let_underscore_must_use' '--warn=clippy::indexing_slicing' '--warn=clippy::get_unwrap' '--warn=clippy::dbg_macro' '--warn=clippy::cargo' '--warn=clippy::assertions_on_result_states' '--warn=clippy::allow_attributes_without_reason' --check-cfg 'cfg(kani)' -C debug-assertions=on --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("sketch"))' -C metadata=00a599edd6a57433 -C extra-filename=-cd7ef2eeac512383 --out-dir /tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps --extern dyn_clone=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/libdyn_clone-53c64d5e76cd9ef7.rmeta --extern fastrand=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/libfastrand-0f351eee7edfb1ea.rmeta --extern itertools=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/libitertools-5fd2f3b23c1baf8a.rmeta --extern log=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/liblog-3d1d248f73c87e6e.rmeta --extern rayon=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/librayon-1a742fb8edfd5439.rmeta --extern thiserror=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/libthiserror-bed924c764a2a314.rmeta`
+   Compiling clap v4.6.7
+     Running `/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name clap --edition=2024 /home/iurig/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap-4.6.7/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=1 -C embed-bitcode=no -C debuginfo=2 -C debug-assertions=on --cfg 'feature="color"' --cfg 'feature="default"' --cfg 'feature="derive"' --cfg 'feature="error-context"' --cfg 'feature="help"' --cfg 'feature="std"' --cfg 'feature="suggestions"' --cfg 'feature="usage"' --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("cargo", "color", "debug", "default", "deprecated", "derive", "env", "error-context", "help", "std", "string", "suggestions", "unicode", "unstable-derive-ui-tests", "unstable-doc", "unstable-ext", "unstable-markdown", "unstable-styles", "unstable-v5", "usage", "wrap_help"))' -C metadata=0567dc5d6ac5017b -C extra-filename=-d939f6c7a03506ac --out-dir /tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps -L dependency=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps --extern clap_builder=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/libclap_builder-2f868d9c5fa424d0.rmeta --extern clap_derive=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/libclap_derive-ae8e605a6cee5686.so --cap-lints allow`
+   Compiling rubiks-cube-cli v0.1.0 (/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/crates/rubiks-cube-cli)
+     Running `/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name rubiks_cube_cli --edition=2024 crates/rubiks-cube-cli/src/main.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=1 -C embed-bitcode=no -C debuginfo=2 '--warn=clippy::style' '--warn=clippy::perf' '--warn=clippy::pedantic' '--warn=clippy::nursery' '--warn=clippy::unwrap_used' '--warn=clippy::unused_result_ok' --warn=unused_crate_dependencies '--warn=clippy::unreachable' '--warn=clippy::unnecessary_safety_doc' '--warn=clippy::unnecessary_safety_comment' '--warn=clippy::unimplemented' '--warn=clippy::undocumented_unsafe_blocks' '--warn=clippy::todo' '--warn=clippy::string_slice' '--warn=clippy::rc_mutex' '--warn=clippy::panic_in_result_fn' '--warn=clippy::panic' '--warn=clippy::multiple_unsafe_ops_per_block' '--warn=clippy::mem_forget' '--warn=clippy::map_err_ignore' '--warn=clippy::let_underscore_must_use' '--warn=clippy::indexing_slicing' '--warn=clippy::get_unwrap' '--warn=clippy::dbg_macro' '--warn=clippy::assertions_on_result_states' '--warn=clippy::allow_attributes_without_reason' -C debug-assertions=on --test --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=762313d1678c36c8 -C extra-filename=-acdb24f1a8bf516b --out-dir /tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps --extern anyhow=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/libanyhow-4e6c14211f5e5f06.rlib --extern clap=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/libclap-d939f6c7a03506ac.rlib --extern rubiks_cube=/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/librubiks_cube-cd7ef2eeac512383.rlib`
+warning: unused import: `anyhow::ensure`
+ --> crates/rubiks-cube-cli/src/main.rs:1:5
+  |
+1 | use anyhow::ensure;
+  |     ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `n`
+  --> crates/rubiks-cube-cli/src/main.rs:15:43
+   |
+15 | fn reconstruct_n<P: Puzzle, T: Method<P>>(n: u32, technique: &T) -> anyhow::Result<()> {
+   |                                           ^ help: if this is intentional, prefix it with an underscore: `_n`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `technique`
+  --> crates/rubiks-cube-cli/src/main.rs:15:51
+   |
+15 | fn reconstruct_n<P: Puzzle, T: Method<P>>(n: u32, technique: &T) -> anyhow::Result<()> {
+   |                                                   ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_technique`
+
+warning: `rubiks-cube-cli` (bin "rubiks-cube-cli" test) generated 3 warnings (run `cargo fix --bin "rubiks-cube-cli" -p rubiks-cube-cli --tests` to apply 3 suggestions)
+    Finished `test` profile [optimized + debuginfo] target(s) in 6.24s
+  Executable `/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/rubiks_cube_cli-acdb24f1a8bf516b`
+
+*** result: Success
+
+*** /home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo test --verbose --package=rubiks-cube-cli@0.1.0
+       Fresh unicode-ident v1.0.27
+       Fresh proc-macro2 v1.0.107
+       Fresh utf8parse v0.2.2
+       Fresh colorchoice v1.0.5
+       Fresh anstyle-query v1.1.5
+       Fresh either v1.19.0
+       Fresh anstyle v1.0.14
+       Fresh is_terminal_polyfill v1.70.2
+       Fresh quote v1.0.47
+       Fresh anstyle-parse v1.0.0
+       Fresh clap_lex v1.1.1
+       Fresh heck v0.5.0
+       Fresh strsim v0.11.1
+       Fresh itertools v0.15.0
+       Fresh log v0.4.34
+       Fresh syn v3.0.9
+       Fresh crossbeam-utils v0.8.23
+       Fresh anstream v1.0.0
+       Fresh dyn-clone v1.0.20
+       Fresh fastrand v2.5.0
+       Fresh crossbeam-epoch v0.9.21
+       Fresh thiserror-impl v2.0.21
+       Fresh clap_derive v4.6.7
+       Fresh clap_builder v4.6.7
+       Fresh anyhow v1.0.104
+       Fresh crossbeam-deque v0.8.8
+       Fresh thiserror v2.0.21
+       Fresh clap v4.6.7
+       Fresh rayon-core v1.13.0
+       Fresh rayon v1.12.0
+       Fresh rubiks-cube v0.1.0 (/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/crates/rubiks-cube)
+       Fresh rubiks-cube-cli v0.1.0 (/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/crates/rubiks-cube-cli)
+warning: unused import: `anyhow::ensure`
+ --> crates/rubiks-cube-cli/src/main.rs:1:5
+  |
+1 | use anyhow::ensure;
+  |     ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `n`
+  --> crates/rubiks-cube-cli/src/main.rs:15:43
+   |
+15 | fn reconstruct_n<P: Puzzle, T: Method<P>>(n: u32, technique: &T) -> anyhow::Result<()> {
+   |                                           ^ help: if this is intentional, prefix it with an underscore: `_n`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `technique`
+  --> crates/rubiks-cube-cli/src/main.rs:15:51
+   |
+15 | fn reconstruct_n<P: Puzzle, T: Method<P>>(n: u32, technique: &T) -> anyhow::Result<()> {
+   |                                                   ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_technique`
+
+warning: `rubiks-cube-cli` (bin "rubiks-cube-cli" test) generated 3 warnings (run `cargo fix --bin "rubiks-cube-cli" -p rubiks-cube-cli --tests` to apply 3 suggestions)
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.05s
+     Running `/tmp/cargo-mutants-rubiks-cube-lib-QTM05I.tmp/target/debug/deps/rubiks_cube_cli-acdb24f1a8bf516b`
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+*** result: Success

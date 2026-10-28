@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/mod.rs
++++ replace Puzzle::scramble -> Result<Algorithm<Self>, SolveError> with Ok(Algorithm::new())
+@@ -88,17 +88,17 @@
+     /// Errors if the method for finding a scramble from a random state fails.
+     fn scramble_with_seed(seed: u64) -> Result<Algorithm<Self>, SolveError>;
+ 
+     /// The scramble itself in algorithm form from a random seed.
+     ///
+     /// # Errors
+     /// Errors if the method for finding a scramble from a random state fails.
+     fn scramble() -> Result<Algorithm<Self>, SolveError> {
+-        Self::scramble_with_seed(fastrand::u64(..))
++        Ok(Algorithm::new()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// The state after applying the moves of `alg` to this one, in order.
+     #[must_use]
+     fn apply(&self, alg: &Algorithm<Self>) -> Self {
+         alg.iter().fold(self.clone(), |p, &m| p * m)
+     }
+ }

@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/methods/mod.rs
++++ replace + with * in TechniqueBuilder<P>::finish_in
+@@ -112,17 +112,17 @@
+         context: &BuildContext,
+     ) -> Result<Technique<P>, TechniqueError> {
+         let mut builders = self.step_builders.clone();
+         builders.push(Arc::new(step));
+         let last = builders.len() - 1;
+ 
+         let mut steps = Vec::with_capacity(builders.len());
+         for index in (0..builders.len()).rev() {
+-            let (builder_first, builder_second) = &mut builders.split_at_mut(index + 1);
++            let (builder_first, builder_second) = &mut builders.split_at_mut(index * /* ~ changed by cargo-mutants ~ */ 1);
+ 
+             let builder = arc_make_mut(&mut builder_first[index]);
+ 
+             if builder.assumed_solved().is_none() {
+                 *builder.assumed_solved() = builder
+                     .allowed_sequences()
+                     .map(|algs| PieceSet::from_algset(&algs));
+             }

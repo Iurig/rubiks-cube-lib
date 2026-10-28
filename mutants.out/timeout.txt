@@ -1,0 +1,5 @@
+crates/rubiks-cube/src/piece.rs:38:5: replace index -> usize with 0
+crates/rubiks-cube/src/piece.rs:38:5: replace index -> usize with 1
+crates/rubiks-cube/src/piece.rs:74:9: replace <impl Inv for PieceConfiguration<P, N, O>>::inv -> Self with Default::default()
+crates/rubiks-cube/src/piece.rs:134:30: replace != with == in PieceConfiguration<P, N, O>::parity
+crates/rubiks-cube/src/piece.rs:177:60: replace % with / in PieceConfiguration<P, N, O>::cycle

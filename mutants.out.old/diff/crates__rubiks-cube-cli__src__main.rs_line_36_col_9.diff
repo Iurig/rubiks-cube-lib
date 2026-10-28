@@ -1,0 +1,23 @@
+--- crates/rubiks-cube-cli/src/main.rs
++++ delete match arm "roux" in main
+@@ -28,19 +28,17 @@
+         println!("{count}. {scramble} {solution}");
+     }
+     Ok(())
+ }
+ 
+ fn main() -> anyhow::Result<()> {
+     let args = Args::parse();
+     match args.method.as_str() {
+-        "roux" => {
+-            reconstruct_n(args.number, &Roux::default())?;
+-        }
++         /* ~ changed by cargo-mutants ~ */
+         "zz" => {
+             reconstruct_n(args.number, &ZZ::default())?;
+         }
+         _ => println!("invalid method"),
+     }
+ 
+     Ok(())
+ }

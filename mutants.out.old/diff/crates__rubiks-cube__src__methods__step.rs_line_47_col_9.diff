@@ -1,0 +1,25 @@
+--- crates/rubiks-cube/src/methods/step.rs
++++ replace Step::can_solve -> bool with true
+@@ -39,21 +39,17 @@
+     /// # Errors
+     /// A [`StepError`] when the step cannot start on `puzzle` or cannot reach its goal. The step
+     /// may leave `puzzle` changed when it fails.
+     fn solve(&self, puzzle: &mut P) -> Result<Solution<P>, StepError>;
+ 
+     /// Whether `puzzle` meets this step's pre-requisites. Expensive for expensive-to-solve steps -
+     /// override recommended for those.
+     fn can_solve(&self, puzzle: &P) -> bool {
+-        let mut puzzle_copy = puzzle.clone();
+-        match self.solve(&mut puzzle_copy) {
+-            Ok(_) => self.is_done(&puzzle_copy),
+-            Err(_) => false,
+-        }
++        true /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ /// A type that can build a [`Step`].
+ ///
+ /// This trait is also used to build techniques with [`TechniqueBuilder`](crate::TechniqueBuilder)
+ /// on insufficient information that is deduceable in context of the build.
+ pub trait StepBuilder<P: Puzzle>: DynClone + Debug + Send + Sync {

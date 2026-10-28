@@ -202,6 +202,17 @@ where
 mod tests {
     use super::*;
     use crate::puzzles::cube3x3::pieces::*;
+    #[test]
+    fn corner_and_edge_all_match_discriminants() {
+        for (i, c) in Corner::ALL.iter().enumerate() {
+            assert_eq!(*c as usize, i);
+            assert_eq!(Corner::from_index(i), *c);
+        }
+        for (i, e) in Edge::ALL.iter().enumerate() {
+            assert_eq!(*e as usize, i);
+            assert_eq!(Edge::from_index(i), *e);
+        }
+    }
 
     #[test]
     fn cycle_is_a_permutation_and_moves_pieces_forward_and_leaves_rest() {
@@ -226,5 +237,22 @@ mod tests {
         assert_eq!(perm[Ub as usize], Uf);
         perm.sort();
         assert_eq!(perm, Edge::ALL);
+    }
+
+    #[test]
+    fn solved_respects_parity() {
+        let (solved_corners, solved_centers, solved_edges) = (
+            CornerConfiguration::IDENTITY,
+            CenterConfiguration::IDENTITY,
+            EdgeConfiguration::IDENTITY,
+        );
+        assert_eq!(
+            (
+                solved_corners.parity(),
+                solved_centers.parity(),
+                solved_edges.parity()
+            ),
+            (Zn::ZERO, Zn::ZERO, Zn::ZERO)
+        );
     }
 }

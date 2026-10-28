@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/methods/step/search_step/mod.rs
++++ replace && with || in SearchStep<P>::solve_bfs
+@@ -238,17 +238,17 @@
+                 })
+                 .min_by_key(|(path, _, _)| path.len());
+             if let Some((path, tail, cube)) = best {
+                 *p = cube.apply(tail);
+                 return Ok(path);
+             }
+ 
+             let memo_frontier = memo.frontier_len();
+-            if memo_frontier != 0 && memo_frontier <= level.len() {
++            if memo_frontier != 0 || /* ~ changed by cargo-mutants ~ */ memo_frontier <= level.len() {
+                 memo.deepen(&self.search_algs, &self.free_search_algs);
+             } else {
+                 level = self.next_level(&level, &mut investigated);
+                 forward_depth += 1;
+                 if level.is_empty() {
+                     return Err(StepError::UnreachableGoal);
+                 }
+             }

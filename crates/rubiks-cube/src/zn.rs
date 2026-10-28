@@ -191,6 +191,16 @@ mod tests {
     }
 
     #[test]
+    fn sub_is_adding_the_negation() {
+        for a in 0..3 {
+            for b in 0..3 {
+                let (x, y) = (Zn::<3>::new(a), Zn::<3>::new(b));
+                assert_eq!(x - y, x + (-y), "{a} - {b}");
+            }
+        }
+    }
+
+    #[test]
     fn mul_assign_matches_mul() {
         for a in 0..3 {
             for b in 0..3 {

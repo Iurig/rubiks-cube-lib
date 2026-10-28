@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/puzzles/label.rs
++++ replace && with || in Mask<P>::and
+@@ -223,17 +223,17 @@
+                 .zip(self.0.iter().zip(other.0.iter()))
+                 .filter(|&(_, (con_self, con_other))| {
+                     con_self.label.is_some() && con_other.label.is_some()
+                 })
+                 .map(|(slot, _)| slot),
+             P::Piece::all()
+                 .zip(self.0.iter().zip(other.0.iter()))
+                 .filter(|&(_, (con_self, con_other))| {
+-                    con_self.orient.is_some() && con_other.orient.is_some()
++                    con_self.orient.is_some() || /* ~ changed by cargo-mutants ~ */ con_other.orient.is_some()
+                 })
+                 .map(|(slot, _)| slot),
+         )
+     }
+ }
+ 
+ impl<P: Puzzle> PieceSet<P> {
+     /// Composes two instances of [`PieceSet<P>`], marking pieces if they are tracked by either one.

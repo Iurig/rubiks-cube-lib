@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/piece.rs
++++ replace += with -= in PieceConfiguration<P, N, O>::parity
+@@ -134,17 +134,17 @@
+                 while travel != &p {
+                     visited.push(*travel);
+                     cycle_size += 1;
+                     travel = self
+                         .permutation
+                         .get(index(*travel))
+                         .expect("self.permutation must be a valid permutation");
+                 }
+-                par += Zn::new(cycle_size - 1);
++                par -= /* ~ changed by cargo-mutants ~ */ Zn::new(cycle_size - 1);
+             }
+         }
+         par
+     }
+ 
+     #[must_use]
+     pub(crate) fn orientation_sum(&self) -> Zn<O> {
+         self.orientation.iter().copied().sum()

@@ -272,11 +272,19 @@ impl Cube3x3 {
 )]
 mod tests {
 
-    use crate::{Piece, piece::index};
+    use crate::{Piece, indexed::assert_round_trips, piece::index};
 
     use super::*;
 
     use std::error::Error;
+
+    #[test]
+    fn index_is_the_position_in_all_pieces() {
+        assert_round_trips::<Piece3x3>();
+        for (i, &piece) in Cube3x3::ALL_PIECES.iter().enumerate() {
+            assert_eq!(piece.index(), i, "{piece:?}");
+        }
+    }
 
     #[test]
     fn center_3_cyle_isnt_reachable_even_if_respects_parity() {
@@ -348,6 +356,7 @@ mod tests {
         assert_eq!(after, expected);
         Ok(())
     }
+
     #[test]
     fn u_perm_repeats_after_3_applications() {
         use Edge::{Uf, Ul, Ur};
@@ -355,6 +364,7 @@ mod tests {
             edges: EdgeConfiguration::cycle([[Ur, Uf, Ul]]),
             ..Default::default()
         };
+        assert!(u_perm.edges().parity() == Zn::ZERO);
         assert_eq!(u_perm.pow(3), Cube3x3::default());
     }
 

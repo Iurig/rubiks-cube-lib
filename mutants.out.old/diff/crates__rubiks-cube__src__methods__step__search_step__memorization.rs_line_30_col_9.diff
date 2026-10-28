@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/methods/step/search_step/memorization.rs
++++ replace BfsMemo<P>::frontier_len -> usize with 1
+@@ -22,17 +22,17 @@
+ 
+     pub fn solution(&self, mask: &Mask<P>) -> Option<&Algorithm<P>> {
+         self.memorization.get(mask)
+     }
+ 
+     /// Number of states the next [`Self::deepen`] starts from; 0 once every reachable state is
+     /// memorized.
+     pub(crate) const fn frontier_len(&self) -> usize {
+-        self.to_deepen.len()
++        1 /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Deepens until level `depth` is expanded.
+     #[cfg(test)]
+     pub(crate) fn search_to(
+         &mut self,
+         depth: usize,
+         possible_sequences: &AlgSet<P>,

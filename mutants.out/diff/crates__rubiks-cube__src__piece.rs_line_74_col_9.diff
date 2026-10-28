@@ -1,0 +1,28 @@
+--- crates/rubiks-cube/src/piece.rs
++++ replace <impl Inv for PieceConfiguration<P, N, O>>::inv -> Self with Default::default()
+@@ -66,24 +66,17 @@
+ where
+     P: Piece<N>,
+ {
+     #[expect(
+         clippy::indexing_slicing,
+         reason = "wrong indexing should panic instead of failing silently"
+     )]
+     fn inv(self) -> Self {
+-        let mut inv = Self::IDENTITY;
+-        for ((&piece, orientation), home) in
+-            self.permutation.iter().zip(&self.orientation).zip(P::ALL)
+-        {
+-            inv.permutation[index(piece)] = home;
+-            inv.orientation[index(piece)] = -*orientation;
+-        }
+-        inv
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl<P, const N: usize, const O: usize> PieceConfiguration<P, N, O>
+ where
+     P: Piece<N>,
+ {
+     /// The solved state for a given piece type
