@@ -56,3 +56,54 @@ fn skips_work() -> Result<(), Box<dyn Error>> {
     assert!(scrambled.is_solved(), "{recon}");
     Ok(())
 }
+
+#[test]
+fn zz_solves_the_cube() -> Result<(), Box<dyn Error>> {
+    let mut cube = Cube3x3::scrambled_with_seed(2);
+
+    let _ = ZZ::default()
+        .solve_steps(&mut cube)
+        .collect::<Result<Solution<Cube3x3>, _>>()?;
+    assert!(cube.is_solved());
+    Ok(())
+}
+
+#[test]
+fn every_zz_option_combination_solves() -> Result<(), Box<dyn Error>> {
+    use rubiks_cube::zz::{FirstLook, LL, SecondLook};
+    let mut last_layers = vec![LL::OneLook];
+    for first in [FirstLook::Ocll, FirstLook::Coll] {
+        for second in [SecondLook::OneLook, SecondLook::TwoLook] {
+            last_layers.push(LL::TwoLook { first, second });
+        }
+    }
+    for (seed, ll) in (0..).zip(last_layers) {
+        let zz = ZZ::default().ll(ll);
+        let mut cube = Cube3x3::scrambled_with_seed(seed);
+        zz.solve(&mut cube)
+            .map_err(|e| format!("{zz:?}, seed {seed}: {e}"))?;
+        assert!(
+            cube.is_solved(),
+            "{zz:?} did not solve seed {seed}:\n{cube}"
+        );
+    }
+    Ok(())
+}
+
+/// ZZ's EO Line: the goal names a piece in two edge slots and asks only for orientation in the
+/// other ten. When the search key left out the flip of a stray edge in a named slot, seed 2 ended
+/// this step with two edges flipped.
+#[test]
+fn a_goal_mixing_named_and_orientation_only_slots_is_met() -> Result<(), Box<dyn Error>> {
+    let eo_line_moves = AlgSet::from_static_parts("F B U R L D");
+    let step = SearchStep::builder("EO Line", eo_line_moves.clone())
+        .goal(PieceSet::from_algset(&AlgSet::from_static_parts("U R L")))
+        .expect_solved(PieceSet::from_algset(&eo_line_moves))
+        .build()?;
+    for seed in 0..4 {
+        let mut cube = Cube3x3::scrambled_with_seed(seed);
+        step.solve(&mut cube)?;
+        assert!(step.is_done(&cube), "seed {seed}:\n{cube}");
+    }
+    Ok(())
+}

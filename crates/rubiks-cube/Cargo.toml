@@ -26,7 +26,6 @@ required-features = ["sketch"]
 
 [dev-dependencies]
 divan = "0.1.21"
-enum-iterator = "2.3.0"
 env_logger = { version = "0.11.11", default-features = false }
 statrs = "0.19.1"
 

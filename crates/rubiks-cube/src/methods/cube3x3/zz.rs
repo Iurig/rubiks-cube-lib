@@ -1,5 +1,3 @@
-#[cfg(test)]
-use enum_iterator::{Sequence, all};
 use std::sync::{Arc, LazyLock};
 
 use super::helpers::{include_multiple_str, set_options};
@@ -11,7 +9,6 @@ use crate::{AlgSet, Cube3x3, Method, PieceSet, Step, Technique};
 
 /// The ZZ method for the 3x3 Rubik's Cube: EO line, first two layers, then last layer.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
-#[cfg_attr(test, derive(Sequence))]
 pub struct ZZ {
     eoline: EoLine,
     f2l: F2L,
@@ -33,17 +30,14 @@ impl ZZ {
 /// How [`ZZ`] builds its first step, the `EOLine`.
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
-#[cfg_attr(test, derive(Sequence))]
 pub struct EoLine;
 /// How [`ZZ`] builds its F2L.
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
-#[cfg_attr(test, derive(Sequence))]
 pub struct F2L;
 /// How [`ZZ`] builds its last layer.
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-#[cfg_attr(test, derive(Sequence))]
 pub enum LL {
     /// 2-look last layer.
     TwoLook {
@@ -58,7 +52,6 @@ pub enum LL {
 /// The first step of a two-look ZZ last layer.
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
-#[cfg_attr(test, derive(Sequence))]
 pub enum FirstLook {
     /// Orientation of the Corners of the Last Layer.
     #[default]
@@ -69,7 +62,6 @@ pub enum FirstLook {
 /// The second step of a two-look ZZ last layer.
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
-#[cfg_attr(test, derive(Sequence))]
 pub enum SecondLook {
     /// Standard PLL
     #[default]
@@ -171,39 +163,3 @@ static ZBLL_ALGS: LazyLock<AlgSet<Cube3x3>> = LazyLock::new(|| {
     ))
     .or_skip()
 });
-
-#[cfg(test)]
-mod test {
-    #![expect(clippy::panic_in_result_fn, reason = "standard procedure in our tests")]
-    use std::error::Error;
-
-    use crate::{Puzzle, Solution};
-
-    use super::*;
-
-    #[test]
-    fn zz_solves_the_cube() -> Result<(), Box<dyn Error>> {
-        let mut cube = Cube3x3::scrambled_with_seed(2);
-
-        let _ = ZZ::default()
-            .solve_steps(&mut cube)
-            .collect::<Result<Solution<Cube3x3>, _>>()?;
-        assert!(cube.is_solved());
-        Ok(())
-    }
-
-    #[test]
-    fn zz_works_with_all_options() -> Result<(), Box<dyn Error>> {
-        let settings = all::<ZZ>().collect::<Vec<_>>();
-        let scrambled_cubes = (0..u64::try_from(settings.len())?)
-            .map(Cube3x3::scrambled_with_seed)
-            .collect::<Vec<_>>();
-        for (&cube, setting) in scrambled_cubes.iter().zip(settings) {
-            dbg!(&setting);
-            let mut solving_cube = cube;
-            setting.solve(&mut solving_cube)?;
-            assert!(solving_cube.is_solved());
-        }
-        Ok(())
-    }
-}

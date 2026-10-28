@@ -361,24 +361,6 @@ mod tests {
     use super::*;
     use crate::{Cube3x3, Edge};
 
-    /// ZZ's EO Line: the goal names a piece in two edge slots and asks only for orientation in
-    /// the other ten. When the search key left out the flip of a stray edge in a named slot, seed
-    /// 2 ended this step with two edges flipped.
-    #[test]
-    fn a_goal_mixing_named_and_orientation_only_slots_is_met() {
-        let eo_line_moves = AlgSet::from_static_parts("F B U R L D");
-        let step = SearchStep::builder("EO Line", eo_line_moves.clone())
-            .goal(PieceSet::from_algset(&AlgSet::from_static_parts("U R L")))
-            .expect_solved(PieceSet::from_algset(&eo_line_moves))
-            .build()
-            .unwrap();
-        for seed in 0..4 {
-            let mut cube = Cube3x3::scrambled_with_seed(seed);
-            step.solve(&mut cube).unwrap();
-            assert!(step.is_done(&cube), "seed {seed}:\n{cube}");
-        }
-    }
-
     #[test]
     fn a_poisoned_memo_is_reported_as_memo_poisoned() {
         let u_turns = AlgSet::from_static_parts("U");
