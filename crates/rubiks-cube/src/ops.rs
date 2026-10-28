@@ -31,14 +31,6 @@ pub trait Inv: Sized {
     fn inv(self) -> Self;
 }
 
-/// The inverse of a move sequence, such as an [`Algorithm`](crate::Algorithm): the moves in
-/// reverse order, each one inverted. `R U` gives `U' R'`.
-impl<M: Inv> Inv for Vec<M> {
-    fn inv(self) -> Self {
-        self.into_iter().rev().map(Inv::inv).collect()
-    }
-}
-
 /// Repeated multiplication by fast exponentiation.
 pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
     /// The result of an empty product.

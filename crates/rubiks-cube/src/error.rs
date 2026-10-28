@@ -229,4 +229,14 @@ mod test {
             Some(StepError::UnreachableGoal)
         ));
     }
+
+    #[test]
+    fn solve_error_gives_back_the_step_error() {
+        let solve_error = SolveError::couldnt_solve("name".into(), StepError::UnreachableGoal);
+
+        assert!(matches!(
+            solve_error.into_inner(),
+            Some(StepError::UnreachableGoal)
+        ));
+    }
 }
