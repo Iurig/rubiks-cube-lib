@@ -1,0 +1,27 @@
+--- crates/rubiks-cube/src/methods/step/search_step/mod.rs
++++ replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with None
+@@ -108,23 +108,17 @@
+     free_search_algs: AlgSet<P>,
+ }
+ 
+ impl<P: Puzzle> StepBuilder<P> for SearchStepBuilder<P> {
+     fn assumed_solved(&mut self) -> &mut Option<PieceSet<P>> {
+         &mut self.before
+     }
+     fn allowed_sequences(&mut self) -> Option<AlgSet<P>> {
+-        Some(
+-            self.search_algs
+-                .iter()
+-                .chain(self.free_search_algs.iter())
+-                .cloned()
+-                .collect(),
+-        )
++        None /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     fn goal(&mut self) -> &mut Option<PieceSet<P>> {
+         &mut self.after
+     }
+ 
+     fn build_in(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, BuildStepError> {
+         Ok(Arc::new(

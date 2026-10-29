@@ -74,6 +74,7 @@ mod fast_hash;
 mod indexed;
 mod methods;
 mod ops;
+mod ordinal;
 mod piece;
 mod puzzles;
 pub mod zn;

@@ -6,7 +6,7 @@ use crate::{
 
 use dyn_clone::DynClone;
 
-use std::{fmt::Debug, sync::Arc};
+use std::{borrow::Cow, fmt::Debug, sync::Arc};
 
 pub mod choose;
 pub mod combine_pruned;
@@ -63,6 +63,9 @@ pub trait StepBuilder<P: Puzzle>: DynClone + Debug + Send + Sync {
     /// always return [`None`].
     fn goal(&mut self) -> &mut Option<PieceSet<P>>;
 
+    /// The name of the [`Step`] being built
+    fn name(&self) -> Cow<'_, str>;
+
     /// Setter for the assumptions of the [`StepBuilder`].
     fn assumed_solved(&mut self) -> &mut Option<PieceSet<P>>;
 
@@ -84,5 +87,41 @@ pub trait StepBuilder<P: Puzzle>: DynClone + Debug + Send + Sync {
     /// Same as [`build_in`](Self::build_in).
     fn build(&self) -> Result<Arc<dyn Step<P>>, BuildStepError> {
         self.build_in(&GLOBAL)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Cube3x3, methods::test_steps::FixedStep};
+
+    /// Forwards everything but `can_solve`, so the trait's default runs.
+    #[derive(Debug)]
+    struct DefaultCanSolve(FixedStep);
+
+    impl Step<Cube3x3> for DefaultCanSolve {
+        fn name(&self) -> &str {
+            self.0.name()
+        }
+        fn is_done(&self, puzzle: &Cube3x3) -> bool {
+            self.0.is_done(puzzle)
+        }
+        fn solve(&self, puzzle: &mut Cube3x3) -> Result<Solution<Cube3x3>, StepError> {
+            self.0.solve(puzzle)
+        }
+    }
+
+    #[test]
+    fn by_default_a_step_can_solve_when_solving_leaves_it_done() {
+        let cube = Cube3x3::default();
+        let done = DefaultCanSolve(FixedStep::new("Done", "U", true, true));
+        let not_done = DefaultCanSolve(FixedStep::new("Not done", "U", true, false));
+        let failing = DefaultCanSolve(Arc::unwrap_or_clone(FixedStep::failing("Failing", || {
+            StepError::UnreachableGoal
+        })));
+
+        assert!(done.can_solve(&cube));
+        assert!(!not_done.can_solve(&cube));
+        assert!(!failing.can_solve(&cube));
     }
 }

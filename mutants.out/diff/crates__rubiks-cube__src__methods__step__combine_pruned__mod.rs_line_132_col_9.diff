@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs
++++ replace <impl Step<P> for PrunedCombine<P>>::can_solve -> bool with true
+@@ -124,17 +124,17 @@
+ }
+ 
+ impl<P: Puzzle> Step<P> for PrunedCombine<P> {
+     fn name(&self) -> &str {
+         &self.name
+     }
+ 
+     fn can_solve(&self, puzzle: &P) -> bool {
+-        (self.ready_to_solve)(puzzle)
++        true /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     fn is_done(&self, puzzle: &P) -> bool {
+         self.steps
+             .iter()
+             .all(|s| s.distance_from_moves(puzzle) == Some(0))
+     }
+ 

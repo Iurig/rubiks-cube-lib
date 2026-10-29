@@ -62,6 +62,12 @@ fn phase_2_leaves_a_solved_cube_alone() {
     assert_eq!(cube, Cube3x3::default());
 }
 
+#[test]
+fn phase_2_is_not_done_on_an_unsolved_domino_state() {
+    let cube = Cube3x3::from_moves("U R2").unwrap();
+    assert!(!phase(&Kociemba.to_technique(), "Phase 2").is_done(&cube));
+}
+
 /// The search is iterative deepening with lower bounds, so it never returns more moves than
 /// the sequence that made the state.
 #[test]

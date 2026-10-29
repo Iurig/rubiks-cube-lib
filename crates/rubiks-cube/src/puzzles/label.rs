@@ -1,4 +1,8 @@
-use std::{fmt::Debug, hash::Hash, ops::Mul};
+use std::{
+    fmt::{Debug, Display},
+    hash::Hash,
+    ops::Mul,
+};
 
 use crate::{AlgSet, Indexed, Puzzle, fast_hash::FxSet};
 
@@ -36,6 +40,25 @@ pub type Mask<P> = Labeled<P, ByIdentity>;
 /// Used for defining steps by marking positions to be solved, as well as to track cubes throughout
 /// moves without distinction for its marked pieces.
 pub type PieceSet<P> = Labeled<P, ByMembership>;
+
+impl<P: Puzzle> Display for Labeled<P, ByMembership> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let permutation = self
+            .0
+            .iter()
+            .enumerate()
+            .map(|(index, slot)| {
+                format!(
+                    "{:?}: {:?}",
+                    slot.label.is_some().then_some(P::Piece::from_index(index)),
+                    slot.orient
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+        write!(f, "{permutation}")
+    }
+}
 
 /// What a [`Mask`] asks of one slot: which piece must sit there, and which orientation the piece
 /// there must have. `None` asks nothing.
@@ -322,7 +345,7 @@ impl<P: Puzzle> PieceSet<P> {
 
 #[cfg(test)]
 mod test {
-    use crate::{Cube3x3, Piece3x3};
+    use crate::{Corner, Cube3x3, Piece3x3};
 
     use super::*;
 
@@ -379,5 +402,29 @@ mod test {
                 }
             }
         }
+    }
+
+    #[test]
+    fn a_label_goes_on_its_own_slot_only() {
+        let ufr = Piece3x3::Corner(Corner::Ufr);
+        let dbr = Piece3x3::Corner(Corner::Dbr);
+        let mask = Mask::<Cube3x3>::from_labels_and_orientations([(ufr, dbr)], []);
+
+        assert_eq!(mask.condition(ufr).label, Some(dbr));
+        assert_eq!(mask.condition(dbr).label, None);
+    }
+
+    #[test]
+    fn a_set_is_a_subset_only_of_sets_marking_at_least_its_slots() {
+        let ufr = Piece3x3::Corner(Corner::Ufr);
+        let none: [Piece3x3; 0] = [];
+        let solved = PieceSet::<Cube3x3>::from_pieces([ufr]);
+        let home_only = PieceSet::<Cube3x3>::from_pieces_and_orientations([ufr], none);
+        let oriented_only = PieceSet::<Cube3x3>::from_pieces_and_orientations(none, [ufr]);
+
+        assert!(PieceSet::new().is_subset(&solved));
+        assert!(home_only.is_subset(&solved));
+        assert!(!solved.is_subset(&PieceSet::new()));
+        assert!(!oriented_only.is_subset(&home_only));
     }
 }

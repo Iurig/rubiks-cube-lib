@@ -1,0 +1,1 @@
+crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:173:22: replace > with < in <impl Step<P> for PrunedCombine<P>>::solve::search

@@ -30,10 +30,19 @@ pub mod label;
 /// So reading `piece_at` and `orientation_at` at every slot of `Self::default() * m` gives
 /// everything `m` does to any state.
 pub trait Puzzle:
-    Default + Mul<Self::Move, Output = Self> + Debug + Clone + Eq + Hash + Send + Sync + 'static
+    Default
+    + Mul<Self::Move, Output = Self>
+    + Debug
+    + Display
+    + Clone
+    + Eq
+    + Hash
+    + Send
+    + Sync
+    + 'static
 {
     /// One piece of the puzzle. A piece also names its home slot.
-    type Piece: Copy + Eq + Debug + Hash + 'static + Send + Sync + Indexed;
+    type Piece: Copy + Eq + Debug + Hash + 'static + Send + Sync + Indexed + Display;
     /// How a piece is oriented in its slot. One type covers every kind of piece, so a puzzle with
     /// several kinds, such as the cube's corners and edges, uses an enum with one variant per kind.
     type Orientation: Debug

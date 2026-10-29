@@ -112,6 +112,9 @@ impl<P: Puzzle> StepBuilder<P> for SearchStepBuilder<P> {
     fn assumed_solved(&mut self) -> &mut Option<PieceSet<P>> {
         &mut self.before
     }
+    fn name(&self) -> Cow<'_, str> {
+        self.name.clone()
+    }
     fn allowed_sequences(&mut self) -> Option<AlgSet<P>> {
         Some(
             self.search_algs
@@ -350,7 +353,9 @@ impl<P: Puzzle> Step<P> for SearchStep<P> {
 
     fn solve(&self, p: &mut P) -> Result<Solution<P>, StepError> {
         if !self.can_solve(p) {
-            return Err(StepError::InvalidStartingState);
+            return Err(StepError::InvalidStartingState {
+                state: p.to_string(),
+            });
         }
         Ok(Solution::single_segment(self.name(), self.solve_bfs(p)?))
     }

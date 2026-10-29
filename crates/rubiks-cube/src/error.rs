@@ -14,8 +14,11 @@ pub enum StepError {
     /// The puzzle does not meet what the step needs before it starts, such as a
     /// [`SearchStep`](crate::SearchStep)'s `before` mask. [`Shortest`](crate::Shortest) skips an
     /// alternative that returns this.
-    #[error("starting state doesn't fit expected properties")]
-    InvalidStartingState,
+    #[error("starting state doesn't fit expected properties:\n{state}")]
+    InvalidStartingState {
+        /// The puzzle the step was given, as its [`Display`] prints it.
+        state: String,
+    },
     #[error(transparent)]
     /// Any other error specific to the step type.
     Custom(Box<dyn Error + Send + Sync>),
@@ -49,10 +52,16 @@ impl Display for SolveErrorKind {
 
 /// Why a method's solve stopped.
 #[derive(Debug, Error)]
-#[error("step {step:?} {kind}")]
+#[error(
+    "step {step:?} {kind}{}",
+    state.as_ref().map_or_else(String::new, |state| format!(":\n{state}"))
+)]
 pub struct SolveError {
     kind: SolveErrorKind,
     step: String,
+    /// The puzzle the step was given, when [`kind`](Self::kind) is
+    /// [`SolveErrorKind::Requirements`].
+    state: Option<String>,
     source: Option<StepError>,
 }
 
@@ -67,6 +76,12 @@ impl SolveError {
     pub fn step(&self) -> &str {
         &self.step
     }
+    /// The puzzle the step was given, as its [`Display`] prints it, when [`kind`](Self::kind) is
+    /// [`SolveErrorKind::Requirements`].
+    #[must_use]
+    pub fn state(&self) -> Option<&str> {
+        self.state.as_deref()
+    }
     /// What the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].
     #[must_use]
     pub const fn inner(&self) -> Option<&StepError> {
@@ -79,10 +94,11 @@ impl SolveError {
     }
 
     /// The step's requirements weren't met, so it never ran.
-    pub(crate) const fn requirements(step: String) -> Self {
+    pub(crate) const fn requirements(step: String, state: String) -> Self {
         Self {
             kind: SolveErrorKind::Requirements,
             step,
+            state: Some(state),
             source: None,
         }
     }
@@ -91,6 +107,7 @@ impl SolveError {
         Self {
             kind: SolveErrorKind::CouldntSolve,
             step,
+            state: None,
             source: Some(source),
         }
     }
@@ -99,6 +116,7 @@ impl SolveError {
         Self {
             kind: SolveErrorKind::NotDone,
             step,
+            state: None,
             source: None,
         }
     }
@@ -145,7 +163,9 @@ pub struct ParseSequenceError {
 #[non_exhaustive]
 pub enum SearchStepError<P: Puzzle> {
     /// The step prerequisite was not guaranteed by the goal.
-    #[error("the pieces expected solved are not all in the goal")]
+    #[error(
+        "expected {before} to be solved, but the previous goal only promisses {after} to be solved"
+    )]
     InvalidPrerequisite {
         /// The prerequisite
         before: PieceSet<P>,
@@ -184,10 +204,15 @@ pub enum TechniqueError {
     #[error("the first step should not have set requirements")]
     InvalidFirstStep,
     /// Any step failed to build.
-    #[error("the step in position {index} could not be built")]
+    #[error(
+        "{step}, the {} step in the technique, could not be built",
+        crate::ordinal::ordinal(*index)
+    )]
     CantConstruct {
-        /// The failed step's position.
+        /// The failed step's position, 1-indexed.
         index: usize,
+        /// The failed step's name.
+        step: String,
         /// The reason it failed to build
         #[source]
         source: BuildStepError,
@@ -216,6 +241,7 @@ impl ParseSequenceError {
 
 #[cfg(test)]
 mod test {
+
     use super::*;
 
     #[test]

@@ -1,0 +1,376 @@
+
+*** crates/rubiks-cube/src/methods/mod.rs:116:35: replace - with / in TechniqueBuilder<P>::finish_in
+
+*** mutation diff:
+--- crates/rubiks-cube/src/methods/mod.rs
++++ replace - with / in TechniqueBuilder<P>::finish_in
+@@ -108,17 +108,17 @@
+     )]
+     pub fn finish_in(
+         &self,
+         step: impl StepBuilder<P> + 'static,
+         context: &BuildContext,
+     ) -> Result<Technique<P>, TechniqueError> {
+         let mut builders = self.step_builders.clone();
+         builders.push(Arc::new(step));
+-        let last = builders.len() - 1;
++        let last = builders.len() / /* ~ changed by cargo-mutants ~ */ 1;
+ 
+         let mut steps = Vec::with_capacity(builders.len());
+         for index in (0..builders.len()).rev() {
+             let (builder_first, builder_second) = &mut builders.split_at_mut(index + 1);
+ 
+             let builder = arc_make_mut(&mut builder_first[index]);
+ 
+             if builder.assumed_solved().is_none() {
+
+
+*** /home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo test --no-run --verbose --package=rubiks-cube@0.1.0
+       Fresh autocfg v1.5.1
+       Fresh unicode-ident v1.0.27
+       Fresh cfg-if v1.0.5
+       Fresh linux-raw-sys v0.12.1
+       Fresh bitflags v2.13.2
+       Fresh bytemuck v1.25.2
+       Fresh proc-macro2 v1.0.107
+       Fresh safe_arch v1.2.0
+       Fresh rand_core v0.10.1
+       Fresh cpufeatures v0.3.1
+       Fresh libm v0.2.16
+       Fresh quote v1.0.47
+       Fresh crossbeam-utils v0.8.23
+       Fresh rustix v1.1.5
+       Fresh chacha20 v0.10.2
+       Fresh wide v1.7.1
+       Fresh rawpointer v0.2.1
+       Fresh log v0.4.34
+       Fresh either v1.19.0
+       Fresh clap_lex v1.1.1
+       Fresh num-traits v0.2.19
+       Fresh crossbeam-epoch v0.9.21
+       Fresh syn v3.0.9
+       Fresh terminal_size v0.4.4
+       Fresh anstyle v1.0.14
+       Fresh syn v2.0.119
+       Fresh matrixmultiply v0.3.11
+       Fresh rand v0.10.3
+       Fresh typenum v1.20.1
+       Fresh env_filter v2.0.0
+       Fresh itertools v0.15.0
+       Fresh num-integer v0.1.47
+       Fresh num-complex v0.4.6
+       Fresh thiserror-impl v2.0.21
+       Fresh crossbeam-deque v0.8.8
+       Fresh approx v0.5.1
+       Fresh clap_builder v4.6.7
+       Fresh divan-macros v0.1.21
+       Fresh fastrand v2.5.0
+       Fresh dyn-clone v1.0.20
+       Fresh regex-lite v0.1.9
+       Fresh condtype v1.3.0
+       Fresh env_logger v0.11.11
+       Fresh simba v0.10.2
+       Fresh rayon-core v1.13.0
+       Fresh thiserror v2.0.21
+       Fresh num-rational v0.4.2
+       Fresh libc v0.2.191
+       Fresh clap v4.6.7
+       Fresh rayon v1.12.0
+       Fresh nalgebra v0.35.0
+       Fresh divan v0.1.21
+       Fresh statrs v0.19.1
+       Dirty rubiks-cube v0.1.0 (/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/crates/rubiks-cube): the file `crates/rubiks-cube/src/methods/mod.rs` has changed (1793218814.282921687s, 7s after last build at 1793218807.181836110s)
+   Compiling rubiks-cube v0.1.0 (/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/crates/rubiks-cube)
+     Running `/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name rubiks_cube --edition=2024 crates/rubiks-cube/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=1 -C embed-bitcode=no -C debuginfo=2 '--warn=clippy::pedantic' '--warn=clippy::nursery' '--warn=clippy::unwrap_used' '--warn=clippy::unused_result_ok' '--warn=clippy::unreachable' '--warn=clippy::unnecessary_safety_doc' '--warn=clippy::unnecessary_safety_comment' --warn=unnameable_types '--warn=clippy::unimplemented' '--warn=clippy::undocumented_unsafe_blocks' '--warn=clippy::todo' '--warn=clippy::string_slice' '--warn=clippy::rc_mutex' '--warn=clippy::print_stdout' '--warn=clippy::print_stderr' '--warn=clippy::panic_in_result_fn' '--warn=clippy::panic' '--warn=clippy::multiple_unsafe_ops_per_block' --warn=missing_docs --warn=missing_debug_implementations '--warn=clippy::mem_forget' '--warn=clippy::map_err_ignore' '--warn=clippy::let_underscore_must_use' '--warn=clippy::indexing_slicing' '--warn=clippy::get_unwrap' '--warn=clippy::dbg_macro' '--warn=clippy::cargo' '--warn=clippy::assertions_on_result_states' '--warn=clippy::allow_attributes_without_reason' -C debug-assertions=on --test --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("sketch"))' -C metadata=4d3ab269b0429a86 -C extra-filename=-7d91c5a0f0fa69c0 --out-dir /tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps --extern divan=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libdivan-427fb77aa258b0a3.rlib --extern dyn_clone=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libdyn_clone-53c64d5e76cd9ef7.rlib --extern env_logger=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libenv_logger-e8e0ac6dbebd2895.rlib --extern fastrand=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libfastrand-0f351eee7edfb1ea.rlib --extern itertools=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libitertools-5fd2f3b23c1baf8a.rlib --extern log=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/liblog-81d268e901d7aa4b.rlib --extern rayon=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/librayon-1a742fb8edfd5439.rlib --extern statrs=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libstatrs-a57e886d2020b86c.rlib --extern thiserror=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libthiserror-064d9c1a5ca1566b.rlib`
+     Running `/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name rubiks_cube --edition=2024 crates/rubiks-cube/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=1 -C embed-bitcode=no -C debuginfo=2 '--warn=clippy::pedantic' '--warn=clippy::nursery' '--warn=clippy::unwrap_used' '--warn=clippy::unused_result_ok' '--warn=clippy::unreachable' '--warn=clippy::unnecessary_safety_doc' '--warn=clippy::unnecessary_safety_comment' --warn=unnameable_types '--warn=clippy::unimplemented' '--warn=clippy::undocumented_unsafe_blocks' '--warn=clippy::todo' '--warn=clippy::string_slice' '--warn=clippy::rc_mutex' '--warn=clippy::print_stdout' '--warn=clippy::print_stderr' '--warn=clippy::panic_in_result_fn' '--warn=clippy::panic' '--warn=clippy::multiple_unsafe_ops_per_block' --warn=missing_docs --warn=missing_debug_implementations '--warn=clippy::mem_forget' '--warn=clippy::map_err_ignore' '--warn=clippy::let_underscore_must_use' '--warn=clippy::indexing_slicing' '--warn=clippy::get_unwrap' '--warn=clippy::dbg_macro' '--warn=clippy::cargo' '--warn=clippy::assertions_on_result_states' '--warn=clippy::allow_attributes_without_reason' -C debug-assertions=on --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("sketch"))' -C metadata=61af755b1e04e010 -C extra-filename=-3061c7c9f8043b2e --out-dir /tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps --extern dyn_clone=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libdyn_clone-53c64d5e76cd9ef7.rmeta --extern fastrand=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libfastrand-0f351eee7edfb1ea.rmeta --extern itertools=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libitertools-5fd2f3b23c1baf8a.rmeta --extern log=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/liblog-81d268e901d7aa4b.rmeta --extern rayon=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/librayon-1a742fb8edfd5439.rmeta --extern thiserror=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libthiserror-064d9c1a5ca1566b.rmeta`
+     Running `/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name api --edition=2024 crates/rubiks-cube/tests/api/main.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=1 -C embed-bitcode=no -C debuginfo=2 '--warn=clippy::pedantic' '--warn=clippy::nursery' '--warn=clippy::unwrap_used' '--warn=clippy::unused_result_ok' '--warn=clippy::unreachable' '--warn=clippy::unnecessary_safety_doc' '--warn=clippy::unnecessary_safety_comment' --warn=unnameable_types '--warn=clippy::unimplemented' '--warn=clippy::undocumented_unsafe_blocks' '--warn=clippy::todo' '--warn=clippy::string_slice' '--warn=clippy::rc_mutex' '--warn=clippy::print_stdout' '--warn=clippy::print_stderr' '--warn=clippy::panic_in_result_fn' '--warn=clippy::panic' '--warn=clippy::multiple_unsafe_ops_per_block' --warn=missing_docs --warn=missing_debug_implementations '--warn=clippy::mem_forget' '--warn=clippy::map_err_ignore' '--warn=clippy::let_underscore_must_use' '--warn=clippy::indexing_slicing' '--warn=clippy::get_unwrap' '--warn=clippy::dbg_macro' '--warn=clippy::cargo' '--warn=clippy::assertions_on_result_states' '--warn=clippy::allow_attributes_without_reason' -C debug-assertions=on --test --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("sketch"))' -C metadata=addb66fa95923a03 -C extra-filename=-72832c35ed3feacf --out-dir /tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps -C incremental=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps --extern divan=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libdivan-427fb77aa258b0a3.rlib --extern dyn_clone=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libdyn_clone-53c64d5e76cd9ef7.rlib --extern env_logger=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libenv_logger-e8e0ac6dbebd2895.rlib --extern fastrand=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libfastrand-0f351eee7edfb1ea.rlib --extern itertools=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libitertools-5fd2f3b23c1baf8a.rlib --extern log=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/liblog-81d268e901d7aa4b.rlib --extern rayon=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/librayon-1a742fb8edfd5439.rlib --extern rubiks_cube=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/librubiks_cube-3061c7c9f8043b2e.rlib --extern statrs=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libstatrs-a57e886d2020b86c.rlib --extern thiserror=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libthiserror-064d9c1a5ca1566b.rlib`
+     Running `/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name main --edition=2024 crates/rubiks-cube/examples/main.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type bin --emit=dep-info,link -C opt-level=1 -C embed-bitcode=no -C debuginfo=2 '--warn=clippy::pedantic' '--warn=clippy::nursery' '--warn=clippy::unwrap_used' '--warn=clippy::unused_result_ok' '--warn=clippy::unreachable' '--warn=clippy::unnecessary_safety_doc' '--warn=clippy::unnecessary_safety_comment' --warn=unnameable_types '--warn=clippy::unimplemented' '--warn=clippy::undocumented_unsafe_blocks' '--warn=clippy::todo' '--warn=clippy::string_slice' '--warn=clippy::rc_mutex' '--warn=clippy::print_stdout' '--warn=clippy::print_stderr' '--warn=clippy::panic_in_result_fn' '--warn=clippy::panic' '--warn=clippy::multiple_unsafe_ops_per_block' --warn=missing_docs --warn=missing_debug_implementations '--warn=clippy::mem_forget' '--warn=clippy::map_err_ignore' '--warn=clippy::let_underscore_must_use' '--warn=clippy::indexing_slicing' '--warn=clippy::get_unwrap' '--warn=clippy::dbg_macro' '--warn=clippy::cargo' '--warn=clippy::assertions_on_result_states' '--warn=clippy::allow_attributes_without_reason' -C debug-assertions=on --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("sketch"))' -C metadata=dac8ff99a7a19ef1 -C extra-filename=-afefaec64eeca3ba --out-dir /tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/examples -C incremental=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/incremental -L dependency=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps --extern divan=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libdivan-427fb77aa258b0a3.rlib --extern dyn_clone=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libdyn_clone-53c64d5e76cd9ef7.rlib --extern env_logger=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libenv_logger-e8e0ac6dbebd2895.rlib --extern fastrand=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libfastrand-0f351eee7edfb1ea.rlib --extern itertools=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libitertools-5fd2f3b23c1baf8a.rlib --extern log=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/liblog-81d268e901d7aa4b.rlib --extern rayon=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/librayon-1a742fb8edfd5439.rlib --extern rubiks_cube=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/librubiks_cube-3061c7c9f8043b2e.rlib --extern statrs=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libstatrs-a57e886d2020b86c.rlib --extern thiserror=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libthiserror-064d9c1a5ca1566b.rlib`
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.50s
+  Executable `/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/rubiks_cube-7d91c5a0f0fa69c0`
+  Executable `/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/api-72832c35ed3feacf`
+
+*** result: Success
+
+*** /home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo test --verbose --package=rubiks-cube@0.1.0
+       Fresh autocfg v1.5.1
+       Fresh unicode-ident v1.0.27
+       Fresh bytemuck v1.25.2
+       Fresh cfg-if v1.0.5
+       Fresh linux-raw-sys v0.12.1
+       Fresh bitflags v2.13.2
+       Fresh proc-macro2 v1.0.107
+       Fresh safe_arch v1.2.0
+       Fresh rand_core v0.10.1
+       Fresh cpufeatures v0.3.1
+       Fresh libm v0.2.16
+       Fresh quote v1.0.47
+       Fresh crossbeam-utils v0.8.23
+       Fresh rustix v1.1.5
+       Fresh chacha20 v0.10.2
+       Fresh wide v1.7.1
+       Fresh rawpointer v0.2.1
+       Fresh log v0.4.34
+       Fresh either v1.19.0
+       Fresh clap_lex v1.1.1
+       Fresh num-traits v0.2.19
+       Fresh crossbeam-epoch v0.9.21
+       Fresh syn v3.0.9
+       Fresh terminal_size v0.4.4
+       Fresh anstyle v1.0.14
+       Fresh syn v2.0.119
+       Fresh matrixmultiply v0.3.11
+       Fresh rand v0.10.3
+       Fresh typenum v1.20.1
+       Fresh env_filter v2.0.0
+       Fresh itertools v0.15.0
+       Fresh num-integer v0.1.47
+       Fresh num-complex v0.4.6
+       Fresh thiserror-impl v2.0.21
+       Fresh crossbeam-deque v0.8.8
+       Fresh approx v0.5.1
+       Fresh clap_builder v4.6.7
+       Fresh divan-macros v0.1.21
+       Fresh fastrand v2.5.0
+       Fresh dyn-clone v1.0.20
+       Fresh regex-lite v0.1.9
+       Fresh condtype v1.3.0
+       Fresh env_logger v0.11.11
+       Fresh num-rational v0.4.2
+       Fresh simba v0.10.2
+       Fresh rayon-core v1.13.0
+       Fresh thiserror v2.0.21
+       Fresh clap v4.6.7
+       Fresh libc v0.2.191
+       Fresh rayon v1.12.0
+       Fresh nalgebra v0.35.0
+       Fresh divan v0.1.21
+       Fresh statrs v0.19.1
+       Fresh rubiks-cube v0.1.0 (/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/crates/rubiks-cube)
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.03s
+     Running `/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/rubiks_cube-7d91c5a0f0fa69c0`
+
+running 120 tests
+test error::test::solve_error_gives_back_the_step_error ... ok
+test error::test::solve_error_source_works ... ok
+test fast_hash::tests::different_cubes_with_the_same_masked_pieces_find_each_other ... ok
+test indexed::tests::a_pair_numbers_every_combination_once ... ok
+test fast_hash::tests::masks_built_from_pieces_in_any_order_find_each_other ... ok
+test methods::cube3x3::kociemba::tests::domino_turns_keep_a_cube_in_the_domino_subgroup ... ok
+test methods::cube3x3::kociemba::tests::domino_turns_are_u_and_d_turns_and_other_half_turns ... ok
+test methods::cube3x3::roux::test::rebuilt_roux_steps_share_their_memos ... ok
+test methods::solution::tests::borrowed_and_owned_iteration_yield_the_same_segments_in_order ... ok
+test methods::solution::tests::an_invalid_move_names_its_line_and_position ... ok
+test methods::solution::tests::move_count_counts_correctly ... ok
+test methods::step::choose::tests::any_other_error_ends_the_choice_even_if_another_alternative_succeeds ... ok
+test methods::step::choose::tests::an_alternative_that_cannot_start_is_skipped ... ok
+test methods::solution::tests::extend_appends_segments_after_the_existing_ones ... ok
+test methods::step::choose::tests::the_choice_can_solve_only_when_an_alternative_can ... ok
+test methods::step::choose::tests::the_shorter_alternative_is_kept_and_the_longer_leaves_no_trace ... ok
+test methods::step::choose::tests::the_shorter_alternative_wins_whichever_comes_first ... ok
+test methods::step::choose::tests::when_no_alternative_can_start_the_choice_cannot_start ... ok
+test methods::step::combine_pruned::tests::a_sequence_follows_itself_when_repeating_it_reaches_a_new_state ... ok
+test methods::step::choose::tests::on_a_tie_the_earlier_alternative_is_kept ... ok
+test methods::step::combine_pruned::tests::faces_that_do_not_commute_follow_each_other_both_ways ... ok
+test methods::step::combine_pruned::tests::opposite_faces_follow_each_other_in_one_order_only ... ok
+test methods::step::combine_pruned::tests::a_face_never_follows_itself ... ok
+test methods::step::search_step::memorization::tests::applying_mask_matches_filtering_through ... ok
+test methods::step::search_step::memorization::tests::fb_is_unchanged_by_sb_moves_when_filtered ... ok
+test methods::step::search_step::memorization::tests::free_sequences_are_closed_before_costly_ones_claim_their_states ... ok
+test methods::step::search_step::memorization::tests::free_sequences_are_memorized_at_depth_zero ... ok
+test methods::step::search_step::memorization::tests::memo_keys_match_forward_masks_after_a_piece_leaves_home ... ok
+test methods::step::search_step::memorization::tests::mask_ignores_orientation_of_other_pieces_in_a_goal_pieces_home_slot ... ok
+test methods::step::search_step::memorization::tests::memo_solution_undoes_one_move ... ok
+test methods::step::search_step::memorization::tests::memo_solutions_use_the_allowed_sequences_as_written ... ok
+test methods::tests::a_custom_step_error_comes_back_wrapped_and_naming_the_step ... ok
+test methods::step::search_step::memorization::tests::memo_solution_undoes_the_whole_path ... ok
+test methods::step::tests::by_default_a_step_can_solve_when_solving_leaves_it_done ... ok
+test methods::step::search_step::tests::a_poisoned_memo_is_reported_as_memo_poisoned ... ok
+test methods::tests::a_method_step_that_returns_but_is_not_done_fails_the_solve_naming_it ... ok
+test methods::tests::a_step_that_returns_but_is_not_done_fails_the_solve_naming_it ... ok
+test methods::tests::after_a_step_that_cannot_start_the_iterator_yields_nothing_more ... ok
+test methods::tests::after_an_error_the_iterator_yields_nothing_more ... ok
+test methods::tests::search_step_rejects_a_cube_that_misses_its_before_without_searching ... ok
+test ops::tests::algorithm_inverse_reverses_and_inverts_each_move ... ok
+test ops::tests::clockwise_moves_have_order_exactly_4 ... ok
+test ops::tests::algorithm_then_its_inverse_returns_to_the_start ... ok
+test ops::tests::empty_algorithm_is_its_own_inverse ... ok
+test ops::tests::inverting_an_algorithm_twice_gives_it_back ... ok
+test piece::tests::corner_and_edge_all_match_discriminants ... ok
+test piece::tests::cycle_is_a_permutation_and_moves_pieces_forward_and_leaves_rest ... ok
+test puzzles::algorithm::test::algorithm_into_iter_and_iter_agree ... ok
+test puzzles::algorithm::test::as_ref_is_the_moves_in_order ... ok
+test methods::tests::each_next_runs_one_step_and_leaves_the_cube_after_it ... ok
+test piece::tests::cycle_with_disjoint_cycles_is_a_permutation ... ok
+test puzzles::algorithm::test::index_is_the_move_at_that_position ... ok
+test puzzles::algorithm::test::indexing_past_the_last_move_panics - should panic ... ok
+test puzzles::algset::tests::algsets_are_equal_when_they_hold_the_same_sequences ... ok
+test puzzles::algset::tests::an_invalid_move_names_its_line_and_position ... ok
+test methods::cube3x3::roux::test::cmll_step_leaves_the_cube_with_cmll_solved ... ok
+test puzzles::algset::tests::combined_with_reconstructs_an_algset ... ok
+test methods::step::combine_pruned::tests::pruned_paths_reach_every_state_within_three_moves ... ok
+test methods::cube3x3::roux::test::split_sb_builds_the_back_square_when_it_is_cheaper ... ok
+test puzzles::algset::tests::from_parts_gives_every_modifier ... ok
+test puzzles::algset::tests::from_moves_removes_duplicates ... ok
+test puzzles::algset::tests::from_str_gives_one_sequence_per_line ... ok
+test puzzles::algset::tests::iterating_a_borrowed_algset_gives_its_algs ... ok
+test puzzles::cube3x3::facelets::tests::empty_mask_shows_only_dots ... ok
+test puzzles::cube3x3::facelets::tests::a_move_and_its_inverse_restore_the_net ... ok
+test puzzles::cube3x3::facelets::tests::f_moves_the_ring_around_the_front_face ... ok
+test puzzles::cube3x3::facelets::tests::face_reads_the_same_facelets_display_prints ... ok
+test puzzles::cube3x3::facelets::tests::fully_solved_mask_shows_the_solved_net ... ok
+test puzzles::cube3x3::facelets::tests::m_moves_the_middle_column_and_the_centers ... ok
+test puzzles::cube3x3::facelets::tests::every_state_shows_nine_stickers_of_each_colour ... ok
+test puzzles::cube3x3::facelets::tests::solved_cube_shows_each_face_in_one_colour ... ok
+test puzzles::cube3x3::facelets::tests::u_moves_the_top_row_of_the_side_faces ... ok
+test puzzles::cube3x3::facelets::tests::y_rotates_the_side_faces_whole ... ok
+test puzzles::cube3x3::moves::table::tests::every_part_has_consistent_modifiers ... ok
+test puzzles::cube3x3::moves::table::tests::rotations_are_face_then_slice_then_opposite_face_undone ... ok
+test puzzles::cube3x3::facelets::tests::piece_without_orientation_shows_question_marks ... ok
+test puzzles::cube3x3::facelets::tests::orientation_only_mask_marks_the_u_facelet_of_each_corner ... ok
+test puzzles::cube3x3::facelets::tests::r_moves_the_right_column_of_each_face_along_the_ring ... ok
+test puzzles::cube3x3::moves::table::tests::wide_moves_equal_opposite_face_plus_rotation ... ok
+test puzzles::cube3x3::moves::tests::a_bad_move_is_the_error_variant_that_carries_it ... ok
+test puzzles::cube3x3::moves::tests::comments_run_to_end_of_line ... ok
+test puzzles::cube3x3::moves::tests::empty_and_comment_only_sequences_have_no_moves ... ok
+test puzzles::cube3x3::moves::tests::every_move_has_its_own_index ... ok
+test puzzles::cube3x3::moves::tests::lowercase_face_is_the_wide_move ... ok
+test puzzles::cube3x3::tests::default_is_reachable ... ok
+test puzzles::cube3x3::tests::default_is_solved ... ok
+test puzzles::cube3x3::moves::tests::move_display_round_trip ... ok
+test puzzles::cube3x3::tests::index_is_the_position_in_all_pieces ... ok
+test puzzles::cube3x3::tests::m_is_reachable ... ok
+test puzzles::cube3x3::tests::mul_carries_orientation_along_with_the_piece ... ok
+test puzzles::cube3x3::tests::r_is_reachable ... ok
+test puzzles::cube3x3::tests::all_axes_rotated_solved_is_solved_but_not_after_a_face_turn ... ok
+test puzzles::cube3x3::tests::center_3_cyle_isnt_reachable_even_if_respects_parity ... ok
+test puzzles::cube3x3::tests::corner_twist_isnt_reachable ... ok
+test puzzles::cube3x3::tests::edge_flip_isnt_reachable ... ok
+test puzzles::cube3x3::tests::rotated_solved_is_solved ... ok
+test puzzles::cube3x3::tests::single_swap_isnt_reachable ... ok
+test puzzles::cube3x3::tests::hundred_random_states_are_reachable ... ok
+test puzzles::cube3x3::tests::u_perm_repeats_after_3_applications ... ok
+test puzzles::cube3x3::tests::y_is_reachable ... ok
+test puzzles::cube3x3::tests::y_rotated_solved_is_solved ... ok
+test zn::tests::mul_assign_matches_mul ... ok
+test zn::tests::product_multiplies_and_the_empty_product_is_one ... ok
+test puzzles::label::test::a_label_goes_on_its_own_slot_only ... ok
+test puzzles::label::test::a_set_is_a_subset_only_of_sets_marking_at_least_its_slots ... ok
+test puzzles::label::test::applies_to_composes_correctly_on_full_cube ... ok
+test puzzles::label::test::the_key_keeps_every_orientation_the_goal_moveset_preserves_wherever_the_piece_sits ... ok
+test puzzles::label::test::the_key_keeps_no_orientation_the_goal_moveset_changes ... ok
+test zn::tests::sub_and_mul_agree_with_integer_arithmetic_mod_n ... ok
+test zn::tests::sub_is_adding_the_negation ... ok
+test zn::tests::the_largest_modulus_still_subtracts_and_multiplies ... ok
+test zn::tests::value_is_the_representative_in_range ... ok
+test zn::tests::zn_is_one_byte_and_the_largest_modulus_still_adds_and_negates ... ok
+test zn::tests::zn_public_arithmetic ... ok
+test zn::tests::zn_reduces_wraps_and_negates ... ok
+test methods::cube3x3::roux::test::every_roux_step_is_done_on_a_solved_cube_and_not_on_a_scrambled_one ... ok
+test methods::cube3x3::roux::test::options_pick_the_steps_in_solving_order ... ok
+test methods::cube3x3::roux::test::split_fb_builds_the_back_square_when_it_is_cheaper ... ok
+test fast_hash::tests::collisions_match_pre_defined_p_value_on_generic_write ... ok
+test fast_hash::tests::collisions_match_pre_defined_p_value_on_specific_writes ... ok
+
+test result: ok. 120 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running `/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/api-72832c35ed3feacf`
+
+running 67 tests
+test algebra::identity_is_two_sided ... ok
+test algebra::inverse_of_product_reverses_order ... ok
+test algebra::inverse_is_an_involution ... ok
+test algebra::mul_is_associative ... ok
+test algebra::move_inverse_is_move_cubed ... ok
+test algebra::multiplying_by_an_algorithm_applies_its_moves_in_order ... ok
+test algebra::pow_0_gives_identity_cube ... ok
+test algebra::pow_finishes_correctly_for_large_exponent ... ok
+test mask::mask_ignores_duplicates ... ok
+test mask::empty_mask_always_applies ... ok
+test mask::mask_ignores_order ... ok
+test mask::masked_default_applies_to_default_and_r_if_mask_excludes_r ... ok
+test mask::masked_with_correct_orientation_but_wrong_permutation_parses_correctly ... ok
+test mask::masked_default_applies_to_default_but_not_r ... ok
+test algebra::every_move_acts_on_any_state_as_it_acts_on_the_solved_state ... ok
+test moves::d_takes_front_right_corner_to_back_right ... ok
+test moves::e_follows_d_and_takes_front_center_to_right ... ok
+test moves::b_takes_top_right_corner_to_top_left ... ok
+test algebra::random_words_stay_reachable_and_undo_cleanly ... ok
+test mask::masked_with_correct_permutation_but_wrong_orientation_parses_correctly ... ok
+test moves::f_takes_top_right_corner_to_bottom_right ... ok
+test moves::m_follows_l_and_takes_top_center_to_front ... ok
+test moves::r_2_is_equal_to_r_prime_2 ... ok
+test moves::r_and_l_commute ... ok
+test moves::r_takes_front_top_corner_to_back_top ... ok
+test moves::adjacent_face_sequence_has_constant_and_correct_period ... ok
+test moves::s_follows_f_and_takes_top_center_to_right ... ok
+test moves::sexy_move_has_correct_period_on_all_face_pairs ... ok
+test moves::l_takes_back_top_corner_to_front_top ... ok
+test moves::r_move_respects_bounds_and_touches_only_r_layer ... ok
+test moves::u_and_d_commute ... ok
+test moves::slice_face_has_constant_and_correct_period ... ok
+test notation::bad_move_error_names_its_line_and_position ... ok
+test notation::incorrect_strings_return_error ... ok
+test notation::multiple_moves_break_down_correctly ... ok
+test notation::r_prime_is_inverse_of_r ... ok
+test notation::sequences_without_moves_leave_the_cube_unchanged ... ok
+test moves::rotations_match_moves ... ok
+test reconstructions::cfop_solve ... ok
+test reconstructions::cfop_solve_hygienized ... ok
+test reconstructions::composition_works_on_fmc_wr ... ok
+test reconstructions::roux_solve_removes_comments ... ok
+test reconstructions::roux_solve_with_comments ... ok
+test moves::u_takes_front_right_corner_to_front_left ... ok
+test reconstructions::e_based_roux_solve ... ok
+test reconstructions::fmc_wr_as_multiplication ... ok
+test reconstructions::roux_solve_without_comments ... ok
+test reconstructions::roux_solve_without_wide_moves ... ok
+test reconstructions::s_based_roux_solve ... ok
+test scramble::a_random_scramble_is_not_solved ... ok
+test solving::a_goal_mixing_named_and_orientation_only_slots_is_met ... ok
+test scramble::random_scramble_on_3x3_is_uniform_and_all_are_reachable ... ok
+test scramble::scramble_never_clashes_and_is_never_solved ... ok
+test solving::full_solve_and_checking_bfs ... ok
+test solving::skips_work ... ok
+test solving::every_roux_option_combination_solves ... ok
+test solving::zz_solves_the_cube ... ok
+test solving::every_zz_option_combination_solves ... ok
+test kociemba::phase_2_is_not_done_on_an_unsolved_domino_state ... ok
+test kociemba::phase_2_rejects_a_cube_outside_the_domino_subgroup ... ok
+test kociemba::phase_1_solves ... ok
+test kociemba::phase_2_leaves_a_solved_cube_alone ... ok
+test kociemba::kociemba_solves_a_scramble ... ok
+test scramble::a_random_scramble_algorithm_leaves_the_cube_unsolved ... ok
+test kociemba::phase_2_solves_a_domino_state_in_at_most_its_length ... ok
+test kociemba::phase_2_solves_what_phase_1_leaves ... ok
+test scramble::scramble_and_solve_with_parsing_round_trip ... ok
+
+test result: ok. 67 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.79s
+
+   Doc-tests rubiks_cube
+     Running `/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustdoc --edition=2024 --crate-type lib --color auto --crate-name rubiks_cube --test crates/rubiks-cube/src/lib.rs --test-run-directory /tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/crates/rubiks-cube '--warn=clippy::pedantic' '--warn=clippy::nursery' '--warn=clippy::unwrap_used' '--warn=clippy::unused_result_ok' '--warn=clippy::unreachable' '--warn=clippy::unnecessary_safety_doc' '--warn=clippy::unnecessary_safety_comment' --warn=unnameable_types '--warn=clippy::unimplemented' '--warn=clippy::undocumented_unsafe_blocks' '--warn=clippy::todo' '--warn=clippy::string_slice' '--warn=clippy::rc_mutex' '--warn=clippy::print_stdout' '--warn=clippy::print_stderr' '--warn=clippy::panic_in_result_fn' '--warn=clippy::panic' '--warn=clippy::multiple_unsafe_ops_per_block' --warn=missing_docs --warn=missing_debug_implementations '--warn=clippy::mem_forget' '--warn=clippy::map_err_ignore' '--warn=clippy::let_underscore_must_use' '--warn=clippy::indexing_slicing' '--warn=clippy::get_unwrap' '--warn=clippy::dbg_macro' '--warn=clippy::cargo' '--warn=clippy::assertions_on_result_states' '--warn=clippy::allow_attributes_without_reason' --extern divan=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libdivan-427fb77aa258b0a3.rlib --extern dyn_clone=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libdyn_clone-53c64d5e76cd9ef7.rlib --extern env_logger=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libenv_logger-e8e0ac6dbebd2895.rlib --extern fastrand=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libfastrand-0f351eee7edfb1ea.rlib --extern itertools=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libitertools-5fd2f3b23c1baf8a.rlib --extern log=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/liblog-81d268e901d7aa4b.rlib --extern rayon=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/librayon-1a742fb8edfd5439.rlib --extern rubiks_cube=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/librubiks_cube-3061c7c9f8043b2e.rlib --extern statrs=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libstatrs-a57e886d2020b86c.rlib --extern thiserror=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps/libthiserror-064d9c1a5ca1566b.rlib -L dependency=/tmp/cargo-mutants-rubiks-cube-lib-Gi0fZ0.tmp/target/debug/deps -C embed-bitcode=no --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values("sketch"))' --error-format human`
+
+running 18 tests
+test crates/rubiks-cube/src/methods/mod.rs - methods::TechniqueBuilder (line 52) ... ignored
+test crates/rubiks-cube/src/lib.rs - ReadmeDoctests (line 238) ... ok
+test crates/rubiks-cube/src/lib.rs - ReadmeDoctests (line 168) ... ok
+test crates/rubiks-cube/src/methods/cube3x3/roux.rs - methods::cube3x3::roux::Roux (line 14) ... ok
+test crates/rubiks-cube/src/lib.rs - ReadmeDoctests (line 138) ... ok
+test crates/rubiks-cube/src/lib.rs - (line 7) ... ok
+test crates/rubiks-cube/src/methods/context.rs - methods::context::BuildContext (line 16) ... ok
+test crates/rubiks-cube/src/ops.rs - ops::Inv::inv (line 7) ... ok
+test crates/rubiks-cube/src/ops.rs - ops::Pow::pow (line 44) ... ok
+test crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs - puzzles::cube3x3::facelets::Mask<Cube3x3> (line 356) ... ok
+test crates/rubiks-cube/src/puzzles/label.rs - puzzles::label::Mask (line 22) ... ok
+test crates/rubiks-cube/src/puzzles/algorithm.rs - puzzles::algorithm::Algorithm (line 16) - compile ... ok
+test crates/rubiks-cube/src/puzzles/algset.rs - puzzles::algset::AlgSet (line 16) ... ok
+test crates/rubiks-cube/src/puzzles/cube3x3/facelets.rs - puzzles::cube3x3::facelets::Facelets (line 23) ... ok
+test crates/rubiks-cube/src/methods/mod.rs - methods::Technique (line 29) ... ok
+test crates/rubiks-cube/src/methods/mod.rs - methods::Method::solve_steps (line 313) ... ok
+test crates/rubiks-cube/src/lib.rs - (line 34) ... ok
+test crates/rubiks-cube/src/lib.rs - ReadmeDoctests (line 197) ... ok
+
+test result: ok. 17 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+all doctests ran in 0.31s; merged doctests compilation took 0.24s
+
+*** result: Success

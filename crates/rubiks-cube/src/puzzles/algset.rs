@@ -236,6 +236,16 @@ mod tests {
     }
 
     #[test]
+    fn iterating_a_borrowed_algset_gives_its_algs() -> anyhow::Result<()> {
+        let algset = AlgSet::<Cube3x3>::from_str("R U\nF2\nM' E")?;
+
+        let iterated: Vec<&Algorithm<Cube3x3>> = (&algset).into_iter().collect();
+
+        assert_eq!(iterated, algset.algs().iter().collect::<Vec<_>>());
+        Ok(())
+    }
+
+    #[test]
     fn from_moves_removes_duplicates() -> anyhow::Result<()> {
         let expected: FxSet<Algorithm<Cube3x3>> = ["U", "U2", "U'"]
             .into_iter()

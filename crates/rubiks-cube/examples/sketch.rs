@@ -9,7 +9,9 @@
 use rubiks_cube::{cube3x3_method_helpers::*, *};
 
 fn main() {
-    let eolr = SearchStep::builder("EOLR", AlgSet::from_static_parts("M U"))
+    use rubiks_cube::{AlgSet, Cube3x3, PieceSet, SearchStep, Technique};
+
+    let eolr = *SearchStep::builder("EOLR", AlgSet::from_static_parts("M U"))
         .goal(PieceSet::from_algset(&AlgSet::from_static("M\n U2")));
 
     let advanced_roux = Technique::<Cube3x3>::start_with(SearchStep::builder(
@@ -21,14 +23,14 @@ fn main() {
         AlgSet::from_static_parts("R U r M"),
     ))
     .then(
-        SearchStep::builder(
+        *SearchStep::builder(
             "CMLL",
             AlgSet::from_static_parts(concat!(include_str!("path/to/algs/"))),
         )
         .free_algs(AlgSet::from_static_parts("U"))
         .goal(PieceSet::from_algset(&AlgSet::from_static("U M' U' \n M"))),
     )
-    .then_step(eolr)
+    .then(eolr)
     .finish(SearchStep::builder("LSE", AlgSet::from_static("M U")));
 
     let advanced_cfop = Technique::<Cube3x3>::builder()

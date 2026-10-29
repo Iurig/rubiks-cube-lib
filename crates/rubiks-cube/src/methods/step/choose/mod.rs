@@ -84,7 +84,7 @@ impl<P: Puzzle> Step<P> for Shortest<P> {
             .try_fold(
                 None,
                 |best: Option<(Solution<P>, P)>, candidate| match candidate {
-                    Err(StepError::InvalidStartingState) => Ok(best),
+                    Err(StepError::InvalidStartingState { .. }) => Ok(best),
                     Err(e @ (StepError::UnreachableGoal | StepError::Custom(_))) => Err(e),
                     // On a tie the earlier alternative stays.
                     Ok(candidate) => Ok(match best {
@@ -93,7 +93,9 @@ impl<P: Puzzle> Step<P> for Shortest<P> {
                     }),
                 },
             )?;
-        let (solution, solved) = best.ok_or(StepError::InvalidStartingState)?;
+        let (solution, solved) = best.ok_or_else(|| StepError::InvalidStartingState {
+            state: puzzle.to_string(),
+        })?;
         *puzzle = solved;
         Ok(solution)
     }
@@ -114,7 +116,9 @@ mod tests {
     use crate::{Cube3x3, Segment, Technique, methods::test_steps::FixedStep};
 
     fn cannot_start() -> StepError {
-        StepError::InvalidStartingState
+        StepError::InvalidStartingState {
+            state: String::new(),
+        }
     }
 
     fn unreachable() -> StepError {
@@ -199,10 +203,23 @@ mod tests {
         let result = choose.solve(&mut cube);
 
         assert!(
-            matches!(result, Err(StepError::InvalidStartingState)),
+            matches!(result, Err(StepError::InvalidStartingState { .. })),
             "{result:?}"
         );
         assert_eq!(cube, Cube3x3::default());
+    }
+
+    #[test]
+    fn the_choice_can_solve_only_when_an_alternative_can() {
+        let cube = Cube3x3::default();
+        let cannot: Arc<dyn Step<Cube3x3>> = Arc::new(FixedStep::new("Cannot", "", false, false));
+        let can: Arc<dyn Step<Cube3x3>> = Arc::new(FixedStep::new("Can", "", true, true));
+
+        let neither = Shortest::named("Neither", vec![Arc::clone(&cannot), Arc::clone(&cannot)]);
+        let second = Shortest::named("Second", vec![cannot, can]);
+
+        assert!(!neither.can_solve(&cube));
+        assert!(second.can_solve(&cube));
     }
 
     #[test]

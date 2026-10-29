@@ -278,6 +278,13 @@ mod tests {
         }
     }
 
+    /// With only `R` in the moveset, `R R` is the only way to reach `R2`, so it can't be pruned.
+    #[test]
+    fn a_sequence_follows_itself_when_repeating_it_reaches_a_new_state() {
+        let moveset = AlgSet::<Cube3x3>::from_static("R");
+        assert_eq!(may_follow(&moveset), [[true]]);
+    }
+
     /// The pruning must not lose a state: up to three moves, the paths `may_follow` allows reach
     /// every state that unpruned paths reach.
     #[test]

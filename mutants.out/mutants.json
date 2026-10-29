@@ -1,0 +1,802 @@
+[
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/mod.rs\n+++ replace - with + in TechniqueBuilder<P>::finish_in\n@@ -108,17 +108,17 @@\n     )]\n     pub fn finish_in(\n         &self,\n         step: impl StepBuilder<P> + 'static,\n         context: &BuildContext,\n     ) -> Result<Technique<P>, TechniqueError> {\n         let mut builders = self.step_builders.clone();\n         builders.push(Arc::new(step));\n-        let last = builders.len() - 1;\n+        let last = builders.len() + /* ~ changed by cargo-mutants ~ */ 1;\n \n         let mut steps = Vec::with_capacity(builders.len());\n         for index in (0..builders.len()).rev() {\n             let (builder_first, builder_second) = &mut builders.split_at_mut(index + 1);\n \n             let builder = arc_make_mut(&mut builder_first[index]);\n \n             if builder.assumed_solved().is_none() {\n",
+    "file": "crates/rubiks-cube/src/methods/mod.rs",
+    "function": {
+      "function_name": "TechniqueBuilder<P>::finish_in",
+      "return_type": "-> Result<Technique<P>, TechniqueError>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 150
+        },
+        "start": {
+          "column": 5,
+          "line": 95
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/methods/mod.rs:116:35: replace - with + in TechniqueBuilder<P>::finish_in",
+    "package": "rubiks-cube",
+    "replacement": "+",
+    "span": {
+      "end": {
+        "column": 36,
+        "line": 116
+      },
+      "start": {
+        "column": 35,
+        "line": 116
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/mod.rs\n+++ replace - with / in TechniqueBuilder<P>::finish_in\n@@ -108,17 +108,17 @@\n     )]\n     pub fn finish_in(\n         &self,\n         step: impl StepBuilder<P> + 'static,\n         context: &BuildContext,\n     ) -> Result<Technique<P>, TechniqueError> {\n         let mut builders = self.step_builders.clone();\n         builders.push(Arc::new(step));\n-        let last = builders.len() - 1;\n+        let last = builders.len() / /* ~ changed by cargo-mutants ~ */ 1;\n \n         let mut steps = Vec::with_capacity(builders.len());\n         for index in (0..builders.len()).rev() {\n             let (builder_first, builder_second) = &mut builders.split_at_mut(index + 1);\n \n             let builder = arc_make_mut(&mut builder_first[index]);\n \n             if builder.assumed_solved().is_none() {\n",
+    "file": "crates/rubiks-cube/src/methods/mod.rs",
+    "function": {
+      "function_name": "TechniqueBuilder<P>::finish_in",
+      "return_type": "-> Result<Technique<P>, TechniqueError>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 150
+        },
+        "start": {
+          "column": 5,
+          "line": 95
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/methods/mod.rs:116:35: replace - with / in TechniqueBuilder<P>::finish_in",
+    "package": "rubiks-cube",
+    "replacement": "/",
+    "span": {
+      "end": {
+        "column": 36,
+        "line": 116
+      },
+      "start": {
+        "column": 35,
+        "line": 116
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/mod.rs\n+++ replace + with - in TechniqueBuilder<P>::finish_in\n@@ -112,17 +112,17 @@\n         context: &BuildContext,\n     ) -> Result<Technique<P>, TechniqueError> {\n         let mut builders = self.step_builders.clone();\n         builders.push(Arc::new(step));\n         let last = builders.len() - 1;\n \n         let mut steps = Vec::with_capacity(builders.len());\n         for index in (0..builders.len()).rev() {\n-            let (builder_first, builder_second) = &mut builders.split_at_mut(index + 1);\n+            let (builder_first, builder_second) = &mut builders.split_at_mut(index - /* ~ changed by cargo-mutants ~ */ 1);\n \n             let builder = arc_make_mut(&mut builder_first[index]);\n \n             if builder.assumed_solved().is_none() {\n                 *builder.assumed_solved() = builder\n                     .allowed_sequences()\n                     .map(|algs| PieceSet::from_algset(&algs));\n             }\n",
+    "file": "crates/rubiks-cube/src/methods/mod.rs",
+    "function": {
+      "function_name": "TechniqueBuilder<P>::finish_in",
+      "return_type": "-> Result<Technique<P>, TechniqueError>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 150
+        },
+        "start": {
+          "column": 5,
+          "line": 95
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/methods/mod.rs:120:84: replace + with - in TechniqueBuilder<P>::finish_in",
+    "package": "rubiks-cube",
+    "replacement": "-",
+    "span": {
+      "end": {
+        "column": 85,
+        "line": 120
+      },
+      "start": {
+        "column": 84,
+        "line": 120
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/mod.rs\n+++ replace + with * in TechniqueBuilder<P>::finish_in\n@@ -112,17 +112,17 @@\n         context: &BuildContext,\n     ) -> Result<Technique<P>, TechniqueError> {\n         let mut builders = self.step_builders.clone();\n         builders.push(Arc::new(step));\n         let last = builders.len() - 1;\n \n         let mut steps = Vec::with_capacity(builders.len());\n         for index in (0..builders.len()).rev() {\n-            let (builder_first, builder_second) = &mut builders.split_at_mut(index + 1);\n+            let (builder_first, builder_second) = &mut builders.split_at_mut(index * /* ~ changed by cargo-mutants ~ */ 1);\n \n             let builder = arc_make_mut(&mut builder_first[index]);\n \n             if builder.assumed_solved().is_none() {\n                 *builder.assumed_solved() = builder\n                     .allowed_sequences()\n                     .map(|algs| PieceSet::from_algset(&algs));\n             }\n",
+    "file": "crates/rubiks-cube/src/methods/mod.rs",
+    "function": {
+      "function_name": "TechniqueBuilder<P>::finish_in",
+      "return_type": "-> Result<Technique<P>, TechniqueError>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 150
+        },
+        "start": {
+          "column": 5,
+          "line": 95
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/methods/mod.rs:120:84: replace + with * in TechniqueBuilder<P>::finish_in",
+    "package": "rubiks-cube",
+    "replacement": "*",
+    "span": {
+      "end": {
+        "column": 85,
+        "line": 120
+      },
+      "start": {
+        "column": 84,
+        "line": 120
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/mod.rs\n+++ replace && with || in TechniqueBuilder<P>::finish_in\n@@ -122,17 +122,17 @@\n             let builder = arc_make_mut(&mut builder_first[index]);\n \n             if builder.assumed_solved().is_none() {\n                 *builder.assumed_solved() = builder\n                     .allowed_sequences()\n                     .map(|algs| PieceSet::from_algset(&algs));\n             }\n \n-            if index == 0 && builder.assumed_solved().is_some() {\n+            if index == 0 || /* ~ changed by cargo-mutants ~ */ builder.assumed_solved().is_some() {\n                 return Err(TechniqueError::InvalidFirstStep);\n             }\n \n             if index == last {\n                 if builder.goal().is_some() {\n                     return Err(TechniqueError::InvalidLastStep);\n                 }\n             } else {\n",
+    "file": "crates/rubiks-cube/src/methods/mod.rs",
+    "function": {
+      "function_name": "TechniqueBuilder<P>::finish_in",
+      "return_type": "-> Result<Technique<P>, TechniqueError>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 150
+        },
+        "start": {
+          "column": 5,
+          "line": 95
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/methods/mod.rs:130:27: replace && with || in TechniqueBuilder<P>::finish_in",
+    "package": "rubiks-cube",
+    "replacement": "||",
+    "span": {
+      "end": {
+        "column": 29,
+        "line": 130
+      },
+      "start": {
+        "column": 27,
+        "line": 130
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/mod.rs\n+++ replace == with != in TechniqueBuilder<P>::finish_in\n@@ -122,17 +122,17 @@\n             let builder = arc_make_mut(&mut builder_first[index]);\n \n             if builder.assumed_solved().is_none() {\n                 *builder.assumed_solved() = builder\n                     .allowed_sequences()\n                     .map(|algs| PieceSet::from_algset(&algs));\n             }\n \n-            if index == 0 && builder.assumed_solved().is_some() {\n+            if index != /* ~ changed by cargo-mutants ~ */ 0 && builder.assumed_solved().is_some() {\n                 return Err(TechniqueError::InvalidFirstStep);\n             }\n \n             if index == last {\n                 if builder.goal().is_some() {\n                     return Err(TechniqueError::InvalidLastStep);\n                 }\n             } else {\n",
+    "file": "crates/rubiks-cube/src/methods/mod.rs",
+    "function": {
+      "function_name": "TechniqueBuilder<P>::finish_in",
+      "return_type": "-> Result<Technique<P>, TechniqueError>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 150
+        },
+        "start": {
+          "column": 5,
+          "line": 95
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/methods/mod.rs:130:22: replace == with != in TechniqueBuilder<P>::finish_in",
+    "package": "rubiks-cube",
+    "replacement": "!=",
+    "span": {
+      "end": {
+        "column": 24,
+        "line": 130
+      },
+      "start": {
+        "column": 22,
+        "line": 130
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/mod.rs\n+++ replace == with != in TechniqueBuilder<P>::finish_in\n@@ -126,17 +126,17 @@\n                     .allowed_sequences()\n                     .map(|algs| PieceSet::from_algset(&algs));\n             }\n \n             if index == 0 && builder.assumed_solved().is_some() {\n                 return Err(TechniqueError::InvalidFirstStep);\n             }\n \n-            if index == last {\n+            if index != /* ~ changed by cargo-mutants ~ */ last {\n                 if builder.goal().is_some() {\n                     return Err(TechniqueError::InvalidLastStep);\n                 }\n             } else {\n                 let goal = builder.goal();\n                 goal.clone_from(arc_make_mut(&mut builder_second[0]).assumed_solved());\n             }\n \n",
+    "file": "crates/rubiks-cube/src/methods/mod.rs",
+    "function": {
+      "function_name": "TechniqueBuilder<P>::finish_in",
+      "return_type": "-> Result<Technique<P>, TechniqueError>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 150
+        },
+        "start": {
+          "column": 5,
+          "line": 95
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/methods/mod.rs:134:22: replace == with != in TechniqueBuilder<P>::finish_in",
+    "package": "rubiks-cube",
+    "replacement": "!=",
+    "span": {
+      "end": {
+        "column": 24,
+        "line": 134
+      },
+      "start": {
+        "column": 22,
+        "line": 134
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/puzzles/algorithm.rs\n+++ replace Algorithm<P>::truncate with ()\n@@ -155,17 +155,17 @@\n \n     /// Adds the moves of `other` after the last move.\n     pub fn extend_from(&mut self, other: &Self) {\n         self.0.extend_from_slice(&other.0);\n     }\n \n     /// Keeps the first `len` moves and drops the rest.\n     pub fn truncate(&mut self, len: usize) {\n-        self.0.truncate(len);\n+        () /* ~ changed by cargo-mutants ~ */\n     }\n \n     /// Same as [`FromStr`](core::str::FromStr), but for `'static` types.\n     ///\n     /// # Panics\n     /// Panics when [`FromStr`](core::str::FromStr) would error.\n     #[must_use]\n     #[expect(\n",
+    "file": "crates/rubiks-cube/src/puzzles/algorithm.rs",
+    "function": {
+      "function_name": "Algorithm<P>::truncate",
+      "return_type": "",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 164
+        },
+        "start": {
+          "column": 5,
+          "line": 161
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/puzzles/algorithm.rs:163:9: replace Algorithm<P>::truncate with ()",
+    "package": "rubiks-cube",
+    "replacement": "()",
+    "span": {
+      "end": {
+        "column": 30,
+        "line": 163
+      },
+      "start": {
+        "column": 9,
+        "line": 163
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/puzzles/algset.rs\n+++ replace AlgSet<P>::all_moves -> Self with Default::default()\n@@ -37,19 +37,17 @@\n     #[must_use]\n     pub fn new() -> Self {\n         Self(Arc::new([]))\n     }\n \n     /// Constructs an [`AlgSet`] with one [`Algorithm`] for every [`P::Move`](Puzzle::Move)\n     #[must_use]\n     pub fn all_moves() -> Self {\n-        P::Move::all()\n-            .map(|m| std::iter::once(m).collect())\n-            .collect()\n+        Default::default() /* ~ changed by cargo-mutants ~ */\n     }\n     /// Every sequence of either collection, each listed once.\n     ///\n     /// The order of the sequences is not kept, and a sequence in both collections, or twice in\n     /// one, appears once.\n     #[must_use]\n     pub fn combined_with(&self, other: &Self) -> Self {\n         self.0.iter().chain(other.0.iter()).cloned().collect()\n",
+    "file": "crates/rubiks-cube/src/puzzles/algset.rs",
+    "function": {
+      "function_name": "AlgSet<P>::all_moves",
+      "return_type": "-> Self",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 48
+        },
+        "start": {
+          "column": 5,
+          "line": 42
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/puzzles/algset.rs:45:9: replace AlgSet<P>::all_moves -> Self with Default::default()",
+    "package": "rubiks-cube",
+    "replacement": "Default::default()",
+    "span": {
+      "end": {
+        "column": 23,
+        "line": 47
+      },
+      "start": {
+        "column": 9,
+        "line": 45
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/puzzles/label.rs\n+++ replace PieceSet<P>::or -> Self with Default::default()\n@@ -236,30 +236,17 @@\n }\n \n impl<P: Puzzle> PieceSet<P> {\n     /// Composes two instances of [`PieceSet<P>`], marking pieces if they are tracked by either one.\n     ///\n     /// Zeroes the orientations that are tracked - is meant to be used in goal-type values.\n     #[must_use]\n     pub fn or(&self, other: &Self) -> Self {\n-        Self::from_pieces_and_orientations(\n-            P::Piece::all()\n-                .zip(self.0.iter().zip(other.0.iter()))\n-                .filter(|&(_, (con_self, con_other))| {\n-                    con_self.label.is_some() || con_other.label.is_some()\n-                })\n-                .map(|(slot, _)| slot),\n-            P::Piece::all()\n-                .zip(self.0.iter().zip(other.0.iter()))\n-                .filter(|&(_, (con_self, con_other))| {\n-                    con_self.orient.is_some() || con_other.orient.is_some()\n-                })\n-                .map(|(slot, _)| slot),\n-        )\n+        Default::default() /* ~ changed by cargo-mutants ~ */\n     }\n \n     /// Whether every slot this marks, for its piece or its orientation, `other` marks too.\n     #[must_use]\n     pub fn is_subset(&self, other: &Self) -> bool {\n         self.0\n             .iter()\n             .zip(other.0.iter())\n",
+    "file": "crates/rubiks-cube/src/puzzles/label.rs",
+    "function": {
+      "function_name": "PieceSet<P>::or",
+      "return_type": "-> Self",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 258
+        },
+        "start": {
+          "column": 5,
+          "line": 239
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/puzzles/label.rs:244:9: replace PieceSet<P>::or -> Self with Default::default()",
+    "package": "rubiks-cube",
+    "replacement": "Default::default()",
+    "span": {
+      "end": {
+        "column": 10,
+        "line": 257
+      },
+      "start": {
+        "column": 9,
+        "line": 244
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/puzzles/label.rs\n+++ replace || with && in PieceSet<P>::or\n@@ -240,17 +240,17 @@\n     ///\n     /// Zeroes the orientations that are tracked - is meant to be used in goal-type values.\n     #[must_use]\n     pub fn or(&self, other: &Self) -> Self {\n         Self::from_pieces_and_orientations(\n             P::Piece::all()\n                 .zip(self.0.iter().zip(other.0.iter()))\n                 .filter(|&(_, (con_self, con_other))| {\n-                    con_self.label.is_some() || con_other.label.is_some()\n+                    con_self.label.is_some() && /* ~ changed by cargo-mutants ~ */ con_other.label.is_some()\n                 })\n                 .map(|(slot, _)| slot),\n             P::Piece::all()\n                 .zip(self.0.iter().zip(other.0.iter()))\n                 .filter(|&(_, (con_self, con_other))| {\n                     con_self.orient.is_some() || con_other.orient.is_some()\n                 })\n                 .map(|(slot, _)| slot),\n",
+    "file": "crates/rubiks-cube/src/puzzles/label.rs",
+    "function": {
+      "function_name": "PieceSet<P>::or",
+      "return_type": "-> Self",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 258
+        },
+        "start": {
+          "column": 5,
+          "line": 239
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/puzzles/label.rs:248:46: replace || with && in PieceSet<P>::or",
+    "package": "rubiks-cube",
+    "replacement": "&&",
+    "span": {
+      "end": {
+        "column": 48,
+        "line": 248
+      },
+      "start": {
+        "column": 46,
+        "line": 248
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/puzzles/label.rs\n+++ replace || with && in PieceSet<P>::or\n@@ -246,17 +246,17 @@\n                 .zip(self.0.iter().zip(other.0.iter()))\n                 .filter(|&(_, (con_self, con_other))| {\n                     con_self.label.is_some() || con_other.label.is_some()\n                 })\n                 .map(|(slot, _)| slot),\n             P::Piece::all()\n                 .zip(self.0.iter().zip(other.0.iter()))\n                 .filter(|&(_, (con_self, con_other))| {\n-                    con_self.orient.is_some() || con_other.orient.is_some()\n+                    con_self.orient.is_some() && /* ~ changed by cargo-mutants ~ */ con_other.orient.is_some()\n                 })\n                 .map(|(slot, _)| slot),\n         )\n     }\n \n     /// Whether every slot this marks, for its piece or its orientation, `other` marks too.\n     #[must_use]\n     pub fn is_subset(&self, other: &Self) -> bool {\n",
+    "file": "crates/rubiks-cube/src/puzzles/label.rs",
+    "function": {
+      "function_name": "PieceSet<P>::or",
+      "return_type": "-> Self",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 258
+        },
+        "start": {
+          "column": 5,
+          "line": 239
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/puzzles/label.rs:254:47: replace || with && in PieceSet<P>::or",
+    "package": "rubiks-cube",
+    "replacement": "&&",
+    "span": {
+      "end": {
+        "column": 49,
+        "line": 254
+      },
+      "start": {
+        "column": 47,
+        "line": 254
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/cube3x3/kociemba.rs\n+++ replace && with || in phase_2\n@@ -147,17 +147,17 @@\n         |puzzle| {\n             <Cube3x3 as Puzzle>::Piece::all().all(|slot| {\n                 [\n                     Orientation3x3::Flip(Zn::ZERO),\n                     Orientation3x3::Twist(Zn::ZERO),\n                     Orientation3x3::Fixed,\n                 ]\n                 .contains(&puzzle.orientation_at(slot))\n-            }) && RIM.iter().all(|&slot| RIM.contains(&puzzle.piece_at(slot)))\n+            }) || /* ~ changed by cargo-mutants ~ */ RIM.iter().all(|&slot| RIM.contains(&puzzle.piece_at(slot)))\n         },\n         [Phase2Goal::CornersAndE, Phase2Goal::Edges],\n         domino_turns(),\n     )\n }\n \n /// Kociemba's two-phase method.\n /// The first call builds the pruning tables, which takes a few seconds.\n",
+    "file": "crates/rubiks-cube/src/methods/cube3x3/kociemba.rs",
+    "function": {
+      "function_name": "phase_2",
+      "return_type": "-> PrunedCombine<Cube3x3>",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 160
+        },
+        "start": {
+          "column": 1,
+          "line": 141
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:155:16: replace && with || in phase_2",
+    "package": "rubiks-cube",
+    "replacement": "||",
+    "span": {
+      "end": {
+        "column": 18,
+        "line": 155
+      },
+      "start": {
+        "column": 16,
+        "line": 155
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs\n+++ replace <impl Step<P> for PrunedCombine<P>>::can_solve -> bool with true\n@@ -124,17 +124,17 @@\n }\n \n impl<P: Puzzle> Step<P> for PrunedCombine<P> {\n     fn name(&self) -> &str {\n         &self.name\n     }\n \n     fn can_solve(&self, puzzle: &P) -> bool {\n-        (self.ready_to_solve)(puzzle)\n+        true /* ~ changed by cargo-mutants ~ */\n     }\n \n     fn is_done(&self, puzzle: &P) -> bool {\n         self.steps\n             .iter()\n             .all(|s| s.distance_from_moves(puzzle) == Some(0))\n     }\n \n",
+    "file": "crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs",
+    "function": {
+      "function_name": "<impl Step<P> for PrunedCombine<P>>::can_solve",
+      "return_type": "-> bool",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 133
+        },
+        "start": {
+          "column": 5,
+          "line": 131
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:132:9: replace <impl Step<P> for PrunedCombine<P>>::can_solve -> bool with true",
+    "package": "rubiks-cube",
+    "replacement": "true",
+    "span": {
+      "end": {
+        "column": 38,
+        "line": 132
+      },
+      "start": {
+        "column": 9,
+        "line": 132
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs\n+++ replace > with < in <impl Step<P> for PrunedCombine<P>>::solve::search\n@@ -165,17 +165,17 @@\n             bound: u8,\n         ) -> ControlFlow<Algorithm<P>, Option<u8>> {\n             let Some(estimate) = estimate(&combine.steps, puzzle) else {\n                 return ControlFlow::Continue(None);\n             };\n             let Some(total) = depth.checked_add(estimate) else {\n                 return ControlFlow::Continue(None);\n             };\n-            if total > bound {\n+            if total < /* ~ changed by cargo-mutants ~ */ bound {\n                 return ControlFlow::Continue(Some(total));\n             }\n             if estimate == 0 {\n                 return ControlFlow::Break(Algorithm::new());\n             }\n             let Some(next_depth) = depth.checked_add(1) else {\n                 return ControlFlow::Continue(None);\n             };\n",
+    "file": "crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs",
+    "function": {
+      "function_name": "<impl Step<P> for PrunedCombine<P>>::solve::search",
+      "return_type": "-> ControlFlow<Algorithm<P>, Option<u8>>",
+      "span": {
+        "end": {
+          "column": 10,
+          "line": 209
+        },
+        "start": {
+          "column": 9,
+          "line": 154
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:173:22: replace > with < in <impl Step<P> for PrunedCombine<P>>::solve::search",
+    "package": "rubiks-cube",
+    "replacement": "<",
+    "span": {
+      "end": {
+        "column": 23,
+        "line": 173
+      },
+      "start": {
+        "column": 22,
+        "line": 173
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/search_step/mod.rs\n+++ replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(None))\n@@ -105,17 +105,17 @@\n     /// piece.\n     after: Option<PieceSet<P>>,\n     search_algs: AlgSet<P>,\n     free_search_algs: AlgSet<P>,\n }\n \n impl<P: Puzzle> StepBuilder<P> for SearchStepBuilder<P> {\n     fn assumed_solved(&mut self) -> &mut Option<PieceSet<P>> {\n-        &mut self.before\n+        Box::leak(Box::new(None)) /* ~ changed by cargo-mutants ~ */\n     }\n     fn allowed_sequences(&mut self) -> Option<AlgSet<P>> {\n         Some(\n             self.search_algs\n                 .iter()\n                 .chain(self.free_search_algs.iter())\n                 .cloned()\n                 .collect(),\n",
+    "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
+    "function": {
+      "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved",
+      "return_type": "-> &mut Option<PieceSet<P>>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 114
+        },
+        "start": {
+          "column": 5,
+          "line": 112
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:113:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(None))",
+    "package": "rubiks-cube",
+    "replacement": "Box::leak(Box::new(None))",
+    "span": {
+      "end": {
+        "column": 25,
+        "line": 113
+      },
+      "start": {
+        "column": 9,
+        "line": 113
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/search_step/mod.rs\n+++ replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::new())))\n@@ -105,17 +105,17 @@\n     /// piece.\n     after: Option<PieceSet<P>>,\n     search_algs: AlgSet<P>,\n     free_search_algs: AlgSet<P>,\n }\n \n impl<P: Puzzle> StepBuilder<P> for SearchStepBuilder<P> {\n     fn assumed_solved(&mut self) -> &mut Option<PieceSet<P>> {\n-        &mut self.before\n+        Box::leak(Box::new(Some(PieceSet::new()))) /* ~ changed by cargo-mutants ~ */\n     }\n     fn allowed_sequences(&mut self) -> Option<AlgSet<P>> {\n         Some(\n             self.search_algs\n                 .iter()\n                 .chain(self.free_search_algs.iter())\n                 .cloned()\n                 .collect(),\n",
+    "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
+    "function": {
+      "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved",
+      "return_type": "-> &mut Option<PieceSet<P>>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 114
+        },
+        "start": {
+          "column": 5,
+          "line": 112
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:113:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::new())))",
+    "package": "rubiks-cube",
+    "replacement": "Box::leak(Box::new(Some(PieceSet::new())))",
+    "span": {
+      "end": {
+        "column": 25,
+        "line": 113
+      },
+      "start": {
+        "column": 9,
+        "line": 113
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/search_step/mod.rs\n+++ replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::from(Default::default()))))\n@@ -105,17 +105,17 @@\n     /// piece.\n     after: Option<PieceSet<P>>,\n     search_algs: AlgSet<P>,\n     free_search_algs: AlgSet<P>,\n }\n \n impl<P: Puzzle> StepBuilder<P> for SearchStepBuilder<P> {\n     fn assumed_solved(&mut self) -> &mut Option<PieceSet<P>> {\n-        &mut self.before\n+        Box::leak(Box::new(Some(PieceSet::from(Default::default())))) /* ~ changed by cargo-mutants ~ */\n     }\n     fn allowed_sequences(&mut self) -> Option<AlgSet<P>> {\n         Some(\n             self.search_algs\n                 .iter()\n                 .chain(self.free_search_algs.iter())\n                 .cloned()\n                 .collect(),\n",
+    "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
+    "function": {
+      "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved",
+      "return_type": "-> &mut Option<PieceSet<P>>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 114
+        },
+        "start": {
+          "column": 5,
+          "line": 112
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:113:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::from(Default::default()))))",
+    "package": "rubiks-cube",
+    "replacement": "Box::leak(Box::new(Some(PieceSet::from(Default::default()))))",
+    "span": {
+      "end": {
+        "column": 25,
+        "line": 113
+      },
+      "start": {
+        "column": 9,
+        "line": 113
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/search_step/mod.rs\n+++ replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with None\n@@ -108,23 +108,17 @@\n     free_search_algs: AlgSet<P>,\n }\n \n impl<P: Puzzle> StepBuilder<P> for SearchStepBuilder<P> {\n     fn assumed_solved(&mut self) -> &mut Option<PieceSet<P>> {\n         &mut self.before\n     }\n     fn allowed_sequences(&mut self) -> Option<AlgSet<P>> {\n-        Some(\n-            self.search_algs\n-                .iter()\n-                .chain(self.free_search_algs.iter())\n-                .cloned()\n-                .collect(),\n-        )\n+        None /* ~ changed by cargo-mutants ~ */\n     }\n \n     fn goal(&mut self) -> &mut Option<PieceSet<P>> {\n         &mut self.after\n     }\n \n     fn build_in(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, BuildStepError> {\n         Ok(Arc::new(\n",
+    "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
+    "function": {
+      "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences",
+      "return_type": "-> Option<AlgSet<P>>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 123
+        },
+        "start": {
+          "column": 5,
+          "line": 115
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:116:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with None",
+    "package": "rubiks-cube",
+    "replacement": "None",
+    "span": {
+      "end": {
+        "column": 10,
+        "line": 122
+      },
+      "start": {
+        "column": 9,
+        "line": 116
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/search_step/mod.rs\n+++ replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with Some(AlgSet::new())\n@@ -108,23 +108,17 @@\n     free_search_algs: AlgSet<P>,\n }\n \n impl<P: Puzzle> StepBuilder<P> for SearchStepBuilder<P> {\n     fn assumed_solved(&mut self) -> &mut Option<PieceSet<P>> {\n         &mut self.before\n     }\n     fn allowed_sequences(&mut self) -> Option<AlgSet<P>> {\n-        Some(\n-            self.search_algs\n-                .iter()\n-                .chain(self.free_search_algs.iter())\n-                .cloned()\n-                .collect(),\n-        )\n+        Some(AlgSet::new()) /* ~ changed by cargo-mutants ~ */\n     }\n \n     fn goal(&mut self) -> &mut Option<PieceSet<P>> {\n         &mut self.after\n     }\n \n     fn build_in(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, BuildStepError> {\n         Ok(Arc::new(\n",
+    "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
+    "function": {
+      "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences",
+      "return_type": "-> Option<AlgSet<P>>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 123
+        },
+        "start": {
+          "column": 5,
+          "line": 115
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:116:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with Some(AlgSet::new())",
+    "package": "rubiks-cube",
+    "replacement": "Some(AlgSet::new())",
+    "span": {
+      "end": {
+        "column": 10,
+        "line": 122
+      },
+      "start": {
+        "column": 9,
+        "line": 116
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/search_step/mod.rs\n+++ replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with Some(AlgSet::from(Default::default()))\n@@ -108,23 +108,17 @@\n     free_search_algs: AlgSet<P>,\n }\n \n impl<P: Puzzle> StepBuilder<P> for SearchStepBuilder<P> {\n     fn assumed_solved(&mut self) -> &mut Option<PieceSet<P>> {\n         &mut self.before\n     }\n     fn allowed_sequences(&mut self) -> Option<AlgSet<P>> {\n-        Some(\n-            self.search_algs\n-                .iter()\n-                .chain(self.free_search_algs.iter())\n-                .cloned()\n-                .collect(),\n-        )\n+        Some(AlgSet::from(Default::default())) /* ~ changed by cargo-mutants ~ */\n     }\n \n     fn goal(&mut self) -> &mut Option<PieceSet<P>> {\n         &mut self.after\n     }\n \n     fn build_in(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, BuildStepError> {\n         Ok(Arc::new(\n",
+    "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
+    "function": {
+      "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences",
+      "return_type": "-> Option<AlgSet<P>>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 123
+        },
+        "start": {
+          "column": 5,
+          "line": 115
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:116:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with Some(AlgSet::from(Default::default()))",
+    "package": "rubiks-cube",
+    "replacement": "Some(AlgSet::from(Default::default()))",
+    "span": {
+      "end": {
+        "column": 10,
+        "line": 122
+      },
+      "start": {
+        "column": 9,
+        "line": 116
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/search_step/mod.rs\n+++ replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(None))\n@@ -118,17 +118,17 @@\n                 .iter()\n                 .chain(self.free_search_algs.iter())\n                 .cloned()\n                 .collect(),\n         )\n     }\n \n     fn goal(&mut self) -> &mut Option<PieceSet<P>> {\n-        &mut self.after\n+        Box::leak(Box::new(None)) /* ~ changed by cargo-mutants ~ */\n     }\n \n     fn build_in(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, BuildStepError> {\n         Ok(Arc::new(\n             Self::build_in(self, context).map_err(|e| BuildStepError::Custom(Box::new(e)))?,\n         ))\n     }\n }\n",
+    "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
+    "function": {
+      "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::goal",
+      "return_type": "-> &mut Option<PieceSet<P>>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 127
+        },
+        "start": {
+          "column": 5,
+          "line": 125
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:126:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(None))",
+    "package": "rubiks-cube",
+    "replacement": "Box::leak(Box::new(None))",
+    "span": {
+      "end": {
+        "column": 24,
+        "line": 126
+      },
+      "start": {
+        "column": 9,
+        "line": 126
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/search_step/mod.rs\n+++ replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::new())))\n@@ -118,17 +118,17 @@\n                 .iter()\n                 .chain(self.free_search_algs.iter())\n                 .cloned()\n                 .collect(),\n         )\n     }\n \n     fn goal(&mut self) -> &mut Option<PieceSet<P>> {\n-        &mut self.after\n+        Box::leak(Box::new(Some(PieceSet::new()))) /* ~ changed by cargo-mutants ~ */\n     }\n \n     fn build_in(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, BuildStepError> {\n         Ok(Arc::new(\n             Self::build_in(self, context).map_err(|e| BuildStepError::Custom(Box::new(e)))?,\n         ))\n     }\n }\n",
+    "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
+    "function": {
+      "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::goal",
+      "return_type": "-> &mut Option<PieceSet<P>>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 127
+        },
+        "start": {
+          "column": 5,
+          "line": 125
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:126:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::new())))",
+    "package": "rubiks-cube",
+    "replacement": "Box::leak(Box::new(Some(PieceSet::new())))",
+    "span": {
+      "end": {
+        "column": 24,
+        "line": 126
+      },
+      "start": {
+        "column": 9,
+        "line": 126
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/search_step/mod.rs\n+++ replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::from(Default::default()))))\n@@ -118,17 +118,17 @@\n                 .iter()\n                 .chain(self.free_search_algs.iter())\n                 .cloned()\n                 .collect(),\n         )\n     }\n \n     fn goal(&mut self) -> &mut Option<PieceSet<P>> {\n-        &mut self.after\n+        Box::leak(Box::new(Some(PieceSet::from(Default::default())))) /* ~ changed by cargo-mutants ~ */\n     }\n \n     fn build_in(&self, context: &BuildContext) -> Result<Arc<dyn Step<P>>, BuildStepError> {\n         Ok(Arc::new(\n             Self::build_in(self, context).map_err(|e| BuildStepError::Custom(Box::new(e)))?,\n         ))\n     }\n }\n",
+    "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
+    "function": {
+      "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::goal",
+      "return_type": "-> &mut Option<PieceSet<P>>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 127
+        },
+        "start": {
+          "column": 5,
+          "line": 125
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:126:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::from(Default::default()))))",
+    "package": "rubiks-cube",
+    "replacement": "Box::leak(Box::new(Some(PieceSet::from(Default::default()))))",
+    "span": {
+      "end": {
+        "column": 24,
+        "line": 126
+      },
+      "start": {
+        "column": 9,
+        "line": 126
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/search_step/mod.rs\n+++ replace SearchStep<P>::close_under_free_sequences with ()\n@@ -294,27 +294,17 @@\n     }\n \n     /// Adds to `level` every new state its free sequences reach, repeatedly.\n     fn close_under_free_sequences<'a>(\n         &'a self,\n         level: &mut Vec<P>,\n         investigated: &mut FxMap<Mask<P>, Option<&'a Algorithm<P>>>,\n     ) {\n-        let mut i = 0;\n-        while let Some(cube) = level.get(i).cloned() {\n-            i += 1;\n-            for sequence in self.free_search_algs.algs() {\n-                let moved = cube.apply(sequence);\n-                if let Entry::Vacant(e) = investigated.entry(self.mask(&moved)) {\n-                    e.insert(Some(sequence));\n-                    level.push(moved);\n-                }\n-            }\n-        }\n+        () /* ~ changed by cargo-mutants ~ */\n     }\n \n     /// The moves from the searched state to `cube`, read back through `investigated`.\n     fn path_to(\n         &self,\n         cube: &P,\n         investigated: &FxMap<Mask<P>, Option<&Algorithm<P>>>,\n     ) -> Algorithm<P> {\n",
+    "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
+    "function": {
+      "function_name": "SearchStep<P>::close_under_free_sequences",
+      "return_type": "",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 313
+        },
+        "start": {
+          "column": 5,
+          "line": 296
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:302:9: replace SearchStep<P>::close_under_free_sequences with ()",
+    "package": "rubiks-cube",
+    "replacement": "()",
+    "span": {
+      "end": {
+        "column": 10,
+        "line": 312
+      },
+      "start": {
+        "column": 9,
+        "line": 302
+      }
+    }
+  }
+]

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{
     Indexed, Piece,
     piece::PieceConfiguration,
@@ -22,6 +24,13 @@ macro_rules! new_piece {
                 #[doc = concat!("The `", stringify!($p), "` piece, and the slot it is solved in.")]
                 $p
             ),+
+        }
+        impl Display for $type_name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                match self {
+                    $(Self::$p => stringify!($p).fmt(f)),+
+                }
+            }
         }
         impl Indexed for $type_name {
             const COUNT: usize = $amount;
@@ -88,6 +97,16 @@ pub enum Piece3x3 {
     Edge(Edge),
     /// A corner piece.
     Corner(Corner),
+}
+
+impl Display for Piece3x3 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Center(piece) => piece.fmt(f),
+            Self::Edge(piece) => piece.fmt(f),
+            Self::Corner(piece) => piece.fmt(f),
+        }
+    }
 }
 
 /// The orientation of one piece of the 3x3, with one variant per kind of piece.

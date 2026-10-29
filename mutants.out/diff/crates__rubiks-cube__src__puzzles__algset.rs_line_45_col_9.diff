@@ -1,0 +1,23 @@
+--- crates/rubiks-cube/src/puzzles/algset.rs
++++ replace AlgSet<P>::all_moves -> Self with Default::default()
+@@ -37,19 +37,17 @@
+     #[must_use]
+     pub fn new() -> Self {
+         Self(Arc::new([]))
+     }
+ 
+     /// Constructs an [`AlgSet`] with one [`Algorithm`] for every [`P::Move`](Puzzle::Move)
+     #[must_use]
+     pub fn all_moves() -> Self {
+-        P::Move::all()
+-            .map(|m| std::iter::once(m).collect())
+-            .collect()
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+     /// Every sequence of either collection, each listed once.
+     ///
+     /// The order of the sequences is not kept, and a sequence in both collections, or twice in
+     /// one, appears once.
+     #[must_use]
+     pub fn combined_with(&self, other: &Self) -> Self {
+         self.0.iter().chain(other.0.iter()).cloned().collect()

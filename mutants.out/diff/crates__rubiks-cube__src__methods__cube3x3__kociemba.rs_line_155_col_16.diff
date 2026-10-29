@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/methods/cube3x3/kociemba.rs
++++ replace && with || in phase_2
+@@ -147,17 +147,17 @@
+         |puzzle| {
+             <Cube3x3 as Puzzle>::Piece::all().all(|slot| {
+                 [
+                     Orientation3x3::Flip(Zn::ZERO),
+                     Orientation3x3::Twist(Zn::ZERO),
+                     Orientation3x3::Fixed,
+                 ]
+                 .contains(&puzzle.orientation_at(slot))
+-            }) && RIM.iter().all(|&slot| RIM.contains(&puzzle.piece_at(slot)))
++            }) || /* ~ changed by cargo-mutants ~ */ RIM.iter().all(|&slot| RIM.contains(&puzzle.piece_at(slot)))
+         },
+         [Phase2Goal::CornersAndE, Phase2Goal::Edges],
+         domino_turns(),
+     )
+ }
+ 
+ /// Kociemba's two-phase method.
+ /// The first call builds the pruning tables, which takes a few seconds.

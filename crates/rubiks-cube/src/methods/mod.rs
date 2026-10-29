@@ -50,9 +50,9 @@ pub struct Technique<P: Puzzle> {
 /// # Examples
 ///
 /// ```ignore
-/// use rubiks_cube::{AlgSet, SearchStep, Technique, PieceSet};
+/// use rubiks_cube::{AlgSet, SearchStep, Technique, PieceSet, Cube3x3};
 ///
-/// let eolr = SearchStep::builder("EOLR", AlgSet::from_static_parts("M U"))
+/// let eolr = *SearchStep::builder("EOLR", AlgSet::from_static_parts("M U"))
 ///     .goal(PieceSet::from_algset(&AlgSet::from_static("M\n U2")));
 ///
 /// let advanced_roux = Technique::<Cube3x3>::start_with(SearchStep::builder(
@@ -64,7 +64,7 @@ pub struct Technique<P: Puzzle> {
 ///     AlgSet::from_static_parts("R U r M"),
 /// ))
 /// .then(
-///     SearchStep::builder(
+///     *SearchStep::builder(
 ///        "CMLL",
 ///         AlgSet::from_static_parts(concat!(include_str!("path/to/algs/"))),
 ///     )
@@ -121,7 +121,7 @@ impl<P: Puzzle> TechniqueBuilder<P> {
 
             let builder = arc_make_mut(&mut builder_first[index]);
 
-            if builder.assumed_solved().is_none() {
+            if index != 0 && builder.assumed_solved().is_none() {
                 *builder.assumed_solved() = builder
                     .allowed_sequences()
                     .map(|algs| PieceSet::from_algset(&algs));
@@ -135,18 +135,21 @@ impl<P: Puzzle> TechniqueBuilder<P> {
                 if builder.goal().is_some() {
                     return Err(TechniqueError::InvalidLastStep);
                 }
-            } else {
-                let goal = builder.goal();
-                goal.clone_from(arc_make_mut(&mut builder_second[0]).assumed_solved());
+            } else if builder.goal().is_none() {
+                builder
+                    .goal()
+                    .clone_from(arc_make_mut(&mut builder_second[0]).assumed_solved());
             }
 
-            steps.push(
-                builder
-                    .build_in(context)
-                    .map_err(|source| TechniqueError::CantConstruct { index, source })?,
-            );
+            steps.push(builder.build_in(context).map_err(|source| {
+                TechniqueError::CantConstruct {
+                    index: index + 1,
+                    step: builder.name().to_string(),
+                    source,
+                }
+            })?);
         }
-        Ok(steps.into_iter().collect())
+        Ok(steps.into_iter().rev().collect())
     }
 
     /// Builds the technique using [`TechniqueBuilder::finish_in`] in the global context.
@@ -266,7 +269,10 @@ fn run_steps<P: Puzzle>(
         }
         if !step.can_solve(puzzle) {
             failed = true;
-            return Some(Err(SolveError::requirements(step.name().to_string())));
+            return Some(Err(SolveError::requirements(
+                step.name().to_string(),
+                puzzle.to_string(),
+            )));
         }
         let result = match step.solve(puzzle) {
             Err(error) => Err(SolveError::couldnt_solve(step.name().to_string(), error)),
@@ -400,7 +406,7 @@ mod tests {
         let result = step.solve(&mut cube);
 
         assert!(
-            matches!(result, Err(StepError::InvalidStartingState)),
+            matches!(result, Err(StepError::InvalidStartingState { .. })),
             "{result:?}"
         );
         assert_eq!(cube, scrambled, "a rejected step must not move the cube");
