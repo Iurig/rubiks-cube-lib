@@ -110,8 +110,6 @@ mod tests {
         reason = "`?` reports setup failures; `assert!` reports the property under test failing"
     )]
 
-    use std::error::Error;
-
     use super::*;
     use crate::{Cube3x3, Segment, Technique, methods::test_steps::FixedStep};
 
@@ -124,8 +122,7 @@ mod tests {
     }
 
     #[test]
-    fn the_shorter_alternative_is_kept_and_the_longer_leaves_no_trace() -> Result<(), Box<dyn Error>>
-    {
+    fn the_shorter_alternative_is_kept_and_the_longer_leaves_no_trace() -> anyhow::Result<()> {
         // The longer one comes first, so the win is not just list order.
         let steps = Technique::new([
             Arc::new(FixedStep::new("Long", "R U", true, true)) as Arc<dyn Step<Cube3x3>>,
@@ -152,7 +149,7 @@ mod tests {
     }
 
     #[test]
-    fn an_alternative_that_cannot_start_is_skipped() -> Result<(), Box<dyn Error>> {
+    fn an_alternative_that_cannot_start_is_skipped() -> anyhow::Result<()> {
         let steps: Vec<Arc<dyn Step<Cube3x3>>> = vec![
             FixedStep::failing("Cannot start", cannot_start),
             Arc::new(FixedStep::new("Runs", "U", true, true)) as Arc<dyn Step<Cube3x3>>,
@@ -209,7 +206,7 @@ mod tests {
     }
 
     #[test]
-    fn the_shorter_alternative_wins_whichever_comes_first() -> Result<(), Box<dyn Error>> {
+    fn the_shorter_alternative_wins_whichever_comes_first() -> anyhow::Result<()> {
         for short_first in [false, true] {
             let short: Arc<dyn Step<Cube3x3>> = Arc::new(FixedStep::new("Short", "R", true, true));
             let long: Arc<dyn Step<Cube3x3>> = Arc::new(FixedStep::new("Long", "R U", true, true));
@@ -235,7 +232,7 @@ mod tests {
     }
 
     #[test]
-    fn on_a_tie_the_earlier_alternative_is_kept() -> Result<(), Box<dyn Error>> {
+    fn on_a_tie_the_earlier_alternative_is_kept() -> anyhow::Result<()> {
         let steps: Vec<Arc<dyn Step<Cube3x3>>> = vec![
             Arc::new(FixedStep::new("First", "R", true, true)),
             Arc::new(FixedStep::new("Second", "U", true, true)),

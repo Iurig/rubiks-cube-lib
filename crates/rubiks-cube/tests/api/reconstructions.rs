@@ -1,9 +1,8 @@
 use rubiks_cube::*;
-use std::error::Error;
 
 /// A reconstruction is a scramble followed by a solution. The scrambled state
 /// must be reachable, and the final state must be reachable and solved.
-fn assert_reconstruction(scramble: &str, solution: &str) -> Result<(), Box<dyn Error>> {
+fn assert_reconstruction(scramble: &str, solution: &str) -> anyhow::Result<()> {
     let scrambled = Cube3x3::from_moves(scramble)?;
     assert!(
         scrambled.is_reachable(),
@@ -16,7 +15,7 @@ fn assert_reconstruction(scramble: &str, solution: &str) -> Result<(), Box<dyn E
 }
 
 #[test]
-fn fmc_wr_as_multiplication() -> Result<(), Box<dyn Error>> {
+fn fmc_wr_as_multiplication() -> anyhow::Result<()> {
     let scramble = Cube3x3::from_moves(
         "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F",
     )?;
@@ -27,7 +26,7 @@ fn fmc_wr_as_multiplication() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn composition_works_on_fmc_wr() -> Result<(), Box<dyn Error>> {
+fn composition_works_on_fmc_wr() -> anyhow::Result<()> {
     let scramble_string = "R' U' F D2 L2 F R2 U2 R2 B D2 L B2 D' B2 L' R' B D2 B U2 L U2 R' U' F";
     let solution_string = "D2 F' D2 U2 F' L2 D R2 D B2 F L2 R' F' D U'";
     let scramble = Cube3x3::from_moves(scramble_string)?;
@@ -43,7 +42,7 @@ const CFOP_SCRAMBLE: &str = "R2 F' L2 D2 F2 U2 B' L2 F R2 D2 F2 D L' U B R' F' R
 const ROUX_SCRAMBLE: &str = "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ";
 
 #[test]
-fn cfop_solve_hygienized() -> Result<(), Box<dyn Error>> {
+fn cfop_solve_hygienized() -> anyhow::Result<()> {
     assert_reconstruction(
         CFOP_SCRAMBLE,
         "z y2
@@ -57,7 +56,7 @@ fn cfop_solve_hygienized() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn cfop_solve() -> Result<(), Box<dyn Error>> {
+fn cfop_solve() -> anyhow::Result<()> {
     assert_reconstruction(
         CFOP_SCRAMBLE,
         "z y2
@@ -71,7 +70,7 @@ fn cfop_solve() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn roux_solve_with_comments() -> Result<(), Box<dyn Error>> {
+fn roux_solve_with_comments() -> anyhow::Result<()> {
     assert_reconstruction(
         ROUX_SCRAMBLE,
         "y2 F' M F' R U' R U' Fw z' // FB
@@ -83,7 +82,7 @@ fn roux_solve_with_comments() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn roux_solve_without_comments() -> Result<(), Box<dyn Error>> {
+fn roux_solve_without_comments() -> anyhow::Result<()> {
     assert_reconstruction(
         ROUX_SCRAMBLE,
         "y2 F' M F' R U' R U' Fw z'
@@ -95,7 +94,7 @@ fn roux_solve_without_comments() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn s_based_roux_solve() -> Result<(), Box<dyn Error>> {
+fn s_based_roux_solve() -> anyhow::Result<()> {
     assert_reconstruction(
         ROUX_SCRAMBLE,
         "y2 F' M F' R U' R U' Fw z' // FB
@@ -108,7 +107,7 @@ U S U' S' U2 S U S' U2 S2 U' // EOLR
 }
 
 #[test]
-fn e_based_roux_solve() -> Result<(), Box<dyn Error>> {
+fn e_based_roux_solve() -> anyhow::Result<()> {
     assert_reconstruction(
         ROUX_SCRAMBLE,
         "y2 F' M F' R U' R U' Fw z' // FB
@@ -121,7 +120,7 @@ E' R2 E R2 E2// 4c",
 }
 
 #[test]
-fn roux_solve_without_wide_moves() -> Result<(), Box<dyn Error>> {
+fn roux_solve_without_wide_moves() -> anyhow::Result<()> {
     assert_reconstruction(
         ROUX_SCRAMBLE,
         "y2 F' M F' R U' R U' B
@@ -133,7 +132,7 @@ fn roux_solve_without_wide_moves() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn roux_solve_removes_comments() -> Result<(), Box<dyn Error>> {
+fn roux_solve_removes_comments() -> anyhow::Result<()> {
     assert_eq!(
         Cube3x3::from_moves(concat!(
             "U' L2 D' B2 D R2 F2 D' B2 R2 D B' R F2 R D' B' F U2 R' U D ",

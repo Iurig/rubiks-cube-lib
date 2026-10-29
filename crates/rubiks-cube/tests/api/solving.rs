@@ -1,8 +1,8 @@
+use anyhow::Context;
 use rubiks_cube::*;
-use std::error::Error;
 
 #[test]
-fn full_solve_and_checking_bfs() -> Result<(), Box<dyn Error>> {
+fn full_solve_and_checking_bfs() -> anyhow::Result<()> {
     let scr = "U B' D L2 U B2 R2 D2 L2 D' U2 B2 R2 L U2 F' R' B L D'\n";
     let mut scrambled = Cube3x3::from_moves(scr)?;
 
@@ -17,7 +17,7 @@ fn full_solve_and_checking_bfs() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn every_roux_option_combination_solves() -> Result<(), Box<dyn Error>> {
+fn every_roux_option_combination_solves() -> anyhow::Result<()> {
     use rubiks_cube::roux::*;
     let scrambles: Vec<Cube3x3> = (2026..2030).map(Cube3x3::scrambled_with_seed).collect();
     for fb in [
@@ -36,7 +36,7 @@ fn every_roux_option_combination_solves() -> Result<(), Box<dyn Error>> {
                 for (i, scrambled) in scrambles.iter().enumerate() {
                     let recon = roux
                         .solve(&mut scrambled.clone())
-                        .map_err(|e| format!("{described}, scramble {i}: {e}"))?
+                        .with_context(|| format!("{described}, scramble {i}"))?
                         .to_string();
                     assert!(
                         scrambled.apply_moves(&recon)?.is_solved(),
@@ -50,7 +50,7 @@ fn every_roux_option_combination_solves() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn skips_work() -> Result<(), Box<dyn Error>> {
+fn skips_work() -> anyhow::Result<()> {
     let mut scrambled = Cube3x3::from_moves("U2")?;
     let recon = Roux::default().solve(&mut scrambled)?.to_string();
     assert!(scrambled.is_solved(), "{recon}");
@@ -58,7 +58,7 @@ fn skips_work() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn zz_solves_the_cube() -> Result<(), Box<dyn Error>> {
+fn zz_solves_the_cube() -> anyhow::Result<()> {
     let mut cube = Cube3x3::scrambled_with_seed(2);
 
     let _ = ZZ::default()
@@ -69,7 +69,7 @@ fn zz_solves_the_cube() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn every_zz_option_combination_solves() -> Result<(), Box<dyn Error>> {
+fn every_zz_option_combination_solves() -> anyhow::Result<()> {
     use rubiks_cube::zz::{FirstLook, LL, SecondLook};
     let mut last_layers = vec![LL::OneLook];
     for first in [FirstLook::Ocll, FirstLook::Coll] {
@@ -81,7 +81,7 @@ fn every_zz_option_combination_solves() -> Result<(), Box<dyn Error>> {
         let zz = ZZ::default().ll(ll);
         let mut cube = Cube3x3::scrambled_with_seed(seed);
         zz.solve(&mut cube)
-            .map_err(|e| format!("{zz:?}, seed {seed}: {e}"))?;
+            .with_context(|| format!("{zz:?}, seed {seed}"))?;
         assert!(
             cube.is_solved(),
             "{zz:?} did not solve seed {seed}:\n{cube}"
@@ -94,7 +94,7 @@ fn every_zz_option_combination_solves() -> Result<(), Box<dyn Error>> {
 /// other ten. When the search key left out the flip of a stray edge in a named slot, seed 2 ended
 /// this step with two edges flipped.
 #[test]
-fn a_goal_mixing_named_and_orientation_only_slots_is_met() -> Result<(), Box<dyn Error>> {
+fn a_goal_mixing_named_and_orientation_only_slots_is_met() -> anyhow::Result<()> {
     let eo_line_moves = AlgSet::from_static_parts("F B U R L D");
     let step = SearchStep::builder("EO Line", eo_line_moves.clone())
         .goal(PieceSet::from_algset(&AlgSet::from_static_parts("U R L")))

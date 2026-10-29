@@ -177,7 +177,6 @@ impl AlgSet<Cube3x3> {
     reason = "tests should panic if failed, and return result for `?` convenience"
 )]
 mod tests {
-    use std::error::Error;
 
     use crate::fast_hash::FxSet;
 
@@ -198,7 +197,7 @@ mod tests {
     }
 
     #[test]
-    fn algsets_are_equal_when_they_hold_the_same_sequences() -> Result<(), Box<dyn Error>> {
+    fn algsets_are_equal_when_they_hold_the_same_sequences() -> anyhow::Result<()> {
         let algset = AlgSet::<Cube3x3>::from_str("R U\nF")?;
 
         // Order and repeats don't matter.
@@ -227,7 +226,7 @@ mod tests {
     }
 
     #[test]
-    fn from_str_gives_one_sequence_per_line() -> Result<(), Box<dyn Error>> {
+    fn from_str_gives_one_sequence_per_line() -> anyhow::Result<()> {
         let algset = AlgSet::<Cube3x3>::from_str("R U R' U'\n\nF R U R' U' F'\nM2 U2")?;
 
         let mut lengths: Vec<usize> = algset.algs().iter().map(Algorithm::len).collect();
@@ -237,7 +236,7 @@ mod tests {
     }
 
     #[test]
-    fn from_moves_removes_duplicates() -> Result<(), Box<dyn Error>> {
+    fn from_moves_removes_duplicates() -> anyhow::Result<()> {
         let expected: FxSet<Algorithm<Cube3x3>> = ["U", "U2", "U'"]
             .into_iter()
             .map(str::parse)

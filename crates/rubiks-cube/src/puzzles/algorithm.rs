@@ -182,14 +182,13 @@ impl<P: Puzzle> Algorithm<P> {
 #[cfg(test)]
 #[expect(clippy::panic_in_result_fn, reason = "Standardized across tests")]
 mod test {
-    use std::error::Error;
 
     use crate::Cube3x3;
 
     use super::*;
 
     #[test]
-    fn algorithm_into_iter_and_iter_agree() -> Result<(), Box<dyn Error>> {
+    fn algorithm_into_iter_and_iter_agree() -> anyhow::Result<()> {
         let alg: Algorithm<Cube3x3> = "R U R' U' R' F R2 U' R' U' R U R' F'".parse()?;
         let alg_vec_2 = alg.iter().copied().collect::<Vec<_>>();
         let alg_vec_1 = alg.into_iter().collect::<Vec<_>>();
@@ -198,7 +197,7 @@ mod test {
     }
 
     #[test]
-    fn as_ref_is_the_moves_in_order() -> Result<(), Box<dyn Error>> {
+    fn as_ref_is_the_moves_in_order() -> anyhow::Result<()> {
         let alg: Algorithm<Cube3x3> = "R U R' F2".parse()?;
         let expected = ["R", "U", "R'", "F2"]
             .map(<Cube3x3 as Puzzle>::Move::from_str)
@@ -210,7 +209,7 @@ mod test {
     }
 
     #[test]
-    fn index_is_the_move_at_that_position() -> Result<(), Box<dyn Error>> {
+    fn index_is_the_move_at_that_position() -> anyhow::Result<()> {
         let alg: Algorithm<Cube3x3> = "R U R' F2".parse()?;
         for (i, text) in ["R", "U", "R'", "F2"].into_iter().enumerate() {
             assert_eq!(

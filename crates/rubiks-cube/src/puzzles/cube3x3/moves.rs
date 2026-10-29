@@ -280,7 +280,6 @@ mod tests {
     //! against the other.
     use super::*;
     use crate::{Algorithm, ParseSequenceError, indexed::assert_round_trips};
-    use std::error::Error;
 
     impl Move3x3 {
         const ALL: [Self; MovablePart::ALL.len() * MoveModifier::ALL.len()] = {
@@ -321,7 +320,7 @@ mod tests {
     }
 
     #[test]
-    fn comments_run_to_end_of_line() -> Result<(), Box<dyn Error>> {
+    fn comments_run_to_end_of_line() -> anyhow::Result<()> {
         assert_eq!(
             "R U //this is a comment".parse::<Algorithm<Cube3x3>>()?,
             "R U".parse()?
@@ -344,7 +343,7 @@ mod tests {
     }
 
     #[test]
-    fn empty_and_comment_only_sequences_have_no_moves() -> Result<(), Box<dyn Error>> {
+    fn empty_and_comment_only_sequences_have_no_moves() -> anyhow::Result<()> {
         assert!("".parse::<Algorithm<Cube3x3>>()?.is_empty());
         assert!(
             "// just a comment"

@@ -1,6 +1,5 @@
 use std::{
     collections::{HashMap, HashSet},
-    error::Error,
     hash::{BuildHasherDefault, DefaultHasher},
 };
 
@@ -68,7 +67,7 @@ fn scramble_never_clashes_and_is_never_solved() {
 }
 
 #[test]
-fn scramble_and_solve_with_parsing_round_trip() -> Result<(), Box<dyn Error>> {
+fn scramble_and_solve_with_parsing_round_trip() -> anyhow::Result<()> {
     let scramble = Cube3x3::scramble_with_seed(0)?;
     let solution = Roux::default()
         .solve(&mut Cube3x3::default().apply(&scramble))?

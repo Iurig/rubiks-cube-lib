@@ -178,8 +178,7 @@ mod test {
         reason = "`?` reports setup failures; `assert!` reports the property under test failing"
     )]
 
-    use std::error::Error;
-
+    use anyhow::Context;
     use itertools::iproduct;
 
     use super::*;
@@ -233,7 +232,7 @@ mod test {
     /// R, U, and F turns never touch the L center, DBL, BL, or DL, so the back square stays
     /// solved and costs nothing, while F breaks the front square.
     #[test]
-    fn split_fb_builds_the_back_square_when_it_is_cheaper() -> Result<(), Box<dyn Error>> {
+    fn split_fb_builds_the_back_square_when_it_is_cheaper() -> anyhow::Result<()> {
         let roux = Roux {
             first_block: FirstBlock::SquarePair,
             ..Roux::default()
@@ -245,7 +244,7 @@ mod test {
         let fb_segment = solution
             .iter()
             .next()
-            .ok_or("the solution has no segments")?;
+            .context("the solution has no segments")?;
         assert_eq!(fb_segment.name(), "FB Square", "{solution}");
         assert!(
             fb_segment.moves().is_empty(),
@@ -258,7 +257,7 @@ mod test {
     /// neither R nor U touches the first block. So the second block's back square is solved
     /// and its front square is not.
     #[test]
-    fn split_sb_builds_the_back_square_when_it_is_cheaper() -> Result<(), Box<dyn Error>> {
+    fn split_sb_builds_the_back_square_when_it_is_cheaper() -> anyhow::Result<()> {
         let roux = Roux {
             second_block: SecondBlock::SquarePair,
             ..Roux::default()
@@ -270,7 +269,7 @@ mod test {
         let sb_segment = solution
             .iter()
             .find(|segment| segment.name().starts_with("SB"))
-            .ok_or("the solution has no SB segment")?;
+            .context("the solution has no SB segment")?;
         assert_eq!(sb_segment.name(), "SB Square", "{solution}");
         assert!(
             sb_segment.moves().is_empty(),
@@ -300,8 +299,7 @@ mod test {
     /// `Method` relies on `is_done` to catch a step that returns without meeting its goal, so
     /// every step must tell its goal apart from a cube that misses it.
     #[test]
-    fn every_roux_step_is_done_on_a_solved_cube_and_not_on_a_scrambled_one()
-    -> Result<(), Box<dyn Error>> {
+    fn every_roux_step_is_done_on_a_solved_cube_and_not_on_a_scrambled_one() -> anyhow::Result<()> {
         let scrambled = Cube3x3::from_moves("R U' F2 L D' B R2 U F' L2 D B' U2 R'")?;
 
         for step in every_options().flat_map(|options| options.to_technique().steps) {

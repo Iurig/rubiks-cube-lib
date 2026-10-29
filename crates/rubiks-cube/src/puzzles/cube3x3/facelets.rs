@@ -443,7 +443,6 @@ const _: () = {
     reason = "tests should panic if failed, and return result for `?` convenience"
 )]
 mod tests {
-    use std::error::Error;
 
     use super::*;
     use crate::{Piece, Puzzle};
@@ -473,7 +472,7 @@ mod tests {
 
     // Physical facts: `R` carries F stickers to U, U to B, B to D, D to F.
     #[test]
-    fn r_moves_the_right_column_of_each_face_along_the_ring() -> Result<(), Box<dyn Error>> {
+    fn r_moves_the_right_column_of_each_face_along_the_ring() -> anyhow::Result<()> {
         assert_eq!(
             Cube3x3::from_moves("R")?.to_string(),
             net([
@@ -493,7 +492,7 @@ mod tests {
 
     // `U` carries F stickers to L, L to B, B to R, R to F.
     #[test]
-    fn u_moves_the_top_row_of_the_side_faces() -> Result<(), Box<dyn Error>> {
+    fn u_moves_the_top_row_of_the_side_faces() -> anyhow::Result<()> {
         assert_eq!(
             Cube3x3::from_moves("U")?.to_string(),
             net([
@@ -514,7 +513,7 @@ mod tests {
     // `F` carries U stickers to R, R to D, D to L, L to U. It twists the four
     // F corners and flips the four F edges, so this pins both conventions.
     #[test]
-    fn f_moves_the_ring_around_the_front_face() -> Result<(), Box<dyn Error>> {
+    fn f_moves_the_ring_around_the_front_face() -> anyhow::Result<()> {
         assert_eq!(
             Cube3x3::from_moves("F")?.to_string(),
             net([
@@ -534,7 +533,7 @@ mod tests {
 
     // `M` follows `L`: U stickers go to F, F to D, D to B, B to U.
     #[test]
-    fn m_moves_the_middle_column_and_the_centers() -> Result<(), Box<dyn Error>> {
+    fn m_moves_the_middle_column_and_the_centers() -> anyhow::Result<()> {
         assert_eq!(
             Cube3x3::from_moves("M")?.to_string(),
             net([
@@ -554,7 +553,7 @@ mod tests {
 
     // `y` follows `U`: the whole cube turns, so R stickers show at F.
     #[test]
-    fn y_rotates_the_side_faces_whole() -> Result<(), Box<dyn Error>> {
+    fn y_rotates_the_side_faces_whole() -> anyhow::Result<()> {
         assert_eq!(
             Cube3x3::from_moves("y")?.to_string(),
             net([
@@ -573,7 +572,7 @@ mod tests {
     }
 
     #[test]
-    fn face_reads_the_same_facelets_display_prints() -> Result<(), Box<dyn Error>> {
+    fn face_reads_the_same_facelets_display_prints() -> anyhow::Result<()> {
         use Center::{B, D, F, R, U};
         let facelets = Cube3x3::from_moves("R")?.facelets();
         assert_eq!(facelets.face(U), &[U, U, F, U, U, F, U, U, F]);
@@ -645,7 +644,7 @@ mod tests {
     }
 
     #[test]
-    fn a_move_and_its_inverse_restore_the_net() -> Result<(), Box<dyn Error>> {
+    fn a_move_and_its_inverse_restore_the_net() -> anyhow::Result<()> {
         let solved = Cube3x3::default().to_string();
         for m in [
             "R", "U", "F", "L", "D", "B", "M", "E", "S", "x", "y", "z", "r",

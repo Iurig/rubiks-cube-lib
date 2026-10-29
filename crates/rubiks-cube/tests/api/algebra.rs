@@ -1,6 +1,5 @@
 use crate::IMPLEMENTED_MOVES;
 use rubiks_cube::*;
-use std::error::Error;
 
 /// `Puzzle`'s composition law: a move does the same thing to every state, so what it does to
 /// the solved state says where every piece of any state goes, and how it turns.
@@ -29,7 +28,7 @@ fn every_move_acts_on_any_state_as_it_acts_on_the_solved_state() {
 }
 
 #[test]
-fn identity_is_two_sided() -> Result<(), Box<dyn Error>> {
+fn identity_is_two_sided() -> anyhow::Result<()> {
     let r = Cube3x3::from_moves("R")?;
     assert_eq!(Cube3x3::default() * r, r);
     assert_eq!(r * Cube3x3::default(), r);
@@ -37,13 +36,13 @@ fn identity_is_two_sided() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn pow_0_gives_identity_cube() -> Result<(), Box<dyn Error>> {
+fn pow_0_gives_identity_cube() -> anyhow::Result<()> {
     assert_eq!(Cube3x3::from_moves("R U R' U'")?.pow(0), Cube3x3::default());
     Ok(())
 }
 
 #[test]
-fn pow_finishes_correctly_for_large_exponent() -> Result<(), Box<dyn Error>> {
+fn pow_finishes_correctly_for_large_exponent() -> anyhow::Result<()> {
     let large_u32 = u32::MAX - 2;
     let r = Cube3x3::from_moves("R")?;
     assert_eq!(large_u32 % 4, 1);
@@ -52,7 +51,7 @@ fn pow_finishes_correctly_for_large_exponent() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn move_inverse_is_move_cubed() -> Result<(), Box<dyn Error>> {
+fn move_inverse_is_move_cubed() -> anyhow::Result<()> {
     for m in IMPLEMENTED_MOVES {
         let cube = Cube3x3::from_moves(m)?;
         assert_eq!(cube.inv(), cube.pow(3));
@@ -61,7 +60,7 @@ fn move_inverse_is_move_cubed() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn inverse_is_an_involution() -> Result<(), Box<dyn Error>> {
+fn inverse_is_an_involution() -> anyhow::Result<()> {
     for m in IMPLEMENTED_MOVES {
         let cube = Cube3x3::from_moves(m)?;
         assert_eq!(cube.inv().inv(), cube);
@@ -71,7 +70,7 @@ fn inverse_is_an_involution() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn mul_is_associative() -> Result<(), Box<dyn Error>> {
+fn mul_is_associative() -> anyhow::Result<()> {
     let a = Cube3x3::from_moves("R")?;
     let b = Cube3x3::from_moves("U2 L")?.pow(2);
     let c = Cube3x3::from_moves("y")?.inv();
@@ -80,7 +79,7 @@ fn mul_is_associative() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn inverse_of_product_reverses_order() -> Result<(), Box<dyn Error>> {
+fn inverse_of_product_reverses_order() -> anyhow::Result<()> {
     let a = Cube3x3::from_moves("U")?.pow(1);
     let b = Cube3x3::from_moves("R")?.pow(2);
     assert_eq!((a * b).inv(), b.inv() * a.inv());
@@ -89,7 +88,7 @@ fn inverse_of_product_reverses_order() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn random_words_stay_reachable_and_undo_cleanly() -> Result<(), Box<dyn Error>> {
+fn random_words_stay_reachable_and_undo_cleanly() -> anyhow::Result<()> {
     // Each pair is a modifier and its inverse; `2` and `2'` reach the same
     // state, so inverting a double is the other spelling of it.
     const MODIFIER_PAIRS: [(&str, &str); 2] = [("", "'"), ("2", "2'")];

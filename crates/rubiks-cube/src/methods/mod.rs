@@ -387,8 +387,7 @@ mod tests {
     }
 
     #[test]
-    fn search_step_rejects_a_cube_that_misses_its_before_without_searching()
-    -> Result<(), Box<dyn Error>> {
+    fn search_step_rejects_a_cube_that_misses_its_before_without_searching() -> anyhow::Result<()> {
         let uf_solved = PieceSet::<Cube3x3>::from_pieces([Edge::Uf]);
         // No moves: if the step searched, it could not move and would return `UnreachableGoal`.
         let step = SearchStep::builder("UF then DF", AlgSet::new())
@@ -444,7 +443,7 @@ mod tests {
     }
 
     #[test]
-    fn each_next_runs_one_step_and_leaves_the_cube_after_it() -> Result<(), Box<dyn Error>> {
+    fn each_next_runs_one_step_and_leaves_the_cube_after_it() -> anyhow::Result<()> {
         let uf_solved = PieceSet::<Cube3x3>::from_pieces([Edge::Uf]);
         let u_turns = AlgSet::from_static_parts("U");
         let solve_uf = SearchStep::builder("UF", u_turns)

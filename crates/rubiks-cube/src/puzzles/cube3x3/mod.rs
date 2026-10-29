@@ -277,8 +277,6 @@ mod tests {
 
     use super::*;
 
-    use std::error::Error;
-
     #[test]
     fn index_is_the_position_in_all_pieces() {
         assert_round_trips::<Piece3x3>();
@@ -345,7 +343,7 @@ mod tests {
     }
 
     #[test]
-    fn mul_carries_orientation_along_with_the_piece() -> Result<(), Box<dyn Error>> {
+    fn mul_carries_orientation_along_with_the_piece() -> anyhow::Result<()> {
         // Pre-twist the piece at UFR, then apply R: that piece lands at UBR and
         // its twist is added to the twist R gives the UBR slot.
         let r = Cube3x3::from_moves("R")?;
@@ -373,19 +371,19 @@ mod tests {
     }
 
     #[test]
-    fn r_is_reachable() -> Result<(), Box<dyn Error>> {
+    fn r_is_reachable() -> anyhow::Result<()> {
         assert!(Cube3x3::from_moves("R")?.is_reachable());
         Ok(())
     }
 
     #[test]
-    fn m_is_reachable() -> Result<(), Box<dyn Error>> {
+    fn m_is_reachable() -> anyhow::Result<()> {
         assert!(Cube3x3::from_moves("M")?.is_reachable());
         Ok(())
     }
 
     #[test]
-    fn y_is_reachable() -> Result<(), Box<dyn Error>> {
+    fn y_is_reachable() -> anyhow::Result<()> {
         assert!(Cube3x3::from_moves("y")?.is_reachable());
         Ok(())
     }
@@ -406,21 +404,21 @@ mod tests {
     }
 
     #[test]
-    fn y_rotated_solved_is_solved() -> Result<(), Box<dyn Error>> {
+    fn y_rotated_solved_is_solved() -> anyhow::Result<()> {
         let rotated_def = Cube3x3::from_moves("y")?;
         assert!(rotated_def.is_solved());
         Ok(())
     }
 
     #[test]
-    fn rotated_solved_is_solved() -> Result<(), Box<dyn Error>> {
+    fn rotated_solved_is_solved() -> anyhow::Result<()> {
         let rotated_def = Cube3x3::from_moves("y z y z x2 z2")?;
         assert!(rotated_def.is_solved());
         Ok(())
     }
 
     #[test]
-    fn all_axes_rotated_solved_is_solved_but_not_after_a_face_turn() -> Result<(), Box<dyn Error>> {
+    fn all_axes_rotated_solved_is_solved_but_not_after_a_face_turn() -> anyhow::Result<()> {
         assert!(Cube3x3::from_moves("x y2 z'")?.is_solved());
         assert!(!Cube3x3::from_moves("x y2 z' R")?.is_solved());
         Ok(())

@@ -2,7 +2,7 @@ use rubiks_cube::*;
 use std::error::Error;
 
 #[test]
-fn multiple_moves_break_down_correctly() -> Result<(), Box<dyn Error>> {
+fn multiple_moves_break_down_correctly() -> anyhow::Result<()> {
     assert_eq!(
         Cube3x3::from_moves("R U R' U'")?,
         Cube3x3::default()
@@ -78,7 +78,7 @@ fn incorrect_strings_return_error() {
 }
 
 #[test]
-fn r_prime_is_inverse_of_r() -> Result<(), Box<dyn Error>> {
+fn r_prime_is_inverse_of_r() -> anyhow::Result<()> {
     let r = Cube3x3::from_moves("R")?;
     let r_prime = Cube3x3::from_moves("R'")?;
     assert_eq!(r.inv(), r_prime);
@@ -86,7 +86,7 @@ fn r_prime_is_inverse_of_r() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn sequences_without_moves_leave_the_cube_unchanged() -> Result<(), Box<dyn Error>> {
+fn sequences_without_moves_leave_the_cube_unchanged() -> anyhow::Result<()> {
     let cube = Cube3x3::from_moves("R U")?;
     assert_eq!(cube.apply_moves("")?, cube);
     assert_eq!(cube.apply_moves("// nothing here")?, cube);

@@ -82,10 +82,9 @@ pub trait Pow: std::ops::Mul<Self, Output = Self> + Clone {
 mod tests {
     use super::*;
     use crate::{Algorithm, Cube3x3, Puzzle};
-    use std::error::Error;
 
     #[test]
-    fn algorithm_inverse_reverses_and_inverts_each_move() -> Result<(), Box<dyn Error>> {
+    fn algorithm_inverse_reverses_and_inverts_each_move() -> anyhow::Result<()> {
         let alg: Algorithm<Cube3x3> = "R U R' F2".parse()?;
         assert_eq!(alg.inv(), "F2' R U' R'".parse()?);
         Ok(())
@@ -97,14 +96,14 @@ mod tests {
     }
 
     #[test]
-    fn inverting_an_algorithm_twice_gives_it_back() -> Result<(), Box<dyn Error>> {
+    fn inverting_an_algorithm_twice_gives_it_back() -> anyhow::Result<()> {
         let alg: Algorithm<Cube3x3> = "r U' M2 x E' Fw2 D".parse()?;
         assert_eq!(alg.clone().inv().inv(), alg);
         Ok(())
     }
 
     #[test]
-    fn algorithm_then_its_inverse_returns_to_the_start() -> Result<(), Box<dyn Error>> {
+    fn algorithm_then_its_inverse_returns_to_the_start() -> anyhow::Result<()> {
         let alg: Algorithm<Cube3x3> = "R U R' U' R' F R2 U' R' U' R U R' F'".parse()?;
         for seed in 0..20 {
             let start = Cube3x3::scrambled_with_seed(seed);
@@ -118,7 +117,7 @@ mod tests {
     }
 
     #[test]
-    fn clockwise_moves_have_order_exactly_4() -> Result<(), Box<dyn Error>> {
+    fn clockwise_moves_have_order_exactly_4() -> anyhow::Result<()> {
         for m in &["R", "U", "D", "L", "F", "B", "E", "S", "M"] {
             let cube = Cube3x3::from_moves(m)?;
             for k in 1..4 {

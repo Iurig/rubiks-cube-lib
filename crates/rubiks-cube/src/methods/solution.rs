@@ -148,14 +148,12 @@ mod tests {
         reason = "`?` reports setup failures; `assert!` reports the property under test failing"
     )]
 
-    use std::error::Error;
-
     use crate::Cube3x3;
 
     use super::*;
 
     #[test]
-    fn move_count_counts_correctly() -> Result<(), Box<dyn Error>> {
+    fn move_count_counts_correctly() -> anyhow::Result<()> {
         let s: Solution<Cube3x3> = "y U2 r M' // Step 1".parse()?;
 
         assert_eq!(s.move_count(), 4);
@@ -163,8 +161,7 @@ mod tests {
     }
 
     #[test]
-    fn borrowed_and_owned_iteration_yield_the_same_segments_in_order() -> Result<(), Box<dyn Error>>
-    {
+    fn borrowed_and_owned_iteration_yield_the_same_segments_in_order() -> anyhow::Result<()> {
         let solution: Solution<Cube3x3> = "R U // First \n M' // Second".parse()?;
 
         let mut borrowed = Vec::new();
@@ -183,7 +180,7 @@ mod tests {
     }
 
     #[test]
-    fn extend_appends_segments_after_the_existing_ones() -> Result<(), Box<dyn Error>> {
+    fn extend_appends_segments_after_the_existing_ones() -> anyhow::Result<()> {
         let mut solution: Solution<Cube3x3> = "R // First".parse()?;
 
         solution.extend("U2 // Second\nF' L // Third".parse::<Solution<Cube3x3>>()?);

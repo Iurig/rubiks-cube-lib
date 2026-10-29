@@ -1,5 +1,4 @@
 use rubiks_cube::{zn::Zn, *};
-use std::error::Error;
 
 // Handedness pins: one fact from the physical cube per base move, stated as
 // "after the move, the piece now at slot X came from Y". These are the only
@@ -8,7 +7,7 @@ use std::error::Error;
 
 // Faces: clockwise when looking at that face.
 #[test]
-fn r_takes_front_top_corner_to_back_top() -> Result<(), Box<dyn Error>> {
+fn r_takes_front_top_corner_to_back_top() -> anyhow::Result<()> {
     assert_eq!(
         Cube3x3::from_moves("R")?.corners().piece_at(Corner::Ubr),
         Corner::Ufr
@@ -16,7 +15,7 @@ fn r_takes_front_top_corner_to_back_top() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 #[test]
-fn l_takes_back_top_corner_to_front_top() -> Result<(), Box<dyn Error>> {
+fn l_takes_back_top_corner_to_front_top() -> anyhow::Result<()> {
     assert_eq!(
         Cube3x3::from_moves("L")?.corners().piece_at(Corner::Ufl),
         Corner::Ubl
@@ -24,7 +23,7 @@ fn l_takes_back_top_corner_to_front_top() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 #[test]
-fn u_takes_front_right_corner_to_front_left() -> Result<(), Box<dyn Error>> {
+fn u_takes_front_right_corner_to_front_left() -> anyhow::Result<()> {
     assert_eq!(
         Cube3x3::from_moves("U")?.corners().piece_at(Corner::Ufl),
         Corner::Ufr
@@ -32,7 +31,7 @@ fn u_takes_front_right_corner_to_front_left() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 #[test]
-fn d_takes_front_right_corner_to_back_right() -> Result<(), Box<dyn Error>> {
+fn d_takes_front_right_corner_to_back_right() -> anyhow::Result<()> {
     assert_eq!(
         Cube3x3::from_moves("D")?.corners().piece_at(Corner::Dbr),
         Corner::Dfr
@@ -40,7 +39,7 @@ fn d_takes_front_right_corner_to_back_right() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 #[test]
-fn f_takes_top_right_corner_to_bottom_right() -> Result<(), Box<dyn Error>> {
+fn f_takes_top_right_corner_to_bottom_right() -> anyhow::Result<()> {
     assert_eq!(
         Cube3x3::from_moves("F")?.corners().piece_at(Corner::Dfr),
         Corner::Ufr
@@ -48,7 +47,7 @@ fn f_takes_top_right_corner_to_bottom_right() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 #[test]
-fn b_takes_top_right_corner_to_top_left() -> Result<(), Box<dyn Error>> {
+fn b_takes_top_right_corner_to_top_left() -> anyhow::Result<()> {
     assert_eq!(
         Cube3x3::from_moves("B")?.corners().piece_at(Corner::Ubl),
         Corner::Ubr
@@ -59,7 +58,7 @@ fn b_takes_top_right_corner_to_top_left() -> Result<(), Box<dyn Error>> {
 // Slices: each follows its reference face, so it moves centers the way that face moves corners.
 
 #[test]
-fn e_follows_d_and_takes_front_center_to_right() -> Result<(), Box<dyn Error>> {
+fn e_follows_d_and_takes_front_center_to_right() -> anyhow::Result<()> {
     assert_eq!(
         Cube3x3::from_moves("E")?.centers().piece_at(Center::R),
         Center::F
@@ -67,7 +66,7 @@ fn e_follows_d_and_takes_front_center_to_right() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 #[test]
-fn m_follows_l_and_takes_top_center_to_front() -> Result<(), Box<dyn Error>> {
+fn m_follows_l_and_takes_top_center_to_front() -> anyhow::Result<()> {
     assert_eq!(
         Cube3x3::from_moves("M")?.centers().piece_at(Center::F),
         Center::U
@@ -75,7 +74,7 @@ fn m_follows_l_and_takes_top_center_to_front() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 #[test]
-fn s_follows_f_and_takes_top_center_to_right() -> Result<(), Box<dyn Error>> {
+fn s_follows_f_and_takes_top_center_to_right() -> anyhow::Result<()> {
     assert_eq!(
         Cube3x3::from_moves("S")?.centers().piece_at(Center::R),
         Center::U
@@ -84,7 +83,7 @@ fn s_follows_f_and_takes_top_center_to_right() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), Box<dyn Error>> {
+fn r_move_respects_bounds_and_touches_only_r_layer() -> anyhow::Result<()> {
     let r = Cube3x3::from_moves("R")?;
     for c in [Corner::Ubl, Corner::Ufl, Corner::Dfl, Corner::Dbl] {
         assert_eq!(r.corners().piece_at(c), c);
@@ -108,19 +107,19 @@ fn r_move_respects_bounds_and_touches_only_r_layer() -> Result<(), Box<dyn Error
 }
 
 #[test]
-fn r_and_l_commute() -> Result<(), Box<dyn Error>> {
+fn r_and_l_commute() -> anyhow::Result<()> {
     assert!(Cube3x3::from_moves("R L R' L'")?.is_solved());
     Ok(())
 }
 
 #[test]
-fn u_and_d_commute() -> Result<(), Box<dyn Error>> {
+fn u_and_d_commute() -> anyhow::Result<()> {
     assert!(Cube3x3::from_moves("U D U' D'")?.is_solved());
     Ok(())
 }
 
 #[test]
-fn rotations_match_moves() -> Result<(), Box<dyn Error>> {
+fn rotations_match_moves() -> anyhow::Result<()> {
     assert_eq!(Cube3x3::from_moves("y")?, Cube3x3::from_moves("U E' D'")?);
     assert_eq!(Cube3x3::from_moves("z")?, Cube3x3::from_moves("F S B'")?);
     assert_eq!(Cube3x3::from_moves("x")?, Cube3x3::from_moves("R M' L'")?);
@@ -128,7 +127,7 @@ fn rotations_match_moves() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn r_2_is_equal_to_r_prime_2() -> Result<(), Box<dyn Error>> {
+fn r_2_is_equal_to_r_prime_2() -> anyhow::Result<()> {
     let r2 = Cube3x3::from_moves("R2")?;
     let r_prime_2 = Cube3x3::from_moves("R' R'")?;
     assert_eq!(r2, r_prime_2);
@@ -136,7 +135,7 @@ fn r_2_is_equal_to_r_prime_2() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn sexy_move_has_correct_period_on_all_face_pairs() -> Result<(), Box<dyn Error>> {
+fn sexy_move_has_correct_period_on_all_face_pairs() -> anyhow::Result<()> {
     let adjacent_face_pairs = [
         ("R", "U"),
         ("U", "L"),
@@ -167,7 +166,7 @@ fn sexy_move_has_correct_period_on_all_face_pairs() -> Result<(), Box<dyn Error>
 }
 
 #[test]
-fn adjacent_face_sequence_has_constant_and_correct_period() -> Result<(), Box<dyn Error>> {
+fn adjacent_face_sequence_has_constant_and_correct_period() -> anyhow::Result<()> {
     let adjacent_face_pairs = [
         ("R", "U"),
         ("U", "L"),
@@ -206,7 +205,7 @@ fn adjacent_face_sequence_has_constant_and_correct_period() -> Result<(), Box<dy
 }
 
 #[test]
-fn slice_face_has_constant_and_correct_period() -> Result<(), Box<dyn Error>> {
+fn slice_face_has_constant_and_correct_period() -> anyhow::Result<()> {
     let pairs = [
         ("M", "U"),
         ("M", "F"),
