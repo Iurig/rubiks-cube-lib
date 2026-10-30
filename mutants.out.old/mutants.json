@@ -1,0 +1,418 @@
+[
+  {
+    "diff": "--- crates/rubiks-cube/src/error.rs\n+++ replace SolveError::state -> Option<&str> with None\n@@ -75,17 +75,17 @@\n     #[must_use]\n     pub fn step(&self) -> &str {\n         &self.step\n     }\n     /// The puzzle the step was given, as its [`Display`] prints it, when [`kind`](Self::kind) is\n     /// [`SolveErrorKind::Requirements`].\n     #[must_use]\n     pub fn state(&self) -> Option<&str> {\n-        self.state.as_deref()\n+        None /* ~ changed by cargo-mutants ~ */\n     }\n     /// What the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].\n     #[must_use]\n     pub const fn inner(&self) -> Option<&StepError> {\n         self.source.as_ref()\n     }\n     /// Takes what the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].\n     #[must_use]\n",
+    "file": "crates/rubiks-cube/src/error.rs",
+    "function": {
+      "function_name": "SolveError::state",
+      "return_type": "-> Option<&str>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 84
+        },
+        "start": {
+          "column": 5,
+          "line": 79
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/error.rs:83:9: replace SolveError::state -> Option<&str> with None",
+    "package": "rubiks-cube",
+    "replacement": "None",
+    "span": {
+      "end": {
+        "column": 30,
+        "line": 83
+      },
+      "start": {
+        "column": 9,
+        "line": 83
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/error.rs\n+++ replace SolveError::state -> Option<&str> with Some(\"\")\n@@ -75,17 +75,17 @@\n     #[must_use]\n     pub fn step(&self) -> &str {\n         &self.step\n     }\n     /// The puzzle the step was given, as its [`Display`] prints it, when [`kind`](Self::kind) is\n     /// [`SolveErrorKind::Requirements`].\n     #[must_use]\n     pub fn state(&self) -> Option<&str> {\n-        self.state.as_deref()\n+        Some(\"\") /* ~ changed by cargo-mutants ~ */\n     }\n     /// What the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].\n     #[must_use]\n     pub const fn inner(&self) -> Option<&StepError> {\n         self.source.as_ref()\n     }\n     /// Takes what the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].\n     #[must_use]\n",
+    "file": "crates/rubiks-cube/src/error.rs",
+    "function": {
+      "function_name": "SolveError::state",
+      "return_type": "-> Option<&str>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 84
+        },
+        "start": {
+          "column": 5,
+          "line": 79
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/error.rs:83:9: replace SolveError::state -> Option<&str> with Some(\"\")",
+    "package": "rubiks-cube",
+    "replacement": "Some(\"\")",
+    "span": {
+      "end": {
+        "column": 30,
+        "line": 83
+      },
+      "start": {
+        "column": 9,
+        "line": 83
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/error.rs\n+++ replace SolveError::state -> Option<&str> with Some(\"xyzzy\")\n@@ -75,17 +75,17 @@\n     #[must_use]\n     pub fn step(&self) -> &str {\n         &self.step\n     }\n     /// The puzzle the step was given, as its [`Display`] prints it, when [`kind`](Self::kind) is\n     /// [`SolveErrorKind::Requirements`].\n     #[must_use]\n     pub fn state(&self) -> Option<&str> {\n-        self.state.as_deref()\n+        Some(\"xyzzy\") /* ~ changed by cargo-mutants ~ */\n     }\n     /// What the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].\n     #[must_use]\n     pub const fn inner(&self) -> Option<&StepError> {\n         self.source.as_ref()\n     }\n     /// Takes what the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].\n     #[must_use]\n",
+    "file": "crates/rubiks-cube/src/error.rs",
+    "function": {
+      "function_name": "SolveError::state",
+      "return_type": "-> Option<&str>",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 84
+        },
+        "start": {
+          "column": 5,
+          "line": 79
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/error.rs:83:9: replace SolveError::state -> Option<&str> with Some(\"xyzzy\")",
+    "package": "rubiks-cube",
+    "replacement": "Some(\"xyzzy\")",
+    "span": {
+      "end": {
+        "column": 30,
+        "line": 83
+      },
+      "start": {
+        "column": 9,
+        "line": 83
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/puzzles/algorithm.rs\n+++ replace Algorithm<P>::truncate with ()\n@@ -155,17 +155,17 @@\n \n     /// Adds the moves of `other` after the last move.\n     pub fn extend_from(&mut self, other: &Self) {\n         self.0.extend_from_slice(&other.0);\n     }\n \n     /// Keeps the first `len` moves and drops the rest.\n     pub fn truncate(&mut self, len: usize) {\n-        self.0.truncate(len);\n+        () /* ~ changed by cargo-mutants ~ */\n     }\n \n     /// Same as [`FromStr`](core::str::FromStr), but for `'static` types.\n     ///\n     /// # Panics\n     /// Panics when [`FromStr`](core::str::FromStr) would error.\n     #[must_use]\n     #[expect(\n",
+    "file": "crates/rubiks-cube/src/puzzles/algorithm.rs",
+    "function": {
+      "function_name": "Algorithm<P>::truncate",
+      "return_type": "",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 164
+        },
+        "start": {
+          "column": 5,
+          "line": 161
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/puzzles/algorithm.rs:163:9: replace Algorithm<P>::truncate with ()",
+    "package": "rubiks-cube",
+    "replacement": "()",
+    "span": {
+      "end": {
+        "column": 30,
+        "line": 163
+      },
+      "start": {
+        "column": 9,
+        "line": 163
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/puzzles/algset.rs\n+++ replace AlgSet<P>::all_moves -> Self with Default::default()\n@@ -37,19 +37,17 @@\n     #[must_use]\n     pub fn new() -> Self {\n         Self(Arc::new([]))\n     }\n \n     /// Constructs an [`AlgSet`] with one [`Algorithm`] for every [`P::Move`](Puzzle::Move)\n     #[must_use]\n     pub fn all_moves() -> Self {\n-        P::Move::all()\n-            .map(|m| std::iter::once(m).collect())\n-            .collect()\n+        Default::default() /* ~ changed by cargo-mutants ~ */\n     }\n     /// Every sequence of either collection, each listed once.\n     ///\n     /// The order of the sequences is not kept, and a sequence in both collections, or twice in\n     /// one, appears once.\n     #[must_use]\n     pub fn combined_with(&self, other: &Self) -> Self {\n         self.0.iter().chain(other.0.iter()).cloned().collect()\n",
+    "file": "crates/rubiks-cube/src/puzzles/algset.rs",
+    "function": {
+      "function_name": "AlgSet<P>::all_moves",
+      "return_type": "-> Self",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 48
+        },
+        "start": {
+          "column": 5,
+          "line": 42
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/puzzles/algset.rs:45:9: replace AlgSet<P>::all_moves -> Self with Default::default()",
+    "package": "rubiks-cube",
+    "replacement": "Default::default()",
+    "span": {
+      "end": {
+        "column": 23,
+        "line": 47
+      },
+      "start": {
+        "column": 9,
+        "line": 45
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/puzzles/label.rs\n+++ replace PieceSet<P>::or -> Self with Default::default()\n@@ -259,30 +259,17 @@\n }\n \n impl<P: Puzzle> PieceSet<P> {\n     /// Composes two instances of [`PieceSet<P>`], marking pieces if they are tracked by either one.\n     ///\n     /// Zeroes the orientations that are tracked - is meant to be used in goal-type values.\n     #[must_use]\n     pub fn or(&self, other: &Self) -> Self {\n-        Self::from_pieces_and_orientations(\n-            P::Piece::all()\n-                .zip(self.0.iter().zip(other.0.iter()))\n-                .filter(|&(_, (con_self, con_other))| {\n-                    con_self.label.is_some() || con_other.label.is_some()\n-                })\n-                .map(|(slot, _)| slot),\n-            P::Piece::all()\n-                .zip(self.0.iter().zip(other.0.iter()))\n-                .filter(|&(_, (con_self, con_other))| {\n-                    con_self.orient.is_some() || con_other.orient.is_some()\n-                })\n-                .map(|(slot, _)| slot),\n-        )\n+        Default::default() /* ~ changed by cargo-mutants ~ */\n     }\n \n     /// Whether every slot this marks, for its piece or its orientation, `other` marks too.\n     #[must_use]\n     pub fn is_subset(&self, other: &Self) -> bool {\n         self.0\n             .iter()\n             .zip(other.0.iter())\n",
+    "file": "crates/rubiks-cube/src/puzzles/label.rs",
+    "function": {
+      "function_name": "PieceSet<P>::or",
+      "return_type": "-> Self",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 281
+        },
+        "start": {
+          "column": 5,
+          "line": 262
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/puzzles/label.rs:267:9: replace PieceSet<P>::or -> Self with Default::default()",
+    "package": "rubiks-cube",
+    "replacement": "Default::default()",
+    "span": {
+      "end": {
+        "column": 10,
+        "line": 280
+      },
+      "start": {
+        "column": 9,
+        "line": 267
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/puzzles/label.rs\n+++ replace || with && in PieceSet<P>::or\n@@ -263,17 +263,17 @@\n     ///\n     /// Zeroes the orientations that are tracked - is meant to be used in goal-type values.\n     #[must_use]\n     pub fn or(&self, other: &Self) -> Self {\n         Self::from_pieces_and_orientations(\n             P::Piece::all()\n                 .zip(self.0.iter().zip(other.0.iter()))\n                 .filter(|&(_, (con_self, con_other))| {\n-                    con_self.label.is_some() || con_other.label.is_some()\n+                    con_self.label.is_some() && /* ~ changed by cargo-mutants ~ */ con_other.label.is_some()\n                 })\n                 .map(|(slot, _)| slot),\n             P::Piece::all()\n                 .zip(self.0.iter().zip(other.0.iter()))\n                 .filter(|&(_, (con_self, con_other))| {\n                     con_self.orient.is_some() || con_other.orient.is_some()\n                 })\n                 .map(|(slot, _)| slot),\n",
+    "file": "crates/rubiks-cube/src/puzzles/label.rs",
+    "function": {
+      "function_name": "PieceSet<P>::or",
+      "return_type": "-> Self",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 281
+        },
+        "start": {
+          "column": 5,
+          "line": 262
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/puzzles/label.rs:271:46: replace || with && in PieceSet<P>::or",
+    "package": "rubiks-cube",
+    "replacement": "&&",
+    "span": {
+      "end": {
+        "column": 48,
+        "line": 271
+      },
+      "start": {
+        "column": 46,
+        "line": 271
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/puzzles/label.rs\n+++ replace || with && in PieceSet<P>::or\n@@ -269,17 +269,17 @@\n                 .zip(self.0.iter().zip(other.0.iter()))\n                 .filter(|&(_, (con_self, con_other))| {\n                     con_self.label.is_some() || con_other.label.is_some()\n                 })\n                 .map(|(slot, _)| slot),\n             P::Piece::all()\n                 .zip(self.0.iter().zip(other.0.iter()))\n                 .filter(|&(_, (con_self, con_other))| {\n-                    con_self.orient.is_some() || con_other.orient.is_some()\n+                    con_self.orient.is_some() && /* ~ changed by cargo-mutants ~ */ con_other.orient.is_some()\n                 })\n                 .map(|(slot, _)| slot),\n         )\n     }\n \n     /// Whether every slot this marks, for its piece or its orientation, `other` marks too.\n     #[must_use]\n     pub fn is_subset(&self, other: &Self) -> bool {\n",
+    "file": "crates/rubiks-cube/src/puzzles/label.rs",
+    "function": {
+      "function_name": "PieceSet<P>::or",
+      "return_type": "-> Self",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 281
+        },
+        "start": {
+          "column": 5,
+          "line": 262
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/puzzles/label.rs:277:47: replace || with && in PieceSet<P>::or",
+    "package": "rubiks-cube",
+    "replacement": "&&",
+    "span": {
+      "end": {
+        "column": 49,
+        "line": 277
+      },
+      "start": {
+        "column": 47,
+        "line": 277
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/cube3x3/kociemba.rs\n+++ replace && with || in phase_2\n@@ -147,17 +147,17 @@\n         |puzzle| {\n             <Cube3x3 as Puzzle>::Piece::all().all(|slot| {\n                 [\n                     Orientation3x3::Flip(Zn::ZERO),\n                     Orientation3x3::Twist(Zn::ZERO),\n                     Orientation3x3::Fixed,\n                 ]\n                 .contains(&puzzle.orientation_at(slot))\n-            }) && RIM.iter().all(|&slot| RIM.contains(&puzzle.piece_at(slot)))\n+            }) || /* ~ changed by cargo-mutants ~ */ RIM.iter().all(|&slot| RIM.contains(&puzzle.piece_at(slot)))\n         },\n         [Phase2Goal::CornersAndE, Phase2Goal::Edges],\n         domino_turns(),\n     )\n }\n \n /// Kociemba's two-phase method.\n /// The first call builds the pruning tables, which takes a few seconds.\n",
+    "file": "crates/rubiks-cube/src/methods/cube3x3/kociemba.rs",
+    "function": {
+      "function_name": "phase_2",
+      "return_type": "-> PrunedCombine<Cube3x3>",
+      "span": {
+        "end": {
+          "column": 2,
+          "line": 160
+        },
+        "start": {
+          "column": 1,
+          "line": 141
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:155:16: replace && with || in phase_2",
+    "package": "rubiks-cube",
+    "replacement": "||",
+    "span": {
+      "end": {
+        "column": 18,
+        "line": 155
+      },
+      "start": {
+        "column": 16,
+        "line": 155
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs\n+++ replace <impl Step<P> for PrunedCombine<P>>::can_solve -> bool with true\n@@ -124,17 +124,17 @@\n }\n \n impl<P: Puzzle> Step<P> for PrunedCombine<P> {\n     fn name(&self) -> &str {\n         &self.name\n     }\n \n     fn can_solve(&self, puzzle: &P) -> bool {\n-        (self.ready_to_solve)(puzzle)\n+        true /* ~ changed by cargo-mutants ~ */\n     }\n \n     fn is_done(&self, puzzle: &P) -> bool {\n         self.steps\n             .iter()\n             .all(|s| s.distance_from_moves(puzzle) == Some(0))\n     }\n \n",
+    "file": "crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs",
+    "function": {
+      "function_name": "<impl Step<P> for PrunedCombine<P>>::can_solve",
+      "return_type": "-> bool",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 133
+        },
+        "start": {
+          "column": 5,
+          "line": 131
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:132:9: replace <impl Step<P> for PrunedCombine<P>>::can_solve -> bool with true",
+    "package": "rubiks-cube",
+    "replacement": "true",
+    "span": {
+      "end": {
+        "column": 38,
+        "line": 132
+      },
+      "start": {
+        "column": 9,
+        "line": 132
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs\n+++ replace > with < in <impl Step<P> for PrunedCombine<P>>::solve::search\n@@ -165,17 +165,17 @@\n             bound: u8,\n         ) -> ControlFlow<Algorithm<P>, Option<u8>> {\n             let Some(estimate) = estimate(&combine.steps, puzzle) else {\n                 return ControlFlow::Continue(None);\n             };\n             let Some(total) = depth.checked_add(estimate) else {\n                 return ControlFlow::Continue(None);\n             };\n-            if total > bound {\n+            if total < /* ~ changed by cargo-mutants ~ */ bound {\n                 return ControlFlow::Continue(Some(total));\n             }\n             if estimate == 0 {\n                 return ControlFlow::Break(Algorithm::new());\n             }\n             let Some(next_depth) = depth.checked_add(1) else {\n                 return ControlFlow::Continue(None);\n             };\n",
+    "file": "crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs",
+    "function": {
+      "function_name": "<impl Step<P> for PrunedCombine<P>>::solve::search",
+      "return_type": "-> ControlFlow<Algorithm<P>, Option<u8>>",
+      "span": {
+        "end": {
+          "column": 10,
+          "line": 209
+        },
+        "start": {
+          "column": 9,
+          "line": 154
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:173:22: replace > with < in <impl Step<P> for PrunedCombine<P>>::solve::search",
+    "package": "rubiks-cube",
+    "replacement": "<",
+    "span": {
+      "end": {
+        "column": 23,
+        "line": 173
+      },
+      "start": {
+        "column": 22,
+        "line": 173
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/methods/step/search_step/mod.rs\n+++ replace SearchStep<P>::close_under_free_sequences with ()\n@@ -297,27 +297,17 @@\n     }\n \n     /// Adds to `level` every new state its free sequences reach, repeatedly.\n     fn close_under_free_sequences<'a>(\n         &'a self,\n         level: &mut Vec<P>,\n         investigated: &mut FxMap<Mask<P>, Option<&'a Algorithm<P>>>,\n     ) {\n-        let mut i = 0;\n-        while let Some(cube) = level.get(i).cloned() {\n-            i += 1;\n-            for sequence in self.free_search_algs.algs() {\n-                let moved = cube.apply(sequence);\n-                if let Entry::Vacant(e) = investigated.entry(self.mask(&moved)) {\n-                    e.insert(Some(sequence));\n-                    level.push(moved);\n-                }\n-            }\n-        }\n+        () /* ~ changed by cargo-mutants ~ */\n     }\n \n     /// The moves from the searched state to `cube`, read back through `investigated`.\n     fn path_to(\n         &self,\n         cube: &P,\n         investigated: &FxMap<Mask<P>, Option<&Algorithm<P>>>,\n     ) -> Algorithm<P> {\n",
+    "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
+    "function": {
+      "function_name": "SearchStep<P>::close_under_free_sequences",
+      "return_type": "",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 316
+        },
+        "start": {
+          "column": 5,
+          "line": 299
+        }
+      }
+    },
+    "genre": "FnValue",
+    "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:305:9: replace SearchStep<P>::close_under_free_sequences with ()",
+    "package": "rubiks-cube",
+    "replacement": "()",
+    "span": {
+      "end": {
+        "column": 10,
+        "line": 315
+      },
+      "start": {
+        "column": 9,
+        "line": 305
+      }
+    }
+  },
+  {
+    "diff": "--- crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs\n+++ replace + with - in <impl std::ops::Add for Orientation3x3>::add\n@@ -152,13 +152,13 @@\n     #[expect(\n         clippy::unreachable,\n         reason = \"if this arm is ever reached, the state of puzzle is absolutely unrecoverable\"\n     )]\n     fn add(self, rhs: Self) -> Self::Output {\n         match (self, rhs) {\n             (Fixed, Fixed) => Fixed,\n             (Twist(lhs), Twist(rhs)) => Twist(lhs + rhs),\n-            (Flip(lhs), Flip(rhs)) => Flip(lhs + rhs),\n+            (Flip(lhs), Flip(rhs)) => Flip(lhs - /* ~ changed by cargo-mutants ~ */ rhs),\n             (_, _) => unreachable!(\"You should never add the orientation of different piece types\"),\n         }\n     }\n }\n",
+    "file": "crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs",
+    "function": {
+      "function_name": "<impl std::ops::Add for Orientation3x3>::add",
+      "return_type": "-> Self::Output",
+      "span": {
+        "end": {
+          "column": 6,
+          "line": 163
+        },
+        "start": {
+          "column": 5,
+          "line": 152
+        }
+      }
+    },
+    "genre": "BinaryOperator",
+    "name": "crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:160:48: replace + with - in <impl std::ops::Add for Orientation3x3>::add",
+    "package": "rubiks-cube",
+    "replacement": "-",
+    "span": {
+      "end": {
+        "column": 49,
+        "line": 160
+      },
+      "start": {
+        "column": 48,
+        "line": 160
+      }
+    }
+  }
+]

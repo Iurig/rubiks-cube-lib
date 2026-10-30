@@ -8,7 +8,7 @@
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 18.274818639,
+          "duration": 18.366820505,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -20,7 +20,7 @@
         },
         {
           "phase": "Test",
-          "duration": 6.429844142,
+          "duration": 6.643866943,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -34,44 +34,44 @@
     {
       "scenario": {
         "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/mod.rs:116:35: replace - with + in TechniqueBuilder<P>::finish_in",
+          "name": "crates/rubiks-cube/src/error.rs:83:9: replace SolveError::state -> Option<&str> with None",
           "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/mod.rs",
+          "file": "crates/rubiks-cube/src/error.rs",
           "function": {
-            "function_name": "TechniqueBuilder<P>::finish_in",
-            "return_type": "-> Result<Technique<P>, TechniqueError>",
+            "function_name": "SolveError::state",
+            "return_type": "-> Option<&str>",
             "span": {
               "start": {
-                "line": 95,
+                "line": 79,
                 "column": 5
               },
               "end": {
-                "line": 150,
+                "line": 84,
                 "column": 6
               }
             }
           },
           "span": {
             "start": {
-              "line": 116,
-              "column": 35
+              "line": 83,
+              "column": 9
             },
             "end": {
-              "line": 116,
-              "column": 36
+              "line": 83,
+              "column": 30
             }
           },
-          "replacement": "+",
-          "genre": "BinaryOperator"
+          "replacement": "None",
+          "genre": "FnValue"
         }
       },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__mod.rs_line_116_col_35.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__mod.rs_line_116_col_35.diff",
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__rubiks-cube__src__error.rs_line_83_col_9.log",
+      "diff_path": "diff/crates__rubiks-cube__src__error.rs_line_83_col_9.diff",
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 0.552006398,
+          "duration": 0.703649412,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -83,8 +83,10 @@
         },
         {
           "phase": "Test",
-          "duration": 6.593517335,
-          "process_status": "Success",
+          "duration": 0.251427179,
+          "process_status": {
+            "Failure": 101
+          },
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
             "test",
@@ -97,44 +99,44 @@
     {
       "scenario": {
         "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/mod.rs:116:35: replace - with / in TechniqueBuilder<P>::finish_in",
+          "name": "crates/rubiks-cube/src/error.rs:83:9: replace SolveError::state -> Option<&str> with Some(\"\")",
           "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/mod.rs",
+          "file": "crates/rubiks-cube/src/error.rs",
           "function": {
-            "function_name": "TechniqueBuilder<P>::finish_in",
-            "return_type": "-> Result<Technique<P>, TechniqueError>",
+            "function_name": "SolveError::state",
+            "return_type": "-> Option<&str>",
             "span": {
               "start": {
-                "line": 95,
+                "line": 79,
                 "column": 5
               },
               "end": {
-                "line": 150,
+                "line": 84,
                 "column": 6
               }
             }
           },
           "span": {
             "start": {
-              "line": 116,
-              "column": 35
+              "line": 83,
+              "column": 9
             },
             "end": {
-              "line": 116,
-              "column": 36
+              "line": 83,
+              "column": 30
             }
           },
-          "replacement": "/",
-          "genre": "BinaryOperator"
+          "replacement": "Some(\"\")",
+          "genre": "FnValue"
         }
       },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__mod.rs_line_116_col_35_001.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__mod.rs_line_116_col_35_001.diff",
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__rubiks-cube__src__error.rs_line_83_col_9_001.log",
+      "diff_path": "diff/crates__rubiks-cube__src__error.rs_line_83_col_9_001.diff",
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 0.552018961,
+          "duration": 0.752743074,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -146,8 +148,10 @@
         },
         {
           "phase": "Test",
-          "duration": 6.480056439,
-          "process_status": "Success",
+          "duration": 0.251514486,
+          "process_status": {
+            "Failure": 101
+          },
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
             "test",
@@ -160,44 +164,44 @@
     {
       "scenario": {
         "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/mod.rs:120:84: replace + with - in TechniqueBuilder<P>::finish_in",
+          "name": "crates/rubiks-cube/src/error.rs:83:9: replace SolveError::state -> Option<&str> with Some(\"xyzzy\")",
           "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/mod.rs",
+          "file": "crates/rubiks-cube/src/error.rs",
           "function": {
-            "function_name": "TechniqueBuilder<P>::finish_in",
-            "return_type": "-> Result<Technique<P>, TechniqueError>",
+            "function_name": "SolveError::state",
+            "return_type": "-> Option<&str>",
             "span": {
               "start": {
-                "line": 95,
+                "line": 79,
                 "column": 5
               },
               "end": {
-                "line": 150,
+                "line": 84,
                 "column": 6
               }
             }
           },
           "span": {
             "start": {
-              "line": 120,
-              "column": 84
+              "line": 83,
+              "column": 9
             },
             "end": {
-              "line": 120,
-              "column": 85
+              "line": 83,
+              "column": 30
             }
           },
-          "replacement": "-",
-          "genre": "BinaryOperator"
+          "replacement": "Some(\"xyzzy\")",
+          "genre": "FnValue"
         }
       },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__mod.rs_line_120_col_84.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__mod.rs_line_120_col_84.diff",
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__rubiks-cube__src__error.rs_line_83_col_9_002.log",
+      "diff_path": "diff/crates__rubiks-cube__src__error.rs_line_83_col_9_002.diff",
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 0.552901528,
+          "duration": 0.702702612,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -209,260 +213,10 @@
         },
         {
           "phase": "Test",
-          "duration": 6.57974233,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/mod.rs:120:84: replace + with * in TechniqueBuilder<P>::finish_in",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/mod.rs",
-          "function": {
-            "function_name": "TechniqueBuilder<P>::finish_in",
-            "return_type": "-> Result<Technique<P>, TechniqueError>",
-            "span": {
-              "start": {
-                "line": 95,
-                "column": 5
-              },
-              "end": {
-                "line": 150,
-                "column": 6
-              }
-            }
+          "duration": 0.251495079,
+          "process_status": {
+            "Failure": 101
           },
-          "span": {
-            "start": {
-              "line": 120,
-              "column": 84
-            },
-            "end": {
-              "line": 120,
-              "column": 85
-            }
-          },
-          "replacement": "*",
-          "genre": "BinaryOperator"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__mod.rs_line_120_col_84_001.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__mod.rs_line_120_col_84_001.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 0.551942725,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.475953921,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/mod.rs:130:27: replace && with || in TechniqueBuilder<P>::finish_in",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/mod.rs",
-          "function": {
-            "function_name": "TechniqueBuilder<P>::finish_in",
-            "return_type": "-> Result<Technique<P>, TechniqueError>",
-            "span": {
-              "start": {
-                "line": 95,
-                "column": 5
-              },
-              "end": {
-                "line": 150,
-                "column": 6
-              }
-            }
-          },
-          "span": {
-            "start": {
-              "line": 130,
-              "column": 27
-            },
-            "end": {
-              "line": 130,
-              "column": 29
-            }
-          },
-          "replacement": "||",
-          "genre": "BinaryOperator"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__mod.rs_line_130_col_27.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__mod.rs_line_130_col_27.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 0.551973535,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.337567064,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/mod.rs:130:22: replace == with != in TechniqueBuilder<P>::finish_in",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/mod.rs",
-          "function": {
-            "function_name": "TechniqueBuilder<P>::finish_in",
-            "return_type": "-> Result<Technique<P>, TechniqueError>",
-            "span": {
-              "start": {
-                "line": 95,
-                "column": 5
-              },
-              "end": {
-                "line": 150,
-                "column": 6
-              }
-            }
-          },
-          "span": {
-            "start": {
-              "line": 130,
-              "column": 22
-            },
-            "end": {
-              "line": 130,
-              "column": 24
-            }
-          },
-          "replacement": "!=",
-          "genre": "BinaryOperator"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__mod.rs_line_130_col_22.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__mod.rs_line_130_col_22.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 0.552003682,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.938703723,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/mod.rs:134:22: replace == with != in TechniqueBuilder<P>::finish_in",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/mod.rs",
-          "function": {
-            "function_name": "TechniqueBuilder<P>::finish_in",
-            "return_type": "-> Result<Technique<P>, TechniqueError>",
-            "span": {
-              "start": {
-                "line": 95,
-                "column": 5
-              },
-              "end": {
-                "line": 150,
-                "column": 6
-              }
-            }
-          },
-          "span": {
-            "start": {
-              "line": 134,
-              "column": 22
-            },
-            "end": {
-              "line": 134,
-              "column": 24
-            }
-          },
-          "replacement": "!=",
-          "genre": "BinaryOperator"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__mod.rs_line_134_col_22.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__mod.rs_line_134_col_22.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 0.551917067,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.5346999,
-          "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
             "test",
@@ -512,7 +266,7 @@
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 0.552137527,
+          "duration": 0.752379973,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -524,7 +278,7 @@
         },
         {
           "phase": "Test",
-          "duration": 6.685867832,
+          "duration": 6.547943853,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -575,7 +329,7 @@
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 2.241596172,
+          "duration": 2.326920805,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -587,7 +341,7 @@
         },
         {
           "phase": "Test",
-          "duration": 6.534561007,
+          "duration": 6.731565284,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -601,7 +355,7 @@
     {
       "scenario": {
         "Mutant": {
-          "name": "crates/rubiks-cube/src/puzzles/label.rs:244:9: replace PieceSet<P>::or -> Self with Default::default()",
+          "name": "crates/rubiks-cube/src/puzzles/label.rs:267:9: replace PieceSet<P>::or -> Self with Default::default()",
           "package": "rubiks-cube",
           "file": "crates/rubiks-cube/src/puzzles/label.rs",
           "function": {
@@ -609,22 +363,22 @@
             "return_type": "-> Self",
             "span": {
               "start": {
-                "line": 239,
+                "line": 262,
                 "column": 5
               },
               "end": {
-                "line": 258,
+                "line": 281,
                 "column": 6
               }
             }
           },
           "span": {
             "start": {
-              "line": 244,
+              "line": 267,
               "column": 9
             },
             "end": {
-              "line": 257,
+              "line": 280,
               "column": 10
             }
           },
@@ -633,12 +387,12 @@
         }
       },
       "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__puzzles__label.rs_line_244_col_9.log",
-      "diff_path": "diff/crates__rubiks-cube__src__puzzles__label.rs_line_244_col_9.diff",
+      "log_path": "log/crates__rubiks-cube__src__puzzles__label.rs_line_267_col_9.log",
+      "diff_path": "diff/crates__rubiks-cube__src__puzzles__label.rs_line_267_col_9.diff",
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 2.360349257,
+          "duration": 2.4627459099999998,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -650,7 +404,7 @@
         },
         {
           "phase": "Test",
-          "duration": 6.683057,
+          "duration": 6.543224411,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -664,7 +418,7 @@
     {
       "scenario": {
         "Mutant": {
-          "name": "crates/rubiks-cube/src/puzzles/label.rs:248:46: replace || with && in PieceSet<P>::or",
+          "name": "crates/rubiks-cube/src/puzzles/label.rs:271:46: replace || with && in PieceSet<P>::or",
           "package": "rubiks-cube",
           "file": "crates/rubiks-cube/src/puzzles/label.rs",
           "function": {
@@ -672,22 +426,22 @@
             "return_type": "-> Self",
             "span": {
               "start": {
-                "line": 239,
+                "line": 262,
                 "column": 5
               },
               "end": {
-                "line": 258,
+                "line": 281,
                 "column": 6
               }
             }
           },
           "span": {
             "start": {
-              "line": 248,
+              "line": 271,
               "column": 46
             },
             "end": {
-              "line": 248,
+              "line": 271,
               "column": 48
             }
           },
@@ -696,12 +450,12 @@
         }
       },
       "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__puzzles__label.rs_line_248_col_46.log",
-      "diff_path": "diff/crates__rubiks-cube__src__puzzles__label.rs_line_248_col_46.diff",
+      "log_path": "log/crates__rubiks-cube__src__puzzles__label.rs_line_271_col_46.log",
+      "diff_path": "diff/crates__rubiks-cube__src__puzzles__label.rs_line_271_col_46.diff",
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 2.066087892,
+          "duration": 2.110573021,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -713,7 +467,7 @@
         },
         {
           "phase": "Test",
-          "duration": 6.646376674,
+          "duration": 7.133621665,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -727,7 +481,7 @@
     {
       "scenario": {
         "Mutant": {
-          "name": "crates/rubiks-cube/src/puzzles/label.rs:254:47: replace || with && in PieceSet<P>::or",
+          "name": "crates/rubiks-cube/src/puzzles/label.rs:277:47: replace || with && in PieceSet<P>::or",
           "package": "rubiks-cube",
           "file": "crates/rubiks-cube/src/puzzles/label.rs",
           "function": {
@@ -735,22 +489,22 @@
             "return_type": "-> Self",
             "span": {
               "start": {
-                "line": 239,
+                "line": 262,
                 "column": 5
               },
               "end": {
-                "line": 258,
+                "line": 281,
                 "column": 6
               }
             }
           },
           "span": {
             "start": {
-              "line": 254,
+              "line": 277,
               "column": 47
             },
             "end": {
-              "line": 254,
+              "line": 277,
               "column": 49
             }
           },
@@ -759,12 +513,12 @@
         }
       },
       "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__puzzles__label.rs_line_254_col_47.log",
-      "diff_path": "diff/crates__rubiks-cube__src__puzzles__label.rs_line_254_col_47.diff",
+      "log_path": "log/crates__rubiks-cube__src__puzzles__label.rs_line_277_col_47.log",
+      "diff_path": "diff/crates__rubiks-cube__src__puzzles__label.rs_line_277_col_47.diff",
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 0.551988473,
+          "duration": 0.652088068,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -776,7 +530,7 @@
         },
         {
           "phase": "Test",
-          "duration": 6.589914587,
+          "duration": 6.986079713,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -827,7 +581,7 @@
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 1.504230269,
+          "duration": 1.608119284,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -839,7 +593,7 @@
         },
         {
           "phase": "Test",
-          "duration": 7.123329714,
+          "duration": 7.044324124,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -890,7 +644,7 @@
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 1.7084938790000002,
+          "duration": 1.7109176449999999,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -902,7 +656,7 @@
         },
         {
           "phase": "Test",
-          "duration": 6.629542824,
+          "duration": 7.038712485,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -953,7 +707,7 @@
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 1.304126938,
+          "duration": 1.409994138,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -965,7 +719,7 @@
         },
         {
           "phase": "Test",
-          "duration": 33.02394416,
+          "duration": 34.050446781,
           "process_status": "Timeout",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -979,574 +733,7 @@
     {
       "scenario": {
         "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:113:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(None))",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
-          "function": {
-            "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved",
-            "return_type": "-> &mut Option<PieceSet<P>>",
-            "span": {
-              "start": {
-                "line": 112,
-                "column": 5
-              },
-              "end": {
-                "line": 114,
-                "column": 6
-              }
-            }
-          },
-          "span": {
-            "start": {
-              "line": 113,
-              "column": 9
-            },
-            "end": {
-              "line": 113,
-              "column": 25
-            }
-          },
-          "replacement": "Box::leak(Box::new(None))",
-          "genre": "FnValue"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_113_col_9.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_113_col_9.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 0.752898122,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.528087741,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:113:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::new())))",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
-          "function": {
-            "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved",
-            "return_type": "-> &mut Option<PieceSet<P>>",
-            "span": {
-              "start": {
-                "line": 112,
-                "column": 5
-              },
-              "end": {
-                "line": 114,
-                "column": 6
-              }
-            }
-          },
-          "span": {
-            "start": {
-              "line": 113,
-              "column": 9
-            },
-            "end": {
-              "line": 113,
-              "column": 25
-            }
-          },
-          "replacement": "Box::leak(Box::new(Some(PieceSet::new())))",
-          "genre": "FnValue"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_113_col_9_001.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_113_col_9_001.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 0.552440362,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.591072529,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:113:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::from(Default::default()))))",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
-          "function": {
-            "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::assumed_solved",
-            "return_type": "-> &mut Option<PieceSet<P>>",
-            "span": {
-              "start": {
-                "line": 112,
-                "column": 5
-              },
-              "end": {
-                "line": 114,
-                "column": 6
-              }
-            }
-          },
-          "span": {
-            "start": {
-              "line": 113,
-              "column": 9
-            },
-            "end": {
-              "line": 113,
-              "column": 25
-            }
-          },
-          "replacement": "Box::leak(Box::new(Some(PieceSet::from(Default::default()))))",
-          "genre": "FnValue"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_113_col_9_002.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_113_col_9_002.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 0.552362584,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.447226805,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:116:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with None",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
-          "function": {
-            "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences",
-            "return_type": "-> Option<AlgSet<P>>",
-            "span": {
-              "start": {
-                "line": 115,
-                "column": 5
-              },
-              "end": {
-                "line": 123,
-                "column": 6
-              }
-            }
-          },
-          "span": {
-            "start": {
-              "line": 116,
-              "column": 9
-            },
-            "end": {
-              "line": 122,
-              "column": 10
-            }
-          },
-          "replacement": "None",
-          "genre": "FnValue"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_116_col_9.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_116_col_9.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 1.455859507,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.432552803,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:116:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with Some(AlgSet::new())",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
-          "function": {
-            "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences",
-            "return_type": "-> Option<AlgSet<P>>",
-            "span": {
-              "start": {
-                "line": 115,
-                "column": 5
-              },
-              "end": {
-                "line": 123,
-                "column": 6
-              }
-            }
-          },
-          "span": {
-            "start": {
-              "line": 116,
-              "column": 9
-            },
-            "end": {
-              "line": 122,
-              "column": 10
-            }
-          },
-          "replacement": "Some(AlgSet::new())",
-          "genre": "FnValue"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_116_col_9_001.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_116_col_9_001.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 0.552081861,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.731871013,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:116:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences -> Option<AlgSet<P>> with Some(AlgSet::from(Default::default()))",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
-          "function": {
-            "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::allowed_sequences",
-            "return_type": "-> Option<AlgSet<P>>",
-            "span": {
-              "start": {
-                "line": 115,
-                "column": 5
-              },
-              "end": {
-                "line": 123,
-                "column": 6
-              }
-            }
-          },
-          "span": {
-            "start": {
-              "line": 116,
-              "column": 9
-            },
-            "end": {
-              "line": 122,
-              "column": 10
-            }
-          },
-          "replacement": "Some(AlgSet::from(Default::default()))",
-          "genre": "FnValue"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_116_col_9_002.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_116_col_9_002.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 0.552179186,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.589830008,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:126:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(None))",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
-          "function": {
-            "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::goal",
-            "return_type": "-> &mut Option<PieceSet<P>>",
-            "span": {
-              "start": {
-                "line": 125,
-                "column": 5
-              },
-              "end": {
-                "line": 127,
-                "column": 6
-              }
-            }
-          },
-          "span": {
-            "start": {
-              "line": 126,
-              "column": 9
-            },
-            "end": {
-              "line": 126,
-              "column": 24
-            }
-          },
-          "replacement": "Box::leak(Box::new(None))",
-          "genre": "FnValue"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_126_col_9.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_126_col_9.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 1.4544955339999999,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.685575797,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:126:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::new())))",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
-          "function": {
-            "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::goal",
-            "return_type": "-> &mut Option<PieceSet<P>>",
-            "span": {
-              "start": {
-                "line": 125,
-                "column": 5
-              },
-              "end": {
-                "line": 127,
-                "column": 6
-              }
-            }
-          },
-          "span": {
-            "start": {
-              "line": 126,
-              "column": 9
-            },
-            "end": {
-              "line": 126,
-              "column": 24
-            }
-          },
-          "replacement": "Box::leak(Box::new(Some(PieceSet::new())))",
-          "genre": "FnValue"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_126_col_9_001.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_126_col_9_001.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 0.552377622,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.4883872799999995,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:126:9: replace <impl StepBuilder<P> for SearchStepBuilder<P>>::goal -> &mut Option<PieceSet<P>> with Box::leak(Box::new(Some(PieceSet::from(Default::default()))))",
-          "package": "rubiks-cube",
-          "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
-          "function": {
-            "function_name": "<impl StepBuilder<P> for SearchStepBuilder<P>>::goal",
-            "return_type": "-> &mut Option<PieceSet<P>>",
-            "span": {
-              "start": {
-                "line": 125,
-                "column": 5
-              },
-              "end": {
-                "line": 127,
-                "column": 6
-              }
-            }
-          },
-          "span": {
-            "start": {
-              "line": 126,
-              "column": 9
-            },
-            "end": {
-              "line": 126,
-              "column": 24
-            }
-          },
-          "replacement": "Box::leak(Box::new(Some(PieceSet::from(Default::default()))))",
-          "genre": "FnValue"
-        }
-      },
-      "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_126_col_9_002.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_126_col_9_002.diff",
-      "phase_results": [
-        {
-          "phase": "Build",
-          "duration": 0.551947515,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--no-run",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        },
-        {
-          "phase": "Test",
-          "duration": 6.634935122,
-          "process_status": "Success",
-          "argv": [
-            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
-            "test",
-            "--verbose",
-            "--package=rubiks-cube@0.1.0"
-          ]
-        }
-      ]
-    },
-    {
-      "scenario": {
-        "Mutant": {
-          "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:302:9: replace SearchStep<P>::close_under_free_sequences with ()",
+          "name": "crates/rubiks-cube/src/methods/step/search_step/mod.rs:305:9: replace SearchStep<P>::close_under_free_sequences with ()",
           "package": "rubiks-cube",
           "file": "crates/rubiks-cube/src/methods/step/search_step/mod.rs",
           "function": {
@@ -1554,22 +741,22 @@
             "return_type": "",
             "span": {
               "start": {
-                "line": 296,
+                "line": 299,
                 "column": 5
               },
               "end": {
-                "line": 313,
+                "line": 316,
                 "column": 6
               }
             }
           },
           "span": {
             "start": {
-              "line": 302,
+              "line": 305,
               "column": 9
             },
             "end": {
-              "line": 312,
+              "line": 315,
               "column": 10
             }
           },
@@ -1578,12 +765,12 @@
         }
       },
       "summary": "MissedMutant",
-      "log_path": "log/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_302_col_9.log",
-      "diff_path": "diff/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_302_col_9.diff",
+      "log_path": "log/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_305_col_9.log",
+      "diff_path": "diff/crates__rubiks-cube__src__methods__step__search_step__mod.rs_line_305_col_9.diff",
       "phase_results": [
         {
           "phase": "Build",
-          "duration": 1.406495759,
+          "duration": 1.606069106,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -1595,7 +782,70 @@
         },
         {
           "phase": "Test",
-          "duration": 6.637734042,
+          "duration": 6.940695274,
+          "process_status": "Success",
+          "argv": [
+            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=rubiks-cube@0.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:160:48: replace + with - in <impl std::ops::Add for Orientation3x3>::add",
+          "package": "rubiks-cube",
+          "file": "crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs",
+          "function": {
+            "function_name": "<impl std::ops::Add for Orientation3x3>::add",
+            "return_type": "-> Self::Output",
+            "span": {
+              "start": {
+                "line": 152,
+                "column": 5
+              },
+              "end": {
+                "line": 163,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 160,
+              "column": 48
+            },
+            "end": {
+              "line": 160,
+              "column": 49
+            }
+          },
+          "replacement": "-",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "MissedMutant",
+      "log_path": "log/crates__rubiks-cube__src__puzzles__cube3x3__pieces.rs_line_160_col_48.log",
+      "diff_path": "diff/crates__rubiks-cube__src__puzzles__cube3x3__pieces.rs_line_160_col_48.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.119530342,
+          "process_status": "Success",
+          "argv": [
+            "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=rubiks-cube@0.1.0"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 7.393734129,
           "process_status": "Success",
           "argv": [
             "/home/iurig/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/cargo",
@@ -1607,13 +857,13 @@
       ]
     }
   ],
-  "total_mutants": 25,
-  "missed": 24,
-  "caught": 0,
+  "total_mutants": 13,
+  "missed": 9,
+  "caught": 3,
   "timeout": 1,
   "unviable": 0,
   "success": 0,
-  "start_time": "2026-10-28T20:19:42.336599442Z",
-  "end_time": "2026-10-28T20:23:43.442868211Z",
+  "start_time": "2026-10-30T01:53:20.790600848Z",
+  "end_time": "2026-10-30T01:55:42.062693077Z",
   "cargo_mutants_version": "27.1.0"
 }

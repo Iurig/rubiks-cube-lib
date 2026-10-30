@@ -7,3 +7,16 @@ pub fn ordinal(number: usize) -> String {
     };
     format!("{number}{ending}")
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn ordinals_match_1_2_3_4() {
+        assert_eq!("1st", &ordinal(1));
+        assert_eq!("2nd", &ordinal(2));
+        assert_eq!("3rd", &ordinal(3));
+        assert_eq!("4th", &ordinal(4));
+    }
+}

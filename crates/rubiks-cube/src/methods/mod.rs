@@ -343,12 +343,11 @@ mod tests {
         reason = "`?` reports setup failures; `assert!` reports the property under test failing"
     )]
 
-    use std::error::Error;
+    use std::{assert_matches, error::Error};
 
-    use crate::{Cube3x3, Edge, PieceSet, SearchStep, SolveErrorKind, StepError};
+    use crate::{AlgSet, Cube3x3, Edge, PieceSet, SearchStep, SolveErrorKind, StepError};
 
     use super::{test_steps::FixedStep, *};
-    use crate::AlgSet;
 
     fn fixed_failure() -> StepError {
         StepError::Custom("fixed failure".into())
@@ -489,5 +488,75 @@ mod tests {
         assert!(steps.next().is_none());
         assert!(steps.next().is_none());
         assert_eq!(later.runs(), 0, "no step runs after an error");
+    }
+
+    #[test]
+    fn final_step_with_goal_returns_error() {
+        let technique =
+            Technique::<Cube3x3>::start_with(SearchStep::builder("throwaway", AlgSet::new()))
+                .finish(
+                    SearchStep::builder("end", AlgSet::new())
+                        .goal(PieceSet::from_algset(&AlgSet::new()))
+                        .clone(),
+                );
+        assert_matches!(technique, Err(TechniqueError::InvalidLastStep));
+    }
+
+    #[test]
+    fn starting_step_with_prereq_returns_error() {
+        let technique = Technique::<Cube3x3>::start_with(
+            SearchStep::builder("throwaway", AlgSet::new())
+                .expect_solved(PieceSet::new())
+                .clone(),
+        )
+        .finish(SearchStep::builder("end", AlgSet::new()));
+        assert_matches!(technique, Err(TechniqueError::InvalidFirstStep));
+    }
+
+    #[test]
+    fn invalid_intermediate_step_is_counted_correctly() {
+        let technique =
+            Technique::<Cube3x3>::start_with(SearchStep::builder("throwaway", AlgSet::new()))
+                .then(
+                    SearchStep::builder("2nd step", AlgSet::new())
+                        .goal(PieceSet::new())
+                        .clone(),
+                )
+                .finish(
+                    SearchStep::builder("end", AlgSet::new())
+                        .expect_solved(PieceSet::from_algset(&AlgSet::new()))
+                        .clone(),
+                );
+        assert_matches!(
+            technique,
+            Err(TechniqueError::CantConstruct {
+                index: 2,
+                step: _,
+                source: _
+            })
+        );
+    }
+
+    #[test]
+    fn failed_to_start_returns_state() -> anyhow::Result<()> {
+        let one_step_method = Technique::new(vec![Arc::new(
+            SearchStep::builder("end", AlgSet::new())
+                .expect_solved(PieceSet::from_algset(&AlgSet::new()))
+                .clone()
+                .build()?,
+        ) as Arc<dyn Step<Cube3x3>>]);
+        let mut cube = Cube3x3::scrambled_with_seed(1);
+        let _cube_as_shown = format!("{cube}");
+        println!("{cube}");
+        assert_eq!(
+            one_step_method
+                .solve(&mut cube)
+                .expect_err("purposefully erroed")
+                .state(),
+            Some(
+                "    DRD\n    RUB\n    DBU\nFDB RLL FUF LBR\nRLF DFB DRL DBU\nRFB RRL DLL BLU\n    UFB\n    UDF\n    FUU"
+            )
+        );
+        Ok(())
     }
 }

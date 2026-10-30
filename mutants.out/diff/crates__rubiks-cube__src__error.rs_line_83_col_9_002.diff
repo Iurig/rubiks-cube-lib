@@ -1,0 +1,21 @@
+--- crates/rubiks-cube/src/error.rs
++++ replace SolveError::state -> Option<&str> with Some("xyzzy")
+@@ -75,17 +75,17 @@
+     #[must_use]
+     pub fn step(&self) -> &str {
+         &self.step
+     }
+     /// The puzzle the step was given, as its [`Display`] prints it, when [`kind`](Self::kind) is
+     /// [`SolveErrorKind::Requirements`].
+     #[must_use]
+     pub fn state(&self) -> Option<&str> {
+-        self.state.as_deref()
++        Some("xyzzy") /* ~ changed by cargo-mutants ~ */
+     }
+     /// What the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].
+     #[must_use]
+     pub const fn inner(&self) -> Option<&StepError> {
+         self.source.as_ref()
+     }
+     /// Takes what the step reported, when [`kind`](Self::kind) is [`SolveErrorKind::CouldntSolve`].
+     #[must_use]
