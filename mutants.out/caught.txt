@@ -1,3 +1,0 @@
-crates/rubiks-cube/src/error.rs:83:9: replace SolveError::state -> Option<&str> with None
-crates/rubiks-cube/src/error.rs:83:9: replace SolveError::state -> Option<&str> with Some("")
-crates/rubiks-cube/src/error.rs:83:9: replace SolveError::state -> Option<&str> with Some("xyzzy")

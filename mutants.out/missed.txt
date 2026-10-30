@@ -1,9 +1,0 @@
-crates/rubiks-cube/src/puzzles/algorithm.rs:163:9: replace Algorithm<P>::truncate with ()
-crates/rubiks-cube/src/puzzles/algset.rs:45:9: replace AlgSet<P>::all_moves -> Self with Default::default()
-crates/rubiks-cube/src/puzzles/label.rs:267:9: replace PieceSet<P>::or -> Self with Default::default()
-crates/rubiks-cube/src/puzzles/label.rs:271:46: replace || with && in PieceSet<P>::or
-crates/rubiks-cube/src/puzzles/label.rs:277:47: replace || with && in PieceSet<P>::or
-crates/rubiks-cube/src/methods/cube3x3/kociemba.rs:155:16: replace && with || in phase_2
-crates/rubiks-cube/src/methods/step/combine_pruned/mod.rs:132:9: replace <impl Step<P> for PrunedCombine<P>>::can_solve -> bool with true
-crates/rubiks-cube/src/methods/step/search_step/mod.rs:305:9: replace SearchStep<P>::close_under_free_sequences with ()
-crates/rubiks-cube/src/puzzles/cube3x3/pieces.rs:160:48: replace + with - in <impl std::ops::Add for Orientation3x3>::add
