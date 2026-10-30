@@ -355,6 +355,15 @@ mod tests {
         assert_eq!(after, expected);
         Ok(())
     }
+
+    #[test]
+    fn multiplying_by_an_algorithm_applies_its_moves_in_order() -> anyhow::Result<()> {
+        let alg: Algorithm<Cube3x3> = "R U R' F2".parse()?;
+        let start = Cube3x3::scrambled_with_seed(0);
+        assert_eq!(start * alg, start * Cube3x3::from_moves("R U R' F2")?);
+        Ok(())
+    }
+
     #[test]
     fn u_perm_repeats_after_3_applications() {
         use Edge::{Uf, Ul, Ur};
@@ -396,6 +405,12 @@ mod tests {
                 "the state from seed {seed} is not reachable"
             );
         }
+    }
+
+    /// A random state is solved about once in 4.3 × 10¹⁹ draws.
+    #[test]
+    fn a_random_scramble_is_not_solved() {
+        assert!(!Cube3x3::scrambled().is_solved());
     }
 
     #[test]

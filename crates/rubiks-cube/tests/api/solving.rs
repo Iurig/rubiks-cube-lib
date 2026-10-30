@@ -17,9 +17,12 @@ fn full_solve_and_checking_bfs() -> anyhow::Result<()> {
 }
 
 #[test]
-fn every_roux_option_combination_solves() -> anyhow::Result<()> {
+fn every_roux_option_solves_on_multiple_seeds() -> anyhow::Result<()> {
     use rubiks_cube::roux::*;
-    let scrambles: Vec<Cube3x3> = (2026..2030).map(Cube3x3::scrambled_with_seed).collect();
+    let seeds = 4;
+    let scrambles: Vec<Cube3x3> = (2026..2026 + seeds)
+        .map(Cube3x3::scrambled_with_seed)
+        .collect();
     for fb in [
         FirstBlock::OneLook,
         FirstBlock::SquarePair,
@@ -142,6 +145,57 @@ fn a_goal_mixing_named_and_orientation_only_slots_is_met() -> anyhow::Result<()>
         let mut cube = Cube3x3::scrambled_with_seed(seed);
         step.solve(&mut cube)?;
         assert!(step.is_done(&cube), "seed {seed}:\n{cube}");
+    }
+    Ok(())
+}
+
+#[test]
+fn lse_solves_with_either_move_group_free() -> anyhow::Result<()> {
+    let scrambles = [
+        "M U M' U2 M2 U' M",
+        "U M2 U' M U2 M' U",
+        "M' U' M2 U M' U2 M2",
+        "U2 M U M' U' M2 U2 M'",
+    ];
+    for (costly, free) in [("M", "U"), ("U", "M")] {
+        for scramble in scrambles {
+            let step = SearchStep::builder("LSE", AlgSet::from_static_parts(costly))
+                .free_algs(AlgSet::from_static_parts(free))
+                .build_in(&BuildContext::new())?;
+            let mut cube = Cube3x3::from_moves(scramble)?;
+            step.solve(&mut cube)
+                .with_context(|| format!("costly {costly}, free {free}, {scramble}"))?;
+            assert!(
+                cube.is_solved(),
+                "costly {costly}, free {free}, {scramble}:\n{cube}"
+            );
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn fb_solves_with_any_split_of_free_moves() -> anyhow::Result<()> {
+    for (costly, free) in [
+        ("", "F U R L D B M r"),
+        ("U", "F R L D B M r"),
+        ("F R L D B M r", "U"),
+    ] {
+        for seed in 0..2 {
+            let step = SearchStep::builder("FB", AlgSet::from_static_parts(costly))
+                .free_algs(AlgSet::from_static_parts(free))
+                .goal(PieceSet::from_algset(
+                    &AlgSet::<Cube3x3>::from_static_parts("U R M r"),
+                ))
+                .build_in(&BuildContext::new())?;
+            let mut cube = Cube3x3::scrambled_with_seed(seed);
+            step.solve(&mut cube)
+                .with_context(|| format!("costly {costly}, free {free}, seed {seed}"))?;
+            assert!(
+                step.is_done(&cube),
+                "costly {costly}, free {free}, seed {seed}:\n{cube}"
+            );
+        }
     }
     Ok(())
 }

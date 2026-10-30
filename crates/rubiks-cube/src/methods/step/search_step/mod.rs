@@ -1,7 +1,7 @@
 pub mod memorization;
 use std::{
     borrow::Cow,
-    collections::{VecDeque, hash_map::Entry},
+    collections::{BTreeMap, VecDeque, hash_map::Entry},
     sync::{Arc, Mutex},
 };
 
@@ -14,7 +14,10 @@ use crate::{
     fast_hash::FxMap,
     methods::{
         context::GLOBAL,
-        step::{StepBuilder, search_step::memorization::BfsMemo},
+        step::{
+            StepBuilder,
+            search_step::memorization::{BfsMemo, Cost},
+        },
     },
 };
 use crate::{Indexed, Puzzle};
@@ -196,6 +199,37 @@ impl<P: Puzzle> SearchStepBuilder<P> {
     }
 }
 
+/// A state the forward search has reached, its mask, and the sequence that reached it.
+type ForwardState<'a, P> = (Mask<P>, P, Option<&'a Algorithm<P>>);
+
+/// A state the forward search has settled.
+#[derive(Debug)]
+struct Reached<'a, P: Puzzle> {
+    cost: Cost,
+    via: Option<&'a Algorithm<P>>,
+    cube: P,
+}
+
+/// The cheapest meeting of the two searches so far.
+#[derive(Debug)]
+struct Best<P: Puzzle> {
+    cost: Cost,
+    path: Algorithm<P>,
+    end: P,
+}
+
+/// Replaces `best` if `cost` beats it, building the path only then.
+fn keep_cheaper<P: Puzzle>(
+    best: &mut Option<Best<P>>,
+    cost: Cost,
+    path_and_end: impl FnOnce() -> (Algorithm<P>, P),
+) {
+    if best.as_ref().is_none_or(|b| cost < b.cost) {
+        let (path, end) = path_and_end();
+        *best = Some(Best { cost, path, end });
+    }
+}
+
 impl<P: Puzzle> SearchStep<P> {
     /// Constructor for [`SearchStepBuilder`]. The constructed builder builds a [`SearchStep`] over
     /// all moves of the given [`Puzzle`].
@@ -216,116 +250,147 @@ impl<P: Puzzle> SearchStep<P> {
         Arc::ptr_eq(&self.memo, &other.memo)
     }
 
-    /// Meet in the middle: a forward search from `p`, one level at a time, against the memo's
+    /// Meet in the middle: a forward search from `p`, one layer at a time, against the memo's
     /// backward search from the goal. Each round grows whichever side has fewer states to expand.
+    fn solve_bfs(&self, p: &mut P) -> Result<Algorithm<P>, StepError> {
+        let (_, path) = self.search(p)?;
+        Ok(path)
+    }
+
+    /// [`Self::solve_bfs`], also returning what the path costs.
     #[expect(
         clippy::significant_drop_tightening,
         reason = "the memo is read and deepened on every round, so the lock is held for the whole search"
     )]
-    fn solve_bfs(&self, p: &mut P) -> Result<Algorithm<P>, StepError> {
+    fn search(&self, p: &mut P) -> Result<(Cost, Algorithm<P>), StepError> {
         let mut memo = self
             .memo
             .lock()
             .map_err(|_memo_error| StepError::Custom(Box::new(MemoPoisoned)))?;
-        let mut investigated = FxMap::from_iter([(self.mask(p), None)]);
-        let mut level = vec![p.clone()];
-        self.close_under_free_sequences(&mut level, &mut investigated);
-        let mut forward_depth = 0;
+        let mut investigated: FxMap<Mask<P>, Reached<'_, P>> = FxMap::default();
+        let mut to_search = BTreeMap::from([(Cost::ZERO, vec![(self.mask(p), p.clone(), None)])]);
+        let mut best = None;
 
-        loop {
-            let best = level
-                .par_iter()
-                .filter_map(|cube| {
-                    let tail = memo.solution(&self.mask(cube))?;
-                    let mut path = self.path_to(cube, &investigated);
-                    path.extend(tail.iter().copied());
-                    Some((path, tail, cube))
-                })
-                .min_by_key(|(path, _, _)| path.len());
-            if let Some((path, tail, cube)) = best {
-                *p = cube.apply(tail);
-                return Ok(path);
+        // No path can cost less than the two sides' next costs together, so past that `best` is
+        // final. A side with nothing left has seen everything it can reach.
+        while let (Some((&cost, level)), Some(memo_cost)) =
+            (to_search.first_key_value(), memo.next_cost())
+        {
+            if best
+                .as_ref()
+                .is_some_and(|b: &Best<P>| cost.plus(memo_cost) >= b.cost)
+            {
+                break;
             }
 
-            let memo_frontier = memo.frontier_len();
-            if memo_frontier != 0 && memo_frontier <= level.len() {
-                memo.deepen(&self.search_algs, &self.free_search_algs);
-            } else {
-                level = self.next_level(&level, &mut investigated);
-                forward_depth += 1;
-                if level.is_empty() {
-                    return Err(StepError::UnreachableGoal);
-                }
+            if memo.frontier_len() <= level.len() {
+                memo.deepen(
+                    &self.search_algs,
+                    &self.free_search_algs,
+                    |mask, tail_cost, tail| {
+                        if let Some(state) = investigated.get(mask) {
+                            keep_cheaper(&mut best, state.cost.plus(tail_cost), || {
+                                let mut path = self.path_to(&state.cube, &investigated);
+                                path.extend(tail.iter().copied());
+                                (path, state.cube.apply(tail))
+                            });
+                        }
+                    },
+                );
+            } else if let Some((cost, level)) = to_search.pop_first() {
+                self.next_level(
+                    cost,
+                    level,
+                    &memo,
+                    &mut investigated,
+                    &mut to_search,
+                    &mut best,
+                );
             }
             log::trace!(
-                "Step: {}\t forward states: {}\t forward depth: {forward_depth}\t memo frontier: {}",
+                "Step: {}\t forward cost: {cost:?}\t states: {}\t memo frontier: {}",
                 self.name(),
-                level.len(),
+                investigated.len(),
                 memo.frontier_len()
             );
         }
+
+        let best = best.ok_or(StepError::UnreachableGoal)?;
+        *p = best.end;
+        Ok((best.cost, best.path))
     }
 
-    /// The states the costly sequences reach from `level`, closed under the free sequences.
+    /// Settles `level`, then queues the states its sequences reach, each at its own cost.
     fn next_level<'a>(
         &'a self,
-        level: &[P],
-        investigated: &mut FxMap<Mask<P>, Option<&'a Algorithm<P>>>,
-    ) -> Vec<P> {
-        let candidates: Vec<_> = level
-            .par_iter()
-            .flat_map_iter(|p| {
-                self.search_algs.algs().iter().filter_map(|s| {
-                    let moved = p.apply(s);
-                    let mask = self.mask(&moved);
-                    (!investigated.contains_key(&mask)).then_some((mask, s, moved))
-                })
-            })
-            .collect();
-
-        let mut next = Vec::new();
-
-        for (mask, sequence, moved) in candidates {
-            if let Entry::Vacant(e) = investigated.entry(mask) {
-                e.insert(Some(sequence));
-                next.push(moved);
+        cost: Cost,
+        level: Vec<ForwardState<'a, P>>,
+        memo: &BfsMemo<P>,
+        investigated: &mut FxMap<Mask<P>, Reached<'a, P>>,
+        to_search: &mut BTreeMap<Cost, Vec<ForwardState<'a, P>>>,
+        best: &mut Option<Best<P>>,
+    ) {
+        let mut settled = Vec::new();
+        for (mask, cube, via) in level {
+            if let Entry::Vacant(e) = investigated.entry(mask.clone()) {
+                e.insert(Reached {
+                    cost,
+                    via,
+                    cube: cube.clone(),
+                });
+                if let Some((tail_cost, tail)) = memo.settled(&mask) {
+                    keep_cheaper(best, cost.plus(tail_cost), || {
+                        let mut path = self.path_to(&cube, investigated);
+                        path.extend(tail.iter().copied());
+                        (path, cube.apply(tail))
+                    });
+                }
+                settled.push(cube);
             }
         }
 
-        self.close_under_free_sequences(&mut next, investigated);
-        next
-    }
+        let sequences_by_cost = [
+            (cost.after_free(), self.free_search_algs.algs()),
+            (cost.after_costly(), self.search_algs.algs()),
+        ];
+        for (next_cost, sequences) in sequences_by_cost {
+            let known = &*investigated;
+            let candidates: Vec<_> = settled
+                .par_iter()
+                .flat_map_iter(|p| {
+                    sequences.iter().filter_map(move |s| {
+                        let moved = p.apply(s);
+                        let mask = self.mask(&moved);
+                        (!known.contains_key(&mask)).then_some((p, mask, s, moved))
+                    })
+                })
+                .collect();
 
-    /// Adds to `level` every new state its free sequences reach, repeatedly.
-    fn close_under_free_sequences<'a>(
-        &'a self,
-        level: &mut Vec<P>,
-        investigated: &mut FxMap<Mask<P>, Option<&'a Algorithm<P>>>,
-    ) {
-        let mut i = 0;
-        while let Some(cube) = level.get(i).cloned() {
-            i += 1;
-            for sequence in self.free_search_algs.algs() {
-                let moved = cube.apply(sequence);
-                if let Entry::Vacant(e) = investigated.entry(self.mask(&moved)) {
-                    e.insert(Some(sequence));
-                    level.push(moved);
+            for (parent, mask, sequence, moved) in candidates {
+                if let Some((tail_cost, tail)) = memo.settled(&mask) {
+                    keep_cheaper(best, next_cost.plus(tail_cost), || {
+                        let mut path = self.path_to(parent, investigated);
+                        path.extend(sequence.iter().copied());
+                        path.extend(tail.iter().copied());
+                        (path, moved.apply(tail))
+                    });
                 }
+                to_search
+                    .entry(next_cost)
+                    .or_default()
+                    .push((mask, moved, Some(sequence)));
             }
         }
     }
 
     /// The moves from the searched state to `cube`, read back through `investigated`.
-    fn path_to(
-        &self,
-        cube: &P,
-        investigated: &FxMap<Mask<P>, Option<&Algorithm<P>>>,
-    ) -> Algorithm<P> {
+    fn path_to(&self, cube: &P, investigated: &FxMap<Mask<P>, Reached<'_, P>>) -> Algorithm<P> {
         let mut path = VecDeque::new();
         let mut cube = cube.clone();
-        while let &Some(sequence) = investigated
+        while let Some(sequence) = investigated
             .get(&self.mask(&cube))
             .expect("every state in a level was investigated")
+            .via
         {
             cube = cube.apply(&sequence.clone().inv());
             path.push_front(sequence);
@@ -364,7 +429,75 @@ impl<P: Puzzle> Step<P> for SearchStep<P> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Cube3x3, Edge};
+    use crate::{Corner, Cube3x3, Edge, Piece3x3};
+
+    /// A memo grown until it has nothing left knows the true cost of every state, so the two-ended
+    /// search must match it.
+    #[test]
+    fn meeting_in_the_middle_finds_the_minimal_cost() {
+        let last_slot = vec![
+            Piece3x3::Edge(Edge::Uf),
+            Piece3x3::Edge(Edge::Ur),
+            Piece3x3::Corner(Corner::Ufr),
+        ];
+        let last_six_edges = vec![
+            Piece3x3::Edge(Edge::Uf),
+            Piece3x3::Edge(Edge::Ub),
+            Piece3x3::Edge(Edge::Df),
+            Piece3x3::Corner(Corner::Ufr),
+        ];
+        let cases = [
+            ("M", "U", last_six_edges.clone()),
+            ("U", "M", last_six_edges.clone()),
+            ("M U", "", last_six_edges),
+            ("R2", "U", last_slot.clone()),
+            ("R", "U", last_slot.clone()),
+            ("U", "R", last_slot.clone()),
+            ("R U", "F", last_slot.clone()),
+            ("F2", "U R", last_slot),
+        ];
+        let mut random = fastrand::Rng::with_seed(1);
+        for (costly, free, pieces) in cases {
+            let costly_algs = AlgSet::from_static_parts(costly);
+            let free_algs = AlgSet::from_static_parts(free);
+            let goal = PieceSet::from_pieces(pieces);
+            let mut exhausted = BfsMemo::<Cube3x3>::new(goal.clone());
+            while exhausted.next_cost().is_some() {
+                exhausted.deepen(&costly_algs, &free_algs, |_, _, _| {});
+            }
+            let moves: Vec<&str> = costly
+                .split(' ')
+                .chain(free.split(' '))
+                .filter(|m| !m.is_empty())
+                .collect();
+            for _ in 0..60 {
+                let scramble = (0..random.usize(0..14))
+                    .map(|_| moves[random.usize(..moves.len())])
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                let start = Cube3x3::from_moves(&scramble).unwrap();
+                let step = SearchStep::builder("cost", costly_algs.clone())
+                    .free_algs(free_algs.clone())
+                    .goal(goal.clone())
+                    .build_in(&BuildContext::new())
+                    .unwrap();
+                let (minimal, _) = exhausted.settled(&step.mask(&start)).unwrap();
+                let mut cube = start;
+
+                let (cost, path) = step.search(&mut cube).unwrap();
+
+                assert_eq!(cost, minimal, "costly {costly}, free {free}: {scramble}");
+                assert!(
+                    step.is_done(&cube),
+                    "costly {costly}, free {free}: {scramble}"
+                );
+                assert!(
+                    step.is_done(&start.apply(&path)),
+                    "costly {costly}, free {free}: {scramble}"
+                );
+            }
+        }
+    }
 
     #[test]
     fn a_poisoned_memo_is_reported_as_memo_poisoned() {

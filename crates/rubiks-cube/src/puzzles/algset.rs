@@ -3,7 +3,7 @@ use std::{str::FromStr, sync::Arc};
 use itertools::Itertools;
 
 use crate::{
-    Algorithm, Cube3x3, Indexed, ParseSequenceError, Puzzle,
+    Algorithm, Cube3x3, ParseSequenceError, Puzzle,
     puzzles::cube3x3::moves::{Move3x3, MoveModifier},
 };
 
@@ -39,13 +39,6 @@ impl<P: Puzzle> AlgSet<P> {
         Self(Arc::new([]))
     }
 
-    /// Constructs an [`AlgSet`] with one [`Algorithm`] for every [`P::Move`](Puzzle::Move)
-    #[must_use]
-    pub fn all_moves() -> Self {
-        P::Move::all()
-            .map(|m| std::iter::once(m).collect())
-            .collect()
-    }
     /// Every sequence of either collection, each listed once.
     ///
     /// The order of the sequences is not kept, and a sequence in both collections, or twice in

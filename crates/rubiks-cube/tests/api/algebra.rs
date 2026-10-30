@@ -126,11 +126,3 @@ fn random_words_stay_reachable_and_undo_cleanly() -> anyhow::Result<()> {
     }
     Ok(())
 }
-
-#[test]
-fn multiplying_by_an_algorithm_applies_its_moves_in_order() -> anyhow::Result<()> {
-    let alg: Algorithm<Cube3x3> = "R U R' F2".parse()?;
-    let start = Cube3x3::scrambled_with_seed(0);
-    assert_eq!(start * alg, start * Cube3x3::from_moves("R U R' F2")?);
-    Ok(())
-}

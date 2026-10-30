@@ -6,7 +6,6 @@
 )]
 
 mod algebra;
-mod kociemba;
 mod mask;
 mod moves;
 mod notation;

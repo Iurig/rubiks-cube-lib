@@ -4,6 +4,8 @@ use std::{
     ops::Mul,
 };
 
+use itertools::Itertools;
+
 use crate::{AlgSet, Indexed, Puzzle, fast_hash::FxSet};
 
 /// A puzzle with optional labels attached to its pieces, as well as optional orientations.
@@ -47,16 +49,21 @@ impl<P: Puzzle> Display for Labeled<P, ByMembership> {
             .0
             .iter()
             .enumerate()
-            .map(|(index, slot)| {
-                format!(
-                    "{:?}: {:?}",
-                    slot.label.is_some().then_some(P::Piece::from_index(index)),
-                    slot.orient
-                )
+            .filter_map(|(index, slot)| {
+                slot.label.map(|()| P::Piece::from_index(index).to_string())
             })
             .collect::<Vec<_>>()
             .join(", ");
-        write!(f, "{permutation}")
+        let orientation = self
+            .0
+            .iter()
+            .enumerate()
+            .filter_map(|(index, slot)| {
+                slot.orient.map(|_| P::Piece::from_index(index).to_string())
+            })
+            .join(", ");
+
+        write!(f, "Placed: {permutation}\nOriented:{orientation}\n")
     }
 }
 
@@ -426,5 +433,20 @@ mod test {
         assert!(home_only.is_subset(&solved));
         assert!(!solved.is_subset(&PieceSet::new()));
         assert!(!oriented_only.is_subset(&home_only));
+    }
+
+    #[test]
+    fn fb_or_sb_is_f2b() {
+        let fb = PieceSet::from_algset(&AlgSet::from_static_parts("R U M"));
+        let sb = PieceSet::from_algset(&AlgSet::from_static_parts("L U M"));
+        assert!(
+            fb.or(&sb) == PieceSet::from_algset(&AlgSet::from_static("M\nU\nR U R' U R U2 R'")),
+            "FB:\n{fb}\nSB:\n{sb}\nF2B:\n\tExpected:\n\t{}\n\tFound:\n\t{}",
+            PieceSet::from_algset(&AlgSet::from_static_parts("M U"))
+                .to_string()
+                .lines()
+                .join("\n\t"),
+            fb.or(&sb).to_string().lines().join("\n\t")
+        );
     }
 }

@@ -158,11 +158,6 @@ impl<P: Puzzle> Algorithm<P> {
         self.0.extend_from_slice(&other.0);
     }
 
-    /// Keeps the first `len` moves and drops the rest.
-    pub fn truncate(&mut self, len: usize) {
-        self.0.truncate(len);
-    }
-
     /// Same as [`FromStr`](core::str::FromStr), but for `'static` types.
     ///
     /// # Panics

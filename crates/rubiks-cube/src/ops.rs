@@ -127,4 +127,11 @@ mod tests {
         }
         Ok(())
     }
+
+    #[test]
+    fn pow_splits_an_odd_exponent_correctly() -> anyhow::Result<()> {
+        let r = Cube3x3::from_moves("R")?;
+        assert_eq!(r.pow(5), r);
+        Ok(())
+    }
 }

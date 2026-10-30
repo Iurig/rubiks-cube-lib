@@ -10,9 +10,11 @@ use rubiks_cube::{cube3x3_method_helpers::*, *};
 
 fn main() {
     use rubiks_cube::{AlgSet, Cube3x3, PieceSet, SearchStep, Technique};
-
-    let eolr = *SearchStep::builder("EOLR", AlgSet::from_static_parts("M U"))
-        .goal(PieceSet::from_algset(&AlgSet::from_static("M\n U2")));
+    let eolr = SearchStep::builder("EOLR", AlgSet::from_static_parts("M U"))
+        .goal(PieceSet::from_algset(&AlgSet::<Cube3x3>::from_static(
+            "M' U2 M U2\n M U2 M' U2",
+        )))
+        .clone();
 
     let advanced_roux = Technique::<Cube3x3>::start_with(SearchStep::builder(
         "FB",
@@ -23,32 +25,22 @@ fn main() {
         AlgSet::from_static_parts("R U r M"),
     ))
     .then(
-        *SearchStep::builder(
+        SearchStep::builder(
             "CMLL",
-            AlgSet::from_static_parts(concat!(include_str!("path/to/algs/"))),
+            AlgSet::from_static(include_str!(
+                "../../src/methods/cube3x3/algsets/cmll/one_look.txt"
+            )),
         )
-        .free_algs(AlgSet::from_static_parts("U"))
-        .goal(PieceSet::from_algset(&AlgSet::from_static("U M' U' \n M"))),
+        .free_algs(AlgSet::from_static_parts("U M"))
+        .goal(PieceSet::from_algset(&AlgSet::from_static("U M' U' \n M")))
+        .clone(),
     )
     .then(eolr)
-    .finish(SearchStep::builder("LSE", AlgSet::from_static("M U")));
+    .finish(SearchStep::builder("LSE", AlgSet::from_static_parts("M U")))?;
 
-    let advanced_cfop = Technique::<Cube3x3>::builder()
-        .with_neutrality(["x2", "y"]) // white or yellow bottom
-        .search("Cross", ["R", "F", "U", "L", "D", "u"])
-        .until_all(
-            "F2L", // Solves many steps, always choosing the shortest to solve at every point.
-            ["R U* R'", "L U* L'", "R' U* R", "L' U* L", "y"], /* The moveset should be the same
-                    * for all steps. */
-            [["R U* R'"], ["L U* L'"], ["R' U* R"], ["L' U* L"]], /* The goals of each step are
-                                                                   * defined by as usual: by the
-                                                                   * pieces not touched by each
-                                                                   * set of algs. */
-        )
-        .search_with_goall(
-            "OLL",
-            [include_str!("path/to/algs/"), "U"],
-            AlgSet::from_static_parts("U"),
-        )
-        .finish("PLL", [include_str!("path/to/algs")]);
+    let mut cube = Cube3x3::scrambled_with_seed(3);
+
+    advanced_roux.solve(&mut cube)?;
+
+    assert!(cube.is_solved());
 }

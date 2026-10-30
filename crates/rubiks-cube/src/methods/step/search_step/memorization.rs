@@ -1,12 +1,50 @@
+use std::collections::BTreeMap;
+
 use crate::{AlgSet, Algorithm, Inv, Mask, PieceSet, Puzzle, fast_hash::FxMap};
+
+/// What a path costs: compared by costly sequences first, then by free sequences.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct Cost {
+    costly: u32,
+    free: u32,
+}
+
+impl Cost {
+    pub(crate) const ZERO: Self = Self { costly: 0, free: 0 };
+
+    pub(crate) const fn after_costly(self) -> Self {
+        Self {
+            costly: self.costly + 1,
+            free: self.free,
+        }
+    }
+
+    pub(crate) const fn after_free(self) -> Self {
+        Self {
+            costly: self.costly,
+            free: self.free + 1,
+        }
+    }
+
+    pub(crate) const fn plus(self, other: Self) -> Self {
+        Self {
+            costly: self.costly + other.costly,
+            free: self.free + other.free,
+        }
+    }
+}
+
+/// A state reached but not settled: its mask, the state, and its way back to the goal.
+type Pending<P> = (Mask<P>, P, Algorithm<P>);
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct BfsMemo<P: Puzzle> {
     /// Every state is filtered through this, so memo keys match the forward search's masks.
     goal: PieceSet<P>,
-    memorization: FxMap<Mask<P>, Algorithm<P>>,
-    to_deepen: Vec<(Mask<P>, P)>,
-    depth: usize,
+    /// The settled states: each cost here is final.
+    memorization: FxMap<Mask<P>, (Cost, Algorithm<P>)>,
+    /// By cost: a cheaper path to one of these may still turn up.
+    to_deepen: BTreeMap<Cost, Vec<Pending<P>>>,
 }
 
 impl<P: Puzzle> BfsMemo<P> {
@@ -14,74 +52,97 @@ impl<P: Puzzle> BfsMemo<P> {
         let mask = Mask::filter_by_piece(&P::default(), &goal);
         Self {
             goal,
-            memorization: FxMap::from_iter([(mask.clone(), Algorithm::new())]),
-            to_deepen: vec![(mask, P::default())],
-            depth: 0,
+            memorization: FxMap::default(),
+            to_deepen: BTreeMap::from([(Cost::ZERO, vec![(mask, P::default(), Algorithm::new())])]),
         }
     }
 
-    pub fn solution(&self, mask: &Mask<P>) -> Option<&Algorithm<P>> {
-        self.memorization.get(mask)
+    #[cfg(test)]
+    pub(crate) fn solution(&self, mask: &Mask<P>) -> Option<&Algorithm<P>> {
+        self.memorization.get(mask).map(|(_, solution)| solution)
+    }
+
+    /// The settled cost and solution of `mask`.
+    pub(crate) fn settled(&self, mask: &Mask<P>) -> Option<(Cost, &Algorithm<P>)> {
+        self.memorization
+            .get(mask)
+            .map(|(cost, solution)| (*cost, solution))
     }
 
     /// Number of states the next [`Self::deepen`] starts from; 0 once every reachable state is
     /// memorized.
-    pub(crate) const fn frontier_len(&self) -> usize {
-        self.to_deepen.len()
+    pub(crate) fn frontier_len(&self) -> usize {
+        self.to_deepen
+            .first_key_value()
+            .map_or(0, |(_, states)| states.len())
     }
 
-    /// Deepens until level `depth` is expanded.
+    /// The cost the next [`Self::deepen`] settles; `None` once every reachable state is memorized.
+    pub(crate) fn next_cost(&self) -> Option<Cost> {
+        self.to_deepen.first_key_value().map(|(&cost, _)| cost)
+    }
+
+    /// Deepens until every state of at most `depth + 1` costly sequences is settled.
     #[cfg(test)]
     pub(crate) fn search_to(
         &mut self,
-        depth: usize,
+        depth: u32,
         possible_sequences: &AlgSet<P>,
         free_possible_sequences: &AlgSet<P>,
     ) {
-        while self.depth <= depth {
-            self.deepen(possible_sequences, free_possible_sequences);
+        while self
+            .next_cost()
+            .is_some_and(|cost| cost.costly <= depth + 1)
+        {
+            self.deepen(possible_sequences, free_possible_sequences, |_, _, _| {});
         }
     }
 
-    /// Expands one level. `self.depth` is the next level to expand; expanding level `d` memorizes
-    /// every state of cost `d` (free sequences stay on this level) and some of cost `d + 1`.
+    /// Settles the cheapest layer and reaches out from it by one sequence. `seen` gets every state
+    /// settled or reached, so the forward search can check each for a meeting.
     pub(crate) fn deepen(
         &mut self,
         possible_sequences: &AlgSet<P>,
         free_possible_sequences: &AlgSet<P>,
+        mut seen: impl FnMut(&Mask<P>, Cost, &Algorithm<P>),
     ) {
-        // Close the level under the free sequences before any costly one runs: a state a free
-        // sequence reaches costs the same as the level, and a costly sequence that reached it
-        // first would memorize it, and everything after it, one level too deep.
-        let mut i = 0;
-        while let Some((mask, p)) = self.to_deepen.get(i).cloned() {
-            i += 1;
+        let Some((cost, layer)) = self.to_deepen.pop_first() else {
+            return;
+        };
+        for (mask, p, solution) in layer {
+            if self.memorization.contains_key(&mask) {
+                continue;
+            }
+            seen(&mask, cost, &solution);
+            self.memorization.insert(mask.clone(), (cost, solution));
             for sequence in free_possible_sequences.algs() {
                 if let Some(state) = self.memorize(&mask, &p, sequence) {
-                    self.to_deepen.push(state);
+                    seen(&state.0, cost.after_free(), &state.2);
+                    self.to_deepen
+                        .entry(cost.after_free())
+                        .or_default()
+                        .push(state);
                 }
             }
-        }
-
-        let mut next_frontier = Vec::new();
-        for (mask, p) in std::mem::take(&mut self.to_deepen) {
             for sequence in possible_sequences.algs() {
                 if let Some(state) = self.memorize(&mask, &p, sequence) {
-                    next_frontier.push(state);
+                    seen(&state.0, cost.after_costly(), &state.2);
+                    self.to_deepen
+                        .entry(cost.after_costly())
+                        .or_default()
+                        .push(state);
                 }
             }
         }
-        self.to_deepen = next_frontier;
-        self.depth += 1;
     }
 
-    /// Memorizes the state `sequence` leads back from, if it is new, and returns it with its mask.
+    /// The state `sequence` leads back from, with its mask and solution, if it is not settled yet.
     fn memorize(
-        &mut self,
+        &self,
         parent_mask: &Mask<P>,
         parent: &P,
         sequence: &Algorithm<P>,
-    ) -> Option<(Mask<P>, P)> {
+    ) -> Option<Pending<P>> {
         // Walk away from the goal by undoing `sequence`, so the way back applies `sequence` as
         // written, then the parent's path.
         let moved = sequence
@@ -95,14 +156,15 @@ impl<P: Puzzle> BfsMemo<P> {
         let solution = sequence
             .iter()
             .chain(
-                self.memorization
+                &self
+                    .memorization
                     .get(parent_mask)
-                    .expect("a parent is memorized before its children"),
+                    .expect("a parent is memorized before its children")
+                    .1,
             )
             .copied()
             .collect();
-        self.memorization.insert(mask.clone(), solution);
-        Some((mask, moved))
+        Some((mask, moved, solution))
     }
 }
 
@@ -113,6 +175,23 @@ mod tests {
     use super::*;
     use crate::*;
     use fastrand::Rng;
+
+    #[test]
+    fn each_kind_of_sequence_adds_to_its_own_count() {
+        let cost = Cost { costly: 2, free: 3 };
+        assert_eq!(cost.after_free(), Cost { costly: 2, free: 4 });
+        assert_eq!(cost.after_costly(), Cost { costly: 3, free: 3 });
+    }
+
+    #[test]
+    fn one_costly_sequence_outweighs_any_number_of_free_ones() {
+        assert!(
+            Cost {
+                costly: 0,
+                free: 100
+            } < Cost { costly: 1, free: 0 }
+        );
+    }
 
     #[test]
     fn applying_mask_matches_filtering_through() {
@@ -135,7 +214,7 @@ mod tests {
     }
 
     /// A memo over the whole cube, searched with R and U moves only.
-    fn r_u_memo(depth: usize) -> (BfsMemo<Cube3x3>, PieceSet<Cube3x3>) {
+    fn r_u_memo(depth: u32) -> (BfsMemo<Cube3x3>, PieceSet<Cube3x3>) {
         let goal = PieceSet::<Cube3x3>::from_pieces(Piece3x3::all());
         let allowed = AlgSet::from_moves("R R' R2 U U' U2").unwrap();
         let mut memo = BfsMemo::new(goal.clone());
